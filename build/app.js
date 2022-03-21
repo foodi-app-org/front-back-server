@@ -38,8 +38,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // @ts-ignore
 (async () => {
   // config ports
-  const GRAPHQL_PORT = 3000;
-  const API_REST_PORT = 3001;
+  const GRAPHQL_PORT = 4000;
+  const API_REST_PORT = 5000;
   const pubsub = new _graphqlSubscriptions.PubSub(); // Initialization apps
 
   const app = (0, _express.default)();
