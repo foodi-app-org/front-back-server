@@ -18,8 +18,8 @@ import cors from 'cors'
 import indexRoutes from './api/lib/router'
 (async () => {
     // config ports
-    const GRAPHQL_PORT = 4000;
-    const API_REST_PORT = 5000;
+    const GRAPHQL_PORT = 3000;
+    const API_REST_PORT = 3001;
     const pubsub = new PubSub();
 
     // Initialization apps
