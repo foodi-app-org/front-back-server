@@ -8,7 +8,7 @@
     "clean-install": "rm -rf node_modules && npm install",
     "build": "babel src/ --out-dir build",
     "babel-node": "babel-node --presets=@babel/preset-env",
-    "start": "nodemon --exec npm run babel-node build/app.js",
+    "start": "node build/app.js",
     "dev": "nodemon --exec npm run babel-node  src/app.js",
     "preinstall": "npx npm-force-resolutions"
   },
