@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean-install": "rm -rf node_modules && npm install",
-    "build": "babel src/ --out-dir build",
+    "build": "npm install react && babel src/ --out-dir build",
     "babel-node": "babel-node --presets=@babel/preset-env",
     "start": "node build/app.js",
     "dev": "nodemon --exec npm run babel-node  src/app.js",
