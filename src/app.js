@@ -18,13 +18,13 @@ import cors from 'cors'
 import indexRoutes from './api/lib/router'
 (async () => {
     // config ports
-    const GRAPHQL_PORT = 4000;
+    const GRAPHQL_PORT = 3000;
     const API_REST_PORT = 5000;
     const pubsub = new PubSub();
 
     // Initialization apps
     const app = express();
-    app.set('port', process.env.GRAPHQL_PORT || 4000)
+    app.set('port', process.env.GRAPHQL_PORT || 3000)
     app.post('/image', (req, res) => { res.json('/image api') })
     app.use('/image', (req, res) => {
         res.send('ONLINE PORT IMAGES!')
