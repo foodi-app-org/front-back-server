@@ -4,7 +4,6 @@
 // import nodemailer from 'nodemailer'
 import moment from 'moment'
 import jwtDecode from 'jwt-decode'
-import { useEffect } from 'react'
 import jwt, { decode } from 'jsonwebtoken'
 
 moment.locale('es')
@@ -933,13 +932,7 @@ export const mongoObjectId = function () {
 }
 
 export default function useKeypress(key, action) {
-    useEffect(() => {
-        function onKeyup(e) {
-            if (e.key === key) action()
-        }
-        window.addEventListener('keyup', onKeyup)
-        return () => window.removeEventListener('keyup', onKeyup)
-    }, [])
+   return {  }
 }
 export const CalculateIva = (quantity, rate, iPercentage, state) => {
     const rateNumber = parseInt(rate)
