@@ -63,11 +63,53 @@ input IStore {
     createAt: DateTime
 }
 
+type StoreOrder {
+  pdpId: ID
+  id: ID
+  idStore: ID
+  pId: ID
+  ppState: String
+  pCodeRef: String
+  pPDate: String
+  pSState: String
+  pPStateP: String
+  payMethodPState: String
+  pPRecoger: Boolean
+  totalProductsPrice: Float
+  unidProducts: Int
+  pDatCre: String
+  pDatMod: String
+}
+
+# type Subscription {
+# }
+
+type StoreOrder {
+  pdpId: ID
+  id: ID
+  idStore: ID
+  pId: ID
+  ppState: String
+  pCodeRef: String
+  pPDate: String
+  pSState: String
+  pPStateP: String
+  payMethodPState: String
+  pPRecoger: Boolean
+  totalProductsPrice: Float
+  unidProducts: Int
+  pDatCre: String
+  pDatMod: String
+}
+
+
 type Query {
     """
     Response for find one Store
     """
     getStore(id: ID, StoreName: String, idStore: ID): Store
+    pushNotificationOrder(pCodeRef: String, idStore: ID): StoreOrder
+
 }
 type Mutation {
     """
@@ -77,5 +119,10 @@ type Mutation {
 }
 
 type Subscription {
-    newStore: Store
+    newStore: Store,
+}
+
+
+type Subscription {
+  newStoreOrder: StoreOrder
 }

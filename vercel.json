@@ -8,7 +8,7 @@
     ],
     "routes": [
         {
-            "src": "./build/app.js",
+            "src": "/(.*)",
             "dest": "/"
         }
     ]

@@ -32,7 +32,6 @@ const SubscriptionSubscription = {
             subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED']),
         },
     },
-
 }
 
 export default {
