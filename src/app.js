@@ -18,13 +18,13 @@ import cors from 'cors'
 import indexRoutes from './api/lib/router'
 (async () => {
     // config ports
-    const GRAPHQL_PORT = 3000;
+    const GRAPHQL_PORT = 4000;
     const API_REST_PORT = 5000;
     const pubsub = new PubSub();
 
     // Initialization apps
     const app = express();
-    app.set('port', process.env.GRAPHQL_PORT || 3000)
+    app.set('port', process.env.GRAPHQL_PORT || 4000)
     app.post('/image', (req, res) => { res.json('/image api') })
     app.use('/image', (req, res) => {
         res.send('ONLINE PORT IMAGES!')
@@ -62,29 +62,50 @@ import indexRoutes from './api/lib/router'
         typeDefs, resolvers,
         introspection: true,
         plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
-        context: async ({ req, res }) => {
-            // check from req
-            console.log('Run')
-            const token = (req.headers.authorization)
-            if (token !== 'null') {
+        context: ({ req, res, connection }) => {
+            if (connection) {
+              const { restaurant } = connection.context || {};
+              return { pubsub, restaurant };
+            } else {
+              const token = (req.headers.authorization);
+              if (token !== 'null') {
                 try {
-                    //validate user in client.
-                    // const User = await jwt.verify(token, process.env.AUTHO_USER_KEY);
-                    let User = null
-                    return { User, res, pubsub }
+                  // validate user in client.
+                  // const User = await jwt.verify(token, process.env.AUTHO_USER_KEY);
+                  const User = null;
+                  return { User, res, pubsub }
                 } catch (err) {
-                    console.log(err)
-                    console.log('Hola esto es un error del contexto')
+                  console.log(err);
+                  console.log('Hola esto es un error del contexto');
                 }
+              }
+              return { pubsub };
             }
-
-        },
+          },
     });
     await server.start();
     server.applyMiddleware({ app });
     SubscriptionServer.create(
-        { schema, execute, subscribe },
-        { server: httpServer, path: server.graphqlPath }
+        {
+            schema,
+            execute,
+            subscribe,
+            onConnect: (connectionParams, webSocket, context) => {
+                console.log(connectionParams)
+                if (connectionParams?.headers?.restaurant || connectionParams?.restaurant) {
+                  const restaurant = connectionParams?.headers?.restaurant ?? connectionParams.restaurant ;
+                  console.log("connection", restaurant);
+                  return { pubsub, restaurant };
+                }
+                throw new Error("Restaurant not provided in connection params");
+              },
+        },
+        {
+            server:
+            httpServer,
+            path:
+            server.graphqlPath
+        }
     );
 
     httpServer.listen(GRAPHQL_PORT, () => {
@@ -96,3 +117,28 @@ import indexRoutes from './api/lib/router'
         );
     });
 })();
+
+
+// await server.start();
+// server.applyMiddleware({ app });
+
+// const wsServer = new SubscriptionServer({
+//   execute,
+//   subscribe,
+//   schema,
+//   onConnect: (connectionParams) => {
+//     if (connectionParams.authorization) {
+//       const restaurant = connectionParams.restaurant;
+//       return { restaurant };
+//     }
+//   },
+// }, {
+//   server: httpServer,
+//   path: '/graphql',
+// });
+
+// httpServer.listen(GRAPHQL_PORT, () => {
+//   console.log(`🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`);
+//   console.log(`🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${wsServer.options.path}`);
+// });
+// })();

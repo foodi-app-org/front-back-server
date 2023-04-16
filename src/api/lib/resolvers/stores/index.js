@@ -10,4 +10,7 @@ export default {
     MUTATIONS: {
         ...storeResolver.MUTATIONS
     },
+    SUBSCRIPTIONS: {
+        ...storeResolver.SUBSCRIPTIONS
+    }
 }
