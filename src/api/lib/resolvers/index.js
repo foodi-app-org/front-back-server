@@ -2,7 +2,6 @@
 import dateTimeScalar from './CustomScalar'
 import deviceResolver from './device'
 import messagesResolver from './messages'
-import bannerResolver from './banners'
 import storeResolver from './stores'
 import { GraphQLUpload } from "graphql-upload";
 export default {
@@ -12,17 +11,14 @@ export default {
     Query: {
         ...deviceResolver.QUERIES,
         ...storeResolver.QUERIES,
-        ...bannerResolver.QUERIES,
     },
     Mutation: {
         ...deviceResolver.MUTATIONS,
         ...storeResolver.MUTATIONS,
-        ...bannerResolver.MUTATIONS,
     },
     Subscription: {
         ...messagesResolver.SUBSCRIPTIONS,
         ...storeResolver.SUBSCRIPTIONS,
-        ...bannerResolver.SUBSCRIPTIONS,
         // ...deviceResolver.SUBSCRIPTIONS,
     },
 }

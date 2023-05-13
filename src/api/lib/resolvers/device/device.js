@@ -29,7 +29,6 @@ export default {
     },
     QUERIES: {
         getRoles,
-        // currentNumber,
         getMessage,
     },
     MUTATIONS: {
