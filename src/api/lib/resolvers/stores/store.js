@@ -1,7 +1,3 @@
-import Store from "../../models/Store/Store"
-import { URL_BASE } from "../../utils"
-import { deCode } from "../../utils/util"
-import { saveImages } from "../banners/bannerMain"
 import { PubSub, withFilter } from 'graphql-subscriptions';
 const pubsub = new PubSub(); //create a PubSub instance
 
@@ -15,8 +11,6 @@ export const setALogoStore = async (_root, { logo, idStore }, ctx) => {
         } = fileUpload
         // saveImages()
         const fileStream = createReadStream()
-        await saveImages({ filename, mimetype, fileStream, state: 3 })
-        await Store.update({ Image: `${URL_BASE}static/logo/${filename}` }, { where: { idStore: deCode(idStore) } })
         return {
             success: true,
             message: 'Logo subido con éxito'

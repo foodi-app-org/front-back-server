@@ -6,8 +6,7 @@ import { ApolloServer, gql } from 'apollo-server-express'
 import { PubSub } from 'graphql-subscriptions'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { graphqlUploadExpress, graphqlUploadKoa } from 'graphql-upload';
-import multer from 'multer';
+import { graphqlUploadExpress } from 'graphql-upload';
 // @ts-ignore
 import typeDefs from './api/lib/typeDefs'
 import resolvers from './api/lib/resolvers'
@@ -91,14 +90,14 @@ import indexRoutes from './api/lib/router'
             execute,
             subscribe,
             onConnect: (connectionParams, webSocket, context) => {
-                console.log(connectionParams)
-                if (connectionParams?.headers?.restaurant || connectionParams?.restaurant) {
-                  const restaurant = connectionParams?.headers?.restaurant ?? connectionParams.restaurant ;
-                  console.log("connection", restaurant);
-                  return { pubsub, restaurant };
-                }
-                throw new Error("Restaurant not provided in connection params");
-              },
+              console.log(connectionParams)
+              if (connectionParams?.headers?.restaurant || connectionParams?.restaurant) {
+                const restaurant = connectionParams?.headers?.restaurant ?? connectionParams.restaurant ;
+                console.log("connection", restaurant);
+                return { pubsub, restaurant };
+              }
+              throw new Error("Restaurant not provided in connection params");
+            },
         },
         {
             server:
