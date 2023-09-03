@@ -1,3 +1,7 @@
+/* eslint-disable import/no-anonymous-default-export */
+import UserDeviceModel from '../../models/users/userDevice'
+import { deCode, getAttributes } from '../../utils/util'
+
 /**
  * 
  * @param {*} _root no usado 
@@ -6,35 +10,29 @@
  * @param {*} info _
  * @returns 
  */
-export const getRoles = async (_root, _args, context, info) => {
-    console.log('first')
-}
-export const getMessage = async (_root, _args, context, info) => {
-    console.log(context.pubsub)
-    return 'Prueba 1'
-}
-export const currentNumber = async (_root, _args, context, info) => {
-    let currentNumber = 0;
-    context.pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber });
-    return 0
-    // return 'Prueba 1'
-}
-export const numberIncremented = async (_root, _args, context, info) => {
-    return { numberIncremented: { subscribe: () => context.pubsub.asyncIterator(['NUMBER_INCREMENTED'])        },}
-    // return 'Prueba 1'
+export const getDeviceUsers = async (_root, _args, context, info) => {
+  try {
+    const attributes = getAttributes(UserDeviceModel, info)
+    const data = await UserDeviceModel.findAll({
+      attributes,
+      where: {
+        id: deCode(context.User.id)
+      }
+    })
+    return data
+  } catch (e) {
+    const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 500)
+    return error
+  }
+
 }
 
 export default {
-    TYPES: {
-    },
-    QUERIES: {
-        getRoles,
-        getMessage,
-    },
-    MUTATIONS: {
-        // numberIncremented
-    },
-    SUBSCRIPTIONS: {
-        // numberIncremented
-    }
+  TYPES: {
+  },
+  QUERIES: {
+    getDeviceUsers
+  },
+  MUTATIONS: {
+  }
 }

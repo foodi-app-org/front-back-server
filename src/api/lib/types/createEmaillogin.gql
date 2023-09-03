@@ -10,6 +10,8 @@ type EmailLoginType {
 input IEmailLogin {
     _id: ID
     uEmail: String
+    deviceid: String
+    userAgent: String
 }
 # Mutations
 type Mutation {

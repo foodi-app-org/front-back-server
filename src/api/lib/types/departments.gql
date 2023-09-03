@@ -8,7 +8,7 @@ type Department {
     dDatMod: DateTime
 }
 
-# Inputs    
+# Inputs
 input IDepartment {
     dId: ID #Solo para actualizar
     cId: ID!
