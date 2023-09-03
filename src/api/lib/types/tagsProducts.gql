@@ -1,0 +1,31 @@
+type TagsProduct {
+  tPsId: ID
+  idUser: ID
+  idStore: ID
+  pId: ID
+  nameTag: String
+  aName: String
+}
+# Tag Type
+
+# Tag Input
+input ITag {
+  idUser: ID
+  idStore: ID
+  pId: ID
+  nameTag: String
+  aName: String
+}
+
+# Query
+type Query {
+  getAllTags(idStore: ID): [TagsProduct]
+  getOneTags(idStore: ID): TagsProduct
+}
+# Mutations
+type Mutation {
+  registerTag(input: ITag): TagsProduct
+  registerTagName(name: String): Response
+  EditTags(input: ITag): TagsProduct
+  DeleteOneTags(tPsId: ID): Boolean,
+}

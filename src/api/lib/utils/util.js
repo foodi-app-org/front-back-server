@@ -1,5 +1,7 @@
-const graphqlFields = require('graphql-fields')
 const { Base64 } = require('js-base64')
+const crypto =  require('crypto')
+
+const SECRET_KEY = 'f128635fca2edc7bb4e47a577cfe0d1a013dcdceffacad1abb128e640f9e571c';
 
 const codeRed = async model => {
     /** variables necesarias */
@@ -18,15 +20,46 @@ const codeRed = async model => {
 }
 
 const enCode = value => {
-    const v = ((((value * 998161) * 793927) * 562841) * 288413) / 472793
-    return Base64.encode(`${ v }`)
-}
-
-const deCode = value => {
-    const v = Base64.decode(value)
-    return Math.round(((((v * 472793) / 288413) / 562841) / 793927) / 998161)
-}
-
+    try {
+      if (value) {
+        const cipher = crypto.createCipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
+        let encrypted = cipher.update(value.toString(), 'utf-8', 'hex')
+        encrypted += cipher.final('hex')
+  
+        const uuid = [
+          encrypted.substr(0, 8),
+          encrypted.substr(8, 4),
+          encrypted.substr(12, 4),
+          encrypted.substr(16, 4),
+          encrypted.substr(20)
+        ].join('-')
+  
+        return uuid
+      }
+    } catch (error) {
+      return ''
+    }
+  }
+  
+  const deCode = uuidValue => {
+    try {
+      if (!uuidValue) return ''
+  
+      if (typeof uuidValue !== 'string') {
+        uuidValue = uuidValue.toString()
+      }
+  
+      const encryptedHex = uuidValue.replace(/-/g, '')
+      const decipher = crypto.createDecipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
+      let decrypted = decipher.update(encryptedHex, 'hex', 'utf-8') // Cambia 'hex' a 'utf-8'
+      decrypted += decipher.final('utf-8') // Cambia 'hex' a 'utf-8'
+  
+      return parseInt(decrypted, 10)
+    } catch (error) {
+      return ''
+    }
+  }
+  
 const linkBelongsTo = (modelOne, modelTwo, target, foreign) => {
     return modelOne.belongsTo(modelTwo, {
         targetKey: target,
@@ -79,11 +112,15 @@ const updateOrCreate = async (model, newItem, where) => {
 }
 
 // Busca los campos que coinciden con la base de datos y la query de graphql
-const getAttributes = (model, attributes) => {
-    const rows = model.rawAttributes
-    const columns = graphqlFields(attributes)
-    return (Object.keys(columns?.data ? columns.data : columns)?.filter(x => rows[x]) || [])
+const getAttributes = (model, { fieldNodes }) => {
+    // get the fields of the Model (columns of the table)
+    const columns = new Set(Object.keys(model.rawAttributes))
+    const requested_attributes = fieldNodes[0].selectionSet?.selections
+      .map(({ name: { value } }) => {return value})
+    // filter the attributes against the columns
+    return requested_attributes.filter(attribute => {return columns.has(attribute)})
 }
+
 /**
  * Verifica que contenga un valor
  * @version 0.0.1

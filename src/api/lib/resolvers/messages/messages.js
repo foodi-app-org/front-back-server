@@ -1,6 +1,5 @@
-// import { PubSub, withFilter } from 'apollo-server'
-import { PubSub } from 'graphql-subscriptions';
-const pubsub = new PubSub(); //create a PubSub instance
+import { PubSub } from 'graphql-subscriptions'
+const pubsub = new PubSub() //create a PubSub instance
 /**
  * 
  * @param {*} _root no usado 
@@ -9,40 +8,43 @@ const pubsub = new PubSub(); //create a PubSub instance
  * @param {*} info _
  * @returns 
  */
- let currentNumber = 0;
- function incrementNumber() {
-     currentNumber++;
-     pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber });
-     setTimeout(incrementNumber, 1000);
- }
- // Start incrementing
- incrementNumber();
-const Query =  {
-    Query: {
-        currentNumber: async (parent, { to, content }, ctx) => {
-            setTimeout(incrementNumber, 1000);
-            pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber });
-            return 1
-        },
+let currentNumber = 0
+function incrementNumber() {
+  currentNumber++
+  pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber })
+  setTimeout(incrementNumber, 1000)
+}
+// Start incrementing
+incrementNumber()
+const Query = {
+  Query: {
+    // eslint-disable-next-line
+    currentNumber: async (parent, _, ctx) => {
+      setTimeout(incrementNumber, 1000)
+      pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber })
+      return 1
     }
+  }
 }
 const SubscriptionSubscription = {
-    Subscription: {
-        numberIncremented: {
-            subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED']),
-        },
-    },
+  Subscription: {
+    numberIncremented: {
+      subscribe: () => {return pubsub.asyncIterator(['NUMBER_INCREMENTED'])}
+    }
+  }
+
 }
 
 export default {
-    TYPES: {
-    },
-    QUERIES: {
-        ...Query.Query
-    },
-    MUTATIONS: {
-    },
-    SUBSCRIPTIONS: {
-        ...SubscriptionSubscription.Subscription,
-    }
+  TYPES: {
+  },
+  QUERIES: {
+    ...Query.Query
+  },
+  MUTATIONS: {
+  },
+  
+  SUBSCRIPTIONS: {
+    ...SubscriptionSubscription.Subscription
+  }
 }
