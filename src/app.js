@@ -1,21 +1,24 @@
-// @ts-check
+import dotenv from 'dotenv';
+dotenv.config();
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { createServer } from 'http';
 import { execute, subscribe } from 'graphql'
-import { ApolloServer, gql } from 'apollo-server-express'
+import { ApolloServer, ForbiddenError } from 'apollo-server-express'
 import { PubSub } from 'graphql-subscriptions'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-// @ts-ignore
-import { graphqlUploadExpress } from 'graphql-upload'
-// @ts-ignore
 import typeDefs from './api/lib/typeDefs'
+import { graphqlUploadExpress } from 'graphql-upload'
+import jwt from 'jsonwebtoken'
 import resolvers from './api/lib/resolvers'
 import express from 'express'
-import path from 'path'
 import morgan from 'morgan'
 import cors from 'cors'
-import indexRoutes from './api/lib/router'
+import indexRoutes, { cookie } from './api/lib/router'
+import { GraphQLError } from 'graphql'
+import { ironSession } from 'iron-session/express'
+import { getUserFromToken, parseCookies } from './api/lib/utils'
+
 (async () => {
     // config ports
     const GRAPHQL_PORT = 8080;
@@ -24,92 +27,114 @@ import indexRoutes from './api/lib/router'
     // Initialization apps
     const app = express();
     app.set('port', process.env.GRAPHQL_PORT || 8080)
-    app.post('/image', (req, res) => { res.json('/image api') })
-    app.use('/image', (req, res) => {
-        res.send('ONLINE PORT IMAGES!')
+
+  app.use(
+    cors({
+      methods: ['GET', 'POST'],
+      origin: ['http://localhost:3001', 'http://localhost:3000'],
+      credentials: true,
     })
-    // Routes
-    app.use('/static', express.static('public'))
-    // this folder for this application will be used to store public files
-    app.use('/uploads', express.static('uploads'));
-    app.use('/api', indexRoutes);
-    // Middleware
-    app.use(morgan('dev'))
-    app.use(express.json({ limit: '50mb' }))
-    app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
-
-    // const storage = multer.diskStorage({
-    //     destination: path.join(__dirname, '../public'),
-    //     filename: (req, file, next) => {
-    //         next(null, new Date().getTime() + path.extname(file.originalname))
-    //     }
-    // })
-    // Configure multer to accept a single file per post
-    // const storage = multer.memoryStorage();
-    // app.use(multer({
-    //     storage,
-    // }).single('file'));
-    // app.use(multer({dest: path.join(__dirname, '../public/img/uploads')}).single('image'));
-    const httpServer = createServer(app);
-    const schema = makeExecutableSchema({ typeDefs, resolvers });
-    const server = new ApolloServer({
-        // schema,
-        typeDefs, resolvers,
-        introspection: true,
-        plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+  );
+  app.use(
+    ironSession({
+      ...cookie
+    })
+  );
+  
+  
+  app.set('port', process.env.GRAPHQL_PORT || 4000)
+  app.post('/image', (req, res) => { res.json('/image api') })
+  app.use(express.json({ limit: '50mb' }))
+  app.use('/image', (req, res) => {
+    res.send('ONLINE PORT IMAGES!')
+  })
+  // Listen App
+  app.listen(API_REST_PORT, () => {
+    console.log('API SERVER LISTENING ON PORT', API_REST_PORT);
+  });
+  // Routes
+  app.use('/static', express.static('public'))
+  // this folder for this application will be used to store public files
+  app.use('/uploads', express.static('uploads'));
+  app.use('/api', indexRoutes);
+  // Middleware
+  app.use(morgan('dev'))
+  app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
+  const httpServer = createServer(app);
+  const schema = makeExecutableSchema({ typeDefs, resolvers });
+  const server = new ApolloServer({
+    typeDefs, resolvers,
+    introspection: true,
+    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    context: (async ({ req, res }) => {
+      try {
+        let tokenClient
+        let User = {}
+        //  Initialize Array empty
+        const setCookies = []
+        const setHeaders = []
+        tokenClient = req.headers.authorization?.split(' ')[1]
+        const token = tokenClient
+        const restaurant = req.headers.restaurant || {}
+        // eslint-disable-next-line
+        parseCookies(req)
+        res.setHeader('x-token-access', `${token}`)
+        res.setHeader('Access-Control-Allow-Origin', '*')
         // @ts-ignore
-        context: ({ req, res, connection }) => {
-            if (connection) {
-              const { restaurant } = connection.context || {};
-              return { pubsub, restaurant };
-            } else {
-              const token = (req.headers.authorization);
-              if (token !== 'null') {
-                try {
-                  // validate user in client.
-                  // const User = await jwt.verify(token, process.env.AUTHO_USER_KEY);
-                  const User = null;
-                  return { User, res, pubsub }
-                } catch (err) {
-                  console.log(err);
-                  console.log('Hola esto es un error del contexto');
-                }
-              }
-              return { pubsub };
-            }
-          },
-    });
-    await server.start();
-    server.applyMiddleware({ app });
-    SubscriptionServer.create(
-        {
-            schema,
-            execute,
-            subscribe,
-            onConnect: (connectionParams, webSocket, context) => {
-              console.log(connectionParams)
-              if (connectionParams?.headers?.restaurant || connectionParams?.restaurant) {
-                const restaurant = connectionParams?.headers?.restaurant ?? connectionParams.restaurant ;
-                console.log("connection", restaurant);
-                return { pubsub, restaurant };
-              }
-              throw new Error("Restaurant not provided in connection params");
-            },
-        },
-        {
-            server:
-            httpServer,
-            path:
-            server.graphqlPath
-        }
-    );
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
 
-    httpServer.listen(GRAPHQL_PORT, () => {
-        console.log(
-            `🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
-        );
-        console.log(
-            `🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
-        );
-    });
+        const { error, message } = await getUserFromToken(tokenClient)
+        const excluded = ['/login', '/forgotpassword', '/register']
+        const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
+        const userAgent = req.headers['user-agent'];
+        if (token) {
+          User = await jwt.verify(token, AUTHO_USER_KEY)
+          return { req, userAgent,  setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
+        } else if (tokenClient) {
+          User = await jwt.verify(tokenClient, AUTHO_USER_KEY)
+          return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
+        }
+        return { req, userAgent, setCookies: [], setHeaders: [], User: User || {}, restaurant: restaurant || {} }
+      } catch (error) {
+        if (error.message === 'jwt expired') return new ForbiddenError('Token expired')
+        if (error.message === 'jwt expired') throw new GraphQLError(error.message, {
+          extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
+        })
+      }
+    }),
+
+  });
+  await server.start();
+  server.applyMiddleware({ app });
+  SubscriptionServer.create(
+    {
+      schema,
+      execute,
+      subscribe,
+      onConnect: (connectionParams, webSocket, context) => {
+        console.log(connectionParams)
+        if (connectionParams?.headers?.restaurant || connectionParams?.restaurant) {
+          const restaurant = connectionParams?.headers?.restaurant ?? connectionParams.restaurant;
+          console.log("connection", restaurant);
+          return { pubsub, restaurant };
+        }
+        throw new Error("Restaurant not provided in connection params");
+      },
+    },
+    {
+      server:
+        httpServer,
+      path:
+        server.graphqlPath
+    }
+  );
+
+  httpServer.listen(GRAPHQL_PORT, () => {
+    console.log(
+      `🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
+    );
+    console.log(
+      `🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
+    );
+  });
 })();

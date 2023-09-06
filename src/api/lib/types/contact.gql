@@ -1,0 +1,42 @@
+# Contacts Type
+type Contacts {
+    contactId: ID
+    id: ID
+    idStore: ID
+    cntName: String!
+    cntComments: String
+    cntNumberPhone: String
+    cntState: Int
+    createAt: DateTime
+    updateAt: DateTime
+}
+
+# Product Input
+input IContacts {
+    contactId: ID
+    id: ID
+    idStore: ID
+    cntName: String!
+    cntNumberPhone: String
+    cntComments: String
+    cntState: Int
+    createAt: DateTime
+    updateAt: DateTime
+}
+
+# Query
+type Query {
+  getAllContacts(idStore: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, pState: Int,  max: Int): [Contacts]
+  getOneContacts(contactId: String, idStore: ID): Contacts
+}
+
+# Mutations
+type Mutation {
+    "ADD A NEW Contacts"
+  createContacts(input: IContacts): Response
+    "Edit One Contacts"
+  editOneContacts(input: IContacts): Response
+    "Remove One Contacts"
+    deleteOneContacts(contactId: ID): Response
+
+}

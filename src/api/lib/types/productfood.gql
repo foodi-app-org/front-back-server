@@ -12,7 +12,9 @@ type ProductFood {
     tpId: ID #Características
     fId: ID #Características principales
     pName: String
+    pCode: String
     ProPrice: Float
+    free: Int
     ProDescuento: String
     ProUniDisponibles: String
     ProDescription: String
@@ -44,6 +46,9 @@ type ProductFood {
     color: Color
     getStore: Store
     ExtProductFoodsAll: [ExtProductFood]
+    ExtProductFoodOptional: [ExtProductFoodOptional]
+    salesExtProductFoodOptional: [saleExtProductFoodOptional]
+    getOneTags: TagsProduct
 }
 # Inputs
 input ICategories {
@@ -53,7 +58,7 @@ input ICategories {
     cpState: Int
 }
 
-# Inputs    
+# Inputs
 input InputProductFood {
     pId: ID
     sizeId: ID
@@ -66,8 +71,9 @@ input InputProductFood {
     caId: ID #Categorías de productFood
     fId: ID #Características principales
     pName: String
+    pCode: String
     ProPrice: Float
-    ProDescuento: String
+    ProDescuento: Float
     ProUniDisponibles: String
     ProDescription: String
     ProProtegido: String
@@ -95,11 +101,11 @@ input IDeleteProductFood {
 
 # Queries
 type Query {
-    "Consulta todos los productFoodos"
+    "Consulta todos los productFood"
     getProductFoods: [ProductFood]
     productFoods: [ProductFood]
     productFoodsOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ProductFood
-    productFoodsAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int,  gender: [String]  desc: [String], categories: [ID]  ): [ProductFood]
+    productFoodsAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, pState: Int,  max: Int,  gender: [String]  desc: [String], categories: [ID] fromDate: DateTime toDate: DateTime ): [ProductFood]
     productFoodsLogis(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ProductFood]
     getMinPrice(idStore: ID): Float
 }
@@ -109,6 +115,8 @@ type Query {
 type Mutation {
     "Registra un productFoodo"
      updateProductFoods(input: InputProductFood): ProductFood
+    "edita un productFoodo"
+    editProductFoods(input: InputProductFood): Response
     "Borra un productFoodo"
      deleteProductFoods(input: IDeleteProductFood): ProductFood
 }
