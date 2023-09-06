@@ -12,13 +12,13 @@ import { graphqlUploadExpress } from 'graphql-upload'
 import jwt from 'jsonwebtoken'
 import resolvers from './api/lib/resolvers'
 import express from 'express'
-import path from 'path'
 import morgan from 'morgan'
 import cors from 'cors'
 import indexRoutes, { cookie } from './api/lib/router'
 import { GraphQLError } from 'graphql'
 import { ironSession } from 'iron-session/express'
-import { getUserFromToken, parseCookies } from './api/lib/utils';
+import { getUserFromToken, parseCookies } from './api/lib/utils'
+
 (async () => {
   // config ports
   const GRAPHQL_PORT = 4000;
