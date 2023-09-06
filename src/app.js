@@ -6,7 +6,8 @@ import { ApolloServer, gql } from 'apollo-server-express'
 import { PubSub } from 'graphql-subscriptions'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { graphqlUploadExpress } from 'graphql-upload';
+// @ts-ignore
+import { graphqlUploadExpress } from 'graphql-upload'
 // @ts-ignore
 import typeDefs from './api/lib/typeDefs'
 import resolvers from './api/lib/resolvers'
@@ -17,21 +18,16 @@ import cors from 'cors'
 import indexRoutes from './api/lib/router'
 (async () => {
     // config ports
-    const GRAPHQL_PORT = 4000;
-    const API_REST_PORT = 5000;
+    const GRAPHQL_PORT = 8080;
     const pubsub = new PubSub();
 
     // Initialization apps
     const app = express();
-    app.set('port', process.env.GRAPHQL_PORT || 4000)
+    app.set('port', process.env.GRAPHQL_PORT || 8080)
     app.post('/image', (req, res) => { res.json('/image api') })
     app.use('/image', (req, res) => {
         res.send('ONLINE PORT IMAGES!')
     })
-    // Listen App
-    app.listen(API_REST_PORT, () => {
-        console.log('API SERVER LISTENING ON PORT', API_REST_PORT);
-    });
     // Routes
     app.use('/static', express.static('public'))
     // this folder for this application will be used to store public files
@@ -61,6 +57,7 @@ import indexRoutes from './api/lib/router'
         typeDefs, resolvers,
         introspection: true,
         plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+        // @ts-ignore
         context: ({ req, res, connection }) => {
             if (connection) {
               const { restaurant } = connection.context || {};
@@ -116,28 +113,3 @@ import indexRoutes from './api/lib/router'
         );
     });
 })();
-
-
-// await server.start();
-// server.applyMiddleware({ app });
-
-// const wsServer = new SubscriptionServer({
-//   execute,
-//   subscribe,
-//   schema,
-//   onConnect: (connectionParams) => {
-//     if (connectionParams.authorization) {
-//       const restaurant = connectionParams.restaurant;
-//       return { restaurant };
-//     }
-//   },
-// }, {
-//   server: httpServer,
-//   path: '/graphql',
-// });
-
-// httpServer.listen(GRAPHQL_PORT, () => {
-//   console.log(`🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`);
-//   console.log(`🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${wsServer.options.path}`);
-// });
-// })();
