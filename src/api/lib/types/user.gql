@@ -1,7 +1,7 @@
 
   # Users
   type User {
-    # id: ID
+    id: ID
     name: String
     username: String
     lastName: String

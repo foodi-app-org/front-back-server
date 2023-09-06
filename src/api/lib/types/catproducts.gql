@@ -14,6 +14,7 @@ type catProductsWithProduct {
     carProId: ID
     idStore: ID #Store
     pName: String
+    totalCount: Int
     ProDescription: String
     ProImage: String
     pState: Int
@@ -21,7 +22,11 @@ type catProductsWithProduct {
     pDatMod: DateTime
     productFoodsAll: [ProductFood]
 }
-# Inputs    
+type customTotalAndCatProductsWithProduct {
+    totalCount: Int
+    catProductsWithProduct: [catProductsWithProduct]
+}
+# Inputs
 input InputCatProducts {
     carProId: ID
     idStore: ID #Store
@@ -46,7 +51,7 @@ type Query {
     catProducts: [catProducts]
     catProductsOne(carProId: ID, cId: ID, dId: ID, ctId: ID ): catProducts
     catProductsAll(carProId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int,  gender: [String]  desc: [String], categories: [ID]  ): [catProducts]
-    getCatProductsWithProduct(carProId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int,  gender: [String]  desc: [String], categories: [ID]  ): [catProductsWithProduct]
+    getCatProductsWithProduct(carProId: ID, cId: ID, dId: ID, ctId: ID, productName: String, search: String, min: Int, max: Int,  gender: [String]  desc: [String], categories: [ID]  ): customTotalAndCatProductsWithProduct
     getCatProductsWithProductClient(carProId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int,  gender: [String]  desc: [String], categories: [ID] idStore: ID  ): [catProductsWithProduct]
     catProductsLogis(carProId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [catProducts]
 }
@@ -58,5 +63,5 @@ type Mutation {
      updatedProducts(input: InputCatProducts): AuthPayload
      updatedCatWithProducts(input: LineItemsIdPro): AuthPayload
      deleteCatOfProducts(idPc: ID!, pState: Int): AuthPayload
-     deleteCatFinalOfProducts(idPc: ID): AuthPayload
+     deleteCatFinalOfProducts(idPc: ID, withProduct: Boolean): AuthPayload
 }

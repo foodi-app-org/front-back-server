@@ -1,12 +1,48 @@
 /* eslint-disable no-shadow */
 /* eslint-disable valid-jsdoc */
 
-// import nodemailer from 'nodemailer'
+import dotenv from 'dotenv';
+dotenv.config();
 import moment from 'moment'
 import jwtDecode from 'jwt-decode'
 import jwt, { decode } from 'jsonwebtoken'
+import { google } from 'googleapis'
+import bcrypt from 'bcrypt'
+
 
 moment.locale('es')
+
+export const generateToken = dataUser => {
+    const expiresIn = process.env.JWT_EXPIRY || '1d'
+    const AccessToken = jwt.sign(dataUser, process.env.AUTHO_USER_KEY, { expiresIn })
+    return AccessToken
+  }
+export async function hashPassword(plainPassword) {
+    try {
+      const saltRounds = 10
+      const hash = await bcrypt.hash(plainPassword, saltRounds)
+      return hash
+    } catch (error) {
+      throw new Error('Error al encriptar la contraseña')
+    }
+  }
+  
+  export async function comparePasswords(plainPassword, hashedPassword) {
+    try {
+      const isMatch = await bcrypt.compare(plainPassword, hashedPassword)
+      return isMatch
+    } catch (error) {
+      throw new Error('Error al comparar las contraseñas')
+    }
+  }
+
+  
+export const linkBelongsTo = (modelOne, modelTwo, target, foreign) => {
+    return modelOne.belongsTo(modelTwo, {
+      targetKey: target,
+      foreignKey: foreign
+    })
+}
 
 export const isNull = dato => {
     if (!dato || dato === '') {
@@ -15,6 +51,7 @@ export const isNull = dato => {
 }
 
 export const URL_BASE = 'http://localhost:4000/'
+
 export const isNumeric = dato => {
     // const value = dato.replace(/,/g, '');
     if (isNaN(dato) && dato !== '' && dato !== undefined && dato !== null) {
@@ -24,6 +61,7 @@ export const isNumeric = dato => {
 export const isPassword = dato => {
     const validar = /^(?=\w*\d)(?=\w*[A-Z])(?=\w*[a-z])\S{8,16}$/
     if (validar.test(dato) === true) {
+
         return false
     } else return true
 }
@@ -376,6 +414,40 @@ export const validationSubmitHooks = elements => {
     }
     return errorForm
 }
+
+export const getUserFromToken = async token => {
+    let user = null
+    let userProfile = null
+    let error = false
+    if (!token) return { error: false, message: '' }
+    const tokenState = getTokenState(token)
+    const { needRefresh, valid } = tokenState || {}
+    try {
+      if (needRefresh === true) return { error: true, user: user, userProfile: userProfile, message: 'session expired' }
+      if (!valid) return { error: true, message: 'El token no es valido' }
+    } catch {
+      user = ''
+      userProfile = ''
+    }
+    return { user, userProfile, error, message: '' }
+}
+
+export function parseCookies(request) {
+    const list = {}
+    const cookieHeader = request.headers?.cookie
+    if (!cookieHeader) return list
+  
+    cookieHeader.split(';').forEach(function (cookie) {
+      let [name, ...rest] = cookie.split('=')
+      name = name?.trim()
+      if (!name) return
+      const value = rest.join('=').trim()
+      if (!value) return
+      list[name] = decodeURIComponent(value)
+    })
+  
+    return list
+  }
 
 /**
  *
@@ -1003,10 +1075,8 @@ export const roundToTwo = (num) => {
 
 export const NewDateFormat = (date) => {
     try {
-        // const dateString = new Date(dateString)
         const dateString = date => new Date(date).toString() !== 'Invalid Date';
         const newDate = dateString instanceof Date && !isNaN(dateString);
-        // return new Date(date).toISOString().slice(0, 10).replace(/-/g,"");
         return date
 
     } catch (error) {
@@ -1192,3 +1262,366 @@ var threeMonthsAgo = moment().subtract(3, 'months');
 
 console.log(threeMonthsAgo.format()); // 2015-10-13T09:37:35+02:00
  
+
+export function parseUserAgent(userAgent) {
+    const browserInfo = {
+      name: 'Unknown',
+      short_name: 'Unknown',
+      version: 'Unknown',
+      family: 'Unknown',
+      platform: 'Unknown',
+      device: 'Unknown'
+    }
+  
+    // Detect device type
+    if (/Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(userAgent)) {
+      browserInfo.device = 'Mobile'
+    } else if (/Tablet/i.test(userAgent)) {
+      browserInfo.device = 'Tablet'
+    } else if (/Desktop/i.test(userAgent)) {
+      browserInfo.device = 'Desktop'
+    }
+  
+    // Detect browser name and version
+    const browserPatterns = {
+      Chrome: /Chrome\/([0-9.]+)/,
+      Firefox: /Firefox\/([0-9.]+)/,
+      Safari: /Version\/([0-9.]+).*Safari/,
+      Edge: /Edg\/([0-9.]+)/,
+      IE: /MSIE ([0-9.]+)/
+    }
+  
+    for (const [browser, pattern] of Object.entries(browserPatterns)) {
+      const match = userAgent.match(pattern)
+      if (match) {
+        browserInfo.name = browser
+        browserInfo.version = match[1]
+        browserInfo.short_name = browser === 'Edge' ? 'Edg' : browser
+        break
+      }
+    }
+  
+    // Detect browser family
+    if (/Chrome|CriOS/i.test(userAgent)) {
+      browserInfo.family = 'Chrome'
+    } else if (/Firefox/i.test(userAgent)) {
+      browserInfo.family = 'Firefox'
+    } else if (/Safari/i.test(userAgent)) {
+      browserInfo.family = 'Safari'
+    } else if (/Edge/i.test(userAgent)) {
+      browserInfo.family = 'Edge'
+    } else if (/MSIE|Trident/i.test(userAgent)) {
+      browserInfo.family = 'IE'
+    }
+  
+    // Detect platform (OS)
+    if (/Windows/i.test(userAgent)) {
+      browserInfo.platform = 'Windows'
+    } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
+      browserInfo.platform = 'Mac OS X'
+    } else if (/Linux/i.test(userAgent)) {
+      browserInfo.platform = 'Linux'
+    } else if (/Android/i.test(userAgent)) {
+      browserInfo.platform = 'Android'
+    } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+      browserInfo.platform = 'iOS'
+    }
+  
+    return browserInfo
+  }
+  
+  const handleHourPmAM = (hour) => {
+    const hourPmAm = new Date(`1/1/1999 ${hour}`).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+    return hour ? hourPmAm : ''
+  }
+  
+  function handleMessageHour(message, open) {
+    return { message, open }
+  }
+  
+  // Función para convertir el objeto de tiempo en una cadena de tiempo
+  function getTimeString(timeStr) {
+    return timeStr || '00:00' // Return '00:00' for empty time strings
+  }
+  
+  
+  function getCurrentDayAndTime() {
+    try {
+      const date = new Date()
+      const currentTime = date.getHours() * 60 + date.getMinutes()
+      const currentDayOfWeek = date.getDay()
+      return { currentTime, currentDayOfWeek }
+    } catch (error) {
+      return {
+  
+      }
+    }
+  }
+  
+  function sortOpeningsByDay(openings) {
+    const days = [
+      'openingSun',
+      'openingMon',
+      'openingTue',
+      'openingWed',
+      'openingThu',
+      'openingFri',
+      'openingSat'
+    ]
+    const sortedOpenings = {}
+  
+    days.forEach((day) => {
+      sortedOpenings[day] = openings[day] || '00:00 - 00:00' // Agregar horario vacío para los días faltantes
+    })
+  
+    return sortedOpenings
+  }
+  
+  // Función para obtener la clave de openings a partir del día de la semana
+  function getOpeningKeyFromDay(day) {
+    const days = {
+      0: 'openingSun',
+      1: 'openingMon',
+      2: 'openingTue',
+      3: 'openingWed',
+      4: 'openingThu',
+      5: 'openingFri',
+      6: 'openingSat'
+    }
+    return days[day]
+  }
+  
+  const weekDays = [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado'
+  ]
+  
+  function timeToInt(text) {
+    let hour = parseInt(text.substring(0, 2))
+    let minute = parseInt(text.substring(3))
+    return hour * 60 + minute
+  }
+  
+  export const days = {
+    Monday: 'Lunes',
+    Tuesday: 'Martes',
+    Wednesday: 'Miércoles',
+    Thursday: 'Jueves',
+    Friday: 'Viernes',
+    Saturday: 'Sábado',
+    Sunday: 'Domingo'
+  }
+  
+  function getNextDaySchedule(dataSchedules) {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    const dayOfWeekTomorrow = tomorrow.getDay()
+  
+    const findNextDay = dataSchedules.length
+      ? dataSchedules.some((schedule) => {return schedule.schDay === dayOfWeekTomorrow})
+      : false
+  
+    const findDataNextDay = dataSchedules.length
+      ? dataSchedules.find((schedule) => {return schedule.schDay === dayOfWeekTomorrow}) || {}
+      : {}
+  
+    return { findNextDay, findDataNextDay, dayOfWeekTomorrow }
+  }
+  
+  
+  function getOpeningStatus(openings, currentTime, currentDayOfWeek, dataSchedules) {
+    const weekDayLookup = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday'
+    ]
+  
+    const ceroHours = '00:00 - 00:00'
+    let dayOfWeek = currentDayOfWeek
+  
+    for (let i = 0; i < 7; i++) {
+      const dayName = weekDayLookup[dayOfWeek % 7]
+      const opening = openings['opening' + dayName.substring(0, 3)]
+      const timeSpans = opening?.split(';').map((item) => {return item.trim()})
+  
+      for (let span of timeSpans) {
+        const hours = span.split('-').map((item) => {return item.trim()})
+        const openTime = timeToInt(hours[0])
+        const closeTime = timeToInt(hours[1])
+  
+        if (currentTime >= openTime && currentTime <= closeTime) {
+          return handleMessageHour(
+            'Abierto Ahora - Cierra a las: ' + handleHourPmAM(hours[1]),
+            true
+          )
+        }
+  
+        if (currentTime < openTime && dayOfWeek === currentDayOfWeek) {
+          return handleMessageHour(
+            'Aun temprano - Abre hoy a las: ' + handleHourPmAM(hours[0]),
+            false
+          )
+        }
+  
+        if (
+          currentTime >= closeTime - 30 * 60000 &&
+          currentTime < closeTime &&
+          dayOfWeek === currentDayOfWeek
+        ) {
+          return handleMessageHour(
+            'Pronto por cerrar - Cierra hoy a las: ' + handleHourPmAM(hours[1]),
+            true
+          )
+        }
+  
+        const { findNextDay, findDataNextDay, dayOfWeekTomorrow } = getNextDaySchedule(
+          dataSchedules,
+          currentDayOfWeek
+        )
+  
+        if (findNextDay && findDataNextDay?.schHoSta) {
+          const nameOfDayTomorrow = weekDays[dayOfWeekTomorrow]
+          return handleMessageHour(
+            `Cerrado - Mañana ${nameOfDayTomorrow} ${!!findDataNextDay?.schHoSta && 'a las'} ${
+              findDataNextDay?.schHoSta ? findDataNextDay?.schHoSta : ''
+            }`,
+            false
+          )
+        }
+  
+        const nextDayName = weekDayLookup[(dayOfWeek + 1) % 7]
+        const nextOpening = openings['opening' + nextDayName.substring(0, 3)]
+        const nextHours = nextOpening?.split(';')?.map((item) => {return item?.trim()})
+  
+        if (nextHours[0] !== ceroHours) {
+          return handleMessageHour(
+            'Cerrado - Abre el ' + days[nextDayName] + ' a las ' + nextHours[0],
+            false
+          )
+        }
+      }
+  
+      dayOfWeek++
+    }
+  
+    return handleMessageHour('Cerrado', false)
+  }
+  
+  
+  export function getStatusOpenStore(dataSchedules) {
+    // Crear el objeto openings a partir del dataSchedules
+    const openings = {}
+    dataSchedules.forEach((schedule) => {
+      const day = schedule.schDay
+      const openingKey = getOpeningKeyFromDay(day)
+      const schHoSta = getTimeString(schedule.schHoSta)
+      const schHoEnd = getTimeString(schedule.schHoEnd)
+      openings[openingKey] = `${schHoSta} - ${schHoEnd}`
+    })
+  
+    for (let i = 0; i < 7; i++) {
+      const openingKey = getOpeningKeyFromDay(i)
+      // eslint-disable-next-line no-prototype-builtins
+      if (!openings.hasOwnProperty(openingKey)) {
+        openings[openingKey] = '00:00 - 00:00' // Horario vacío para el día faltante
+      }
+    }
+  
+    // Ordenar los horarios y obtener la hora actual y día de la semana
+    const sortedOpenings = sortOpeningsByDay(openings)
+    const { currentTime, currentDayOfWeek } = getCurrentDayAndTime()
+  
+    // Obtener el estado de apertura actual
+    const { message, open } = getOpeningStatus(sortedOpenings, currentTime, currentDayOfWeek, dataSchedules)
+  
+    return {
+      open: open ? 1 : 0, // Convertir booleano a 1 o 0
+      message // Mensaje de estado de apertura
+    }
+  }
+
+  
+const CLIENT_ID = process.env.CLIENT_ID
+const CLIENT_SECRET = process.env.CLIENT_SECRET 
+const REDIRECT_URL = process.env.REDIRECT_URL 
+const REFRESH_TOKEN = process.env.REFRESH_TOKEN 
+
+const AuthClient = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URL)
+AuthClient.setCredentials({ refresh_token: REFRESH_TOKEN })
+
+export const sendEmail = async ({ 
+  html = '<html></html>', 
+  from = process.env.EMAIL_TRANSPORT_ACCESS, 
+  to, 
+  subject = ''
+}) => {
+  try {
+    if (!to) {
+      throw new Error('Destinatario del correo no especificado.')
+    }
+    if (!html || typeof html !== 'string') {
+      throw new Error('Contenido HTML inválido.')
+    }
+
+    if (!subject || typeof subject !== 'string') {
+      throw new Error('Asunto del correo inválido.')
+    }
+    let htmlTemplates = await html
+    let FromEmail = await from
+    let toEmail = await to
+    let subjectEmail = await subject
+    let textEmail = await subject
+    const ascessToken = await AuthClient.getAccessToken()
+    const transport = nodemailer.createTransport({
+      service: 'gmail',
+      secure: false,
+      port: 25,
+      auth: {
+        type: 'OAuth2',
+        user: process.env.EMAIL_TRANSPORT_ACCESS,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        refreshToken: REFRESH_TOKEN,
+        accessToken: ascessToken
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+
+    })
+    const MailOptions = {
+      from: FromEmail,
+      to: toEmail,
+      text: textEmail,
+      subject: subjectEmail,
+      html: htmlTemplates
+    }
+    const result = await transport.sendMail(MailOptions)
+    return result
+  } catch (error) {
+    console.log({error})
+    throw new Error(error, 'Error email')
+  }
+}
+
+export const generateCode = async (length = 6) => {
+    if (length <= 0) {
+      throw new Error('Length must be a positive integer')
+    }
+  
+    const min = 10 ** (length - 1)
+    const max = 10 ** length - 1
+    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min
+  
+    return randomNumber
+  }

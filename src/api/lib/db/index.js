@@ -1,49 +1,37 @@
-// // 'use strict'
+'use strict'
+import dotenv from 'dotenv';
+dotenv.config();
+import Sequelize from 'sequelize'
 
-// // const Sequelize = require('sequelize')
-// // let sequelize = null
+let sequelize = null
+const isDev = process.env.NODE_ENV === 'development'
+const dialectOptions = {
+  postgres: {
+    ssl: {
+      rejectUnauthorized: false
+    }
+  }
+}
 
-// // module.exports = function connect () {
-// //     try {
-// //         if (!sequelize) {
-// //             sequelize = new Sequelize(
-// //                 'app', //nombre Base de datos process.env.NAMEDB
-// //                 'root', //nombre usuario base de datos process.env.USERDB
-// //                 '', // clave de base de datos, process.env.PASSDB
-// //                 {
-// //                     host: 'localhost', //process.env.HOSTDB
-// //                     dialect: 'mysql' //process.env.DIALECTDB
-// //                 }
-// //             )
-// //         }
-// //         // sequelize.sync()
-// //         return sequelize
-// //     } catch (error) {
-// //         console.log('/**** Error de conexión con base de datos, algunos datos erroneos o el .env no existe.')
-// //     }
-// // }
+function connect () {
+  try {
+    if (sequelize) return sequelize
+    sequelize = new Sequelize(
+      process.env.NAME_DB, //name of the database
+      process.env.USER_DB, //name of the user database
+      process.env.PASS_DB, //password of the database
+      {
+        host: process.env.HOST_DB,
+        logging: isDev,
+        port: process.env.PORT_DB,
+        dialect: process.env.DIALECT_DB,
+        dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
+      }
+    )
+  } catch (error) {
+    throw new Error(error)
+  }
+  return sequelize
+}
 
-// 'use strict'
-
-// const Sequelize = require('sequelize')
-// let sequelize = null
-
-// module.exports = function connect () {
-//     try {
-//         if (!sequelize) {
-//             sequelize = new Sequelize(
-//                 process.env === 'production' ? '9F27g24N1A' : 'app', //nombre Base de datos process.env.NAMEDB
-//                 process.env === 'production' ? '9F27g24N1A' : 'root', //nombre usuario base de datos process.env.USERDB
-//                 process.env === 'production' ? 'yGDyGrHvYa' : '', // clave de base de datos, process.env.PASSDB
-//                 {
-//                     host:  process.env === 'production' ? 'remotemysql.com' : 'localhost', //process.env.HOSTDB
-//                     dialect: 'mysql' //process.env.DIALECTDB
-//                 }
-//             )
-//         }
-//         // sequelize.sync()
-//         return sequelize
-//     } catch (error) {
-//         console.log('/**** Error de conexión con base de datos, algunos datos erroneos o el .env no existe.')
-//     }
-// }
+export default connect

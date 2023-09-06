@@ -5,6 +5,8 @@ type ExtProductFood {
     exState: Int
     extraName: String
     extraPrice: Float
+    quantity: Int
+    newExtraPrice: Int
     state: Int
     pDatCre: DateTime
     pDatMod: DateTime
@@ -57,7 +59,7 @@ input InputExtProductFoodOptional {
     required: Int
     numbersOptionalOnly: Int
 }
-# Inputs    
+# Inputs
 input InputExtProductFood {
     pId: ID!
     exPid: ID
@@ -87,13 +89,14 @@ type Query {
 # Mutations
 type Mutation {
     "Registra un ExtProductFood"
-     updateExtProductFoods(input: InputExtProductFood): ExtProductFood
-     updateMultipleExtProductFoods(inputLineItems: ILineItemsExtraFinal): ExtProductFood
-     deleteextraproductfoods(id: ID, state: Int): Response
-    DeleteExtProductFoodsOptional(opExPid: ID, state: Int): Response
+    updateExtProductFoods(input: InputExtProductFood): ExtProductFood
+    updateMultipleExtProductFoods(inputLineItems: ILineItemsExtraFinal): ExtProductFood
+    editExtProductFoods(input: InputExtProductFood!): Response
+    deleteextraproductfoods(id: ID, state: Int): Response
+    DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
     "Registra un ExtProductFoodOptional"
-     updateExtProductFoodsOptional(input: InputExtProductFoodOptional): ExtProductFoodOptional
+    updateExtProductFoodsOptional(input: InputExtProductFoodOptional): ExtProductFoodOptional
     "Registra un ExtProductFoodSubOptional"
-     updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
-    DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int): Response
+    updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
+    DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
 }
