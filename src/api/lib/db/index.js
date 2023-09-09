@@ -1,6 +1,4 @@
 'use strict'
-import dotenv from 'dotenv';
-dotenv.config();
 import Sequelize from 'sequelize'
 
 let sequelize = null
@@ -13,7 +11,9 @@ const dialectOptions = {
   }
 }
 
-function connect () {
+function connect() {
+
+  console.log(process.env.DIALECT_DB)
   try {
     if (sequelize) return sequelize
     sequelize = new Sequelize(
