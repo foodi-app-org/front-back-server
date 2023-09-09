@@ -9,7 +9,7 @@
     "build": "babel src/ --out-dir build",
     "babel-node": "babel-node --presets=@babel/preset-env",
     "start": "node build/app.js",
-    "dev": "nodemon --exec npm run babel-node  src/app.js"
+    "dev": "nodemon --exec npm run babel-node src/app.js"
   },
   "author": "",
   "license": "ISC",
@@ -41,10 +41,10 @@
     "sequelize": "6.16.2",
     "subscriptions-transport-ws": "0.11.0",
     "pg": "8.11.3",
-    "pg-hstore": "2.3.4"
+    "pg-hstore": "2.3.4",
+    "@babel/cli": "7.17.6"
   },
   "devDependencies": {
-    "@babel/cli": "7.17.6",
     "@babel/core": "7.17.5",
     "@babel/node": "7.16.8",
     "@babel/plugin-proposal-class-properties": "7.16.7",

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 import { Op } from 'sequelize'
 import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
@@ -12,7 +11,6 @@ import Users from '../../models/Users'
  * @returns 
  */
 
-// eslint-disable-next-line
 export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
   try {
     const { count: countInActive, rows: RowInActive } = await Store.findAndCountAll({
@@ -21,8 +19,6 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
           [Op.like]: 1
         }
       }
-      // offset: 10,
-      // limit: 2
     })
     const { count, rows } = await Store.findAndCountAll({
       where: {
@@ -30,8 +26,6 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
           [Op.like]: 2
         }
       }
-      // offset: 10,
-      // limit: 2
     })
     return {
       store: rows,
@@ -45,26 +39,14 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
   }
 
 }
-// eslint-disable-next-line
+
 export const getAllUserActives = async (_root, _args, _context, _info) => {
   try {
-    const { count, rows } = await Users.findAndCountAll({
-      // where: {
-      //   title: {
-      //     [Op.like]: 'foo%'
-      //   }
-      // },
-      // offset: 10,
-      // limit: 2
-    })
+    const { count, rows } = await Users.findAndCountAll({})
     const { count: countInActive, rows: RowInActive } = await Users.findAndCountAll({
       where: {
-        uState: {
-          [Op.like]: 0
-        }
+        uState: 0
       }
-      // offset: 10,
-      // limit: 2
     })
     return {
       count: count,

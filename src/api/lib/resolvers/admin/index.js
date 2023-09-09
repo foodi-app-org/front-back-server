@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 import adminResolver from './admin'
 
 export default {

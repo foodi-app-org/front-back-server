@@ -12,8 +12,6 @@ const dialectOptions = {
 }
 
 function connect() {
-
-  console.log(process.env.DIALECT_DB)
   try {
     if (sequelize) return sequelize
     sequelize = new Sequelize(

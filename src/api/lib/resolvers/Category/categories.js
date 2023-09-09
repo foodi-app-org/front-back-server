@@ -1,5 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
-/* eslint-disable consistent-return */
 import { ApolloError } from 'apollo-server-express'
 import CategoryProductsModel from '../../models/Categories/CategoryProducts'
 import { deCode, getAttributes } from '../../utils/util'
@@ -16,7 +14,7 @@ export const updateCategoryProducts = async (_root, { input }) => {
       })
       return data
     }
-        
+
     const isExist = await CategoryProductsModel.findOne({ attributes: ['caId', 'cpName', 'cpState'], where: { caId: deCode(caId) } })
     if (isExist) {
       await CategoryProductsModel.update({ cpState: cpState === 1 ? 0 : 1 }, { where: { caId: deCode(caId) } })
@@ -24,7 +22,7 @@ export const updateCategoryProducts = async (_root, { input }) => {
     else {
       throw new ApolloError('No se pudo eliminar el producto debido a un error interno.')
     }
-        
+
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
@@ -67,13 +65,8 @@ export const CategoryProductsAll = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
             caId: caId ? deCode(caId) : { [Op.gt]: 0 },
             cpState: { [Op.gt]: 0 }
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
       }, limit: [min || 0, max || 100], order: [['cpName', 'ASC']]
