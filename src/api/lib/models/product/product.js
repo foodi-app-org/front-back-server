@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TEXT, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, TEXT, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import SizeModel from '../information/size'
@@ -127,11 +127,11 @@ const productModel = sequelize.define('product', {
     allowNull: true
   },
   pState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   sTateLogistic: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   // Si el producto esta asegurado ( Protegido )

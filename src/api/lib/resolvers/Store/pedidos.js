@@ -323,24 +323,39 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
   }
 }
 
-export const getAllPedidoUserFinal = async (_, args, ctx, info) => {
-  const { id } = args || {}
+const getAllPedidoUserFinal = async (_, args, ctx, info) => {
+  const { id } = args || {};
   try {
-    const attributes = getAttributes(StatusOrderModel, info)
+    const attributes = getAttributes(StatusOrderModel, info);
+    const fiveHoursAgo = new Date();
+    fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
+
     const data = await StatusOrderModel.findAll({
       attributes,
       where: {
         [Op.or]: [
-          { id: id ? deCode(id) : deCode(ctx.User.id) }
-        ]
+          { id: id ? deCode(id) : deCode(ctx.User.id) },
+        ],
+        [Op.and]: [
+          {
+            pSState: {
+              [Op.in]: [0, 1, 2, 3, 4, 5]
+            },
+            pDatMod: {
+              [Op.gt]: fiveHoursAgo,
+            },
+          },
+        ],
       },
-      order: [['pDatCre', 'DESC']]
-    })
-    return data
+      order: [['pDatCre', 'DESC']],
+    });
+    return data;
   } catch (error) {
-    return ordersByState
+    return ordersByState;
   }
-}
+};
+
+
 export const getOnePedidoStore = async (_, { pCodeRef }, ctx, info) => {
   try {
     const attributes = getAttributes(StatusOrderModel, info)

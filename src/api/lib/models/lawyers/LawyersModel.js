@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
@@ -34,7 +34,7 @@ const LawyersModel = sequelize.define('lawyers', {
     allowNull: false
   },
   lState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   lDatCre: {

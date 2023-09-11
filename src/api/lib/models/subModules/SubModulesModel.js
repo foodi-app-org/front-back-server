@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import ModulesModel from '../modules/ModulesModel'
@@ -31,11 +31,11 @@ const SubModulesModel = sequelize.define('submodules', {
     allowNull: false
   },
   smPriority: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   smState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   smDatCre: {

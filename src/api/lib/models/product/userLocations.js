@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import CitiesModel from '../information/CitiesModel'
@@ -74,12 +74,12 @@ const UserLocation = sequelize.define('userlocation', {
     allowNull: true
   },
   uPiso: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0
   },
   uLocationState: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 1
   },
   DatCre: {

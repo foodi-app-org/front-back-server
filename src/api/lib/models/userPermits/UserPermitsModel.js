@@ -1,4 +1,4 @@
-import { INTEGER, TINYINT, literal } from 'sequelize'
+import { INTEGER, literal } from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
@@ -35,7 +35,7 @@ const UserPermitsModel = sequelize.define('userpermits', {
     get(x) {return enCode(this.getDataValue(x))}
   },
   upState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   upDatCre: {

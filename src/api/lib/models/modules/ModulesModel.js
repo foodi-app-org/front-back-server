@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
@@ -19,15 +19,15 @@ const ModulesModel = sequelize.define('modules', {
     allowNull: false
   },
   mPriority: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   mIcon: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   mState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   mDatCre: {

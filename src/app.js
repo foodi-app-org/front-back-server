@@ -22,6 +22,7 @@ import { getUserFromToken, parseCookies } from './api/lib/utils'
 (async () => {
     // config ports
     const GRAPHQL_PORT = 8080;
+    const API_REST_PORT = 5000;
     const pubsub = new PubSub();
 
     // Initialization apps
@@ -40,8 +41,6 @@ import { getUserFromToken, parseCookies } from './api/lib/utils'
       ...cookie
     })
   );
-  
-  
   app.set('port', process.env.GRAPHQL_PORT || 4000)
   app.post('/image', (req, res) => { res.json('/image api') })
   app.use(express.json({ limit: '50mb' }))

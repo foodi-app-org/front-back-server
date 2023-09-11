@@ -1,4 +1,4 @@
-import { INTEGER, TINYINT, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import { enCode } from '../../utils/util'
@@ -36,7 +36,7 @@ const ExtraProductModel = sequelize.define('extrasproducts', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   exState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0
   },
@@ -50,7 +50,7 @@ const ExtraProductModel = sequelize.define('extrasproducts', {
   },
   // state
   state: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 1
   },

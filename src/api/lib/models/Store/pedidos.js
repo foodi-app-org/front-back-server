@@ -1,4 +1,4 @@
-import { INTEGER, TINYINT, STRING, DATE, literal } from 'sequelize'
+import { INTEGER, STRING, DATE, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import { enCode } from '../../utils/util'
@@ -37,7 +37,7 @@ const pedidosModel = sequelize.define('storepedidos', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   ppState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 0
   },
@@ -54,15 +54,15 @@ const pedidosModel = sequelize.define('storepedidos', {
     // defaultValue: Date.now()
   },
   pPStateP: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 0
   },
   payMethodPState: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 0
   },
   pPRecoger: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 0
   },
   unidProducts: {

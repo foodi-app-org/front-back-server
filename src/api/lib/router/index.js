@@ -21,7 +21,6 @@ export const cookie = {
     }
 }
 
- 
 export const getDevice = async ({ input }) => {
   const { 
     deviceId, 
@@ -46,8 +45,6 @@ export const getDevice = async ({ input }) => {
     })
 
     if (existingDevice) {
-      // Si el dispositivo ya está registrado para el mismo usuario, puedes manejar esta situación
-      // según tus necesidades. Por ejemplo, lanzar un error o simplemente retornar el dispositivo existente.
       return { error: { message: 'Este dispositivo ya está registrado para este usuario' }, data: existingDevice }
     }
     const data = await Users.findOne({
@@ -95,31 +92,35 @@ export const getDevice = async ({ input }) => {
 router.route('/photos')
     .get(updatePhoto)
     .post(upload.single('image'), updatePhoto);
+    router.route('/auth')
+    .get((req, res) => {
+      return res.json({ hello: 'Hola mundo' })
+    })
 
 router.route('/photos/:id')
 
 router.post("/auth", async function (req, res) {
   try {
-    const { 
-      name, 
-      username, 
-      lastName, 
-      email, 
+    const {
+      name,
+      username,
+      lastName,
+      email,
       password,
       useragent,
       deviceid
     } = req.body || {}
-    const { 
-      token, 
-      message, 
-      success, 
-      roles, 
+    const {
+      token,
+      message,
+      success,
+      roles,
       storeUserId
-    } = await newRegisterUser({ 
-      name, 
-      username, 
-      lastName, 
-      email, 
+    } = await newRegisterUser({
+      name,
+      username,
+      lastName,
+      email,
       password
     })
     if (success) {

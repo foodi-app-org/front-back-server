@@ -3,7 +3,6 @@ import {
   INTEGER,
   literal,
   STRING,
-  TINYINT
 } from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
@@ -35,7 +34,7 @@ const StatusPedidosModel = sequelize.define('statuspedidos', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   pSState: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 0
   },
   valueDelivery: {
@@ -70,15 +69,15 @@ const StatusPedidosModel = sequelize.define('statuspedidos', {
     allowNull: false
   },
   payMethodPState: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 1
   },
   pickUp: {
-    type: TINYINT,
+    type: INTEGER,
     defaultValue: 0
   },
   channel: {
-    type: TINYINT, // store or client-store
+    type: INTEGER, // store or client-store
     defaultValue: 0
   },
   pPDate: {
