@@ -1,8 +1,7 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config'
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { createServer } from 'http';
-import { execute, subscribe } from 'graphql'
+import { execute, subscribe, GraphQLError } from 'graphql'
 import { ApolloServer, ForbiddenError } from 'apollo-server-express'
 import { PubSub } from 'graphql-subscriptions'
 import { SubscriptionServer } from 'subscriptions-transport-ws'
@@ -15,19 +14,19 @@ import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
 import indexRoutes, { cookie } from './api/lib/router'
-import { GraphQLError } from 'graphql'
 import { ironSession } from 'iron-session/express'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
 
-(async () => {
-    // config ports
-    const GRAPHQL_PORT = 8080;
-    const API_REST_PORT = 5000;
-    const pubsub = new PubSub();
+// config ports
+const GRAPHQL_PORT = 8080;
+const API_REST_PORT = 4001;
 
-    // Initialization apps
-    const app = express();
-    app.set('port', process.env.GRAPHQL_PORT || 8080)
+(async () => {
+  const pubsub = new PubSub();
+
+  // Initialization apps
+  const app = express();
+  app.set('port', process.env.GRAPHQL_PORT || 8080)
 
   app.use(
     cors({
@@ -83,7 +82,6 @@ import { getUserFromToken, parseCookies } from './api/lib/utils'
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
 
         const { error, message } = await getUserFromToken(tokenClient)
-        const excluded = ['/login', '/forgotpassword', '/register']
         const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
         const userAgent = req.headers['user-agent'];
         if (token) {

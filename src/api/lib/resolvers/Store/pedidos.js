@@ -294,7 +294,7 @@ const getOrdersByState = async ({
 
 export const getAllOrdersFromStore = async (_, args, ctx, info) => {
   const { idStore, statusOrder, fromDate, toDate, search, min, cId, dId, ctId, max } = args || {}
-  const attributes = [ 
+  const attributes = [
     'stPId',
     'id',
     'idStore',

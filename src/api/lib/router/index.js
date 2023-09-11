@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
 import { Router } from 'express'
 import { updatePhoto } from '../controller/photos';
 import upload from '../multer'
@@ -38,13 +37,15 @@ export const getDevice = async ({ input }) => {
   if (!input) return null
   try {
     const existingDevice = await UserDeviceModel.findOne({
-      where: { 
+      where: {
         deviceId: deviceId,
         id: deCode(userId)
       }
     })
 
     if (existingDevice) {
+      // Si el dispositivo ya está registrado para el mismo usuario, puedes manejar esta situación
+      // según tus necesidades. Por ejemplo, lanzar un error o simplemente retornar el dispositivo existente.
       return { error: { message: 'Este dispositivo ya está registrado para este usuario' }, data: existingDevice }
     }
     const data = await Users.findOne({

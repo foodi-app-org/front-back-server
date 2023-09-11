@@ -1,6 +1,4 @@
 'use strict'
-import dotenv from 'dotenv';
-dotenv.config();
 import Sequelize from 'sequelize'
 
 let sequelize = null
@@ -13,7 +11,7 @@ const dialectOptions = {
   }
 }
 
-function connect () {
+function connect() {
   try {
     if (sequelize) return sequelize
     sequelize = new Sequelize(
@@ -31,7 +29,6 @@ function connect () {
   } catch (error) {
     throw new Error(error)
   }
-  // sequelize.sync()
   return sequelize
 }
 

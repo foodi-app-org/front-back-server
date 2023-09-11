@@ -12,7 +12,11 @@ import trademarkModel from '../../models/product/trademark'
 import Store from '../../models/Store/Store'
 import tagsProduct from '../../models/Store/tagsProduct'
 import ThirdPartiesModel from '../../models/thirdParties/ThirdPartiesModel'
-import { deCode, enCode, getAttributes } from '../../utils/util'
+import {
+  enCode,
+  deCode,
+  getAttributes
+} from '../../utils/util'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 
