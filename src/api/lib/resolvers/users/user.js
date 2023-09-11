@@ -5,11 +5,11 @@ import { Op } from 'sequelize'
 import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 import Userprofile from '../../models/users/UserProfileModel'
-import { 
+import {
   filterKeyObject,
-  generateCode, 
-  generateToken, 
-  hashPassword, 
+  generateCode,
+  generateToken,
+  hashPassword,
   parseUserAgent,
   sendEmail
 } from '../../utils'
@@ -19,10 +19,10 @@ import recover from '../../templates/Recover'
 import { getDevice } from '../../router';
 
 export const newRegisterUser = async (input) => {
-  const { 
-    name, 
-    password, 
-    email, 
+  const {
+    name,
+    password,
+    email,
     username
   } = input || {}
   const defaultResponse = {
@@ -67,6 +67,7 @@ export const newRegisterUser = async (input) => {
       message: `Bienvenido ${name}`
     }
   } catch (error) {
+    console.log(error)
     return defaultResponse
   }
 }

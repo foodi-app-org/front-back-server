@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TINYINT, literal } from 'sequelize'
+import { INTEGER, STRING, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import { enCode } from '../../utils/util'
@@ -28,11 +28,11 @@ const FoldersModel = sequelize.define('folders', {
     allowNull: false
   },
   fLevel: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   fState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   fDatCre: {

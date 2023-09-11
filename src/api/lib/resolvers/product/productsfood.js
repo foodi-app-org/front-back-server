@@ -12,7 +12,7 @@ import trademarkModel from '../../models/product/trademark'
 import Store from '../../models/Store/Store'
 import tagsProduct from '../../models/Store/tagsProduct'
 import ThirdPartiesModel from '../../models/thirdParties/ThirdPartiesModel'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, enCode, getAttributes } from '../../utils/util'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 
@@ -254,19 +254,31 @@ export default {
     saleExtProductFoodOptional: {
       saleExtProductFoodsSubOptionalAll: async (parent, _args, _context, info) => {
         try {
-          if (!info?.variableValues?.pCodeRef) return []
-          const attributes = getAttributes(ExtProductFoodSubOptional, info)
+          const attributes = getAttributes(ExtProductFoodSubOptional, info);
+          const whereClause = {
+            exCodeOptionExtra: parent.code,
+            state: { [Op.gt]: 0 },
+          };
+
+          if (info?.variableValues?.pCodeRef) {
+            whereClause.pCodeRef = info.variableValues.pCodeRef;
+          }
+
           const data = await ExtProductFoodSubOptional.findAll({
             attributes,
-            where: {
-              exCodeOptionExtra: parent.code,
-              state: { [Op.gt]: 0 },
-              pCodeRef: info?.variableValues?.pCodeRef || ''
+            where: whereClause,
+          });
+          const dataWithUuid = data?.map((subOptional) => {
+            return {
+              ...subOptional.dataValues,
+            opSubExPid: enCode(subOptional?.opSubExPid),
+            pId: enCode(subOptional?.pId),
+            opExPid: enCode(subOptional?.opExPid)
             }
           })
-          return data
+          return dataWithUuid
         } catch {
-          return []
+          return [];
         }
       }
     },

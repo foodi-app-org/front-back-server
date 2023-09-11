@@ -31,6 +31,7 @@ function connect () {
   } catch (error) {
     throw new Error(error)
   }
+  // sequelize.sync()
   return sequelize
 }
 

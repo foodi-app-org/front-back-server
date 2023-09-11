@@ -1,7 +1,6 @@
 import {
   INTEGER,
   STRING,
-  TINYINT,
   literal
 } from 'sequelize'
 import connect from '../../db'
@@ -52,12 +51,12 @@ const productsOptionalExtra = sequelize.define('productsoptionalextra', {
     allowNull: true
   },
   state: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false,
     defaultValue: 1
   },
   required: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: true,
     defaultValue: 0
   },

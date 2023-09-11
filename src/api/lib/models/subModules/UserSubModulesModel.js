@@ -1,4 +1,4 @@
-import { INTEGER, TINYINT, literal } from 'sequelize'
+import { INTEGER, literal } from 'sequelize'
 import connect from '../../db'
 const sequelize = connect()
 import { enCode } from '../../utils/util'
@@ -38,11 +38,11 @@ const UserSubModulesModel = sequelize.define('usersubmodules', {
     get(x) {return enCode(this.getDataValue(x))}
   },
   usmPriority: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   usmState: {
-    type: TINYINT,
+    type: INTEGER,
     allowNull: false
   },
   usmDatCre: {
