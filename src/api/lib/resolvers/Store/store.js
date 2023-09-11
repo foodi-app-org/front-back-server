@@ -82,13 +82,10 @@ export const getStore = async (
 // eslint-disable-next-line
 export const oneCategoriesStore = async (parent, _args, _context, info) => {
   try {
-    const data = CatStore.findOne({
-      attributes: ["catStore", "cName"],
-      where: { catStore: deCode(parent.catStore) },
-    })
+    const data = CatStore.findOne({ attributes: ['catStore', 'cName'], where: { catStore: deCode(parent.catStore) } })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -141,155 +138,132 @@ export const registerSalesStore = async (
     change,
     pCodeRef,
     payMethodPState,
-    valueDelivery,
+    valueDelivery
   },
-  context
-) => {
+  context) => {
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
-      throw new GraphQLError("Token expired", {
-        extensions: {
-          code: "FORBIDDEN",
-          message: { message: "Token expired" },
-        },
+      throw new GraphQLError('Token expired', {
+        extensions: { code: 'FORBIDDEN', message:  { message: 'Token expired' } }
       })
     }
     const statusPedido = await StatusPedidosModel.findOne({
-      where: { pCodeRef },
+      where: { pCodeRef }
     })
     if (statusPedido) {
       return {
         Response: {
           success: false,
-          message: "Error, esto es raro pero... La orden ya existe",
-        },
+          message: 'Error, esto es raro pero... La orden ya existe'
+        }
       }
     }
     if (!id) {
-      throw new Error("Elija un cliente, no se pudo realizar la venta")
+      throw new Error('Elija un cliente, no se pudo realizar la venta')
     }
     if (!input || Boolean(!input?.length)) {
-      throw new Error(
-        "No se ha podido realizar la venta, no hay productos en el carrito"
-      )
+      throw new Error('No se ha podido realizar la venta, no hay productos en el carrito')
     }
-    await Promise.all(
-      input.map(async (element) => {
-        const {
-          pId,
-          cantProducts,
-          comments,
-          dataExtra,
-          dataOptional,
-          refCodePid,
-        } = element
-        const decodePid = deCode(pId)
-        if (!refCodePid)
-          throw new Error("No pudimos guardar tu venta, intenta de nuevo")
-        const productoOriginal = await productModelFood.findByPk(decodePid)
-        if (!productoOriginal) {
-          throw new Error(
-            "No se encontró ningún producto proporcionado, parece que fue eliminado"
-          )
-        }
-        const resShoppingCard = await ShoppingCard.create({
-          pId: deCode(pId),
-          id: deCode(id),
-          comments: comments ?? "",
-          cState: 0,
-          refCodePid: refCodePid || "",
-          cantProducts,
-          idStore: deCode(context.restaurant),
-        })
-        if (dataExtra?.length > 0) {
-          await SaleDataExtra.bulkCreate(
-            dataExtra.map((extra) => {
-              return {
-                exPid: extra.exPid,
-                exState: extra.exState,
-                extraName: extra.extraName,
-                extraPrice: extra.extraPrice,
-                newExtraPrice: extra.newExtraPrice,
-                pCodeRef: pCodeRef,
-                pDatCre: new Date(Date.now()),
-                pDatMod: new Date(Date.now()),
-                pId: extra.pId,
-                quantity: extra.quantity,
-                refCodePid,
-                shoppingCardId: deCode(resShoppingCard.ShoppingCard),
-                state: extra.state,
-              }
-            })
-          )
-        }
-        if (Array.isArray(dataOptional) && dataOptional.length > 0) {
-          await Promise.all(
-            dataOptional.map(async (optional) => {
-              const {
-                opExPid,
-                OptionalProName,
-                state,
-                code,
-                numbersOptionalOnly,
-                pDatCre,
-                required,
-                pDatMod,
-                ExtProductFoodsSubOptionalAll,
-              } = optional
-              await ExtProductFoodOptional.create({
-                pId: deCode(pId),
-                opExPid: deCode(opExPid),
-                OptionalProName,
-                state,
-                refCodePid,
-                code,
-                pCodeRef: pCodeRef,
-                numbersOptionalOnly,
-                pDatCre,
-                required,
-                pDatMod,
-              })
-              if (
-                Array.isArray(ExtProductFoodsSubOptionalAll) &&
-                ExtProductFoodsSubOptionalAll?.length > 0
-              ) {
-                await ExtProductFoodSubOptional.bulkCreate(
-                  ExtProductFoodsSubOptionalAll.map((subOptional) => {
-                    return {
-                      pId: deCode(pId),
-                      opExPid: deCode(opExPid),
-                      idStore: deCode(context.restaurant),
-                      opSubExPid: deCode(subOptional.opSubExPid),
-                      OptionalSubProName: subOptional.OptionalSubProName,
-                      exCodeOptionExtra: subOptional.exCodeOptionExtra,
-                      exCode: subOptional.exCode,
-                      pCodeRef: pCodeRef,
-                      state: subOptional.state,
-                      pDatCre: new Date(Date.now()),
-                      pDatMod: new Date(Date.now()),
-                      check: subOptional.check,
-                    }
-                  })
-                )
-              }
-            })
-          )
-        }
-        await createOnePedidoStore(null, {
-          input: {
-            change,
-            generateSales: true,
-            id: id,
-            idStore: context?.restaurant?.replace(/["']/g, ""),
-            payMethodPState,
-            pCodeRef,
-            pickUp,
-            pPRecoger: null,
-            ShoppingCard: resShoppingCard.ShoppingCard,
-          },
-        })
+    await Promise.all(input.map(async (element) => {
+      const {
+        pId,
+        cantProducts,
+        comments,
+        dataExtra,
+        dataOptional,
+        refCodePid
+      } = element
+      const decodePid = deCode(pId)
+      if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
+      const productoOriginal = await productModelFood.findByPk(decodePid)
+      if (!productoOriginal) {
+        throw new Error('No se encontró ningún producto proporcionado, parece que fue eliminado')
+      }
+      const resShoppingCard = await ShoppingCard.create({
+        pId: deCode(pId),
+        id: deCode(id),
+        comments: comments ?? '',
+        cState: 0,
+        refCodePid: refCodePid || '',
+        cantProducts,
+        idStore: deCode(context.restaurant)
       })
-    )
+      if (dataExtra?.length > 0) {
+        await SaleDataExtra.bulkCreate(dataExtra.map(extra => {return {
+          exPid: extra.exPid,
+          exState: extra.exState,
+          extraName: extra.extraName,
+          extraPrice: extra.extraPrice,
+          newExtraPrice: extra.newExtraPrice,
+          pCodeRef: pCodeRef,
+          pDatCre: new Date(Date.now()),
+          pDatMod: new Date(Date.now()),
+          pId: extra.pId,
+          quantity: extra.quantity,
+          refCodePid,
+          shoppingCardId: deCode(resShoppingCard.ShoppingCard),
+          state: extra.state
+        }}))
+      }
+      if (Array.isArray(dataOptional) && dataOptional.length > 0) {
+        await Promise.all(dataOptional.map(async (optional) => {
+          const {
+            opExPid,
+            OptionalProName,
+            state,
+            code,
+            numbersOptionalOnly,
+            pDatCre,
+            required,
+            pDatMod,
+            ExtProductFoodsSubOptionalAll
+          } = optional
+          await ExtProductFoodOptional.create({
+            pId: deCode(pId),
+            opExPid: deCode(opExPid),
+            OptionalProName,
+            state,
+            refCodePid,
+            code,
+            pCodeRef: pCodeRef,
+            numbersOptionalOnly,
+            pDatCre,
+            required,
+            pDatMod
+          })
+          if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
+            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => {return {
+              pId: deCode(pId),
+              opExPid: deCode(opExPid),
+              idStore: deCode(context.restaurant),
+              opSubExPid: deCode(subOptional.opSubExPid),
+              OptionalSubProName: subOptional.OptionalSubProName,
+              exCodeOptionExtra: subOptional.exCodeOptionExtra,
+              exCode: subOptional.exCode,
+              pCodeRef: pCodeRef,
+              state: subOptional.state,
+              pDatCre: new Date(Date.now()),
+              pDatMod: new Date(Date.now()),
+              check: subOptional.check
+            }}))
+
+          }
+        }))
+      }
+      await createOnePedidoStore(null, {
+        input: {
+          change,
+          generateSales: true,
+          id: id,
+          idStore: context?.restaurant?.replace(/["']/g, ''),
+          payMethodPState,
+          pCodeRef,
+          pickUp,
+          pPRecoger: null,
+          ShoppingCard: resShoppingCard.ShoppingCard
+        }
+      })
+    }))
     await StatusPedidosModel.create({
       change: change,
       channel: 1,
@@ -302,21 +276,21 @@ export const registerSalesStore = async (
       pickUp,
       pSState: 4,
       totalProductsPrice,
-      valueDelivery: valueDelivery,
+      valueDelivery: valueDelivery
     })
     return {
       ShoppingCard: null,
       Response: {
         success: true,
-        message: "Venta exitosa",
-      },
+        message: 'Venta exitosa'
+      }
     }
   } catch (e) {
     return {
       Response: {
         success: false,
-        message: e.message || "Lo sentimos, ha ocurrido un error interno",
-      },
+        message: e.message || 'Lo sentimos, ha ocurrido un error interno'
+      }
     }
   }
 }
@@ -1133,7 +1107,6 @@ export default {
           return []
         }
       },
-
       getStore: async (parent, _args, _context, info) => {
         try {
           const attributes = getAttributes(Store, info)
@@ -1242,7 +1215,8 @@ export default {
     setEditNameStore,
     setRating,
     registerSalesStore,
-    registerShoppingCard,
+    registerShoppingCard
   },
-  SUBSCRIPTION: {},
+  SUBSCRIPTION: {
+  }
 }

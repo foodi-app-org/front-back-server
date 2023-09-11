@@ -1,10 +1,9 @@
 import { INTEGER, STRING, literal } from 'sequelize'
 import { enCode } from '../../utils/util'
 import connect from '../../db'
-const sequelize = connect()
 import ThirdPartiesModel from '../thirdParties/ThirdPartiesModel'
 
-// 
+const sequelize = connect()
 
 const LawyersModel = sequelize.define('lawyers', {
   lId: {

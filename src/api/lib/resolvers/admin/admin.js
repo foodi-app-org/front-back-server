@@ -4,12 +4,12 @@ import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 
 /**
- * 
- * @param {*} _root no usado 
+ *
+ * @param {*} _root no usado
  * @param {*} param1 _
  * @param {*} _context context info global
  * @param {*} _info _
- * @returns 
+ * @returns
  */
 
 // eslint-disable-next-line
@@ -30,8 +30,6 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
           [Op.like]: 2
         }
       }
-      // offset: 10,
-      // limit: 2
     })
     return {
       store: rows,
@@ -45,26 +43,14 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
   }
 
 }
-// eslint-disable-next-line
+
 export const getAllUserActives = async (_root, _args, _context, _info) => {
   try {
-    const { count, rows } = await Users.findAndCountAll({
-      // where: {
-      //   title: {
-      //     [Op.like]: 'foo%'
-      //   }
-      // },
-      // offset: 10,
-      // limit: 2
-    })
+    const { count, rows } = await Users.findAndCountAll({})
     const { count: countInActive, rows: RowInActive } = await Users.findAndCountAll({
       where: {
-        uState: {
-          [Op.like]: 0
-        }
+        uState: 0
       }
-      // offset: 10,
-      // limit: 2
     })
     return {
       count: count,

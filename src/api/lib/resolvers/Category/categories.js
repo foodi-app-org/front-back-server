@@ -1,5 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
-/* eslint-disable consistent-return */
 import { ApolloError } from 'apollo-server-express'
 import CategoryProductsModel from '../../models/Categories/CategoryProducts'
 import { deCode, getAttributes } from '../../utils/util'
@@ -16,7 +14,6 @@ export const updateCategoryProducts = async (_root, { input }) => {
       })
       return data
     }
-        
     const isExist = await CategoryProductsModel.findOne({ attributes: ['caId', 'cpName', 'cpState'], where: { caId: deCode(caId) } })
     if (isExist) {
       await CategoryProductsModel.update({ cpState: cpState === 1 ? 0 : 1 }, { where: { caId: deCode(caId) } })
@@ -24,7 +21,6 @@ export const updateCategoryProducts = async (_root, { input }) => {
     else {
       throw new ApolloError('No se pudo eliminar el producto debido a un error interno.')
     }
-        
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }

@@ -14,7 +14,6 @@ import {
   sendEmail
 } from '../../utils'
 import { deCode, getAttributes } from '../../utils/util'
-// import { getDevice } from '../../../auth'
 import recover from '../../templates/Recover'
 import { getDevice } from '../../router';
 
@@ -67,7 +66,6 @@ export const newRegisterUser = async (input) => {
       message: `Bienvenido ${name}`
     }
   } catch (error) {
-    console.log(error)
     return defaultResponse
   }
 }
