@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 import Store from '../../models/Store/Store'
@@ -105,7 +103,7 @@ export const registerEmailLogin = async (_, { input }, context, info) => {
     await saveDevice(result)
     return { success: true, message: 'Hemos enviado un codigo a tu correo' }
   } catch (error) {
-    console.log({error})
+    console.log({ error })
     return { success: false, message: 'Ocurrio un error' }
   }
 }
@@ -143,7 +141,7 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
     if (!existEmail) return {
       token: null,
       roles: false,
-      restaurant:  '',
+      restaurant: '',
       idStore: '',
       success: false,
       StoreInfo: null,
@@ -151,7 +149,7 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
     }
     const dataUser = {
       uEmail: email,
-      restaurant:  StoreInfo ? StoreInfo?.idStore : null,
+      restaurant: StoreInfo ? StoreInfo?.idStore : null,
       code: existEmail?.uToken,
       idStore: StoreInfo ? StoreInfo?.idStore : null,
       id: existEmail?.id
@@ -161,20 +159,20 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
       return {
         token: token,
         roles: false,
-        restaurant:  StoreInfo ? StoreInfo?.idStore : null,
+        restaurant: StoreInfo ? StoreInfo?.idStore : null,
         idStore: StoreInfo ? StoreInfo?.idStore : null,
         success: true,
         StoreInfo: StoreInfo,
         message: 'Session created.'
       }
-    } 
+    }
     return {
       token: 'null',
       roles: false,
       success: false,
       message: 'El codigo ya no es valido.'
     }
-        
+
   } catch (error) {
     return { success: false, message: error.message || 'Error' }
   }
@@ -204,7 +202,7 @@ export const getOneUser = async (root, { uEmail }, context, info) => {
     })
     return data
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno,  Vuelve a intentarlo mas tarde.') 
+    const error = new Error('Lo sentimos, ha ocurrido un error interno,  Vuelve a intentarlo mas tarde.')
     return error
   }
 }
@@ -212,7 +210,7 @@ export const getOneUser = async (root, { uEmail }, context, info) => {
 const updateUserProfile = async (_root, { input }, context) => {
   try {
     // eslint-disable-next-line
-        const { user, ...rest } = input || {}
+    const { user, ...rest } = input || {}
     const { id, ...resUser } = user
     await Users.update({ ...resUser }, { where: { id: deCode(id) } })
   } catch (e) {
