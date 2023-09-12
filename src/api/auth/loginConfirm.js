@@ -72,8 +72,7 @@ export default withIronSessionApiRoute(
     cookieOptions: {
       expires: new Date(Date.now() + MAX_AGE * 1000),
       maxAge: MAX_AGE, // 8 hours,
-      // secure: process.env.NODE_ENV === 'production'
-      secure: false
+      secure: process.env.NODE_ENV === 'production'
     }
   }
 )

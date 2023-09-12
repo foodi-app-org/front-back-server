@@ -1,0 +1,26 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - main # o la rama en la que quieras desplegar
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14 # Puedes cambiar la versión de Node.js según tus requisitos
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to Fly.io
+      run: |
+        curl -F "image=@." https://api.fly.io/v6/apps/front-back-server/deploy
