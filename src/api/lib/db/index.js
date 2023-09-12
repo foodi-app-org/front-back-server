@@ -1,5 +1,8 @@
 'use strict'
 import Sequelize from 'sequelize'
+import dotenv from 'dotenv';
+// Configura dotenv
+dotenv.config();
 
 let sequelize = null
 const isDev = process.env.NODE_ENV === 'development'

@@ -23,6 +23,7 @@ export const getAllMatchesStoreRecommended = async (_root, args, _context, info)
       }, limit: [min || 0, max || 5], order: fn('RAND')
     })
   } catch (e) {
+    console.log("🚀 ~ file: recommendedCategorieStore.js:26 ~ getAllMatchesStoreRecommended ~ e:", e)
     const error = new Error('Lo sentimos, ha ocurrido un error interno en mach store')
     return error
   }

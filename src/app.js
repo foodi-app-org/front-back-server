@@ -1,4 +1,6 @@
-import 'dotenv/config'
+import dotenv from 'dotenv';
+// Configura dotenv
+dotenv.config();
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 import { createServer } from 'http';
 import { execute, subscribe, GraphQLError } from 'graphql'
@@ -28,7 +30,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
   app.use(
     cors({
       methods: ['GET', 'POST'],
-      origin: "*",
+      origin: [process.env.WEB_CLIENT, process.env.WEB_ADMIN_STORE],
       credentials: true,
     })
   );

@@ -1259,6 +1259,7 @@ console.log(threeMonthsAgo.format()); // 2015-10-13T09:37:35+02:00
 
 
 export function parseUserAgent(userAgent) {
+    if (!userAgent) return
     const browserInfo = {
         name: 'Unknown',
         short_name: 'Unknown',
@@ -1287,7 +1288,7 @@ export function parseUserAgent(userAgent) {
     }
 
     for (const [browser, pattern] of Object.entries(browserPatterns)) {
-        const match = userAgent.match(pattern)
+        const match = userAgent?.match(pattern)
         if (match) {
             browserInfo.name = browser
             browserInfo.version = match[1]
