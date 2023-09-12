@@ -14,7 +14,7 @@ export const cookie = {
   cookieName: process.env.SESSION_NAME,
   cookieOptions: {
     maxAge: 60 * 60 * 8, // 8 hours,
-    secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
+    // secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
     domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
   }
 }
