@@ -20,16 +20,13 @@ export const getAllMatchesStoreRecommended = async (_root, args, _context, info)
             ...((catStore) ? { catStore: deCode(catStore) } : {})
           }
         ]
-      },
-      limit: [min || 0, max || 5],
-      order: fn('RANDOM') // Cambia 'RAND' a 'RANDOM'
-    });
+      }, limit: [min || 0, max || 5], order: fn('RAND')
+    })
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno en mach store');
-    return error;
+    const error = new Error('Lo sentimos, ha ocurrido un error interno en mach store')
+    return error
   }
 }
-
 
 export const productFoodsAllRecommended = async (_root, args, _context, info) => {
   try {
