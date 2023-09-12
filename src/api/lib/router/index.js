@@ -1,21 +1,23 @@
 import { Router } from 'express'
-import { updatePhoto } from '../controller/photos';
+import { updatePhoto } from '../controller/photos'
 import upload from '../multer'
-import { LoginEmailConfirmation, newRegisterUser } from '../resolvers/users/user';
-import UserDeviceModel from '../models/users/userDevice';
-import { deCode } from '../utils/util';
-import Users from '../models/Users';
-import { LoginEmail } from '../templates/LoginEmail';
-import { parseUserAgent, sendEmail } from '../utils';
+import { LoginEmailConfirmation, newRegisterUser } from '../resolvers/users/user'
+import UserDeviceModel from '../models/users/userDevice'
+import { deCode } from '../utils/util'
+import Users from '../models/Users'
+import { LoginEmail } from '../templates/LoginEmail'
+import { parseUserAgent, sendEmail } from '../utils'
 const router = Router()
 
 export const cookie = {
   password: process.env.SESSION_KEY,
   cookieName: process.env.SESSION_NAME,
   cookieOptions: {
-    maxAge: 60 * 60 * 8, // 8 hours,
-    // secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
+    maxAge: 60 * 60 * 8, // 8 hours
+    secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
     domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
+    sameSite: 'lax', // Opcional, establece la política de sameSite según tus necesidades
+    httpOnly: true,
   }
 }
 
@@ -91,7 +93,7 @@ export const getDevice = async ({ input }) => {
 
 router.route('/photos')
   .get(updatePhoto)
-  .post(upload.single('image'), updatePhoto);
+  .post(upload.single('image'), updatePhoto)
 
 router.route('/photos/:id')
 
@@ -127,8 +129,8 @@ router.post("/auth", async function (req, res) {
         roles,
         storeUserId,
         token,
-      };
-      await req.session.save();
+      }
+      await req.session.save()
       const userInfo = parseUserAgent(useragent)
       const result = {
         deviceId: deviceid,
@@ -162,7 +164,7 @@ router.post("/auth", async function (req, res) {
       message: 'error'
     })
   }
-});
+})
 
 router.post("/auth/loginConfirm", async function (req, res) {
   const useragent = req.headers['user-agent']
@@ -225,6 +227,6 @@ router.post("/auth/loginConfirm", async function (req, res) {
       message: 'error'
     })
   }
-});
+})
 
 export default router   
