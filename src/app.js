@@ -18,20 +18,17 @@ import { ironSession } from 'iron-session/express'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
 
 // config ports
-const GRAPHQL_PORT = 8080;
-const API_REST_PORT = 4001;
+const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
 
 (async () => {
   const pubsub = new PubSub();
 
   // Initialization apps
   const app = express();
-  app.set('port', process.env.GRAPHQL_PORT || 8080)
-
   app.use(
     cors({
       methods: ['GET', 'POST'],
-      origin: ['http://localhost:3001', 'http://localhost:3000'],
+      origin: ['http://localhost:3001', 'http://localhost:3000', 'https://*.fly.dev'],
       credentials: true,
     })
   );
@@ -40,16 +37,11 @@ const API_REST_PORT = 4001;
       ...cookie
     })
   );
-  app.set('port', process.env.GRAPHQL_PORT || 4000)
   app.post('/image', (req, res) => { res.json('/image api') })
   app.use(express.json({ limit: '50mb' }))
   app.use('/image', (req, res) => {
     res.send('ONLINE PORT IMAGES!')
   })
-  // Listen App
-  app.listen(API_REST_PORT, () => {
-    console.log('API SERVER LISTENING ON PORT', API_REST_PORT);
-  });
   // Routes
   app.use('/static', express.static('public'))
   // this folder for this application will be used to store public files

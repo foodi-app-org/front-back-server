@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import { Router } from 'express'
 import { updatePhoto } from '../controller/photos';
 import upload from '../multer'
@@ -12,25 +10,25 @@ import { parseUserAgent, sendEmail } from '../utils';
 const router = Router()
 
 export const cookie = {
-    password: process.env.SESSION_KEY,
-    cookieName: process.env.SESSION_NAME,
-    cookieOptions: {
-      maxAge: 60 * 60 * 8, // 8 hours,
-      secure: process.env.NODE_ENV === 'production'
-    }
+  password: process.env.SESSION_KEY,
+  cookieName: process.env.SESSION_NAME,
+  cookieOptions: {
+    maxAge: 60 * 60 * 8, // 8 hours,
+    secure: process.env.NODE_ENV === 'production'
+  }
 }
 
 export const getDevice = async ({ input }) => {
-  const { 
-    deviceId, 
-    userId, 
-    locationFormat, 
-    os: { 
-      name, 
+  const {
+    deviceId,
+    userId,
+    locationFormat,
+    os: {
+      name,
       short_name,
-      version, 
-      device, 
-      family, 
+      version,
+      device,
+      family,
       platform
     } } = input || {}
   let res = {}
@@ -82,7 +80,7 @@ export const getDevice = async ({ input }) => {
         version
       })
     })
- 
+
     return { res, error: false, data: res }
   } catch (error) {
     return { error: { message: error.message }, data: {} }
@@ -91,12 +89,8 @@ export const getDevice = async ({ input }) => {
 
 
 router.route('/photos')
-    .get(updatePhoto)
-    .post(upload.single('image'), updatePhoto);
-    router.route('/auth')
-    .get((req, res) => {
-      return res.json({ hello: 'Hola mundo' })
-    })
+  .get(updatePhoto)
+  .post(upload.single('image'), updatePhoto);
 
 router.route('/photos/:id')
 
@@ -172,17 +166,17 @@ router.post("/auth", async function (req, res) {
 router.post("/auth/loginConfirm", async function (req, res) {
   const useragent = req.headers['user-agent']
   try {
-    const { 
-      email, 
-      otp, 
+    const {
+      email,
+      otp,
       deviceid
     } = req.body
-    const { 
-      token, 
-      message, 
-      success, 
-      roles, 
-      idStore, 
+    const {
+      token,
+      message,
+      success,
+      roles,
+      idStore,
       StoreInfo
     } = await LoginEmailConfirmation(null, { email, otp })
     if (success) {
