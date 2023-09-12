@@ -37,8 +37,17 @@
     "@babel/node": "7.16.8",
     "@babel/plugin-proposal-class-properties": "7.16.7",
     "@babel/preset-env": "7.16.11",
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@commitlint/prompt": "^17.7.1",
     "babel-node": "0.0.1-security",
+    "husky": "^8.0.3",
     "nodemon": "2.0.15"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "npm run commitlint"
+    }
   },
   "license": "ISC",
   "main": "index.js",
@@ -47,7 +56,9 @@
     "babel-node": "babel-node --presets=@babel/preset-env",
     "build": "babel src/ --out-dir build",
     "clean-install": "rm -rf node_modules && npm install",
+    "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
     "dev": "nodemon --exec npm run babel-node src/app.js",
+    "prepare": "husky install",
     "start": "node build/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
