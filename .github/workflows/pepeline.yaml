@@ -5,16 +5,36 @@ on:
       - main
       - develop
 jobs:
+  validate-commit:
+    name: Validate Commit Message
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate commit messages
+        run: npm run commitlint # Ejecuta el script de validación de mensajes de confirmación
+        working-directory: ${{ github.workspace }}
+
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
+    needs: validate-commit # Espera hasta que la tarea de validación se complete con éxito
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 14 # Puedes ajustar la versión de Node.js según tus necesidades
+          node-version: 14
 
       - name: Install dependencies
         run: npm install
