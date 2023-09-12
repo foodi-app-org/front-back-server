@@ -1,5 +1,5 @@
 export default ({ code }) => {
-    const url = `${process.env.URL_BASE}entrar/email?otp=true?code=${code}`
+    const url = `${process.env.URL_BASE}/entrar/email?otp=true?code=${code}`
     const year = new Date().getFullYear()
     return `<!DOCTYPE html>
     <html lang="es">
