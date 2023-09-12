@@ -21,7 +21,12 @@ jobs:
         run: npm install
 
       - name: Validate commit messages
-        run: npx commitlint --from=HEAD~1 # Verifica el último commit
+        run: |
+          last_commit_message=$(git log -1 --pretty=format:%s)
+          if [[ ! "$last_commit_message" =~ ^(fix:|feat:) ]]; then
+            echo "Error: El mensaje de confirmación no cumple con el formato esperado (fix: o feat:)"
+            exit 1
+          fi
         working-directory: ${{ github.workspace }}
 
   deploy:
