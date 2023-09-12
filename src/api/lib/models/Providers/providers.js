@@ -96,7 +96,7 @@ const Providers = sequelize.define('providers', {
     defaultValue: 0
   },
   prState: {
-    type: SMALLINT(6),
+    type: SMALLINT,
     allowNull: false,
     defaultValue: 1
   },

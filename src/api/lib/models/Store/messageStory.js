@@ -35,7 +35,7 @@ export default conn.define('storycomment', {
     allowNull: false
   },
   messageState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

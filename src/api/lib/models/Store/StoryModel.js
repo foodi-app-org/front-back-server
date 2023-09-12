@@ -39,7 +39,7 @@ export default conn.define('storystore', {
     allowNull: false
   },
   sState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

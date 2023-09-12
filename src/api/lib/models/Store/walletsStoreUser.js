@@ -60,7 +60,7 @@ export default conn.define('wallets', {
     allowNull: false
   },
   cntState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

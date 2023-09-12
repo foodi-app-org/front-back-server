@@ -47,7 +47,7 @@ export default conn.define('contacts', {
     allowNull: false
   },
   cntState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

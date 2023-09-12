@@ -27,7 +27,7 @@ export default conn.define('promodashboardstoreadmins', {
     allowNull: false
   },
   bPromoState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false,
     defaultValue: 1
   },

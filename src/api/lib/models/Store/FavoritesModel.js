@@ -36,7 +36,7 @@ export default conn.define('storefavoritesuser', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   fState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

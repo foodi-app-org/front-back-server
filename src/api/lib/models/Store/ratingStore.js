@@ -36,23 +36,23 @@ export default conn.define('ratingstore', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   rAppearance: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   rTasty: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   rGoodTemperature: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   rGoodCondition: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   rState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   createAt: {

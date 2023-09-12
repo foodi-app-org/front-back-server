@@ -30,10 +30,18 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
   app.use(
     cors({
       methods: ['GET', 'POST'],
-      origin: [process.env.WEB_CLIENT, process.env.WEB_ADMIN_STORE],
+      origin: [
+        process.env.WEB_CLIENT,
+        process.env.WEB_ADMIN_STORE,
+        'http://localhost:3000',
+        'http://localhost:3001',
+      ],
       credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization']
     })
   );
+  app.use(morgan('dev'))
+  app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
   app.use(
     ironSession({
       ...cookie
@@ -50,8 +58,6 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
   app.use('/uploads', express.static('uploads'));
   app.use('/api', indexRoutes);
   // Middleware
-  app.use(morgan('dev'))
-  app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
   const httpServer = createServer(app);
   const schema = makeExecutableSchema({ typeDefs, resolvers });
   const server = new ApolloServer({

@@ -36,7 +36,7 @@ export default conn.define('employees', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   eEnterprise: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true,
     defaultValue: 1
   },
@@ -71,7 +71,7 @@ export default conn.define('employees', {
     allowNull: true
   },
   eState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true,
     defaultValue: 1
   },

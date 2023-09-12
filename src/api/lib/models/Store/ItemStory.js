@@ -39,7 +39,7 @@ export default conn.define('storyitemphotostore', {
     allowNull: false
   },
   isState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

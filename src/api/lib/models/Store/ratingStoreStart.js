@@ -35,7 +35,7 @@ export default conn.define('ratingstartstore', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   rScore: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true
   },
   createAt: {

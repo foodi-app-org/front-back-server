@@ -36,7 +36,7 @@ export default conn.define('clients', {
     get(x) { return enCode(this.getDataValue(x)) }
   },
   clState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true,
     defaultValue: 1
   },

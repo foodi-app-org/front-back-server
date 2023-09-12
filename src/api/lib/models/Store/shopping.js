@@ -48,7 +48,7 @@ export default conn.define('shopping', {
     allowNull: false
   },
   shoState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

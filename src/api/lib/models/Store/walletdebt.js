@@ -67,7 +67,7 @@ export default conn.define('walletdebt', {
     allowNull: true
   },
   gender: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: true,
     defaultValue: 1
   },
@@ -90,7 +90,7 @@ export default conn.define('walletdebt', {
     allowNull: false
   },
   debtState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {

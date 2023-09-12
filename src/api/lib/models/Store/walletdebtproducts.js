@@ -61,7 +61,7 @@ export default conn.define('walletdebtproducts', {
     allowNull: true
   },
   debtProductState: {
-    type: Sequelize.SMALLINT(6),
+    type: Sequelize.SMALLINT,
     allowNull: false
   },
   createAt: {
