@@ -37,7 +37,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
         'http://localhost:3001',
       ],
       credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials']
     })
   );
   app.use(morgan('dev'))
