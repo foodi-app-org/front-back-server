@@ -28,7 +28,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
   app.use(
     cors({
       methods: ['GET', 'POST'],
-      origin: ['http://localhost:3001', 'http://localhost:3000', 'https://*.fly.dev'],
+      origin: "*",
       credentials: true,
     })
   );
@@ -78,7 +78,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
         const userAgent = req.headers['user-agent'];
         if (token) {
           User = await jwt.verify(token, AUTHO_USER_KEY)
-          return { req, userAgent,  setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
+          return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
         } else if (tokenClient) {
           User = await jwt.verify(tokenClient, AUTHO_USER_KEY)
           return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
