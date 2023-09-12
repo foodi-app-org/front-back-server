@@ -21,7 +21,7 @@ jobs:
         run: npm install
 
       - name: Validate commit messages
-        run: npm run commitlint # Ejecuta el script de validación de mensajes de confirmación
+        run: npx commitlint --from=HEAD~1 # Verifica el último commit
         working-directory: ${{ github.workspace }}
 
   deploy:
