@@ -43,8 +43,8 @@ const setBanners = async (parent, args, context, info) => {
       throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.');
     }
   };
-  
-  const getAllPromoBanners = async (parent, args, context, info) => {
+
+const getAllPromoBanners = async (parent, args, context, info) => {
     try {
       // Extrae los datos de los argumentos de entrada
       const { input } = args;
