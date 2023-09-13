@@ -4,12 +4,6 @@ input IPromoBanners {
   bpState: String
   name: String!
 }
-input IMasterBanners {
-  path: String!
-  description: String
-  BannersState: String
-  name: String!
-}
 
 # Define el tipo de salida para un banner
 type Banner {
@@ -27,7 +21,6 @@ input IAllPromoBanners {
 
 # Define la mutación para subir banners
 type Mutation {
-  setBanners(input: IMasterBanners!): Banner!
   setPromoBanners(input: IPromoBanners!): Banner!
 }
 

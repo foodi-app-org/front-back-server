@@ -21,28 +21,7 @@ const setPromoBanners = async (parent, args, context, info) => {
       console.error('Error al crear un nuevo banner:', error);
       throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.');
     }
-  };
-  // Define el resolver para la mutación setBanners
-const setBanners = async (parent, args, context, info) => {
-    try {
-      // Extrae los datos del argumento de entrada
-      const { input } = args;
-
-      // Crea un nuevo banner en la base de datos utilizando el modelo "Banner"
-      const newBanner = await banners.create({
-        path: input.path,
-        description: input.description,
-        BannersState: input.BannersState,
-        name: input.name,
-      });
-      // Devuelve el banner recién creado como resultado
-      return newBanner;
-    } catch (error) {
-      // Manejo de errores: puedes personalizar el manejo de errores según tus necesidades
-      console.error('Error al crear un nuevo banner:', error);
-      throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.');
-    }
-  };
+};
 
 const getAllPromoBanners = async (parent, args, context, info) => {
     try {
@@ -83,7 +62,6 @@ export default {
       getAllPromoBanners
     },
     MUTATIONS: {
-        setBanners,
         setPromoBanners
     }
   }
