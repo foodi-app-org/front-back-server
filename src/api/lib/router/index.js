@@ -18,8 +18,8 @@ export const cookie = {
     domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
     sameSite: 'lax', // Opcional, establece la política de sameSite según tus necesidades
     httpOnly: true,
-  }
-}
+  },
+};
 
 export const getDevice = async ({ input }) => {
   const {
@@ -130,6 +130,7 @@ router.post("/auth", async function (req, res) {
         storeUserId,
         token,
       }
+      req.session.set('user', { username: 'john' });
       await req.session.save()
       const userInfo = parseUserAgent(useragent)
       const result = {
