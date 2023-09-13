@@ -23,7 +23,6 @@ export const getPromoStoreAdmin = async (_, { min, max, search }, ctx, info) => 
 }
 
 export const createAPromoBanner = async (_, { input }, ctx) => {
-  if (!ctx.User.id) throw new AuthenticationError('Unauthenticated')
   try {
     await promosStoreAdmin.create({
       ...input
