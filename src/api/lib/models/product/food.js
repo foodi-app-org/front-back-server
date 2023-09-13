@@ -89,12 +89,12 @@ const productModel = sequelize.define('productstore', {
   // -----------------------------Listo-----------------------------
   // Destacado
   ProOutstanding: {
-    type: SMALLINT            
+    type: SMALLINT
   },
   // Entrega
   ProDelivery: {
     type: SMALLINT,
-    defaultValue: false
+    defaultValue: 0
 
   },
   pDatCre: {

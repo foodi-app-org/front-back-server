@@ -23,15 +23,18 @@ function connect() {
       process.env.PASS_DB, //password of the database
       {
         host: process.env.HOST_DB,
-        logging: isDev,
+        logging: true,
         port: process.env.PORT_DB,
         dialect: process.env.DIALECT_DB,
         dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
       }
     )
   } catch (error) {
+    console.log(error)
+    
     throw new Error(error)
   }
+  sequelize.sync()
   return sequelize
 }
 

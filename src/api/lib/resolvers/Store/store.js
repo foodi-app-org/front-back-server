@@ -331,11 +331,11 @@ export const getTodaySales = async (_, args, ctx) => {
 }
 
 
-ExtProductFoodOptional.hasMany(ExtProductFoodSubOptional, {
-  foreignKey: "opExPid", // El campo que vincula las dos tablas
-  sourceKey: "opExPid", // El campo en ExtProductFoodOptional que se vincula con opExPid en ExtProductFoodSubOptional
-  as: "saleExtProductFoodsSubOptionalAll", // El alias para acceder a la relación
-})
+// ExtProductFoodOptional.hasMany(ExtProductFoodSubOptional, {
+//   foreignKey: "opExPid", // El campo que vincula las dos tablas
+//   sourceKey: "opExPid", // El campo en ExtProductFoodOptional que se vincula con opExPid en ExtProductFoodSubOptional
+//   as: "saleExtProductFoodsSubOptionalAll", // El alias para acceder a la relación
+// })
 
 const updateDataOptional = async ({ refCodePid, dataOptional }) => {
   try {
