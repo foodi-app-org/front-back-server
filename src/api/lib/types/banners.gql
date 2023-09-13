@@ -1,0 +1,36 @@
+input IPromoBanners {
+  path: String!
+  description: String
+  bpState: String
+  name: String!
+}
+input IMasterBanners {
+  path: String!
+  description: String
+  BannersState: String
+  name: String!
+}
+
+# Define el tipo de salida para un banner
+type Banner {
+  path: String!
+  description: String
+  bpState: String
+  name: String!
+}
+
+input IAllPromoBanners {
+  search: String
+  min: Int
+  max: Int
+}
+
+# Define la mutación para subir banners
+type Mutation {
+  setBanners(input: IMasterBanners!): Banner!
+  setPromoBanners(input: IPromoBanners!): Banner!
+}
+
+type Query {
+  getAllPromoBanners(input: IAllPromoBanners): [Banner]!
+}
