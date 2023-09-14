@@ -163,26 +163,28 @@ export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
 }
 const cache = {}
 
-const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore, ctx, pSState, search, min, max}) => {
+const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore, ctx, pSState, search, min, max }) => {
   const cacheKey = `${model}_${JSON.stringify(attributes)}_${fromDate}_${toDate}_${idStore}_${ctx}_${pSState}_${search}_${min}_${max}`
-  const START = new Date()
-  START.setHours(0, 0, 0, 0)
-  const NOW = new Date()
   // Verificar si el resultado está en caché
   if (cache[cacheKey]) return cache[cacheKey]
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Establecer la fecha a las 00:00:00.000 de hoy
+
+  const tomorrow = new Date()
+  tomorrow.setHours(23, 59, 59, 999) // Establecer la fecha a las 23:59:59.999 de hoy
 
   const where = {
     [Op.and]: [
       {
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
         pSState: pSState,
-        ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {pDatCre: {
-          [Op.between]: [START.toISOString(), NOW.toISOString()]
-        }})
+        pDatCre: {
+          [Op.between]: [fromDate || today, toDate || tomorrow]
+        }
       }
     ]
   }
-
 
   if (search) {
     where[Op.and].push({
@@ -203,6 +205,7 @@ const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore,
 
   return orders
 }
+
 
 // Objeto para almacenar la caché
 

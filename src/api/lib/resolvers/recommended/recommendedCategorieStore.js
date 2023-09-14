@@ -51,7 +51,8 @@ export const productFoodsAllRecommended = async (_root, args, _context, info) =>
             pState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: fn('RAND')
+      },        limit: max || 100,
+        offset: min || 0, order: fn('RAND')
     })
   } catch (e) {
     return new Error('Lo sentimos, ha ocurrido un error interno en product recomendante')

@@ -64,7 +64,8 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['pDatCre', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (error) {
@@ -153,7 +154,8 @@ export const getAllSalesStoreStatistic = async (_, args, ctx, info) => {
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['pDatCre', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (error) {

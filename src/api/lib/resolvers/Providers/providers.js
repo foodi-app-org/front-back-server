@@ -26,7 +26,8 @@ export const getAllProviders = async (root, args, context, info) => {
           prState: { [Op.gt]: 0 }
         }
       ]
-    }, limit: [min || 0, max || 100], order: [['DatCre', 'DESC']]
+    },        limit: max || 100,
+        offset: min || 0, order: [['DatCre', 'DESC']]
   })
   return data
 }

@@ -86,7 +86,8 @@ export const getAllClients = async (_root, {
             clState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['createAt', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['createAt', 'DESC']]
     })
     return data
   } catch (e) {

@@ -75,7 +75,8 @@ export const WalletDebt = async (_, { search, min, max }, ctx, info) => {
             debtState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['debtName', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['debtName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -108,7 +109,8 @@ export const getAllWalletDebtProduct = async (parent, args, ctx, info) => {
             debtProductState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['debtProductState', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['debtProductState', 'DESC']]
     })
     return data
   } catch {

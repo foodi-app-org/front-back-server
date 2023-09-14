@@ -42,7 +42,8 @@ export const getAllContacts = async (_, args, ctx, info) => {
             cntState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['createAt', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['createAt', 'DESC']]
     })
     return data
   } catch (e) {

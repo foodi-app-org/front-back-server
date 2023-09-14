@@ -84,7 +84,8 @@ export const productsAll = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['pName', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['pName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -151,7 +152,8 @@ export const productsLogis = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['pName', 'ASC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['pName', 'ASC']]
     })
     return data
   } catch (e) {
@@ -187,7 +189,8 @@ export const getAllMatchesProducts = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['pName', 'ASC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['pName', 'ASC']]
     })
     return data
   } catch (e) {

@@ -178,44 +178,47 @@ export const updateExtraInProduct = async (_root, { input }, _context) => {
 
 export const ExtProductFoodsAll = async (root, args, context, info) => {
   try {
-    const { search, min, max, pId } = args
-    let whereSearch = {}
+    const { search, min = 0, max = 100, pId } = args;
+
+    // Verificar si pId es válido (no es una cadena vacía y es un número)
+    if (!pId) {
+      return []; // Puedes devolver un array vacío o un mensaje de error, según tu preferencia.
+    }
+
     let whereConditions = [
       {
-        ...((pId) ? { pId: deCode(pId) } : {}),
         state: { [Op.gt]: 0 }
       }
-    ]
+    ];
 
-    if (search) {
-      whereSearch = {
+    whereConditions.push({ pId: deCode(pId) });
+
+    if (search && search !== '') {
+      const whereSearch = {
         [Op.or]: [
           { extraName: { [Op.substring]: search.replace(/\s+/g, ' ') } }
         ]
-      }
-      whereConditions.push(whereSearch)
+      };
+      whereConditions.push(whereSearch);
     }
 
-    if (context.restaurant) {
-      whereConditions.push({ idStore: deCode(context.restaurant) })
-    }
-
-    const attributes = getAttributes(ExtraProductModel, info)
+    const attributes = getAttributes(ExtraProductModel, info);
     const data = await ExtraProductModel.findAll({
       attributes,
       where: {
         [Op.or]: whereConditions
       },
-      limit: [min || 0, max || 100],
-      order: [['pDatCre', 'DESC']]
-    })
+      order: [['pDatCre', 'DESC']],
+      limit: max,
+      offset: min
+    });
 
-    return data
+    return data;
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno')
-    return error
+    throw new Error(e.message || 'Lo sentimos, ha ocurrido un error interno');
   }
-}
+};
+
 
 export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
   try {
@@ -244,7 +247,8 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
             // ...((context.restaurant) ? { idStore: deCode(context.restauran) } : {}),
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['OptionalProName', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['OptionalProName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -292,7 +296,8 @@ export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) =
             state: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['OptionalProName', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['OptionalProName', 'DESC']]
     })
     return data
   } catch (e) {

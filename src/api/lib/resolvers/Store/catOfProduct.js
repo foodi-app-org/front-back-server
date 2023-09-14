@@ -58,15 +58,14 @@ export const catProductsAll = async (root, args, context, info) => {
       [Op.or]: [
         {
           ...whereSearch,
-          // get restaurant
-          // idStore: deCode(context.restaurant),
-          // get user
           id: deCode(context.User.id),
-          // Productos state
           pState: { [Op.gt]: 0 }
         }
       ]
-    }, limit: [min || 0, max || 100], order: [['pName', 'DESC']]
+    },
+    limit: max || 100,
+    offset: min || 0, // Usar min como offset si es necesario
+    order: [['pName', 'DESC']]
   })
   return data
 }
@@ -198,7 +197,10 @@ export const getCatProductsWithProduct = async (root, args, context) => {
             // pState: { [Op.gt]: 0 }
           }
         ]
-      }, limit: [min || 0, max || 5], order: [['pDatCre', 'ASC']]
+      },
+      limit: max || 400,
+      offset: min || 0,
+      order: [['pDatCre', 'ASC']]
     })
 
     return {
@@ -236,7 +238,9 @@ export const getCatProductsWithProductClient = async (root, args, context, info)
           pState: { [Op.gt]: 0 }
         }
       ]
-    }, limit: [min || 0, max || 2], order: [['pDatCre', 'ASC']]
+    },
+    limit: max || 400,
+    offset: min || 0, order: [['pDatCre', 'ASC']]
   })
   return data
 }

@@ -38,11 +38,12 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
         'http://localhost:3002',
         'http://localhost:3003',
         'http://localhost:3004',
+        'https://eatsy-client.vercel.app',
       ],
-      credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials']
+      credentials: true
     })
   );
+
   app.use(morgan('dev'))
   app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
   app.use(

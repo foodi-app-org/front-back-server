@@ -22,9 +22,10 @@ import { getStoreSchedules } from "./Schedule"
 import { getStatusOpenStore } from "../../utils"
 import { ApolloError, ForbiddenError } from "apollo-server-express"
 import { setFavorites } from "./setFavorites"
+import StatusPedidosModel from "../../models/Store/statusPedidoFinal"
 
 // eslint-disable-next-line
-export const newRegisterStore = async (_, { input }, ctx) => {
+export const newRegisterStore = async (_, { input }, ctx, lol) => {
   const { cId, dId, ctId, id, catStore } = input
   try {
     let res = {}
@@ -55,6 +56,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       message: "Tienda creada",
     }
   } catch (error) {
+    console.log(error)
     return {
       success: false,
       message: error?.message || "",
@@ -300,6 +302,9 @@ export const getTodaySales = async (_, args, ctx) => {
     if (!ctx.restaurant) {
       return { success: false, message: "El contexto no contiene un restaurante válido" }
     }
+    const START = new Date()
+    START.setHours(0, 0, 0, 0)
+    const NOW = new Date()
 
     // Crear fechas START y NOW dentro de la consulta para asegurarse de que reflejen el mismo día
     const data = await StatusOrderModel.findAll({
@@ -311,31 +316,22 @@ export const getTodaySales = async (_, args, ctx) => {
             pSState: 4,
             idStore: deCode(ctx.restaurant),
             pDatCre: {
-              [Op.between]: [
-                new Date().setHours(0, 0, 0, 0).toISOString(),
-                new Date().toISOString(),
-              ],
-            },
+              [Op.between]: [START.toISOString(), NOW.toISOString()]
+            }
           },
         ],
       },
       order: [["pDatCre", "DESC"]],
     })
-
-    // Devolver los datos y la cantidad de registros encontrados
-    return { success: true, message: "Ventas de hoy obtenidas con éxito", data, count: data.length }
+    if (data?.length) {
+      return data?.length || 0
+    } else {
+      return 0
+    }
   } catch (error) {
-    // Manejo de errores: devolver un objeto con información del error
-    return { success: false, message: "Error al obtener las ventas de hoy", error: error.message }
+    return 0
   }
 }
-
-
-// ExtProductFoodOptional.hasMany(ExtProductFoodSubOptional, {
-//   foreignKey: "opExPid", // El campo que vincula las dos tablas
-//   sourceKey: "opExPid", // El campo en ExtProductFoodOptional que se vincula con opExPid en ExtProductFoodSubOptional
-//   as: "saleExtProductFoodsSubOptionalAll", // El alias para acceder a la relación
-// })
 
 const updateDataOptional = async ({ refCodePid, dataOptional }) => {
   try {
@@ -768,11 +764,12 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
           },
         ],
       },
-      limit: [min || 0, max || 100],
+      limit: max || 100, // Usar solo max como límite
+      offset: min || 0, // Usar min como offset si es necesario
       order: [
-        ["createdAt", "DESC"],
-        ["storeName", "DESC"],
-        ["id", "DESC"],
+      ["createdAt", "DESC"],
+      ["storeName", "DESC"],
+      ["id", "DESC"],
       ],
     })
 
@@ -1015,16 +1012,11 @@ export const getAllMatchesStore = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
-            // pState: 1
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           },
         ],
       },
-      limit: [min || 0, max || 100],
+             limit: max || 100,
+        offset: min || 0,
       order: [["storeName", "ASC"]],
     })
     return data

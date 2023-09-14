@@ -13,11 +13,10 @@ export const cookie = {
   password: process.env.SESSION_KEY,
   cookieName: process.env.SESSION_NAME,
   cookieOptions: {
-    maxAge: 60 * 60 * 8, // 8 hours
+    maxAge: 60 * 60 * 8, // 8 horas
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost',
-    sameSite: 'lax', // Opcional, establece la política de sameSite según tus necesidades
     httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Configura 'none' en producción
   },
 };
 
@@ -130,7 +129,6 @@ router.post("/auth", async function (req, res) {
         storeUserId,
         token,
       }
-      req.session.set('user', { username: 'john' });
       await req.session.save()
       const userInfo = parseUserAgent(useragent)
       const result = {

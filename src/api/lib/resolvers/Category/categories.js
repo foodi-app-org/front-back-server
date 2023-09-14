@@ -63,16 +63,13 @@ export const CategoryProductsAll = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
             caId: caId ? deCode(caId) : { [Op.gt]: 0 },
             cpState: { [Op.gt]: 0 }
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['cpName', 'ASC']]
+      },
+      limit: max || 100,
+      offset: min || 0, order: [['cpName', 'ASC']]
     })
     return data
   } catch (e) {

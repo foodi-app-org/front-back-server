@@ -76,7 +76,8 @@ export const getAllStoryComment = async (parent, { stoId, min, max }, _context, 
             stoId: stoId ? deCode(stoId) : deCode(parent.stoId)
           }
         ]
-      }, limit: [min || 0, max || 100], order: [['comments', 'DESC']]
+      },        limit: max || 100,
+        offset: min || 0, order: [['comments', 'DESC']]
     })
     return data
   } catch {
