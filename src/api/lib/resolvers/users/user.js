@@ -64,6 +64,7 @@ export const newRegisterUser = async (input) => {
       message: `Bienvenido ${name}`
     }
   } catch (error) {
+    console.log(error)
     return defaultResponse
   }
 }

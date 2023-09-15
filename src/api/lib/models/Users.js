@@ -7,7 +7,7 @@ import {
 import connect from '../db'
 import { enCode } from '../utils/util'
 const sequelize = connect()
-
+sequelize.sync()
 const Users = sequelize.define('users', {
   id: {
     type: INTEGER,
@@ -23,7 +23,7 @@ const Users = sequelize.define('users', {
     type: STRING,
     require: true,
     trim: true,
-    unique: true
+    unique: false
   },
   lastName: {
     type: STRING,
