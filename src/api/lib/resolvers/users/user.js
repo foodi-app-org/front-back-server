@@ -92,7 +92,7 @@ export const registerEmailLogin = async (_, { input }, context, info) => {
       html: recover({ code: uToken }),
       to: uEmail,
       from: process.env.EMAIL_TRANSPORT_ACCESS,
-      subject: 'tu codigo seguridad'
+      subject: 'tu código seguridad'
     })
 
     const result = {
@@ -102,10 +102,10 @@ export const registerEmailLogin = async (_, { input }, context, info) => {
     }
 
     await saveDevice(result)
-    return { success: true, message: 'Hemos enviado un codigo a tu correo' }
+    return { success: true, message: 'Hemos enviado un código a tu correo' }
   } catch (error) {
     console.log({ error })
-    return { success: false, message: 'Ocurrio un error' }
+    return { success: false, message: 'Ocurrió un error' }
   }
 }
 
@@ -171,7 +171,7 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
       token: 'null',
       roles: false,
       success: false,
-      message: 'El codigo ya no es valido.'
+      message: 'El código ya no es valido.'
     }
 
   } catch (error) {
@@ -207,12 +207,11 @@ export const getOneUser = async (root, { uEmail }, context, info) => {
     return error
   }
 }
-// eslint-disable-next-line
 const updateUserProfile = async (_root, { input }, context) => {
   try {
-    // eslint-disable-next-line
-    const { user, ...rest } = input || {}
+    const { user } = input || {}
     const { id, ...resUser } = user
+    console.log(input)
     await Users.update({ ...resUser }, { where: { id: deCode(id) } })
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')
@@ -230,9 +229,9 @@ export const setUserProfile = async (_root, { input }, context) => {
       attributes: ['id'],
       where: { id: deCode(context.User.id) }
     })
-    if (user?.id) {
+    if (id || context.User.id) {
       if (!ExistUserProf) {
-        await Userprofile.create({ id: id || context?.User?.id, ...filterKeyObject(data, ['user', 'cId', 'ctId', 'dId']) })
+        await Userprofile.create({ id: deCode(id) || deCode(context?.User?.id), ...filterKeyObject(data, ['user', 'cId', 'ctId', 'dId']) })
       } else {
         await Userprofile.update({ ...filterKeyObject(data, ['user', 'cId', 'ctId', 'dId']) }, { where: { id: deCode(id) } })
       }
@@ -248,7 +247,7 @@ export const setUserProfile = async (_root, { input }, context) => {
 export const getOneUserProfile = async (_root, { id }, context, info) => {
   try {
     const attributes = getAttributes(Userprofile, info)
-    const data = await Userprofile.findOne({ attributes, where: { id: deCode('NTQ0MTc3NjI5NzAzMDMyOTAw') } })
+    const data = await Userprofile.findOne({ attributes, where: { id: deCode(context?.User?.id || id) } })
     return data
   } catch (e) {
     const error = new Error(e, 'Lo sentimos, ha ocurrido un error interno')

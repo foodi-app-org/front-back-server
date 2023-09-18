@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ApolloError } from 'apollo-server-express'
+import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { deCode } from '../../utils/util'
 import { Op } from 'sequelize'
 import ScheduleStore from '../../models/Store/scheduleStore'
+import Store from '../../models/Store/Store'
 
 export const updateStoreSchedule = async (_root, { input }) => {
   try {
@@ -81,6 +82,27 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
 
   }
 }
+
+export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _info) => {
+  if (!context.restaurant || !context.User.id) return new ForbiddenError('no session')
+
+  try {
+      await Store.update({ scheduleOpenAll: scheduleOpenAll },
+        {
+          where:
+                    {
+                      idStore: deCode(context.restaurant)
+                    }
+        })
+      return {
+        success: true,
+        message: 'actualizado'
+      }
+  } catch (e) {
+    return { success: false, message: e }
+
+  }
+}
 export const getStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
     const data = await ScheduleStore.findAll({
@@ -145,6 +167,7 @@ export default {
     getOneStoreSchedules
   },
   MUTATIONS: {
-    setStoreSchedule
+    setStoreSchedule,
+    setScheduleOpenAll
   }
 }

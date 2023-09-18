@@ -15,23 +15,23 @@ export const MAX_AGE = 60 * 60 * 8
  * @returns {{ user: string, userProfile: object, error: boolean }} devolución del token y los datos
  */
 export const getDevice = async ({ input }) => {
-  const { 
-    deviceId, 
-    userId, 
-    locationFormat, 
-    os: { 
-      name, 
+  const {
+    deviceId,
+    userId,
+    locationFormat,
+    os: {
+      name,
       short_name,
-      version, 
-      device, 
-      family, 
+      version,
+      device,
+      family,
       platform
     } } = input || {}
   let res = {}
   if (!input) return null
   try {
     const existingDevice = await UserDeviceModel.findOne({
-      where: { 
+      where: {
         deviceId: deviceId,
         id: deCode(userId)
       }
@@ -75,8 +75,9 @@ export const getDevice = async ({ input }) => {
         deviceName: '',
         version
       })
+    }).catch(()=> {
+      return { error: false, message: 'No se pudo enviar el correo' }
     })
- 
     return { res, error: false, data: res }
   } catch (error) {
     return { error: { message: error.message }, data: {} }

@@ -83,6 +83,7 @@ type Store {
     open: Int
     ctId: ID
     catStore: ID
+    scheduleOpenAll: Boolean
     neighborhoodStore: String
     Viaprincipal: String
     storeOwner: String

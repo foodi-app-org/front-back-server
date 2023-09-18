@@ -5,7 +5,7 @@ import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes } from '../../utils/util'
-import { deleteOneItem } from './store'
+import { deleteOneItem, getOneStore } from './store'
 
 export const createOnePedidoStore = async (_, { input }) => {
   const {
@@ -390,6 +390,9 @@ export default {
           return null
         }
       },
+      getOneStore: async (parent, args, context, info) => {
+        return await getOneStore(parent, args, context, info)
+      },
       getUser: async (parent, _args, _context, info) => {
         try {
           const attributes = getAttributes(Users, info)
@@ -404,6 +407,7 @@ export default {
       },
       getAllPedidoStore: async (parent, _args, _context, info) => {
         try {
+          console.log("🚀 ~ file: pedidos.js:414 ~ getAllPedidoStore: ~ parent.pCodeRef:", parent.pCodeRef)
           const attributes = getAttributes(pedidosModel, info)
           const data = await pedidosModel.findAll({
             attributes,

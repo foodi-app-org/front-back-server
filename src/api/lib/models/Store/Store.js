@@ -1,4 +1,9 @@
-import { INTEGER, STRING, DATE } from 'sequelize'
+import {
+  BOOLEAN,
+  INTEGER,
+  STRING,
+  DATE
+} from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import CatStore from '../information/CategorieStore'
@@ -74,6 +79,11 @@ const Store = sequelize.define('store', {
   Viaprincipal: {
     type: STRING,
     require: true
+  },
+  scheduleOpenAll: {
+    type: BOOLEAN,
+    require: false,
+    defaultValue: false
   },
   secVia: {
     type: STRING,

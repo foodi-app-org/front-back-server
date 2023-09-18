@@ -730,6 +730,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         "cId",
         "id",
         "dId",
+        "scheduleOpenAll",
         "ctId",
         "catStore",
         "neighborhoodStore",
@@ -783,6 +784,12 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
           null
         )
         const { open } = getStatusOpenStore(schedules)
+        if (store?.scheduleOpenAll) {
+          return {
+            ...store?.toJSON(),
+            open: true,
+          }
+        }
         return {
           ...store?.toJSON(),
           open: open,
@@ -811,7 +818,8 @@ export const getOneStore = async (parent, args, context, info) => {
       null,
       null
     )
-    if (schedules) {
+    console.log(data.scheduleOpenAll)
+    if (schedules && data.scheduleOpenAll) {
       const { open } = getStatusOpenStore(schedules)
       return {
         ...data?.toJSON(),

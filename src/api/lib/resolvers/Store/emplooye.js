@@ -2,9 +2,9 @@ import { ApolloError } from 'apollo-server-express'
 import EmployeesModelStore from '../../models/employees/EmployeesStore'
 import Users from '../../models/Users'
 import { LoginEmail } from '../../templates/LoginEmail'
-import { 
-  generateCode, 
-  generateToken, 
+import {
+  generateCode,
+  generateToken,
   sendEmail
 } from '../../utils'
 import { deCode } from '../../utils/util'

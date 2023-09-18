@@ -8,7 +8,6 @@ import Users from '../models/Users'
 import { LoginEmail } from '../templates/LoginEmail'
 import { parseUserAgent, sendEmail } from '../utils'
 const router = Router()
-
 export const cookie = {
   password: process.env.SESSION_KEY,
   cookieName: process.env.SESSION_NAME,
@@ -131,6 +130,7 @@ router.post("/auth", async function (req, res) {
       }
       await req.session.save()
       const userInfo = parseUserAgent(useragent)
+      console.log("🚀 ~ file: index.js:134 ~ userInfo:", userInfo)
       const result = {
         deviceId: deviceid,
         userId: storeUserId?.id || storeUserId?.idStore,

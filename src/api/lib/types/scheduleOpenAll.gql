@@ -1,0 +1,4 @@
+# Define la mutación para subir scheduleOpenAlls
+type Mutation {
+  setScheduleOpenAll(scheduleOpenAll: Boolean!): Response
+}

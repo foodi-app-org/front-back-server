@@ -1,8 +1,9 @@
 import moment from 'moment'
-import jwtDecode from 'jwt-decode'
 import jwt, { decode } from 'jsonwebtoken'
 import { google } from 'googleapis'
 import bcrypt from 'bcrypt'
+import nodemailer from 'nodemailer'
+import os from 'os'
 
 
 moment.locale('es')
@@ -174,68 +175,6 @@ export const validationForm = (inputs, error) => {
     return errorForm
 }
 
-// /** valida el formulario */
-// export const validationFormTwo = (inputs, error) => {
-//     let errorForm = false
-//     /** verifica los campos del formulario */
-//     for (let i = 0; i < inputs.length; i++) {
-//         /** verifica los input y select si se encuentra vacio o si no, si hay un error del onchange */
-//         if ((!!inputs[i].value === false || inputs[i].value === 'false') && inputs[i].type !== 'submit' && inputs[i].type !== 'file' && inputs[i].type !== 'button') {
-//             /** verifica si es un input, select obligatorio */
-//             if (inputs[i].dataset.ignore === 'false')
-//                 errorForm = true
-//             else if (inputs[i].dataset.ignore === undefined)
-//                 errorForm = true
-//         } else
-//             if (error[inputs[i].name])
-//                 errorForm = true
-//     }
-//     return errorForm
-// }
-
-// valida el input del telefono
-export const validationPhone = (v, e, typeNull, typeNumeric) => {
-    if (e !== true) {
-        const { nextSibling, parentNode } = e.target
-        // verifica que campos serán y si se encuentra la condición o no */
-        if (typeNull) {
-            if (isNull(v)) {
-                e.target.style.border = '1px solid  red'
-                nextSibling.style.border = '1px solid  red'
-                parentNode.nextSibling.innerHTML = 'Campo requerido.'
-                return true
-            }
-        }
-        if (typeNumeric) {
-            if (isNull(v)) {
-                e.target.style.border = '1px solid  red'
-                nextSibling.style.border = '1px solid  red'
-                parentNode.nextSibling.innerHTML = 'Solo puede contener letras.'
-                return true
-            }
-        }
-        if (rangeLength(v, 5, 15)) {
-            e.target.style.border = '1px solid  red'
-            nextSibling.style.border = '1px solid  red'
-            parentNode.nextSibling.innerHTML = 'El rango de caracteres es de 5 a 15.'
-            return true
-        }
-
-        e.target.style.border = '1px solid red'
-        nextSibling.style.border = '1px solid red'
-        parentNode.nextSibling.innerHTML = ''
-        return false
-    }
-    return false
-}
-
-// verifica los select
-export const validationsSelect = v => {
-    // le quita las clases a los select por ser seleccionado */
-    v.style.border = '1px solid red'
-    v.nextSibling.innerHTML = ''
-    return false
-}
 
 export const validationImg = file => (/\.(jpg|png|gif|jpeg)$/i).test(file.name)
 
@@ -970,27 +909,6 @@ export const numberFormatM = param => {
     return money.toFixed(2)
 }
 
-/* Método para eliminar el primer carácter */
-// const str = '*plátano_'
-// const newStr = str.slice(1, -1)
-// eslint-disable-next-line
-/* Método para eliminar el primer carácter */
-// const string = '*plátano_'
-// const newString = string.substring(1, str.length - 1)
-// // eslint-disable-next-line
-
-// export const transporter = () => null.createTransport({
-//   host: 'mail.winby.co',
-//   port: 587,
-//   secure: false,
-//   auth: {
-//     user: 'no-reply@winby.co',
-//     pass: 'UzmtvXF466Ff'
-//   },
-//   tls: {
-//     rejectUnauthorized: false
-//   }
-// })
 export const mongoObjectId = function () {
     const timestamp = (new Date().getTime() / 1000 | 0).toString(16)
     return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, function () {
@@ -1257,17 +1175,53 @@ var threeMonthsAgo = moment().subtract(3, 'months');
 
 console.log(threeMonthsAgo.format()); // 2015-10-13T09:37:35+02:00
 
+function getDeviceInfo() {
+    const deviceInfo = {
+        cpuModel: os.cpus()[0].model,
+        platform: os.platform(),
+        cpuArchitecture: os.arch(),
+        totalMemory: os.totalmem() / (1024 * 1024 * 1024), // Convertir a GB
+        freeMemory: os.freemem() / (1024 * 1024 * 1024), // Convertir a GB
+        hostname: os.hostname(),
+        release: os.release(),
+        uptime: os.uptime(),
+        userInfo: os.userInfo(),
+        networkInterfaces: os.networkInterfaces()
+    };
+
+    return deviceInfo;
+}
 
 export function parseUserAgent(userAgent) {
+    const {
+        release,
+        cpuModel,
+        platform
+    } = getDeviceInfo()
     if (!userAgent) return
     const browserInfo = {
         name: 'Unknown',
-        short_name: 'Unknown',
-        version: 'Unknown',
+        short_name: cpuModel,
+        version: release || 'Unknown',
         family: 'Unknown',
-        platform: 'Unknown',
-        device: 'Unknown'
+        platform: platform || 'Unknown',
+        device: 'Unknown',
+        os: 'Unknown',  // Agregamos 'os' con valor inicial 'Unknown'
+        model: 'Unknown'  // Agregamos 'model' con valor inicial 'Unknown'
     }
+  // Agregar detección del modelo del dispositivo (ejemplo)
+const modelPatterns = {
+    iPhone: /iPhone/i,
+    iPad: /iPad/i,
+    SamsungGalaxy: /Samsung Galaxy/i,
+    // Agrega más patrones para otros modelos de dispositivos
+};
+for (const [modelName, pattern] of Object.entries(modelPatterns)) {
+    if (pattern.test(userAgent)) {
+        browserInfo.model = modelName;
+        break;
+    }
+}
 
     // Detect device type
     if (/Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(userAgent)) {
@@ -1292,7 +1246,6 @@ export function parseUserAgent(userAgent) {
         if (match) {
             browserInfo.name = browser
             browserInfo.version = match[1]
-            browserInfo.short_name = browser === 'Edge' ? 'Edg' : browser
             break
         }
     }
@@ -1322,7 +1275,22 @@ export function parseUserAgent(userAgent) {
     } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
         browserInfo.platform = 'iOS'
     }
+       // Agregar detección del sistema operativo (OS) (ejemplo)
+       const osPatterns = {
+        Windows: /Windows/i,
+        MacOS: /Macintosh|Mac OS X/i,
+        Linux: /Linux/i,
+        Android: /Android/i,
+        iOS: /iPhone|iPad|iPod/i,
+        // Agrega más patrones para otros sistemas operativos
+    };
 
+    for (const [osName, pattern] of Object.entries(osPatterns)) {
+        if (pattern.test(userAgent)) {
+            browserInfo.os = osName;
+            break;
+        }
+    }
     return browserInfo
 }
 
@@ -1561,6 +1529,7 @@ export const sendEmail = async ({
     subject = ''
 }) => {
     try {
+        
         if (!to) {
             throw new Error('Destinatario del correo no especificado.')
         }
@@ -1604,8 +1573,11 @@ export const sendEmail = async ({
         const result = await transport.sendMail(MailOptions)
         return result
     } catch (error) {
-        console.log({ error })
-        throw new Error(error, 'Error email')
+        if (error.response && error.response.status === 400 && error.response.data.error === 'invalid_grant') {
+            // El refresh token ha expirado, toma acciones para manejarlo
+            // handleExpiredRefreshToken()
+        }
+        console.error('Error asincrónico:', error);
     }
 }
 

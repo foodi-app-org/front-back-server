@@ -40,8 +40,7 @@ export const getDevice = async ({ input }) => {
       let deviceId = ''
       sendEmail({
         from: 'juvi69elpapu@gmail.com',
-        // to: email,
-        to: 'juvi69elpapu@gmail.com',
+        to: email,
         text: 'Nuevo dispositivo detectado',
         subject: 'Nuevo dispositivo detectado.',
         html: LoginEmail({
