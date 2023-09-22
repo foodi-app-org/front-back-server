@@ -19,6 +19,8 @@ export async function hashPassword(plainPassword) {
         const hash = await bcrypt.hash(plainPassword, saltRounds)
         return hash
     } catch (error) {
+        console.log(error)
+        console.log("🚀 ~ file: index.js:23 ~ hashPassword ~ error:", {error})
         throw new Error('Error al encriptar la contraseña')
     }
 }

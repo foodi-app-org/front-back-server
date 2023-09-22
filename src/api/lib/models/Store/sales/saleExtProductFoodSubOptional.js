@@ -24,7 +24,7 @@ const ExtProductFoodSubOptional = sequelize.define('saleextproductfoodsuboptiona
   },
   pCodeRef: {
     type: STRING(100),
-    unique: true,
+    unique: false,
     allowNull: true
   },
   idStore: {

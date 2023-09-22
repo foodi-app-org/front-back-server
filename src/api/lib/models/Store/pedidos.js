@@ -51,7 +51,6 @@ const pedidosModel = sequelize.define('storepedidos', {
   },
   pPDate: {
     type: DATE
-    // defaultValue: Date.now()
   },
   pPStateP: {
     type: INTEGER,

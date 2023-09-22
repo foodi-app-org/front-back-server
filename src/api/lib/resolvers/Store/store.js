@@ -163,8 +163,14 @@ export const registerSalesStore = async (
     if (!id) {
       throw new Error('Elija un cliente, no se pudo realizar la venta')
     }
-    if (!input || Boolean(!input?.length)) {
-      throw new Error('No se ha podido realizar la venta, no hay productos en el carrito')
+    if (!input.length) {
+      return {
+        ShoppingCard: null,
+        Response: {
+          success: false,
+          message: 'No se ha podido realizar la venta, no hay productos en el carrito'
+        }
+      }
     }
     await Promise.all(input.map(async (element) => {
       const {
@@ -234,7 +240,8 @@ export const registerSalesStore = async (
             pDatMod
           })
           if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
-            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => {return {
+            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => {
+              return {
               pId: deCode(pId),
               opExPid: deCode(opExPid),
               idStore: deCode(context.restaurant),
@@ -252,7 +259,7 @@ export const registerSalesStore = async (
           }
         }))
       }
-      await createOnePedidoStore(null, {
+    const storeOrder = await createOnePedidoStore(null, {
         input: {
           change,
           generateSales: true,
@@ -265,11 +272,15 @@ export const registerSalesStore = async (
           ShoppingCard: resShoppingCard.ShoppingCard
         }
       })
+    const { success, message } = storeOrder || {}
+    if (!success) {
+        throw new Error(message || 'Ocurrió un error al crear el pedido')
+    }
     }))
     await StatusPedidosModel.create({
       change: change,
       channel: 1,
-      discount: discount,
+      discount,
       id: deCode(id),
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       locationUser: null,
@@ -288,10 +299,11 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
+    console.log("🚀 ~ file: store.js:302 ~ e:", e)
     return {
       Response: {
         success: false,
-        message: e.message || 'Lo sentimos, ha ocurrido un error interno'
+        message: 'Lo sentimos, ha ocurrido un error inesperado'
       }
     }
   }

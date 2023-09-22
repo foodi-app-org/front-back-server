@@ -106,6 +106,7 @@ router.post("/auth", async function (req, res) {
       useragent,
       deviceid
     } = req.body || {}
+    console.log(req.body)
     const {
       token,
       message,

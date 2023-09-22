@@ -178,35 +178,19 @@ export const updateExtraInProduct = async (_root, { input }, _context) => {
 
 export const ExtProductFoodsAll = async (root, args, context, info) => {
   try {
-    const { search, min = 0, max = 100, pId } = args;
+    const { min = 0, max = 100, pId } = args;
 
-    // Verificar si pId es válido (no es una cadena vacía y es un número)
     if (!pId) {
-      return []; // Puedes devolver un array vacío o un mensaje de error, según tu preferencia.
-    }
-
-    let whereConditions = [
-      {
-        state: { [Op.gt]: 0 }
-      }
-    ];
-
-    whereConditions.push({ pId: deCode(pId) });
-
-    if (search && search !== '') {
-      const whereSearch = {
-        [Op.or]: [
-          { extraName: { [Op.substring]: search.replace(/\s+/g, ' ') } }
-        ]
-      };
-      whereConditions.push(whereSearch);
+      return []
     }
 
     const attributes = getAttributes(ExtraProductModel, info);
     const data = await ExtraProductModel.findAll({
       attributes,
       where: {
-        [Op.or]: whereConditions
+        [Op.or]: {
+          pId: deCode(pId)
+        }
       },
       order: [['pDatCre', 'DESC']],
       limit: max,
@@ -222,10 +206,10 @@ export const ExtProductFoodsAll = async (root, args, context, info) => {
 
 export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
   try {
-    const { 
-      search, 
-      min, 
-      max, 
+    const {
+      search,
+      min,
+      max,
       pId
     } = args
     let whereSearch = {}

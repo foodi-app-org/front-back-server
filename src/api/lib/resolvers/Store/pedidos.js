@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+// Configura dotenv
+dotenv.config();
 import { Op } from 'sequelize'
 import productModelFood from '../../models/product/productFood'
 import pedidosModel from '../../models/Store/pedidos'
@@ -6,7 +9,6 @@ import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes } from '../../utils/util'
 import { deleteOneItem, getOneStore } from './store'
-
 export const createOnePedidoStore = async (_, { input }) => {
   const {
     id,
@@ -29,10 +31,11 @@ export const createOnePedidoStore = async (_, { input }) => {
     })
     return {
       success: true,
-      message: ''
+      message: `Orden creada con code ${pCodeRef}`
     }
   } catch (error) {
-    return { success: false, message: 'Se ha producido un error' || error }
+    const development = process.env.NODE_ENV !== 'production'
+    return { success: false, message: development ?  error.message : 'Se ha producido un error al crear la orden' }
   }
 }
 // eslint-disable-next-line
@@ -407,7 +410,6 @@ export default {
       },
       getAllPedidoStore: async (parent, _args, _context, info) => {
         try {
-          console.log("🚀 ~ file: pedidos.js:414 ~ getAllPedidoStore: ~ parent.pCodeRef:", parent.pCodeRef)
           const attributes = getAttributes(pedidosModel, info)
           const data = await pedidosModel.findAll({
             attributes,
