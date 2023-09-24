@@ -19,6 +19,7 @@ import {
 } from '../../utils/util'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
+import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -53,11 +54,8 @@ export const productFoodsOne = async (root, { pId }, context, info) => {
       where: {
         [Op.or]: [
           {
-            // ID Productos
             pState: { [Op.gt]: 0 },
             pId: pId ? deCode(pId) : { [Op.gt]: 0 }
-            // ID STORE
-            // idStore: deCode(context.restaurant),
           }
         ]
       }
@@ -308,6 +306,21 @@ export default {
           return data
         } catch {
           return null
+        }
+      },
+      getAllAvailableProduct: async (parent, _args, _context, info) => {
+        try {
+          if (!parent.pId) return []
+          const attributes = getAttributes(productModelFoodAvailable, info)
+          const data = await productModelFoodAvailable.findAll({
+            attributes,
+            where: { pId: deCode(parent.pId) },
+            order: [['dayAvailable', 'ASC']], // Ordenar por dayAvailable en orden ascendente
+            raw: true, // Obtener resultados en formato JSON plano
+          })
+          return data
+        } catch {
+          return []
         }
       },
       getStore: async (parent, _args, _context, info) => {

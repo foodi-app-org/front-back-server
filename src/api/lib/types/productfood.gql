@@ -46,6 +46,7 @@ type ProductFood {
     color: Color
     getStore: Store
     ExtProductFoodsAll: [ExtProductFood]
+    getAllAvailableProduct: [AvailableProduct]
     ExtProductFoodOptional: [ExtProductFoodOptional]
     salesExtProductFoodOptional: [saleExtProductFoodOptional]
     getOneTags: TagsProduct

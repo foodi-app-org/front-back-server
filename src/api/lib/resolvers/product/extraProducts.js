@@ -73,12 +73,12 @@ export const updateExtProductFoods = async (_root, { input }) => {
 }
 // OPTIONAL PRODUCTS
 export const updateExtProductFoodsOptional = async (_root, { input }, context) => {
-  const { 
-    opExPid, 
-    pId, 
-    OptionalProName, 
-    numbersOptionalOnly, 
-    code, 
+  const {
+    opExPid,
+    pId,
+    OptionalProName,
+    numbersOptionalOnly,
+    code,
     required
   } = input
   try {
@@ -305,6 +305,66 @@ export const updateMultipleExtProductFoods = async (_root, args, context) => {
   }
 
 }
+export const editExtProductFoodOptional =async (_, { input }) => {
+  try {
+    const {
+      pId,
+      opExPid,
+      OptionalProName,
+      state,
+      code,
+      required,
+      numbersOptionalOnly,
+      pDatMod,
+      ExtProductFoodsSubOptionalAll
+    } = input;
+    // Actualiza los datos de ExtProductFoodOptional
+    const updatedExtProductFoodOptional = await productsOptionalExtra.update(
+      {
+        OptionalProName,
+        state,
+        code,
+        pId: deCode(pId),
+        required,
+        numbersOptionalOnly,
+        pDatMod
+      },
+      { where: { pId: deCode(pId), opExPid: deCode(opExPid) } }
+    );
+
+    // Actualiza los datos de ExtProductFoodSubOptionalAll
+    if (ExtProductFoodsSubOptionalAll && ExtProductFoodsSubOptionalAll.length > 0) {
+      await Promise.all(
+        ExtProductFoodsSubOptionalAll.map(async (subOptionalInput) => {
+          const {
+            pId,
+            opSubExPid,
+            OptionalSubProName,
+            exCodeOptionExtra,
+            exCode,
+            state
+          } = subOptionalInput;
+
+          await productsSubOptionalExtra.update(
+            {
+              OptionalSubProName,
+              exCodeOptionExtra,
+              exCode,
+              pId: deCode(pId),
+              state
+            },
+            { where: { pId: deCode(pId), opSubExPid: deCode(opSubExPid) } }
+          );
+        })
+      );
+    }
+
+    return input
+  } catch (error) {
+    console.error('Error al editar ExtProductFoodOptional:', error);
+    throw new Error('No se pudo editar ExtProductFoodOptional');
+  }
+}
 export default {
   TYPES: {
     ExtProductFoodOptional: {
@@ -328,6 +388,7 @@ export default {
   },
   MUTATIONS: {
     updateExtProductFoods,
+    editExtProductFoodOptional,
     updateMultipleExtProductFoods,
     deleteextraproductfoods,
     // OPTIONAL

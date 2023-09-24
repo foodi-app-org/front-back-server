@@ -73,6 +73,29 @@ input InputExtProductFood {
 input ILineItemsExtraFinal {
     setData: [InputExtProductFood]
 }
+input EditExtProductFoodOptionalInput {
+  pId: ID!
+  opExPid: ID
+  OptionalProName: String
+  state: Int
+  code: String
+  required: Int
+  numbersOptionalOnly: Int
+  pDatMod: DateTime
+  ExtProductFoodsSubOptionalAll: [EditExtProductFoodSubOptionalInput]
+}
+
+input EditExtProductFoodSubOptionalInput {
+  pId: ID
+  opExPid: ID
+  idStore: ID
+  opSubExPid: ID
+  OptionalSubProName: String
+  exCodeOptionExtra: String
+  exCode: String
+  state: Int
+}
+
 # Queries
 type Query {
     "Consulta todos los ExtProductFood"
@@ -99,4 +122,6 @@ type Mutation {
     "Registra un ExtProductFoodSubOptional"
     updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
     DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
+    "EDITA UN EXTRAPRODUCTOPTIONAL"
+    editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
 }

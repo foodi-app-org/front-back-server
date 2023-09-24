@@ -67,7 +67,11 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
 // eslint-disable-next-line
 export const getStore = async (
   _root,
-  { id, StoreName, idStore },
+  {
+    id, 
+    StoreName,
+    idStore
+  },
   context,
   info
 ) => {

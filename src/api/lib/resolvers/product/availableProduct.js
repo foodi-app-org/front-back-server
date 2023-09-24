@@ -19,18 +19,7 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
     return { success: false, message: error }
   }
 }
-export const getStore = async (root, args, context, info) => {
-  const { id } = args || {}
-  const attributes = getAttributes(Store, info)
-  const data = await Store.findOne({
-    attributes,
-    where: { 
-      idStore: id ? deCode(id) : deCode(context.restaurant),
-      id: id ? deCode(id) : deCode(context.User.id)
-    }
-  })
-  return data
-}
+
 export const getFoodAllProduct = async (root, args, context, info) => {
   const { search, min, max, gender, desc, categories } = args
   let whereSearch = {}

@@ -1,8 +1,7 @@
 /* eslint-disable no-undef */
-import { ApolloError } from 'apollo-server-express'
+import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 import productModel from '../../models/product/food'
-import Store from '../../models/Store/Store'
 import tagsProduct from '../../models/Store/tagsProduct'
 import { deCode, getAttributes } from '../../utils/util'
 
@@ -14,10 +13,11 @@ export const registerTag = async (parent, { input }, ctx) => {
     idUser
   } = input
   try {
+    if (!ctx.User.id) throw new ForbiddenError('token expired')
     const tag = await tagsProduct.create({
       ...input,
       idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
-      idUser: idUser ? deCode(idUser) : deCode(ctx.restaurant),
+      idUser: idUser ? deCode(idUser) : deCode(ctx.User.id),
       pId: deCode(pId),
       nameTag
     })
@@ -37,18 +37,6 @@ export const getOneTags = async (parent, { idStore }, _context, info) => {
   }
 }
 
-export const getStore = async (root, args, context, info) => {
-  const { id } = args || {}
-  const attributes = getAttributes(Store, info)
-  const data = await Store.findOne({
-    attributes,
-    where: {
-      idStore: id ? deCode(id) : deCode(context.restaurant),
-      id: id ? deCode(id) : deCode(context.User.id)
-    }
-  })
-  return data
-}
 export const getFoodAllProduct = async (root, args, context, info) => {
   const { search, min, max, gender, desc, categories } = args
   let whereSearch = {}
