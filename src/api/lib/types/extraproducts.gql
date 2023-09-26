@@ -35,7 +35,7 @@ type ExtProductFoodSubOptional {
     exCode: String #Relación con ExtProductFoodOptional
     state: Int
     pDatCre: DateTime
-    pDatMod: DateTime   
+    pDatMod: DateTime
 }
 input InputExtProductFoodSubOptional {
     pId: ID
@@ -47,11 +47,11 @@ input InputExtProductFoodSubOptional {
     exCode: String #Relación con ExtProductFoodOptional
     state: Int
     pDatCre: DateTime
-    pDatMod: DateTime   
+    pDatMod: DateTime
 }
 # INPUT OPTIONAL
 input InputExtProductFoodOptional {
-    pId: ID!
+    pId: ID
     opExPid: ID
     code: String
     OptionalProName: String
@@ -118,10 +118,11 @@ type Mutation {
     deleteextraproductfoods(id: ID, state: Int): Response
     DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
     "Registra un ExtProductFoodOptional"
-    updateExtProductFoodsOptional(input: InputExtProductFoodOptional): ExtProductFoodOptional
+    updateExtProductFoodsOptional(input: InputExtProductFoodOptional): Response
     "Registra un ExtProductFoodSubOptional"
     updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
     DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
+    editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
     "EDITA UN EXTRAPRODUCTOPTIONAL"
     editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
 }

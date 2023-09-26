@@ -23,8 +23,47 @@ export const deleteextraproductfoods = async (_root, { state, id }) => {
 
 }
 export const DeleteExtFoodSubsOptional = async (_root, { 
-  state, 
-  opSubExPid, 
+  state,
+  opSubExPid,
+  isCustomSubOpExPid
+}, context) => {
+  try {
+    console.log(
+      state,
+      opSubExPid,
+      isCustomSubOpExPid,
+      )
+    if (!context.restaurant || !context?.User?.restaurant?.idStore) {
+      return new ForbiddenError('Token expired')
+    }
+    if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+    await productsSubOptionalExtra.update({
+      state: state === 1 ? 0 : 1
+    }, {
+      where: {
+        ...((isCustomSubOpExPid) ? { opSubExPid: deCode(opSubExPid) } : { exCode: opSubExPid })
+      }
+    })
+    console.log({
+      where: {
+        ...((isCustomSubOpExPid) ? { opSubExPid: deCode(opSubExPid) } : { exCode: opSubExPid })
+      }
+    })
+    return {
+      success: true,
+      message: 'Eliminado'
+    }
+
+  } catch (error) {
+    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+  }
+
+}
+
+export const editExtFoodSubsOptional = async (_root, {
+  state,
+  opSubExPid,
+  OptionalSubProName,
   isCustomSubOpExPid
 }, context) => {
   try {
@@ -32,12 +71,12 @@ export const DeleteExtFoodSubsOptional = async (_root, {
       return new ForbiddenError('Token expired')
     }
     if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
-    await productsSubOptionalExtra.update({ 
-      state: state === 1 ? 0 : 1
-    }, { 
-      where: { 
-        ...((isCustomSubOpExPid) ? { exCodeOptionExtra: opSubExPid } : { opSubExPid: deCode(opSubExPid) })
-      } 
+    await productsSubOptionalExtra.update({
+      OptionalSubProName: OptionalSubProName
+    }, {
+      where: {
+        ...((isCustomSubOpExPid) ? { exCode: opSubExPid } : { exCode: opSubExPid })
+      }
     })
     return {
       success: true,
@@ -91,17 +130,37 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
         code,
         numbersOptionalOnly,
         idStore: deCode(context.restaurant)
-
       })
-      return data
+      return { success: true, message: 'Creado' }
+    } else {
+      const productsOptional = await productsOptionalExtra.findOne({
+        attributes: ['pId', 'code'],
+        where: {
+          [Op.or]: [
+            {
+              code: code
+            }
+          ]
+        }
+      })
+      if (productsOptional) {
+        await productsOptionalExtra.update({
+          OptionalProName,
+          required,
+          code,
+          numbersOptionalOnly,
+          pDatMod: new Date(Date.now())
+        }, { where: { code: code } })
+        return { success: true, message: 'Creado' }
+      }
     }
   } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
+    return { success: false, message: 'No ha sido posible procesar su solicitud.' }
   }
 }
 
 export const updateExtProductFoodsSubOptional = async (_root, { input }, context) => {
-  
+
   try {
     const { 
       exCode, 
@@ -397,6 +456,7 @@ export default {
     updateExtProductFoodsOptional,
     // SUB_OPTIONAL
     updateExtProductFoodsSubOptional,
-    DeleteExtFoodSubsOptional
+    DeleteExtFoodSubsOptional,
+    editExtFoodSubsOptional
   }
 }

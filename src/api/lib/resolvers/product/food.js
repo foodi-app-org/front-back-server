@@ -8,7 +8,6 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   const id = ctx.User.id || ''
   const { idStore } = input
   try {
-    // let res = {}
     await productModel.create({ ...input, pState: 1, id: deCode(id), idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) })
     return {
       success: true,

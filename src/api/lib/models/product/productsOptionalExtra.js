@@ -18,7 +18,7 @@ const productsOptionalExtra = sequelize.define('productsoptionalextra', {
   },
   pId: {
     type: INTEGER,
-    allowNull: false,
+    allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {

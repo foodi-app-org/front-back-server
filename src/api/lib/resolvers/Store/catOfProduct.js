@@ -17,6 +17,38 @@ export const updatedProducts = async (_, { input }, ctx) => {
     return { success: false, message: error }
   }
 }
+
+export const editOneCategoryProduct = async (_, { pName, ProDescription, carProId }, ctx) => {
+  try {
+    // Buscar la categoría de producto por carProId
+    const categoryProduct = await catProducts.findOne({ where: { carProId: deCode(carProId) } });
+
+    if (!categoryProduct) {
+      return {
+        success: false,
+        message: 'Categoría de producto no encontrada.'
+      };
+    }
+
+    // Actualizar los campos de la categoría de producto
+    await categoryProduct.update({
+      pName,
+      ProDescription
+    });
+
+    return {
+      success: true,
+      message: 'Categoría de producto actualizada correctamente.'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message || 'Ocurrió un error al editar la categoría de producto.'
+    };
+  }
+};
+
+
 export const catProductsAll = async (root, args, context, info) => {
   const { search, min, max, gender, desc, categories } = args
   let whereSearch = {}
@@ -276,6 +308,7 @@ export default {
   },
   MUTATIONS: {
     updatedProducts,
+    editOneCategoryProduct,
     updatedCatWithProducts,
     deleteCatFinalOfProducts,
     deleteCatOfProducts

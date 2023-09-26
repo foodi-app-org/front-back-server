@@ -12,6 +12,7 @@ import CountriesModel from '../information/CountriesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
 import Users from '../Users'
 const sequelize = connect()
+
 const Store = sequelize.define('store', {
   idStore: {
     type: INTEGER,

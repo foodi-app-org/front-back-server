@@ -61,6 +61,7 @@ type Query {
 type Mutation {
     "Registra un catProductso"
      updatedProducts(input: InputCatProducts): AuthPayload
+     editOneCategoryProduct(pName: String!, ProDescription: String, carProId: ID!): Response
      updatedCatWithProducts(input: LineItemsIdPro): AuthPayload
      deleteCatOfProducts(idPc: ID!, pState: Int): AuthPayload
      deleteCatFinalOfProducts(idPc: ID, withProduct: Boolean): AuthPayload
