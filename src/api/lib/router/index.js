@@ -15,8 +15,7 @@ export const cookie = {
   cookieOptions: {
     maxAge: 60 * 60 * 8, // 8 horas
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
-    httpOnly: true,
-    domain: '',
+    domain: 'front-back-server.fly.dev',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Configura 'none' en producción
   },
 };
