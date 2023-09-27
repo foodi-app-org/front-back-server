@@ -1,14 +1,6 @@
 import { withIronSessionApiRoute } from 'iron-session/next'
 import { getUserFromToken } from '.'
-
-const cookie = {
-  password: process.env.SESSION_KEY,
-  cookieName: process.env.SESSION_NAME,
-  cookieOptions: {
-    maxAge: 60 * 60 * 8, // 8 hours,
-    secure: process.env.NODE_ENV === 'production'
-  }
-}
+import { cookie } from '../lib/router'
 
 export default withIronSessionApiRoute(async function isAuth(req, res) {
   try {

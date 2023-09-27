@@ -8,14 +8,13 @@ import Users from '../models/Users'
 import { LoginEmail } from '../templates/LoginEmail'
 import { parseUserAgent, sendEmail } from '../utils'
 const router = Router()
-
 export const cookie = {
   password: process.env.SESSION_KEY,
   cookieName: process.env.SESSION_NAME,
   cookieOptions: {
-    domain: 'eatsy-admin-store.vercel.app',
     maxAge: 60 * 60 * 8, // 8 horas
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
+    httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Configura 'none' en producción
   },
 };
