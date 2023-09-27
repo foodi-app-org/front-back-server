@@ -265,7 +265,7 @@ export const registerSalesStore = async (
       }
     const storeOrder = await createOnePedidoStore(null, {
         input: {
-          change,
+          change: parseFloat(change),
           generateSales: true,
           id: id,
           idStore: context?.restaurant?.replace(/["']/g, ''),
@@ -282,7 +282,7 @@ export const registerSalesStore = async (
     }
     }))
     await StatusPedidosModel.create({
-      change: change,
+      change: parseFloat(change),
       channel: 1,
       discount,
       id: deCode(id),
