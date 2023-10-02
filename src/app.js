@@ -48,7 +48,15 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
   app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }))
   app.use(
     ironSession({
-      ...cookie
+      ...cookie,
+      cookieOptions: {
+        secure: process.env.NODE_ENV === 'production',  // Ajusta según tus necesidades
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',  // Asegúrate de que la cookie esté disponible en toda la aplicación
+        maxAge: 60 * 60 * 24 * 7,  // Ejemplo: la cookie expira en 1 semana (ajusta según tus necesidades)
+        domain: 'eatsy-admin-store.vercel.app'  // Dominio específico que deseas
+      }
     })
   );
   app.post('/image', (req, res) => { res.json('/image api') })
