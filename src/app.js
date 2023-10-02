@@ -20,7 +20,7 @@ import { ironSession } from 'iron-session/express'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
 
 // config ports
-const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? 3000 : 8080;
+const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 8080;
 
 (async () => {
   const pubsub = new PubSub();
