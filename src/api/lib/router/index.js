@@ -16,10 +16,11 @@ export const cookie = {
     maxAge: 60 * 60 * 8, // 8 horas
     httpOnly: true,
     path: "/",
+    domain: 'eatsy-admin-store.vercel.app',
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Configura 'none' en producción
   }
-};
+}
 
 export const getDevice = async ({ input }) => {
   const {
