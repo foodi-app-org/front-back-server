@@ -34,7 +34,6 @@ export const newRegisterUser = async (input) => {
   }
 
   try {
-    console.log({password})
     const encryptedPassword = await hashPassword(password)
     const [user] = await Users.findOrCreate({
       where: { email: email },
