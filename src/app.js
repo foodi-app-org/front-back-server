@@ -71,34 +71,34 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
     context: (async ({ req, res }) => {
       try {
-        let tokenClient
-        let User = {}
         //  Initialize Array empty
         const setCookies = []
         const setHeaders = []
-        tokenClient = req.headers.authorization?.split(' ')[1]
-        const token = tokenClient
+        const token = req.headers.authorization?.split(' ')[1]
         const restaurant = req.headers.restaurant || {}
-        // eslint-disable-next-line
+
         parseCookies(req)
         res.setHeader('x-token-access', `${token}`)
         res.setHeader('Access-Control-Allow-Origin', '*')
-        // @ts-ignore
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
 
-        const { error, message } = await getUserFromToken(tokenClient)
-        const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
-        const userAgent = req.headers['user-agent'];
-        if (token) {
-          User = await jwt.verify(token, AUTHO_USER_KEY)
-          return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
-        } else if (tokenClient) {
-          User = await jwt.verify(tokenClient, AUTHO_USER_KEY)
-          return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
+        const { user } = await getUserFromToken(token)
+
+        if (!user) {
+          throw new GraphQLError('User is not authenticated', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+              http: { status: 401 },
+            },
+          });
         }
-        return { req, userAgent, setCookies: [], setHeaders: [], User: User || {}, restaurant: restaurant || {} }
+
+        const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
+        const User = jwt.verify(token, AUTHO_USER_KEY)
+        const userAgent = req.headers['user-agent'];
+
+        return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
       } catch (error) {
-        if (error.message === 'jwt expired') return new ForbiddenError('Token expired')
         if (error.message === 'jwt expired') throw new GraphQLError(error.message, {
           extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
         })
