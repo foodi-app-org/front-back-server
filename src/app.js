@@ -75,7 +75,9 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const setCookies = []
         const setHeaders = []
         const token = req.headers.authorization?.split(' ')[1]
+        console.log("🚀 ~ file: app.js:78 ~ context: ~ token:", token)
         const restaurant = req.headers.restaurant || {}
+        console.log("🚀 ~ file: app.js:80 ~ context: ~ restaurant:", restaurant)
 
         parseCookies(req)
         res.setHeader('x-token-access', `${token}`)
@@ -95,6 +97,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
 
         const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
         const User = jwt.verify(token, AUTHO_USER_KEY)
+        console.log("🚀 ~ file: app.js:99 ~ context: ~ User:", User)
         const userAgent = req.headers['user-agent'];
 
         return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
