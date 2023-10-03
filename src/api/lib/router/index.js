@@ -16,8 +16,8 @@ export const cookie = {
     maxAge: 60 * 60 * 8, // 8 horas
     httpOnly: true,
     path: "/",
-    secure: process.env.NODE_ENV === 'production' // Ajusta a true en producción
-    // sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Configura 'none' en producción
+    secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
+    sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'lax' // Configura 'none' en producción
   }
 }
 
