@@ -75,18 +75,26 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const setCookies = []
         const setHeaders = []
         const token = req.headers.authorization?.split(' ')[1]
-        console.log("🚀 ~ file: app.js:78 ~ context: ~ token:", token)
         const restaurant = req.headers.restaurant || {}
-        console.log("🚀 ~ file: app.js:80 ~ context: ~ restaurant:", restaurant)
 
         parseCookies(req)
         res.setHeader('x-token-access', `${token}`)
         res.setHeader('Access-Control-Allow-Origin', '*')
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
 
-        const { user } = await getUserFromToken(token)
+        const { session, message } = await getUserFromToken(token)
+        const sessionExpired = message === 'Session expired, refresh needed';
 
-        if (!user) {
+        if (sessionExpired) {
+          throw new GraphQLError('Session expired', {
+            extensions: {
+              code: 'SESSION_EXPIRED',
+              http: { status: 401 },
+            },
+          });
+        }
+
+        if (!session) {
           throw new GraphQLError('User is not authenticated', {
             extensions: {
               code: 'UNAUTHENTICATED',
@@ -97,7 +105,6 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
 
         const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
         const User = jwt.verify(token, AUTHO_USER_KEY)
-        console.log("🚀 ~ file: app.js:99 ~ context: ~ User:", User)
         const userAgent = req.headers['user-agent'];
 
         return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }

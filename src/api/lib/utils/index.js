@@ -351,22 +351,31 @@ export const validationSubmitHooks = elements => {
     return errorForm
 }
 
-export const getUserFromToken = async token => {
-    let user = null
-    let userProfile = null
-    let error = false
-    if (!token) return { error: false, message: '' }
-    const tokenState = getTokenState(token)
-    const { needRefresh, valid } = tokenState || {}
+export const getUserFromToken = async (token) => {
     try {
-        if (needRefresh === true) return { error: true, user: user, userProfile: userProfile, message: 'session expired' }
-        if (!valid) return { error: true, message: 'El token no es valido' }
-    } catch {
-        user = ''
-        userProfile = ''
+      if (!token) {
+        return { session: false, error: true, message: 'Token not provided' };
+      }
+  
+      const tokenState = getTokenState(token);
+      const { needRefresh, valid } = tokenState || {};
+  
+      if (valid && !needRefresh) {
+        return { session: true, error: false, message: 'Session is valid' };
+      }
+  
+      if (needRefresh) {
+        return { session: false, error: true, message: 'Session expired, refresh needed' };
+      }
+  
+      return { session: false, error: true, message: 'Token is not valid' };
+    } catch (error) {
+      console.error('Error in getUserFromToken:', error);
+      return { session: false, error: true, message: 'Internal error' };
     }
-    return { user, userProfile, error, message: '' }
-}
+  };
+  
+  
 
 export function parseCookies(request) {
     const list = {}
@@ -484,17 +493,23 @@ export function decodeToken(token) {
     return decode(token)
 }
 const now = Date.now().valueOf() / 1000
+
 export function getTokenState(token) {
-    if (!token) {
-        return { valid: false, needRefresh: true }
-    }
-    const decoded = decode(token)
-    if (!decoded) {
-        return { valid: false, needRefresh: true }
-    } else if (decoded.exp && jwt.decode(token)?.exp < now) {
-        return { valid: true, needRefresh: true }
-    } else {
-        return { valid: true, needRefresh: false }
+    try {
+        if (!token) {
+            return { valid: false, needRefresh: true }
+        }
+        const decoded = decode(token)
+        if (!decoded) {
+            return { valid: false, needRefresh: true }
+        } else if (decoded.exp && jwt.decode(token)?.exp < now) {
+            return { valid: true, needRefresh: true }
+        } else {
+            return { valid: true, needRefresh: false }
+        }
+
+    } catch (error) {
+        console.log("🚀 ~ file: index.js:504 ~ getTokenState ~ error:", error)
     }
 }
 // Obtiene el token y lo elimina
