@@ -39,6 +39,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         'http://localhost:3003',
         'http://localhost:3004',
         'https://eatsy-client.vercel.app',
+        'https://front-back-server.onrender.com' // Add your domain here
       ],
       credentials: true
     })
