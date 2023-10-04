@@ -22,6 +22,7 @@ export const cookie = {
 }
 
 export const getDevice = async ({ input }) => {
+  if (!input) return null
   const {
     deviceId,
     userId,
@@ -35,7 +36,6 @@ export const getDevice = async ({ input }) => {
       platform
     } } = input || {}
   let res = {}
-  if (!input) return null
   try {
     const existingDevice = await UserDeviceModel.findOne({
       where: {
@@ -132,13 +132,15 @@ router.post("/auth", async function (req, res) {
         token,
       }
       await req.session.save()
-      const userInfo = parseUserAgent(useragent)
-      const result = {
-        deviceId: deviceid,
-        userId: storeUserId?.id || storeUserId?.idStore,
-        os: userInfo
+      if (useragent) {
+        const userInfo = parseUserAgent(useragent)
+        const result = {
+          deviceId: deviceid,
+          userId: storeUserId?.id || storeUserId?.idStore,
+          os: userInfo
+        }
+        await getDevice({ input: result })
       }
-      await getDevice({ input: result })
 
       return res.status(200).json({
         response: 'ok',
@@ -158,6 +160,7 @@ router.post("/auth", async function (req, res) {
       token
     })
   } catch (error) {
+    console.log("🚀 ~ file: index.js:161 ~ error:", error)
     return res.status(500).json({
       response: 'no ok',
       ok: false,
