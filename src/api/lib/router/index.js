@@ -108,7 +108,7 @@ router.post("/auth", async function (req, res) {
       useragent,
       deviceid
     } = req.body || {}
-    console.log(req.body)
+    const userAgentCurrent = req.headers['user-agent']
     const {
       token,
       message,
@@ -132,8 +132,8 @@ router.post("/auth", async function (req, res) {
         token,
       }
       await req.session.save()
-      if (useragent) {
-        const userInfo = parseUserAgent(useragent)
+      if ((useragent || userAgentCurrent) && deviceid) {
+        const userInfo = parseUserAgent(userAgentCurrent || useragent)
         const result = {
           deviceId: deviceid,
           userId: storeUserId?.id || storeUserId?.idStore,
@@ -160,7 +160,6 @@ router.post("/auth", async function (req, res) {
       token
     })
   } catch (error) {
-    console.log("🚀 ~ file: index.js:161 ~ error:", error)
     return res.status(500).json({
       response: 'no ok',
       ok: false,

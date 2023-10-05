@@ -6,14 +6,18 @@ import { deCode, getAttributes } from '../../utils/util'
 import { Op } from 'sequelize'
 
 export const createClients = async (_root, { input }, context) => {
-  const { idUser, ccClient } = input || {}
+  const { idUser, ccClient, idStore } = input || {}
   try {
     const isExist = await clients.findOne({
       attributes: ['clientNumber', 'ccClient'],
       where: { ccClient }
     })
     if (!isExist) {
-      const data = await clients.create({ ...input, idStore: deCode(context.restaurant), idUser: idUser ? deCode(idUser) : null })
+      const data = await clients.create({
+        ...input,
+        idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
+        idUser: idUser ? deCode(idUser) : null
+      })
       return data
     }
     const error = new ApolloError('El numero de identificación ya existe')

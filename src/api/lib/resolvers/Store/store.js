@@ -2,27 +2,28 @@ import CatStore from "../../models/information/CategorieStore"
 import CitiesModel from "../../models/information/CitiesModel"
 import CountriesModel from "../../models/information/CountriesModel"
 import DepartmentsModel from "../../models/information/DepartmentsModel"
-import productModelFood from "../../models/product/productFood"
-import FavoritesModel from "../../models/Store/FavoritesModel"
-import ShoppingCard from "../../models/Store/ShoppingCard"
-import RatingStore from "../../models/Store/ratingStore"
-import SubProducts from "../../models/Store/shoppingCardSubProduct"
-import Store from "../../models/Store/Store"
-import { deCode, getAttributes } from "../../utils/util"
-import ratingStoreStart from "../../models/Store/ratingStoreStart"
-import ScheduleStore from "../../models/Store/scheduleStore"
-import { Op } from "sequelize"
-import StatusOrderModel from "../../models/Store/statusPedidoFinal"
-import { createOnePedidoStore } from "./pedidos"
-import SaleDataExtra from "./../../models/Store/sales/saleExtraProduct"
 import ExtProductFoodOptional from "../../models/Store/sales/saleExtProductFoodOptional"
 import ExtProductFoodSubOptional from "../../models/Store/sales/saleExtProductFoodSubOptional"
-import { GraphQLError } from "graphql"
-import { getStoreSchedules } from "./Schedule"
-import { getStatusOpenStore } from "../../utils"
+import FavoritesModel from "../../models/Store/FavoritesModel"
+import productModelFood from "../../models/product/productFood"
+import RatingStore from "../../models/Store/ratingStore"
+import ratingStoreStart from "../../models/Store/ratingStoreStart"
+import SaleDataExtra from "./../../models/Store/sales/saleExtraProduct"
+import ScheduleStore from "../../models/Store/scheduleStore"
+import ShoppingCard from "../../models/Store/ShoppingCard"
+import StatusOrderModel from "../../models/Store/statusPedidoFinal"
+import Store from "../../models/Store/Store"
+import SubProducts from "../../models/Store/shoppingCardSubProduct"
 import { ApolloError, ForbiddenError } from "apollo-server-express"
+import { createClients } from "./Clients"
+import { createOnePedidoStore } from "./pedidos"
+import { deCode, getAttributes } from "../../utils/util"
+import { getStatusOpenStore } from "../../utils"
+import { getStoreSchedules } from "./Schedule"
+import { GraphQLError } from "graphql"
+import { Op } from "sequelize"
 import { setFavorites } from "./setFavorites"
-import StatusPedidosModel from "../../models/Store/statusPedidoFinal"
+import clients from "../../models/Store/clients"
 
 // eslint-disable-next-line
 export const newRegisterStore = async (_, { input }, ctx, lol) => {
@@ -35,8 +36,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
         id: deCode(id),
       },
     })
-    if (data)
-      return {
+    if (data) return {
         success: false,
         message: "Ya existe una tienda registrada",
         idStore: data.idStore,
@@ -50,13 +50,23 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       ctId: deCode(ctId),
       catStore: deCode(catStore),
     })
+    const idStore = res.idStore
+    const inputClient = {
+      clientName: "COMPRA EN TIENDA",
+      clientLastName: "",
+      ClientAddress: "",
+      ccClient: idStore,
+      clientNumber: "",
+      gender: 1,
+      idStore: idStore
+  }
+    createClients(null, { input: inputClient } )
     return {
       success: true,
-      idStore: res.idStore,
+      idStore: idStore,
       message: "Tienda creada",
     }
   } catch (error) {
-    console.log(error)
     return {
       success: false,
       message: error?.message || "",
@@ -68,7 +78,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
 export const getStore = async (
   _root,
   {
-    id, 
+    id,
     StoreName,
     idStore
   },
@@ -153,7 +163,7 @@ export const registerSalesStore = async (
         extensions: { code: 'FORBIDDEN', message:  { message: 'Token expired' } }
       })
     }
-    const statusPedido = await StatusPedidosModel.findOne({
+    const statusPedido = await StatusOrderModel.findOne({
       where: { pCodeRef }
     })
     if (statusPedido) {
@@ -164,8 +174,17 @@ export const registerSalesStore = async (
         }
       }
     }
+    let clientId = id || null
     if (!id) {
-      throw new Error('Elija un cliente, no se pudo realizar la venta')
+      if (!context?.restaurant) throw new Error('No se pudo realizar la venta')
+      const data = await clients.findOne({
+        attributes: ['cliId', 'ccClient'],
+        where: { ccClient: context?.restaurant || idStore }
+      })
+      clientId = data.cliId
+      if (!data) {
+        throw new Error('Elija un cliente, no se pudo realizar la venta')
+      }
     }
     if (!input.length) {
       return {
@@ -187,13 +206,13 @@ export const registerSalesStore = async (
       } = element
       const decodePid = deCode(pId)
       if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
-      const productoOriginal = await productModelFood.findByPk(decodePid)
-      if (!productoOriginal) {
+      const originalProduct = await productModelFood.findByPk(decodePid)
+      if (!originalProduct) {
         throw new Error('No se encontró ningún producto proporcionado, parece que fue eliminado')
       }
       const resShoppingCard = await ShoppingCard.create({
         pId: deCode(pId),
-        id: deCode(id),
+        id: clientId ? deCode(clientId) : deCode(id),
         comments: comments ?? '',
         cState: 0,
         refCodePid: refCodePid || '',
@@ -263,11 +282,12 @@ export const registerSalesStore = async (
           }
         }))
       }
+
     const storeOrder = await createOnePedidoStore(null, {
         input: {
-          change: parseFloat(change),
+          change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
           generateSales: true,
-          id: id,
+          id: clientId ? clientId : id,
           idStore: context?.restaurant?.replace(/["']/g, ''),
           payMethodPState,
           pCodeRef,
@@ -281,11 +301,11 @@ export const registerSalesStore = async (
         throw new Error(message || 'Ocurrió un error al crear el pedido')
     }
     }))
-    await StatusPedidosModel.create({
-      change: parseFloat(change),
+    await StatusOrderModel.create({
+      change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
       channel: 1,
       discount,
-      id: deCode(id),
+      id: clientId ? deCode(clientId) : deCode(id),
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       locationUser: null,
       payMethodPState: payMethodPState,
@@ -303,7 +323,6 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
-    console.log("🚀 ~ file: store.js:302 ~ e:", e)
     return {
       Response: {
         success: false,
@@ -641,7 +660,6 @@ export const registerShoppingCard = async (_root, input, context) => {
             }
           })
         )
-        console.log(res)
       }
       if (Array.isArray(dataOptional) && dataOptional.length > 0) {
         await Promise.all(
@@ -700,7 +718,6 @@ export const registerShoppingCard = async (_root, input, context) => {
       return data
     }
   } catch (e) {
-    console.log(e)
     const error = new Error("Lo sentimos, ha ocurrido un error interno")
     return error
   }
@@ -834,7 +851,6 @@ export const getOneStore = async (parent, args, context, info) => {
       null,
       null
     )
-    console.log(data.scheduleOpenAll)
     if (schedules && data.scheduleOpenAll) {
       const { open } = getStatusOpenStore(schedules)
       return {
