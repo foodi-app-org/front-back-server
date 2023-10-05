@@ -4,6 +4,7 @@ import {
   STRING,
   DATE
 } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import CatStore from '../information/CategorieStore'
@@ -18,7 +19,7 @@ const Store = sequelize.define('store', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // Locations
   cId: {
@@ -29,7 +30,7 @@ const Store = sequelize.define('store', {
       model: CountriesModel,
       key: 'cId'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   id: {
     type: INTEGER,
@@ -40,7 +41,7 @@ const Store = sequelize.define('store', {
       model: Users,
       key: 'id'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   dId: {
     type: INTEGER,
@@ -50,7 +51,7 @@ const Store = sequelize.define('store', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   ctId: {
     type: INTEGER,
@@ -60,7 +61,7 @@ const Store = sequelize.define('store', {
       model: CitiesModel,
       key: 'ctId'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   catStore: {
     type: INTEGER,
@@ -70,7 +71,7 @@ const Store = sequelize.define('store', {
       model: CatStore,
       key: 'catStore'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   neighborhoodStore: {
     type: STRING,

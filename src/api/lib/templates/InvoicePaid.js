@@ -1,6 +1,6 @@
+/* eslint-disable no-tabs */
 /* eslint-disable no-irregular-whitespace */
-export const TemplateInvoicePaid = () => {
-  return `
+export const TemplateInvoicePaid = () => `
     <!DOCTYPE html>
 
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -735,10 +735,8 @@ export const TemplateInvoicePaid = () => {
 </html>
     
     `
-}
 
-export const isApprovedInvoiceSenderStatement = () => {
-  return `<!DOCTYPE html>
+export const isApprovedInvoiceSenderStatement = () => `<!DOCTYPE html>
     <html lang="es">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap" rel="stylesheet" />
     <style type="text/css">
@@ -895,10 +893,8 @@ export const isApprovedInvoiceSenderStatement = () => {
     </body>
     
     </html> `
-}
 
-export const InvoicePaidTemplate = ({ idComp, today, hour, uEmail }) => {
-  return `
+export const InvoicePaidTemplate = ({ idComp, today, hour, uEmail }) => `
     <!DOCTYPE html>
 
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
@@ -1139,4 +1135,3 @@ export const InvoicePaidTemplate = ({ idComp, today, hour, uEmail }) => {
 </body>
 </html>
     `
-}

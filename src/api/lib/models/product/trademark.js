@@ -1,9 +1,10 @@
 import { INTEGER, STRING, DATE } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
 
-// 
+//
 
 const trademarkModel = sequelize.define('trademark', {
   tId: {

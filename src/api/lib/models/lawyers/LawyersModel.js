@@ -1,4 +1,5 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 import ThirdPartiesModel from '../thirdParties/ThirdPartiesModel'
@@ -10,7 +11,7 @@ const LawyersModel = sequelize.define('lawyers', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tpId: {
     type: INTEGER,
@@ -22,7 +23,7 @@ const LawyersModel = sequelize.define('lawyers', {
       key: 'tpId'
     },
     unique: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   lCollectionEntity: {
     type: STRING,
@@ -46,7 +47,7 @@ const LawyersModel = sequelize.define('lawyers', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

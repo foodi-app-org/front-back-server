@@ -1,4 +1,5 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import CitiesModel from '../information/CitiesModel'
@@ -12,7 +13,7 @@ const UserLocation = sequelize.define('userlocation', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -23,7 +24,7 @@ const UserLocation = sequelize.define('userlocation', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // Locations
   cId: {
@@ -35,7 +36,7 @@ const UserLocation = sequelize.define('userlocation', {
       model: CountriesModel,
       key: 'cId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dId: {
     type: INTEGER,
@@ -46,7 +47,7 @@ const UserLocation = sequelize.define('userlocation', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ctId: {
     type: INTEGER,
@@ -57,7 +58,7 @@ const UserLocation = sequelize.define('userlocation', {
       model: CitiesModel,
       key: 'ctId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // latitud
   uLatitud: {

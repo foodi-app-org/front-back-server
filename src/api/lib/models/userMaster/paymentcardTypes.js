@@ -1,14 +1,15 @@
 import { INTEGER, literal, ENUM } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+const sequelize = connect()
 
 const PaymentCardType = sequelize.define('paymentcardtype', {
   cardtypeId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   typeCardName: {
     type: ENUM,

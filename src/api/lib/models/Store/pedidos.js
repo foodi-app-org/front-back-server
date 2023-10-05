@@ -1,16 +1,18 @@
 import { INTEGER, STRING, DATE, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+
 import Store from './Store'
 import ShoppingCard from './ShoppingCard'
+const sequelize = connect()
 
 const pedidosModel = sequelize.define('storepedidos', {
   pdpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -23,7 +25,7 @@ const pedidosModel = sequelize.define('storepedidos', {
       model: ShoppingCard,
       key: 'ShoppingCard'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: INTEGER,
@@ -34,7 +36,7 @@ const pedidosModel = sequelize.define('storepedidos', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ppState: {
     type: INTEGER,

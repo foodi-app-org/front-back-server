@@ -1,16 +1,17 @@
 import { INTEGER, STRING, DATE, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import AreasModel from '../areas/AreasModel'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import ThirdPartiesModel from '../thirdParties/ThirdPartiesModel'
+const sequelize = connect()
 
 const EmployeesModel = sequelize.define('employees', {
   eId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   aId: {
     type: INTEGER,
@@ -21,7 +22,7 @@ const EmployeesModel = sequelize.define('employees', {
       model: AreasModel,
       key: 'aId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tpId: {
     type: INTEGER,
@@ -32,7 +33,7 @@ const EmployeesModel = sequelize.define('employees', {
       model: ThirdPartiesModel,
       key: 'tpId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   eEnterprise: {
     type: STRING(150)
@@ -77,7 +78,7 @@ const EmployeesModel = sequelize.define('employees', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

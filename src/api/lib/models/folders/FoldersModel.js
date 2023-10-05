@@ -1,16 +1,17 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import UsersModel from '../users/UsersModel'
-// 
+const sequelize = connect()
+//
 
 const FoldersModel = sequelize.define('folders', {
   fId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   uId: {
     type: INTEGER,
@@ -21,7 +22,7 @@ const FoldersModel = sequelize.define('folders', {
       model: UsersModel,
       key: 'uId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   fName: {
     type: STRING(100),
@@ -45,7 +46,7 @@ const FoldersModel = sequelize.define('folders', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

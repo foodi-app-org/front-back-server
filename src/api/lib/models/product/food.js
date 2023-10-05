@@ -1,10 +1,10 @@
 import { INTEGER, STRING, TEXT, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
-
+const sequelize = connect()
 
 const productModel = sequelize.define('productstore', {
   pfId: {
@@ -13,7 +13,7 @@ const productModel = sequelize.define('productstore', {
     autoIncrement: true,
     // get(x) {return enCode(this.getDataValue(x))},
     // get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // User
   id: {
@@ -25,7 +25,7 @@ const productModel = sequelize.define('productstore', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // id store
   idStore: {
@@ -37,7 +37,7 @@ const productModel = sequelize.define('productstore', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pName: {
     type: STRING,

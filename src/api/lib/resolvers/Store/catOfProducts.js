@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server-express'
+
 import catOfProducts from '../../models/Store/catOfProducts'
 import { deCode, getAttributes } from '../../utils/util'
 
-export const createCatOfProducts = async (_root, { input }, context ) => {
+export const createCatOfProducts = async (_root, { input }, context) => {
   try {
     await catOfProducts.create({ ...input, id: deCode(context.User.id) })
     return { success: true, message: 'Update' }

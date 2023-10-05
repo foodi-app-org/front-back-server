@@ -1,17 +1,17 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 import Users from '../Users'
 const sequelize = connect()
 
-
 const dynamicPassword = sequelize.define('dynamicpassword', {
   dPassId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -22,7 +22,7 @@ const dynamicPassword = sequelize.define('dynamicpassword', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: INTEGER,
@@ -33,7 +33,7 @@ const dynamicPassword = sequelize.define('dynamicpassword', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   deviceId: {
     type: STRING(200),

@@ -1,17 +1,19 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
+
 import productModelFood from './productFood'
 import productsOptionalExtra from './productsOptionalExtra'
+const sequelize = connect()
 
 const productsSubOptionalExtra = sequelize.define('productssuboptionalextra', {
   opSubExPid: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: INTEGER,
@@ -22,7 +24,7 @@ const productsSubOptionalExtra = sequelize.define('productssuboptionalextra', {
       model: productModelFood,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: INTEGER,
@@ -33,7 +35,7 @@ const productsSubOptionalExtra = sequelize.define('productssuboptionalextra', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   opExPid: {
     type: INTEGER,
@@ -44,7 +46,7 @@ const productsSubOptionalExtra = sequelize.define('productssuboptionalextra', {
       model: productsOptionalExtra,
       key: 'opExPid'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   OptionalSubProName: {
     type: STRING,

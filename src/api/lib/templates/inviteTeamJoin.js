@@ -1,5 +1,5 @@
-export const TemplateJoinTeam = () => {
-  return `
+/* eslint-disable no-tabs */
+export const TemplateJoinTeam = () => `
     <html><link href="https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap" rel="stylesheet" />
 <style type="text/css">body{display:flex !important;flex-direction:column !important;margin:0 !important;}</style>
 <head>
@@ -93,4 +93,3 @@ table td
 </body>
 </html>
 `
-}

@@ -1,16 +1,18 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
+
 import productModelFood from './productFood'
+const sequelize = connect()
 
 const ExtraProductModel = sequelize.define('extrasproducts', {
   exPid: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
 
   pId: {
@@ -22,7 +24,7 @@ const ExtraProductModel = sequelize.define('extrasproducts', {
       model: productModelFood,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: INTEGER,
@@ -33,7 +35,7 @@ const ExtraProductModel = sequelize.define('extrasproducts', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   exState: {
     type: INTEGER,

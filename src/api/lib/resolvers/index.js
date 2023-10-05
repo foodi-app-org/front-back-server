@@ -1,9 +1,10 @@
+import categoriesResolver from '../resolvers/Category'
+
 import dateTimeScalar from './CustomScalar'
 import storeResolver from './Store'
 import UserResolvers from './users'
 import products from './product'
 import deviceResolver from './device'
-import categoriesResolver from '../resolvers/Category'
 import informationResolver from './informations'
 import Providers from './Providers'
 import recommendedCategorieStoreResolver from './recommended'

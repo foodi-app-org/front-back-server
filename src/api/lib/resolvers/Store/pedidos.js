@@ -1,14 +1,16 @@
-import dotenv from 'dotenv';
-// Configura dotenv
-dotenv.config();
+import dotenv from 'dotenv'
 import { Op } from 'sequelize'
+
 import productModelFood from '../../models/product/productFood'
 import pedidosModel from '../../models/Store/pedidos'
 import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes } from '../../utils/util'
+
 import { deleteOneItem, getOneStore } from './store'
+// Configura dotenv
+dotenv.config()
 export const createOnePedidoStore = async (_, { input }) => {
   const {
     id,
@@ -24,7 +26,7 @@ export const createOnePedidoStore = async (_, { input }) => {
       pPStateP: 1,
       id: deCode(id),
       idStore: deCode(idStore),
-      ShoppingCard:  deCode(ShoppingCard),
+      ShoppingCard: deCode(ShoppingCard),
       pCodeRef,
       pPRecoger,
       payMethodPState
@@ -35,7 +37,7 @@ export const createOnePedidoStore = async (_, { input }) => {
     }
   } catch (error) {
     const development = process.env.NODE_ENV !== 'production'
-    return { success: false, message: development ?  error.message : 'Se ha producido un error al crear la orden' }
+    return { success: false, message: development ? error.message : 'Se ha producido un error al crear la orden' }
   }
 }
 // eslint-disable-next-line
@@ -56,7 +58,7 @@ const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, ctx) => 
   try {
     await StatusOrderModel.update(
       { pSState: pPStateP, pDatMod },
-      { where: { pCodeRef: pCodeRef } }
+      { where: { pCodeRef } }
     )
     return {
       success: true,
@@ -86,9 +88,9 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
       locationUser,
       idStore: deCode(setInput[0].idStore),
       pSState: 1,
-      pCodeRef: pCodeRef,
-      change: change,
-      payMethodPState: payMethodPState,
+      pCodeRef,
+      change,
+      payMethodPState,
       pickUp,
       totalProductsPrice
     })
@@ -149,9 +151,13 @@ export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
         [Op.or]: [
           {
             // ID STORE
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {pDatCre: {
-              [Op.between]: [START.toISOString(), NOW.toISOString()]
-            }}),
+            ...((fromDate && toDate)
+              ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } }
+              : {
+                pDatCre: {
+                  [Op.between]: [START.toISOString(), NOW.toISOString()]
+                }
+              }),
             pSState: statusOrder,
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
@@ -181,7 +187,7 @@ const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore,
     [Op.and]: [
       {
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
-        pSState: pSState,
+        pSState,
         pDatCre: {
           [Op.between]: [fromDate || today, toDate || tomorrow]
         }
@@ -209,9 +215,7 @@ const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore,
   return orders
 }
 
-
 // Objeto para almacenar la caché
-
 
 const ordersByState = {
   ACEPTA: [],
@@ -321,7 +325,7 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
     'createdAt',
     'updatedAt']
 
-  const ordersByState = await getOrdersByState({idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes})
+  const ordersByState = await getOrdersByState({ idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes })
   try {
     return ordersByState
   } catch (error) {
@@ -330,17 +334,17 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
 }
 
 const getAllPedidoUserFinal = async (_, args, ctx, info) => {
-  const { id } = args || {};
+  const { id } = args || {}
   try {
-    const attributes = getAttributes(StatusOrderModel, info);
-    const fiveHoursAgo = new Date();
-    fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
+    const attributes = getAttributes(StatusOrderModel, info)
+    const fiveHoursAgo = new Date()
+    fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5)
 
     const data = await StatusOrderModel.findAll({
       attributes,
       where: {
         [Op.or]: [
-          { id: id ? deCode(id) : deCode(ctx.User.id) },
+          { id: id ? deCode(id) : deCode(ctx.User.id) }
         ],
         [Op.and]: [
           {
@@ -348,19 +352,18 @@ const getAllPedidoUserFinal = async (_, args, ctx, info) => {
               [Op.in]: [0, 1, 2, 3, 4, 5]
             },
             pDatMod: {
-              [Op.gt]: fiveHoursAgo,
-            },
-          },
-        ],
+              [Op.gt]: fiveHoursAgo
+            }
+          }
+        ]
       },
-      order: [['pDatCre', 'DESC']],
-    });
-    return data;
+      order: [['pDatCre', 'DESC']]
+    })
+    return data
   } catch (error) {
-    return ordersByState;
+    return ordersByState
   }
-};
-
+}
 
 export const getOnePedidoStore = async (_, { pCodeRef }, ctx, info) => {
   try {
@@ -368,7 +371,7 @@ export const getOnePedidoStore = async (_, { pCodeRef }, ctx, info) => {
     const data = await StatusOrderModel.findOne({
       attributes,
       where: {
-        pCodeRef: pCodeRef
+        pCodeRef
       }
     })
     return data
@@ -393,9 +396,7 @@ export default {
           return null
         }
       },
-      getOneStore: async (parent, args, context, info) => {
-        return await getOneStore(parent, args, context, info)
-      },
+      getOneStore: async (parent, args, context, info) => await getOneStore(parent, args, context, info),
       getUser: async (parent, _args, _context, info) => {
         try {
           const attributes = getAttributes(Users, info)

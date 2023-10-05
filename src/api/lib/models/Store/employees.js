@@ -1,8 +1,10 @@
 import Sequelize from 'sequelize'
+
 import connect from '../../db'
-import Store from './Store'
 import Users from '../Users'
 import { enCode } from '../../utils/util'
+
+import Store from './Store'
 
 const conn = connect()
 
@@ -11,7 +13,7 @@ export default conn.define('employees', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: Sequelize.INTEGER,
@@ -22,7 +24,7 @@ export default conn.define('employees', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idUser: {
     type: Sequelize.INTEGER,
@@ -33,7 +35,7 @@ export default conn.define('employees', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   eEnterprise: {
     type: Sequelize.SMALLINT,

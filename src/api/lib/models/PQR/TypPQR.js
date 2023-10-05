@@ -1,11 +1,12 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 
 import TypePQRArea from './TypPQRArea'
+const sequelize = connect()
 
-// 
+//
 
 const TypePQR = sequelize.define('typepqr', {
   thpId: {

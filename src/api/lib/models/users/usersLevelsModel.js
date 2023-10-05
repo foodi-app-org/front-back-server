@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
@@ -8,7 +9,7 @@ const UsersLevelsModel = sequelize.define('userslevels', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ulName: {
     type: STRING(100),
@@ -28,7 +29,7 @@ const UsersLevelsModel = sequelize.define('userslevels', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

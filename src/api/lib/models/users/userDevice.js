@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import Users from '../Users'
@@ -9,7 +10,7 @@ const UserDeviceModel = sequelize.define('userdevice', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -20,7 +21,7 @@ const UserDeviceModel = sequelize.define('userdevice', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   deviceId: {
     type: STRING(200),

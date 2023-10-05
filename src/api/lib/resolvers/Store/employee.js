@@ -56,7 +56,7 @@ export const deleteEmployeeStore = async (_, args, ctx, _info) => {
         eId: deCode(eId),
         idStore: deCode(ctx.restaurant)
       }
-    }) 
+    })
     return {
       success: true,
       message: 'eliminado'
@@ -68,7 +68,6 @@ export const deleteEmployeeStore = async (_, args, ctx, _info) => {
     }
   }
 }
-
 
 export default {
   TYPES: {

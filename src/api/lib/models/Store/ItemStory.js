@@ -1,7 +1,9 @@
 import Sequelize from 'sequelize'
+
 import connect from '../../db'
-import Store from './Store'
 import { enCode } from '../../utils/util'
+
+import Store from './Store'
 import StoryModel from './StoryModel'
 
 const conn = connect()
@@ -10,7 +12,7 @@ export default conn.define('storyitemphotostore', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: Sequelize.INTEGER,
@@ -21,7 +23,7 @@ export default conn.define('storyitemphotostore', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   stoId: {
     type: Sequelize.INTEGER,
@@ -32,7 +34,7 @@ export default conn.define('storyitemphotostore', {
       model: StoryModel,
       key: 'stoId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   itemImage: {
     type: Sequelize.STRING,

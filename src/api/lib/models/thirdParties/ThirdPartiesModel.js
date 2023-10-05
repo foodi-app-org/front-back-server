@@ -1,5 +1,5 @@
-
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import CitiesModel from '../information/CitiesModel'
 import CountriesModel from '../information/CountriesModel'
@@ -8,14 +8,14 @@ import DepartmentsModel from '../information/DepartmentsModel'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
 
-// 
+//
 
 const ThirdPartiesModel = sequelize.define('thirdparties', {
   tpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   countryId: {
     type: INTEGER,
@@ -26,7 +26,7 @@ const ThirdPartiesModel = sequelize.define('thirdparties', {
       model: CountriesModel,
       key: 'cId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dId: {
     type: INTEGER,
@@ -37,7 +37,7 @@ const ThirdPartiesModel = sequelize.define('thirdparties', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ctId: {
     type: INTEGER,
@@ -48,7 +48,7 @@ const ThirdPartiesModel = sequelize.define('thirdparties', {
       model: CitiesModel,
       key: 'ctId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tiId: {
     type: INTEGER,
@@ -59,7 +59,7 @@ const ThirdPartiesModel = sequelize.define('thirdparties', {
       model: TypeIdentitiesModel,
       key: 'tiId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tpNitDV: {
     type: STRING(2),

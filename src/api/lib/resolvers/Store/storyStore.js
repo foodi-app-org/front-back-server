@@ -1,9 +1,10 @@
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import ItemStory from '../../models/Store/ItemStory'
 import messageStory from '../../models/Store/messageStory'
 import storyStore from '../../models/Store/StoryModel'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const registerStoryItemPhotoStore = async (_root, { input }, context) => {
   try {
@@ -57,7 +58,7 @@ export const getAllStoryItemPhotoStore = async (_root, { stoId }, ctx, info) => 
 export const registerStoryComment = async (_root, { input }) => {
   try {
     const { stoId, from, comments, username } = input || {}
-    const data = await messageStory.create({ username, comments, from: from, messageState: 1, stoId: deCode(stoId) })
+    const data = await messageStory.create({ username, comments, from, messageState: 1, stoId: deCode(stoId) })
     return data
   } catch (e) {
     const error = new ApolloError(e || 'Lo sentimos, ha ocurrido un error interno')
@@ -76,8 +77,10 @@ export const getAllStoryComment = async (parent, { stoId, min, max }, _context, 
             stoId: stoId ? deCode(stoId) : deCode(parent.stoId)
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['comments', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['comments', 'DESC']]
     })
     return data
   } catch {

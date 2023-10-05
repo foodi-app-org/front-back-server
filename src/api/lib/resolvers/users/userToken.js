@@ -1,9 +1,10 @@
 /* eslint-disable import/no-anonymous-default-export */
+import { getUserFromToken } from 'pages/api/auth'
+
 import Users from '../../models/Users'
 import { deCode } from '../../utils/util'
 import Store from '../../models/Store/Store'
 import { generateToken } from '../../utils'
-import { getUserFromToken } from 'pages/api/auth'
 /**
  * New user token.
  * @param {Object} _ Not used
@@ -15,7 +16,7 @@ import { getUserFromToken } from 'pages/api/auth'
  */
 
 // eslint-disable-next-line consistent-return
-const refreshUserPayrollToken = (async (_, { id, token }) => {
+const refreshUserPayrollToken = async (_, { id, token }) => {
   try {
     const { error: e } = await getUserFromToken(token)
     if (!token) return { success: false, message: 'Session expired', tokenAuth: null }
@@ -26,7 +27,7 @@ const refreshUserPayrollToken = (async (_, { id, token }) => {
       const UserToken = {
         name: data.name || null,
         username: data.username || null,
-        restaurant: StoreInfo ? StoreInfo : null,
+        restaurant: StoreInfo || null,
         id
       }
       const tokenAuth = await generateToken(UserToken)
@@ -37,7 +38,6 @@ const refreshUserPayrollToken = (async (_, { id, token }) => {
     return { success: true, message: 'Ocurrió un error', tokenAuth: null }
   }
 }
-)
 
 export default {
   TYPES: {

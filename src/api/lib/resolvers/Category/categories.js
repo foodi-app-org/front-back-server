@@ -1,7 +1,8 @@
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import CategoryProductsModel from '../../models/Categories/CategoryProducts'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 // cities
 export const updateCategoryProducts = async (_root, { input }) => {
@@ -17,8 +18,7 @@ export const updateCategoryProducts = async (_root, { input }) => {
     const isExist = await CategoryProductsModel.findOne({ attributes: ['caId', 'cpName', 'cpState'], where: { caId: deCode(caId) } })
     if (isExist) {
       await CategoryProductsModel.update({ cpState: cpState === 1 ? 0 : 1 }, { where: { caId: deCode(caId) } })
-    }
-    else {
+    } else {
       throw new ApolloError('No se pudo eliminar el producto debido a un error interno.')
     }
   } catch (e) {
@@ -69,7 +69,8 @@ export const CategoryProductsAll = async (root, args, context, info) => {
         ]
       },
       limit: max || 100,
-      offset: min || 0, order: [['cpName', 'ASC']]
+      offset: min || 0,
+      order: [['cpName', 'ASC']]
     })
     return data
   } catch (e) {

@@ -1,15 +1,16 @@
 import { INTEGER, SMALLINT, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
 import AreasModel from '../areas/AreasModel'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+const sequelize = connect()
 
 const RequirementsModel = sequelize.define('requirements', {
   rId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   aId: {
     type: INTEGER,
@@ -20,7 +21,7 @@ const RequirementsModel = sequelize.define('requirements', {
       model: AreasModel,
       key: 'aId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   rPriority: {
     type: SMALLINT,
@@ -52,7 +53,7 @@ const RequirementsModel = sequelize.define('requirements', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

@@ -1,8 +1,10 @@
+import { Op } from 'sequelize'
+
 import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 import { deCode } from '../../utils'
 import { getAttributes } from '../../utils/util'
+
 import { getOneStore } from './store'
-import { Op } from 'sequelize'
 
 export const getAllStoreActiveChat = async (_, { id }, ctx, info) => {
   try {
@@ -17,7 +19,8 @@ export const getAllStoreActiveChat = async (_, { id }, ctx, info) => {
             ...((ctx.User || id) ? { id: id ? deCode(id) : deCode(ctx.User.id) } : {})
           }
         ]
-      }, order: [['pDatCre', 'DESC']]
+      },
+      order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (error) {

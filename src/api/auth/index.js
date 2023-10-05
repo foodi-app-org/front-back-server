@@ -1,8 +1,9 @@
+import { withIronSessionApiRoute } from 'iron-session/next'
+
 import { newRegisterUser } from '../lib/resolvers/users/user'
 import { LoginEmail } from '../lib/templates/LoginEmail'
 import { parseUserAgent, sendEmail } from '../lib/utils'
 import { deCode } from '../lib/utils/util'
-import { withIronSessionApiRoute } from 'iron-session/next'
 import { getTokenState } from '../../../utils'
 import UserDeviceModel from '../lib/models/users/userDevice'
 import Users from '../lib/models/Users'
@@ -26,13 +27,14 @@ export const getDevice = async ({ input }) => {
       device,
       family,
       platform
-    } } = input || {}
+    }
+  } = input || {}
   let res = {}
   if (!input) return null
   try {
     const existingDevice = await UserDeviceModel.findOne({
       where: {
-        deviceId: deviceId,
+        deviceId,
         id: deCode(userId)
       }
     })
@@ -52,14 +54,14 @@ export const getDevice = async ({ input }) => {
     res = await UserDeviceModel.create({
       dState: 1,
       id: deCode(userId),
-      deviceId: deviceId,
+      deviceId,
       deviceName: name,
-      short_name: short_name,
-      family: family,
+      short_name,
+      family,
       platform: device,
       locationFormat: locationFormat || null,
       type: platform,
-      version: version
+      version
     })
     sendEmail({
       to: email,
@@ -75,16 +77,14 @@ export const getDevice = async ({ input }) => {
         deviceName: '',
         version
       })
-    }).catch(()=> {
-      return { error: false, message: 'No se pudo enviar el correo' }
-    })
+    }).catch(() => ({ error: false, message: 'No se pudo enviar el correo' }))
     return { res, error: false, data: res }
   } catch (error) {
     return { error: { message: error.message }, data: {} }
   }
 }
 
-//--- Tokens
+// --- Tokens
 
 /**
  * @description Función que genera el token
@@ -94,12 +94,12 @@ export const getDevice = async ({ input }) => {
 export const getUserFromToken = async token => {
   let user = null
   let userProfile = null
-  let error = false
+  const error = false
   if (!token) return { error: false, message: '' }
   const tokenState = getTokenState(token)
   const { needRefresh, valid } = tokenState || {}
   try {
-    if (needRefresh === true) return { error: true, user: user, userProfile: userProfile, message: 'session expired' }
+    if (needRefresh === true) return { error: true, user, userProfile, message: 'session expired' }
     if (!valid) return { error: true, message: 'El token no es valido' }
   } catch {
     user = ''
@@ -111,26 +111,26 @@ export const getUserFromToken = async token => {
 export default withIronSessionApiRoute(
   async (req, res) => {
     try {
-      const { 
-        name, 
-        username, 
-        lastName, 
-        email, 
+      const {
+        name,
+        username,
+        lastName,
+        email,
         password,
         useragent,
         deviceid
       } = req.body
-      const { 
-        token, 
-        message, 
-        success, 
-        roles, 
+      const {
+        token,
+        message,
+        success,
+        roles,
         storeUserId
-      } = await newRegisterUser({ 
-        name, 
-        username, 
-        lastName, 
-        email, 
+      } = await newRegisterUser({
+        name,
+        username,
+        lastName,
+        email,
         password
       })
 
@@ -156,7 +156,7 @@ export default withIronSessionApiRoute(
           response: 'ok',
           ok: true,
           success,
-          message: message,
+          message,
           storeUserId,
           token
         })

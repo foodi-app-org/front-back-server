@@ -1,4 +1,5 @@
 import { INTEGER, STRING, UUID, UUIDV4, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
@@ -8,7 +9,7 @@ const MessagesModel = sequelize.define('messages', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   content: {
     type: STRING,

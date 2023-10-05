@@ -1,19 +1,21 @@
-import { INTEGER, STRING, DATE } from 'sequelize';
-import connect from '../../../db';
-import { enCode } from '../../../utils/util';
-import productModelFood from '../../product/productFood';
-import productsOptionalExtra from './../../product/productsOptionalExtra';
+import { INTEGER, STRING, DATE } from 'sequelize'
 
-const sequelize = connect();
+import connect from '../../../db'
+import { enCode } from '../../../utils/util'
+import productModelFood from '../../product/productFood'
+
+import productsOptionalExtra from './../../product/productsOptionalExtra'
+
+const sequelize = connect()
 
 const ExtProductFoodOptional = sequelize.define('saleextproductfoodoptional', {
   idSaleProductOptional: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {
-      return enCode(this.getDataValue(x));
-    },
+    get (x) {
+      return enCode(this.getDataValue(x))
+    }
   },
   pId: {
     type: INTEGER,
@@ -22,20 +24,20 @@ const ExtProductFoodOptional = sequelize.define('saleextproductfoodoptional', {
     onDelete: 'CASCADE',
     references: {
       model: productModelFood,
-      key: 'pId',
+      key: 'pId'
     },
-    get(x) {
-      return enCode(this.getDataValue(x));
-    },
+    get (x) {
+      return enCode(this.getDataValue(x))
+    }
   },
   pCodeRef: {
     type: STRING(100),
     unique: false,
-    allowNull: true,
+    allowNull: true
   },
   refCodePid: {
     type: STRING(50),
-    allowNull: true,
+    allowNull: true
   },
   opExPid: {
     type: INTEGER,
@@ -44,40 +46,40 @@ const ExtProductFoodOptional = sequelize.define('saleextproductfoodoptional', {
     onDelete: 'CASCADE',
     references: {
       model: productsOptionalExtra,
-      key: 'opExPid',
+      key: 'opExPid'
     },
-    get(x) {
-      return enCode(this.getDataValue(x));
-    },
+    get (x) {
+      return enCode(this.getDataValue(x))
+    }
   },
   OptionalProName: {
     type: STRING,
-    allowNull: true,
+    allowNull: true
   },
   state: {
     type: INTEGER,
-    allowNull: true,
+    allowNull: true
   },
   code: {
     type: STRING,
-    allowNull: true,
+    allowNull: true
   },
   numbersOptionalOnly: {
     type: INTEGER,
-    allowNull: true,
+    allowNull: true
   },
   pDatCre: {
     type: DATE,
-    allowNull: true,
+    allowNull: true
   },
   required: {
     type: INTEGER,
-    allowNull: true,
+    allowNull: true
   },
   pDatMod: {
     type: DATE,
-    allowNull: true,
-  },
-});
+    allowNull: true
+  }
+})
 
-export default ExtProductFoodOptional;
+export default ExtProductFoodOptional

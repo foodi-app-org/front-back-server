@@ -1,14 +1,15 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+const sequelize = connect()
 
 const CountriesModel = sequelize.define('countries', {
   cId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cName: {
     type: STRING(100),

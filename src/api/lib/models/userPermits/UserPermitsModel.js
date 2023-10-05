@@ -1,16 +1,17 @@
 import { INTEGER, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
-const sequelize = connect()
 import SubModulesModel from '../subModules/SubModulesModel'
 import Users from '../UsersLogin/Users'
+const sequelize = connect()
 
 const UserPermitsModel = sequelize.define('userpermits', {
   upId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -21,7 +22,7 @@ const UserPermitsModel = sequelize.define('userpermits', {
       model: Users,
       key: 'id'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   smId: {
     type: INTEGER,
@@ -32,7 +33,7 @@ const UserPermitsModel = sequelize.define('userpermits', {
       model: SubModulesModel,
       key: 'smId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   upState: {
     type: INTEGER,
@@ -51,7 +52,7 @@ const UserPermitsModel = sequelize.define('userpermits', {
 }, {
   timestamps: false,
   hooks: {
-    afterBulkCreate: (model) => {return model}
+    afterBulkCreate: (model) => model
   }
 })
 

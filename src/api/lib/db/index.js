@@ -1,11 +1,11 @@
+/* eslint-disable no-console */
 'use strict'
 import Sequelize from 'sequelize'
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'
 // Configura dotenv
-dotenv.config();
+dotenv.config()
 
 let sequelize = null
-const isDev = process.env.NODE_ENV === 'development'
 const dialectOptions = {
   postgres: {
     ssl: {
@@ -14,13 +14,13 @@ const dialectOptions = {
   }
 }
 
-function connect() {
+function connect () {
   try {
     if (sequelize) return sequelize
     sequelize = new Sequelize(
-      process.env.NAME_DB, //name of the database
-      process.env.USER_DB, //name of the user database
-      process.env.PASS_DB, //password of the database
+      process.env.NAME_DB, // name of the database
+      process.env.USER_DB, // name of the user database
+      process.env.PASS_DB, // password of the database
       {
         host: process.env.HOST_DB,
         logging: true,

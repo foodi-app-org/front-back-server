@@ -1,8 +1,10 @@
 import Sequelize from 'sequelize'
+
 import connect from '../../db'
-import Store from './Store'
 import Users from '../Users'
 import { enCode } from '../../utils/util'
+
+import Store from './Store'
 import productModelFood from './../product/productFood'
 
 const conn = connect()
@@ -12,7 +14,7 @@ export default conn.define('tagsproduct', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: Sequelize.INTEGER,
@@ -23,7 +25,7 @@ export default conn.define('tagsproduct', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idUser: {
     type: Sequelize.INTEGER,
@@ -34,7 +36,7 @@ export default conn.define('tagsproduct', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: Sequelize.INTEGER,
@@ -45,7 +47,7 @@ export default conn.define('tagsproduct', {
       model: productModelFood,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   nameTag: {
     type: Sequelize.STRING,

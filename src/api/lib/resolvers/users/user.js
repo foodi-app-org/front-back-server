@@ -1,5 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+
 import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 import Userprofile from '../../models/users/UserProfileModel'
@@ -13,7 +14,7 @@ import {
 } from '../../utils'
 import { deCode, getAttributes } from '../../utils/util'
 import recover from '../../templates/Recover'
-import { getDevice } from '../../router';
+import { getDevice } from '../../router'
 
 export const newRegisterUser = async (input) => {
   const {
@@ -36,7 +37,7 @@ export const newRegisterUser = async (input) => {
   try {
     const encryptedPassword = await hashPassword(password)
     const [user] = await Users.findOrCreate({
-      where: { email: email },
+      where: { email },
       defaults: {
         name,
         password: encryptedPassword,
@@ -59,12 +60,11 @@ export const newRegisterUser = async (input) => {
       roles: false,
       storeUserId: StoreInfo,
       success: true,
-      email: email,
+      email,
       userId: user.id,
-      message: `Bienvenido ${name}`
+      message: `Bienvenido ${name ?? ''}`
     }
   } catch (error) {
-    console.log(error)
     return defaultResponse
   }
 }
@@ -104,49 +104,50 @@ export const registerEmailLogin = async (_, { input }, context, info) => {
     await saveDevice(result)
     return { success: true, message: 'Hemos enviado un código a tu correo' }
   } catch (error) {
-    console.log({ error })
     return { success: false, message: 'Ocurrió un error' }
   }
 }
 
-async function createUser(email, token) {
+async function createUser (email, token) {
   const user = await Users.create({ email, uState: 1, uToken: token })
   return user
 }
 
-async function updateUserToken(email, token) {
+async function updateUserToken (email, token) {
   await Users.update({ uToken: token }, { where: { email } })
   const user = await Users.findOne({ where: { email } })
   return user
 }
 
-async function saveDevice(deviceData) {
+async function saveDevice (deviceData) {
   await getDevice({ input: deviceData })
 }
 
 /**
- * 
- * @param {*} _root no usado 
- * @param {*} param1  email del usuario 
+ *
+ * @param {*} _root no usado
+ * @param {*} param1  email del usuario
  * @param {*} context context info global
  * @param {*} info _
- * @returns 
+ * @returns
  */
 // eslint-disable-next-line
 export const LoginEmailConfirmation = async (_root, { email, otp }, context, info) => {
   try {
     const error = new ApolloError('Lo sentimos, ha ocurrido un error interno', 400)
-    const existEmail = await Users.findOne({ attributes: ['email', 'uToken', 'id'], where: { email: email } })
+    const existEmail = await Users.findOne({ attributes: ['email', 'uToken', 'id'], where: { email } })
     if (!existEmail) return error
     const StoreInfo = await Store.findOne({ attributes: ['storeName', 'idStore', 'id'], where: { id: deCode(existEmail?.id) } })
-    if (!existEmail) return {
-      token: null,
-      roles: false,
-      restaurant: '',
-      idStore: '',
-      success: false,
-      StoreInfo: null,
-      message: 'error email not found'
+    if (!existEmail) {
+      return {
+        token: null,
+        roles: false,
+        restaurant: '',
+        idStore: '',
+        success: false,
+        StoreInfo: null,
+        message: 'error email not found'
+      }
     }
     const dataUser = {
       uEmail: email,
@@ -158,12 +159,12 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
     if (existEmail.uToken === otp) {
       const token = await generateToken(dataUser)
       return {
-        token: token,
+        token,
         roles: false,
         restaurant: StoreInfo ? StoreInfo?.idStore : null,
         idStore: StoreInfo ? StoreInfo?.idStore : null,
         success: true,
-        StoreInfo: StoreInfo,
+        StoreInfo,
         message: 'Session created.'
       }
     }
@@ -173,7 +174,6 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
       success: false,
       message: 'El código ya no es valido.'
     }
-
   } catch (error) {
     return { success: false, message: error.message || 'Error' }
   }
@@ -196,7 +196,7 @@ export const getOneUser = async (root, { uEmail }, context, info) => {
       where: {
         [Op.or]: [
           {
-            email: uEmail ? uEmail : { [Op.gt]: 0 }
+            email: uEmail || { [Op.gt]: 0 }
           }
         ]
       }
@@ -211,7 +211,6 @@ const updateUserProfile = async (_root, { input }, context) => {
   try {
     const { user } = input || {}
     const { id, ...resUser } = user
-    console.log(input)
     await Users.update({ ...resUser }, { where: { id: deCode(id) } })
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')

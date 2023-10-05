@@ -1,7 +1,7 @@
 export default ({ code }) => {
-    const url = `${process.env.URL_BASE}/entrar/email?otp=true?code=${code}`
-    const year = new Date().getFullYear()
-    return `<!DOCTYPE html>
+  const url = `${process.env.URL_BASE}/entrar/email?otp=true?code=${code}`
+  const year = new Date().getFullYear()
+  return `<!DOCTYPE html>
     <html lang="es">
     <link href="https://fonts.googleapis.com/css?family=Nunito+Sans&display=swap" rel="stylesheet" />
     <style type="text/css">

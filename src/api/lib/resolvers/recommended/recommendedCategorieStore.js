@@ -1,4 +1,5 @@
 import { Op, fn } from 'sequelize'
+
 import productModelFood from '../../models/product/productFood'
 import Store from '../../models/Store/Store'
 import { linkBelongsTo } from '../../utils'
@@ -8,7 +9,7 @@ import { deCode, getAttributes } from '../../utils/util'
 export const getAllMatchesStoreRecommended = async (_root, args, _context, info) => {
   try {
     const { min, max, catStore } = args
-    let whereSearch = {}
+    const whereSearch = {}
     const attributes = getAttributes(Store, info)
     return await Store.findAll({
       attributes,
@@ -20,7 +21,9 @@ export const getAllMatchesStoreRecommended = async (_root, args, _context, info)
             ...((catStore) ? { catStore: deCode(catStore) } : {})
           }
         ]
-      }, limit: [min || 0, max || 5], order: fn('RAND')
+      },
+      limit: [min || 0, max || 5],
+      order: fn('RAND')
     })
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno en mach store')
@@ -34,7 +37,7 @@ export const productFoodsAllRecommended = async (_root, args, _context, info) =>
     linkBelongsTo(productModelFood, Store, 'idStore', 'idStore')
     const attributes = getAttributes(productModelFood, info)
     return await productModelFood.findAll({
-      attributes: attributes,
+      attributes,
       include: [
         {
           attributes: ['ctId'],
@@ -51,8 +54,10 @@ export const productFoodsAllRecommended = async (_root, args, _context, info) =>
             pState: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: fn('RAND')
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: fn('RAND')
     })
   } catch (e) {
     return new Error('Lo sentimos, ha ocurrido un error interno en product recomendante')

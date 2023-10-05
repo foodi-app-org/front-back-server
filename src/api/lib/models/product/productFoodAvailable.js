@@ -1,16 +1,18 @@
 import { INTEGER, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
+
 import productModelFood from './productFood'
+const sequelize = connect()
 
 const productModelFoodAvailable = sequelize.define('productmodelfoodavailable', {
   availableProductId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // id store
   idStore: {
@@ -22,7 +24,7 @@ const productModelFoodAvailable = sequelize.define('productmodelfoodavailable', 
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
 
   pId: {
@@ -34,7 +36,7 @@ const productModelFoodAvailable = sequelize.define('productmodelfoodavailable', 
       model: productModelFood,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dayAvailable: {
     type: INTEGER,

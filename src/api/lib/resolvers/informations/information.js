@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
 import colorModel from '../../models/information/color'
@@ -73,7 +72,6 @@ export const departments = async (_root, { cId }, _context, info) => {
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const department = async (_root, _context, info) => {
   try {
     const data = await DepartmentsModel.findAll({
@@ -103,7 +101,6 @@ export const road = async (_root, args, { input }, info) => {
     const attributes = getAttributes(TypeRoad, info)
     const data = await TypeRoad.findAll({ attributes, where: { rState: { [Op.gt]: 0 } }, order: [['rName', 'DESC']] })
     return data
-
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
@@ -130,7 +127,6 @@ export const editRoad = async (_root, { input }) => {
   }
 }
 // getSizes
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getSizes = async (_root, _context, _info) => {
   try {
     const data = await SizeModel.findAll({ attributes: ['sizeId', 'sizeName', 'sizeState'] })
@@ -238,7 +234,6 @@ export const getOneCountry = async (_root, { cId }, _context, info) => {
   } catch (e) {
     throw ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
-
 }
 export const getOneDepartment = async (_root, { dId }, _context, info) => {
   try {
@@ -248,7 +243,6 @@ export const getOneDepartment = async (_root, { dId }, _context, info) => {
   } catch (e) {
     throw ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
-
 }
 export const getOneCities = async (_root, { ctId }, _context, info) => {
   try {
@@ -258,7 +252,6 @@ export const getOneCities = async (_root, { ctId }, _context, info) => {
   } catch (e) {
     throw ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
-
 }
 export default {
   TYPES: {

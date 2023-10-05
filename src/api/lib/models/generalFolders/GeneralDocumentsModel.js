@@ -1,9 +1,11 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
-const sequelize = connect()
 import Products from '../product/product'
+
 import GeneralFoldersModel from './GeneralFoldersModel'
+const sequelize = connect()
 
 const GeneralDocumentsModel = sequelize.define('generaldocuments',
   {
@@ -11,7 +13,7 @@ const GeneralDocumentsModel = sequelize.define('generaldocuments',
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      get(x) { return enCode(this.getDataValue(x)) }
+      get (x) { return enCode(this.getDataValue(x)) }
     },
     pId: {
       type: INTEGER,
@@ -22,7 +24,7 @@ const GeneralDocumentsModel = sequelize.define('generaldocuments',
         model: Products,
         key: 'pId'
       },
-      get(x) { return enCode(this.getDataValue(x)) }
+      get (x) { return enCode(this.getDataValue(x)) }
     },
     gfId: {
       type: INTEGER,
@@ -33,7 +35,7 @@ const GeneralDocumentsModel = sequelize.define('generaldocuments',
         model: GeneralFoldersModel,
         key: 'gfId'
       },
-      get(x) { return enCode(this.getDataValue(x)) }
+      get (x) { return enCode(this.getDataValue(x)) }
     },
     gdName: {
       type: STRING(50),

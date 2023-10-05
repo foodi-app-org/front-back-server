@@ -1,17 +1,18 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import UsersModel from '../users/UsersModel'
+const sequelize = connect()
 
-// 
+//
 
 const userSessionsModel = sequelize.define('usersessions', {
   usId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   uId: {
     type: INTEGER,
@@ -23,7 +24,7 @@ const userSessionsModel = sequelize.define('usersessions', {
       key: 'uId'
     },
     unique: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   usToken: {
     type: STRING(255),

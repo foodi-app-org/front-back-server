@@ -1,16 +1,18 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils'
-const sequelize = connect()
+
 import FoldersModel from './FoldersModel'
-// 
+const sequelize = connect()
+//
 
 const FolderParentsModel = sequelize.define('folderparents', {
   fpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   fId: {
     type: INTEGER,
@@ -21,7 +23,7 @@ const FolderParentsModel = sequelize.define('folderparents', {
       model: FoldersModel,
       key: 'fId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   parentId: {
     type: INTEGER,
@@ -32,7 +34,7 @@ const FolderParentsModel = sequelize.define('folderparents', {
       model: FoldersModel,
       key: 'fId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   fpLevel: {
     type: INTEGER,
@@ -52,7 +54,7 @@ const FolderParentsModel = sequelize.define('folderparents', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

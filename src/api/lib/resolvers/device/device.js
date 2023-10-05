@@ -3,12 +3,12 @@ import UserDeviceModel from '../../models/users/userDevice'
 import { deCode, getAttributes } from '../../utils/util'
 
 /**
- * 
- * @param {*} _root no usado 
+ *
+ * @param {*} _root no usado
  * @param {*} param1 _
  * @param {*} context context info global
  * @param {*} info _
- * @returns 
+ * @returns
  */
 export const getDeviceUsers = async (_root, _args, context, info) => {
   try {
@@ -24,7 +24,6 @@ export const getDeviceUsers = async (_root, _args, context, info) => {
     const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 500)
     return error
   }
-
 }
 
 export default {

@@ -1,16 +1,17 @@
 import { INTEGER, STRING, UUID, UUIDV4, literal } from 'sequelize'
-import connect from '../../db'
-const sequelize = connect()
-import { enCode } from '../../utils/util'
 
-// 
+import connect from '../../db'
+import { enCode } from '../../utils/util'
+const sequelize = connect()
+
+//
 
 const ReactionsModel = sequelize.define('reactions', {
   id: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   content: {
     type: STRING,

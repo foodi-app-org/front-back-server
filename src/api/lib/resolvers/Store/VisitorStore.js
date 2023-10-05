@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import visitUserStore from '../../models/Store/visitUserStore'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const setVisitorStore = async (_root, { input }) => {
   try {
@@ -25,7 +25,8 @@ export const getAllVisitorStore = async (_root, { idStore, fromDate, toDate, max
   try {
     const attributes = getAttributes(visitUserStore, info)
     const data = await visitUserStore.findAll({
-      attributes, where:
+      attributes,
+      where:
             {
               [Op.or]: [
                 {

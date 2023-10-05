@@ -1,4 +1,5 @@
 import { Op } from 'sequelize'
+
 import Providers from '../../models/Providers/providers'
 import { deCode, getAttributes } from '../../utils/util'
 
@@ -26,8 +27,10 @@ export const getAllProviders = async (root, args, context, info) => {
           prState: { [Op.gt]: 0 }
         }
       ]
-    },        limit: max || 100,
-        offset: min || 0, order: [['DatCre', 'DESC']]
+    },
+    limit: max || 100,
+    offset: min || 0,
+    order: [['DatCre', 'DESC']]
   })
   return data
 }

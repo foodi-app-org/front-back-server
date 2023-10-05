@@ -1,5 +1,6 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { Op } from 'sequelize'
+
 import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 
@@ -34,14 +35,13 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
     return {
       store: rows,
       inActiveStore: RowInActive,
-      countInActive: countInActive,
-      count: count
+      countInActive,
+      count
     }
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 400)
     return error
   }
-
 }
 
 export const getAllUserActives = async (_root, _args, _context, _info) => {
@@ -53,8 +53,8 @@ export const getAllUserActives = async (_root, _args, _context, _info) => {
       }
     })
     return {
-      count: count,
-      countInActive: countInActive,
+      count,
+      countInActive,
       users: rows,
       usersInActives: RowInActive
     }
@@ -62,7 +62,6 @@ export const getAllUserActives = async (_root, _args, _context, _info) => {
     const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 400)
     return error
   }
-
 }
 
 export default {

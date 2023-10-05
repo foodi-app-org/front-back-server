@@ -1,8 +1,9 @@
 /* eslint-disable no-undef */
+import { Op } from 'sequelize'
+
 import productModel from '../../models/product/food'
 import Store from '../../models/Store/Store'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   const id = ctx.User.id || ''
@@ -18,7 +19,6 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   }
 }
 export const getStore = async (root, args, context, info) => {
-  console.log({context})
   const { id } = args || {}
   const attributes = getAttributes(Store, info)
   const data = await Store.findOne({
@@ -48,21 +48,21 @@ export const getFoodAllProduct = async (root, args, context, info) => {
     whereSearch = {
       ...whereSearch,
       ProDelivery: {
-        [Op.in]: gender.map(x => {return x})
+        [Op.in]: gender.map(x => x)
       }
     }
   }
   if (desc?.length) {
     whereSearch = {
       ...whereSearch,
-      ProDescuento: { [Op.in]: desc.map(x => {return x}) }
+      ProDescuento: { [Op.in]: desc.map(x => x) }
     }
   }
-  //validad que  venga una categoría para hacer el filtro por categorías
+  // validad que  venga una categoría para hacer el filtro por categorías
   if (categories?.length) {
     whereSearch = {
       ...whereSearch,
-      caId: { [Op.in]: categories.map(x => {return deCode(x)}) }
+      caId: { [Op.in]: categories.map(x => deCode(x)) }
     }
   }
 
@@ -82,8 +82,10 @@ export const getFoodAllProduct = async (root, args, context, info) => {
           // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
         }
       ]
-    },        limit: max || 100,
-        offset: min || 0, order: [['pDatCre', 'DESC']]
+    },
+    limit: max || 100,
+    offset: min || 0,
+    order: [['pDatCre', 'DESC']]
   })
   return data
 }

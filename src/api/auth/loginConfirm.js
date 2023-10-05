@@ -1,23 +1,25 @@
-import { MAX_AGE, getDevice } from '.'
-import { LoginEmailConfirmation } from '../lib/resolvers/users/user'
 import { withIronSessionApiRoute } from 'iron-session/next'
+
+import { LoginEmailConfirmation } from '../lib/resolvers/users/user'
 import { parseUserAgent } from '../lib/utils'
+
+import { MAX_AGE, getDevice } from '.'
 
 export default withIronSessionApiRoute(
   async (req, res) => {
     const useragent = req.headers['user-agent']
     try {
-      const { 
-        email, 
-        otp, 
+      const {
+        email,
+        otp,
         deviceid
       } = req.body
-      const { 
-        token, 
-        message, 
-        success, 
-        roles, 
-        idStore, 
+      const {
+        token,
+        message,
+        success,
+        roles,
+        idStore,
         StoreInfo
       } = await LoginEmailConfirmation(null, { email, otp })
       if (success) {
@@ -44,8 +46,8 @@ export default withIronSessionApiRoute(
           response: 'ok',
           ok: true,
           success,
-          message: message,
-          storeUserId: StoreInfo ? StoreInfo : null,
+          message,
+          storeUserId: StoreInfo || null,
           token,
           idStore
         })
@@ -54,7 +56,7 @@ export default withIronSessionApiRoute(
         response: 'no ok',
         ok: false,
         success: false,
-        message: message,
+        message,
         token
       })
     } catch (error) {

@@ -1,8 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
+import { Op } from 'sequelize'
+
 import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 import { deCode, getAttributes } from '../../utils/util'
 
-import { Op } from 'sequelize'
 // store
 export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
   const { idStore } = args || {}
@@ -31,9 +32,9 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
     idStore,
     min,
     channel,
-    max, 
-    fromDate, 
-    search, 
+    max,
+    fromDate,
+    search,
     toDate
   } = args || {}
   try {
@@ -58,14 +59,16 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
           {
             ...whereSearch,
             pSState: 4,
-            ...((channel) ? {channel: channel } : {}),
+            ...((channel) ? { channel } : {}),
             ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
             // ID STORE
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pDatCre', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (error) {
@@ -80,7 +83,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
   } = args || {}
   try {
     const data = await StatusPedidosModel.findAll({
-      attributes:['totalProductsPrice'],
+      attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
           {
@@ -95,7 +98,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
     })
 
     const dataDelivery = await StatusPedidosModel.findAll({
-      attributes:['totalProductsPrice'],
+      attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
           {
@@ -109,7 +112,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
       }
     })
     const dataTotal = await StatusPedidosModel.findAll({
-      attributes:['totalProductsPrice'],
+      attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
           {
@@ -122,13 +125,13 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
       }
     })
     if (data) {
-      const TOTAL = dataTotal.reduce((a, b) => {return a + b.totalProductsPrice}, 0)
-      const totalRestaurant = data.reduce((a, b) => {return a + b.totalProductsPrice}, 0)
-      const totalDelivery = dataDelivery.reduce((a, b) => {return a + b.totalProductsPrice}, 0)
+      const TOTAL = dataTotal.reduce((a, b) => a + b.totalProductsPrice, 0)
+      const totalRestaurant = data.reduce((a, b) => a + b.totalProductsPrice, 0)
+      const totalDelivery = dataDelivery.reduce((a, b) => a + b.totalProductsPrice, 0)
       return {
         restaurant: totalRestaurant ?? 0,
         delivery: totalDelivery ?? 0,
-        TOTAL: TOTAL
+        TOTAL
       }
     }
     return {
@@ -154,8 +157,10 @@ export const getAllSalesStoreStatistic = async (_, args, ctx, info) => {
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pDatCre', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (error) {
@@ -174,7 +179,7 @@ export const getOneSalesStore = async (_, args, ctx, info) => {
           {
             pSState: 4,
             // ID STORE
-            pCodeRef: pCodeRef
+            pCodeRef
           }
         ]
       }

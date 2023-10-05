@@ -1,6 +1,8 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
+
 import UserMastersModel from './userMasterModel'
 const sequelize = connect()
 
@@ -9,7 +11,7 @@ const UsersModel = sequelize.define('usersnot', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   umId: {
     type: INTEGER,
@@ -20,7 +22,7 @@ const UsersModel = sequelize.define('usersnot', {
       model: UserMastersModel,
       key: 'umId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   uName: {
     type: STRING(100),
@@ -60,7 +62,7 @@ const UsersModel = sequelize.define('usersnot', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

@@ -1,15 +1,17 @@
-import ShoppingCard from './../ShoppingCard'
 import { INTEGER, STRING, DATE } from 'sequelize'
+
 import connect from '../../../db'
-const sequelize = connect()
 import { enCode } from '../../../utils/util'
+
+import ShoppingCard from './../ShoppingCard'
+const sequelize = connect()
 
 const SaleDataExtra = sequelize.define('saledataextras', {
   id: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   shoppingCardId: {
     type: INTEGER,
@@ -20,7 +22,7 @@ const SaleDataExtra = sequelize.define('saledataextras', {
       model: ShoppingCard,
       key: 'ShoppingCard'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: STRING,

@@ -1,9 +1,11 @@
 import { INTEGER, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
-import ModulesModel from './ModulesModel'
 import UsersModel from '../users/UsersModel'
 import { enCode } from '../../utils/util'
+
+import ModulesModel from './ModulesModel'
+const sequelize = connect()
 /**
  * @deprecated
  */
@@ -12,7 +14,7 @@ const UserModulesModel = sequelize.define('usermodules', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   mId: {
     type: INTEGER,
@@ -23,7 +25,7 @@ const UserModulesModel = sequelize.define('usermodules', {
       model: ModulesModel,
       key: 'mId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   umId: {
     type: INTEGER,
@@ -34,7 +36,7 @@ const UserModulesModel = sequelize.define('usermodules', {
       model: UsersModel,
       key: 'umId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   umdState: {
     type: INTEGER,
@@ -54,7 +56,7 @@ const UserModulesModel = sequelize.define('usermodules', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

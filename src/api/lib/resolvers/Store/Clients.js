@@ -1,9 +1,8 @@
-/* eslint-disable consistent-return */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import clients from '../../models/Store/clients'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const createClients = async (_root, { input }, context) => {
   const { idUser, ccClient, idStore } = input || {}
@@ -33,7 +32,6 @@ export const getOneClients = async (_root, { cliId }, context, info) => {
     where: { cliId: deCode(cliId) }
   })
   return data
-
 }
 
 export const editOneClient = async (_root, { input }, context) => {
@@ -42,14 +40,14 @@ export const editOneClient = async (_root, { input }, context) => {
   if (cliId) {
     try {
       await clients.update({
-        'clState': clState,
-        'clientNumber': clientNumber,
-        'ClientAddress': ClientAddress,
-        'gender': gender,
-        'ccClient': ccClient,
-        'clientLastName': clientLastName,
-        'clientName': clientName,
-        'updateAt': updateAt
+        clState,
+        clientNumber,
+        ClientAddress,
+        gender,
+        ccClient,
+        clientLastName,
+        clientName,
+        updateAt
 
       }, { where: { cliId: deCode(cliId) } })
       return { success: true, message: 'Editado con éxito' }
@@ -81,7 +79,8 @@ export const getAllClients = async (_root, {
     }
     const attributes = getAttributes(clients, info)
     const data = await clients.findAll({
-      attributes, where: {
+      attributes,
+      where: {
         [Op.or]: [
           {
             ...whereSearch,
@@ -90,13 +89,14 @@ export const getAllClients = async (_root, {
             clState: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['createAt', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['createAt', 'DESC']]
     })
     return data
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
-
   }
 }
 export const deleteClient = async (_root, { cliId, clState }) => {
@@ -105,7 +105,6 @@ export const deleteClient = async (_root, { cliId, clState }) => {
     await clients.update({ clState: clState === 1 ? 0 : 1 }, { where: { cliId: deCode(cliId) } })
   } catch (error) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
-
   }
 }
 export default {

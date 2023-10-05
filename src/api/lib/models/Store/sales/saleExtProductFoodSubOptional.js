@@ -1,14 +1,15 @@
 import { INTEGER, STRING, BOOLEAN, DATE } from 'sequelize'
+
 import connect from '../../../db'
-const sequelize = connect()
 import { enCode } from '../../../utils/util'
+const sequelize = connect()
 
 const ExtProductFoodSubOptional = sequelize.define('saleextproductfoodsuboptional', {
   idProductFoodSubOptional: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   extProductFoodId: {
     type: INTEGER,

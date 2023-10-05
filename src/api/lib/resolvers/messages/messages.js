@@ -1,15 +1,15 @@
 import { PubSub } from 'graphql-subscriptions'
-const pubsub = new PubSub() //create a PubSub instance
+const pubsub = new PubSub() // create a PubSub instance
 /**
- * 
- * @param {*} _root no usado 
+ *
+ * @param {*} _root no usado
  * @param {*} param1 _
  * @param {*} context context info global
  * @param {*} info _
- * @returns 
+ * @returns
  */
 let currentNumber = 0
-function incrementNumber() {
+function incrementNumber () {
   currentNumber++
   pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber })
   setTimeout(incrementNumber, 1000)
@@ -29,7 +29,7 @@ const Query = {
 const SubscriptionSubscription = {
   Subscription: {
     numberIncremented: {
-      subscribe: () => {return pubsub.asyncIterator(['NUMBER_INCREMENTED'])}
+      subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED'])
     }
   }
 
@@ -43,7 +43,7 @@ export default {
   },
   MUTATIONS: {
   },
-  
+
   SUBSCRIPTIONS: {
     ...SubscriptionSubscription.Subscription
   }

@@ -1,9 +1,9 @@
-
 import {
   INTEGER,
   STRING,
   DATE
 } from 'sequelize'
+
 import connect from '../db'
 import { enCode } from '../utils/util'
 const sequelize = connect()
@@ -13,7 +13,7 @@ const Users = sequelize.define('users', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(value) { return enCode(this.getDataValue(value)) }
+    get (value) { return enCode(this.getDataValue(value)) }
   },
   name: {
     type: STRING,

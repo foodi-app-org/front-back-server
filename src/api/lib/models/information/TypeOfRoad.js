@@ -1,16 +1,17 @@
 import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
-import connect from '../../db'
-const sequelize = connect()
-import { enCode } from '../../utils/util'
 
-// 
+import connect from '../../db'
+import { enCode } from '../../utils/util'
+const sequelize = connect()
+
+//
 
 const TypeRoad = sequelize.define('typeroad', {
   rId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   rName: {
     type: STRING(100),

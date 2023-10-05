@@ -1,4 +1,6 @@
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import EmployeesModelStore from '../../models/employees/EmployeesStore'
 import Users from '../../models/Users'
 import { LoginEmail } from '../../templates/LoginEmail'
@@ -8,7 +10,6 @@ import {
   sendEmail
 } from '../../utils'
 import { deCode } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const createOneEmployeeStore = async (_root, { input }, context) => {
   try {
@@ -41,7 +42,7 @@ export const createOneEmployeeStore = async (_root, { input }, context) => {
         code: uToken,
         or_JWT_Token: token
       })
-    }).then(res => {return (res, 'the res')}).catch(err => {return (err, 'the err')})
+    }).then(res => res).catch(err => err)
     return { success: true, message: 'Update' }
   } catch (e) {
     const error = new ApolloError(e || 'Lo sentimos, ha ocurrido un error interno')
@@ -79,7 +80,7 @@ export const createOneEmployeeStoreAndUser = async (_root, { input }, context) =
           code: uToken,
           or_JWT_Token: token
         })
-      }).then(res => {return res }).catch(err => { return err })
+      }).then(res => res).catch(err => err)
     } else {
       await Users.create({ email: uEmail, password: uToken, uState: 1, username: uEmail })
     }
@@ -93,7 +94,7 @@ export const createOneEmployeeStoreAndUser = async (_root, { input }, context) =
         code: uToken,
         or_JWT_Token: token
       })
-    }).then(res => {return res}).catch(err => {return err })
+    }).then(res => res).catch(err => err)
 
     return { success: true, message: 'Update' }
   } catch (e) {

@@ -1,29 +1,30 @@
-import CatStore from "../../models/information/CategorieStore"
-import CitiesModel from "../../models/information/CitiesModel"
-import CountriesModel from "../../models/information/CountriesModel"
-import DepartmentsModel from "../../models/information/DepartmentsModel"
-import ExtProductFoodOptional from "../../models/Store/sales/saleExtProductFoodOptional"
-import ExtProductFoodSubOptional from "../../models/Store/sales/saleExtProductFoodSubOptional"
-import FavoritesModel from "../../models/Store/FavoritesModel"
-import productModelFood from "../../models/product/productFood"
-import RatingStore from "../../models/Store/ratingStore"
-import ratingStoreStart from "../../models/Store/ratingStoreStart"
-import SaleDataExtra from "./../../models/Store/sales/saleExtraProduct"
-import ScheduleStore from "../../models/Store/scheduleStore"
-import ShoppingCard from "../../models/Store/ShoppingCard"
-import StatusOrderModel from "../../models/Store/statusPedidoFinal"
-import Store from "../../models/Store/Store"
-import SubProducts from "../../models/Store/shoppingCardSubProduct"
-import { ApolloError, ForbiddenError } from "apollo-server-express"
-import { createClients } from "./Clients"
-import { createOnePedidoStore } from "./pedidos"
-import { deCode, getAttributes } from "../../utils/util"
-import { getStatusOpenStore } from "../../utils"
-import { getStoreSchedules } from "./Schedule"
-import { GraphQLError } from "graphql"
-import { Op } from "sequelize"
-import { setFavorites } from "./setFavorites"
-import clients from "../../models/Store/clients"
+import { ApolloError, ForbiddenError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
+import { Op } from 'sequelize'
+
+import { deCode, getAttributes } from '../../utils/util'
+import { getStatusOpenStore } from '../../utils'
+import CatStore from '../../models/information/CategorieStore'
+import CitiesModel from '../../models/information/CitiesModel'
+import CountriesModel from '../../models/information/CountriesModel'
+import DepartmentsModel from '../../models/information/DepartmentsModel'
+import ExtProductFoodOptional from '../../models/Store/sales/saleExtProductFoodOptional'
+import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
+import FavoritesModel from '../../models/Store/FavoritesModel'
+import productModelFood from '../../models/product/productFood'
+import RatingStore from '../../models/Store/ratingStore'
+import ratingStoreStart from '../../models/Store/ratingStoreStart'
+import ScheduleStore from '../../models/Store/scheduleStore'
+import ShoppingCard from '../../models/Store/ShoppingCard'
+import StatusOrderModel from '../../models/Store/statusPedidoFinal'
+import Store from '../../models/Store/Store'
+import clients from '../../models/Store/clients'
+
+import { createClients } from './Clients'
+import { createOnePedidoStore } from './pedidos'
+import { getStoreSchedules } from './Schedule'
+import { setFavorites } from './setFavorites'
+import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
 
 // eslint-disable-next-line
 export const newRegisterStore = async (_, { input }, ctx, lol) => {
@@ -31,16 +32,18 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
   try {
     let res = {}
     const data = await Store.findOne({
-      attributes: ["id", "idStore"],
+      attributes: ['id', 'idStore'],
       where: {
-        id: deCode(id),
-      },
-    })
-    if (data) return {
-        success: false,
-        message: "Ya existe una tienda registrada",
-        idStore: data.idStore,
+        id: deCode(id)
       }
+    })
+    if (data) {
+      return {
+        success: false,
+        message: 'Ya existe una tienda registrada',
+        idStore: data.idStore
+      }
+    }
     res = await Store.create({
       ...input,
       uState: 2,
@@ -48,29 +51,29 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       id: deCode(id),
       dId: deCode(dId),
       ctId: deCode(ctId),
-      catStore: deCode(catStore),
+      catStore: deCode(catStore)
     })
     const idStore = res.idStore
     const inputClient = {
-      clientName: "COMPRA EN TIENDA",
-      clientLastName: "",
-      ClientAddress: "",
+      clientName: 'COMPRA EN TIENDA',
+      clientLastName: '',
+      ClientAddress: '',
       ccClient: idStore,
-      clientNumber: "",
+      clientNumber: '',
       gender: 1,
-      idStore: idStore
-  }
-    createClients(null, { input: inputClient } )
+      idStore
+    }
+    createClients(null, { input: inputClient })
     return {
       success: true,
-      idStore: idStore,
-      message: "Tienda creada",
+      idStore,
+      message: 'Tienda creada'
     }
   } catch (error) {
     return {
       success: false,
-      message: error?.message || "",
-      idStore: null,
+      message: error?.message || '',
+      idStore: null
     }
   }
 }
@@ -90,8 +93,8 @@ export const getStore = async (
   const data = await Store.findOne({
     attributes,
     where: {
-      idStore: deCode(context.restaurant),
-    },
+      idStore: deCode(context.restaurant)
+    }
   })
   return data
 }
@@ -106,21 +109,6 @@ export const oneCategoriesStore = async (parent, _args, _context, info) => {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const updateExtraProduct = async ({ input }) => {
-  try {
-    const { _id, id, pId } = input || {}
-    await SubProducts.create({
-      pId: deCode(pId),
-      id: deCode(id),
-      opExPid: deCode(_id),
-    })
-    return input
-  } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
-    return error
-  }
-}
 /**
  *
  * @param {*} root
@@ -136,9 +124,9 @@ export const deleteOneItem = async (root, args, context, _info) => {
       { cState: cState === 1 ? 0 : 1 },
       { where: { ShoppingCard: deCode(id) } }
     )
-    return { success: true, message: "Eliminado del carrito" }
+    return { success: true, message: 'Eliminado del carrito' }
   } catch (error) {
-    return { success: false, message: "No pudo ser eliminado" }
+    return { success: false, message: 'No pudo ser eliminado' }
   }
 }
 // eslint-disable-next-line
@@ -160,7 +148,7 @@ export const registerSalesStore = async (
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       throw new GraphQLError('Token expired', {
-        extensions: { code: 'FORBIDDEN', message:  { message: 'Token expired' } }
+        extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
       })
     }
     const statusPedido = await StatusOrderModel.findOne({
@@ -220,13 +208,13 @@ export const registerSalesStore = async (
         idStore: deCode(context.restaurant)
       })
       if (dataExtra?.length > 0) {
-        await SaleDataExtra.bulkCreate(dataExtra.map(extra => {return {
+        await SaleDataExtra.bulkCreate(dataExtra.map(extra => ({
           exPid: extra.exPid,
           exState: extra.exState,
           extraName: extra.extraName,
           extraPrice: extra.extraPrice,
           newExtraPrice: extra.newExtraPrice,
-          pCodeRef: pCodeRef,
+          pCodeRef,
           pDatCre: new Date(Date.now()),
           pDatMod: new Date(Date.now()),
           pId: extra.pId,
@@ -234,7 +222,7 @@ export const registerSalesStore = async (
           refCodePid,
           shoppingCardId: deCode(resShoppingCard.ShoppingCard),
           state: extra.state
-        }}))
+        })))
       }
       if (Array.isArray(dataOptional) && dataOptional.length > 0) {
         await Promise.all(dataOptional.map(async (optional) => {
@@ -256,15 +244,14 @@ export const registerSalesStore = async (
             state,
             refCodePid,
             code,
-            pCodeRef: pCodeRef,
+            pCodeRef,
             numbersOptionalOnly,
             pDatCre,
             required,
             pDatMod
           })
           if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
-            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => {
-              return {
+            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => ({
               pId: deCode(pId),
               opExPid: deCode(opExPid),
               idStore: deCode(context.restaurant),
@@ -272,22 +259,21 @@ export const registerSalesStore = async (
               OptionalSubProName: subOptional.OptionalSubProName,
               exCodeOptionExtra: subOptional.exCodeOptionExtra,
               exCode: subOptional.exCode,
-              pCodeRef: pCodeRef,
+              pCodeRef,
               state: subOptional.state,
               pDatCre: new Date(Date.now()),
               pDatMod: new Date(Date.now()),
               check: subOptional.check
-            }}))
-
+            })))
           }
         }))
       }
 
-    const storeOrder = await createOnePedidoStore(null, {
+      const storeOrder = await createOnePedidoStore(null, {
         input: {
           change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
           generateSales: true,
-          id: clientId ? clientId : id,
+          id: clientId || id,
           idStore: context?.restaurant?.replace(/["']/g, ''),
           payMethodPState,
           pCodeRef,
@@ -296,10 +282,10 @@ export const registerSalesStore = async (
           ShoppingCard: resShoppingCard.ShoppingCard
         }
       })
-    const { success, message } = storeOrder || {}
-    if (!success) {
+      const { success, message } = storeOrder || {}
+      if (!success) {
         throw new Error(message || 'Ocurrió un error al crear el pedido')
-    }
+      }
     }))
     await StatusOrderModel.create({
       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
@@ -308,12 +294,12 @@ export const registerSalesStore = async (
       id: clientId ? deCode(clientId) : deCode(id),
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       locationUser: null,
-      payMethodPState: payMethodPState,
-      pCodeRef: pCodeRef,
+      payMethodPState,
+      pCodeRef,
       pickUp,
       pSState: 4,
       totalProductsPrice,
-      valueDelivery: valueDelivery
+      valueDelivery
     })
     return {
       ShoppingCard: null,
@@ -335,7 +321,7 @@ export const getTodaySales = async (_, args, ctx) => {
   try {
     // Validar que el contexto contenga un restaurante válido
     if (!ctx.restaurant) {
-      return { success: false, message: "El contexto no contiene un restaurante válido" }
+      return { success: false, message: 'El contexto no contiene un restaurante válido' }
     }
     const START = new Date()
     START.setHours(0, 0, 0, 0)
@@ -343,7 +329,7 @@ export const getTodaySales = async (_, args, ctx) => {
 
     // Crear fechas START y NOW dentro de la consulta para asegurarse de que reflejen el mismo día
     const data = await StatusOrderModel.findAll({
-      attributes: ["pSState", "idStore", "pDatCre"],
+      attributes: ['pSState', 'idStore', 'pDatCre'],
       where: {
         [Op.or]: [
           {
@@ -353,10 +339,10 @@ export const getTodaySales = async (_, args, ctx) => {
             pDatCre: {
               [Op.between]: [START.toISOString(), NOW.toISOString()]
             }
-          },
-        ],
+          }
+        ]
       },
-      order: [["pDatCre", "DESC"]],
+      order: [['pDatCre', 'DESC']]
     })
     if (data?.length) {
       return data?.length || 0
@@ -372,14 +358,12 @@ const updateDataOptional = async ({ refCodePid, dataOptional }) => {
   try {
     // 1. Obtener los registros actuales
     const currentDataOptional = await ExtProductFoodOptional.findAll({
-      where: { refCodePid },
+      where: { refCodePid }
     })
 
     // 2. Encontrar nuevos elementos en dataOptional
     const newDataOptional = dataOptional?.filter((item) => {
-      const exists = currentDataOptional?.some((currentItem) => {
-        return currentItem?.opExPid === item?.opExPid
-      })
+      const exists = currentDataOptional?.some((currentItem) => currentItem?.opExPid === item?.opExPid)
       return !exists
     })
     // 3. Crear nuevos registros en la base de datos
@@ -396,7 +380,7 @@ const updateDataOptional = async ({ refCodePid, dataOptional }) => {
             numbersOptionalOnly: item?.numbersOptionalOnly,
             pDatCre: new Date(Date.now()),
             required: item?.required,
-            pDatMod: new Date(Date.now()),
+            pDatMod: new Date(Date.now())
           })
 
           if (
@@ -404,62 +388,57 @@ const updateDataOptional = async ({ refCodePid, dataOptional }) => {
             item?.ExtProductFoodsSubOptionalAll?.length > 0
           ) {
             await ExtProductFoodSubOptional.bulkCreate(
-              item?.ExtProductFoodsSubOptionalAll?.map((subOptional) => {
-                return {
-                  pId: deCode(subOptional.pId),
-                  opExPid: deCode(subOptional.opExPid),
-                  idStore: subOptional.idStore,
-                  opSubExPid: deCode(subOptional.opSubExPid),
-                  OptionalSubProName: subOptional.OptionalSubProName,
-                  exCodeOptionExtra: subOptional.exCodeOptionExtra,
-                  exCode: subOptional.exCode,
-                  state: subOptional.state,
-                  pDatCre: new Date(Date.now()),
-                  pDatMod: new Date(Date.now()),
-                  check: 1,
-                }
-              })
+              item?.ExtProductFoodsSubOptionalAll?.map((subOptional) => ({
+                pId: deCode(subOptional.pId),
+                opExPid: deCode(subOptional.opExPid),
+                idStore: subOptional.idStore,
+                opSubExPid: deCode(subOptional.opSubExPid),
+                OptionalSubProName: subOptional.OptionalSubProName,
+                exCodeOptionExtra: subOptional.exCodeOptionExtra,
+                exCode: subOptional.exCode,
+                state: subOptional.state,
+                pDatCre: new Date(Date.now()),
+                pDatMod: new Date(Date.now()),
+                check: 1
+              }))
             )
           }
         })
       )
     }
-  // 4. Eliminar registros que no existen en dataOptional
-  const itemsToRemove = currentDataOptional.filter((currentItem) => {
-    const exists = dataOptional.some((item) => {
-      return currentItem.opExPid === item.opExPid
+    // 4. Eliminar registros que no existen en dataOptional
+    const itemsToRemove = currentDataOptional.filter((currentItem) => {
+      const exists = dataOptional.some((item) => currentItem.opExPid === item.opExPid)
+      return !exists
     })
-    return !exists
-  })
-  if (itemsToRemove.length > 0) {
-    await Promise.all(
-      itemsToRemove.map(async (item) => {
-        await ExtProductFoodOptional.destroy({
-          where: { opExPid: deCode(item.opExPid) },
+    if (itemsToRemove.length > 0) {
+      await Promise.all(
+        itemsToRemove.map(async (item) => {
+          await ExtProductFoodOptional.destroy({
+            where: { opExPid: deCode(item.opExPid) }
+          })
+          // 4.1 Eliminar los sub-items asociados
+          await ExtProductFoodSubOptional.destroy({
+            where: { exCodeOptionExtra: item.code }
+          })
         })
-        // 4.1 Eliminar los sub-items asociados
-        await ExtProductFoodSubOptional.destroy({
-          where: { exCodeOptionExtra: item.code },
-        })
-      })
-    )
-  }
+      )
+    }
     return { success: true, message: 'DataOptional updated successfully' }
   } catch (error) {
     return { success: false, message: error.message }
   }
 }
 
-
 const updateDataExtra = async ({
   refCodePid,
   dataExtra: incomeDataExtra,
-  ShoppingCardId,
+  ShoppingCardId
 }) => {
   try {
     // Obtener los registros actuales
     const currentDataExtra = await SaleDataExtra.findAll({
-      where: { refCodePid },
+      where: { refCodePid }
     })
 
     // Mapear los registros actuales a un nuevo formato
@@ -469,7 +448,7 @@ const updateDataExtra = async ({
       extraName: item.extraName,
       quantity: item.quantity,
       extraPrice: item.extraPrice,
-      newExtraPrice: item.newExtraPrice,
+      newExtraPrice: item.newExtraPrice
     }))
 
     // Crear una lista de promesas para actualizar los registros
@@ -495,8 +474,8 @@ const updateDataExtra = async ({
             {
               where: {
                 exPid, // Actualizar el registro correspondiente
-                refCodePid,
-              },
+                refCodePid
+              }
             }
           )
         )
@@ -536,7 +515,7 @@ const updateDataExtra = async ({
           quantity: extra.quantity,
           refCodePid,
           shoppingCardId: deCode(ShoppingCardId), // Usar el parámetro ShoppingCardId en lugar de decodificar
-          state: extra.state,
+          state: extra.state
         }))
       )
 
@@ -544,7 +523,7 @@ const updateDataExtra = async ({
       await Promise.all([
         ...updatePromises,
         ...removePromises,
-        ...insertPromises,
+        ...insertPromises
       ])
     } else {
       await Promise.all([...updatePromises, ...removePromises])
@@ -552,7 +531,7 @@ const updateDataExtra = async ({
 
     return {
       success: true,
-      message: "Items actualizados y eliminados con éxito",
+      message: 'Items actualizados y eliminados con éxito'
     }
   } catch (error) {
     return { success: false, message: error.message }
@@ -565,18 +544,18 @@ export const updateShoppingCardItems = async (input, currentShoppingCard) => {
     comments,
     ShoppingCard: ShoppingCardId,
     dataExtra,
-    dataOptional,
+    dataOptional
   } = input.input || {}
   try {
     await ShoppingCard.update(
       {
         cantProducts,
-        comments,
+        comments
       },
       {
         where: {
-          ShoppingCard: deCode(ShoppingCardId),
-        },
+          ShoppingCard: deCode(ShoppingCardId)
+        }
       }
     )
     const refCodePid = currentShoppingCard?.refCodePid || null
@@ -585,7 +564,7 @@ export const updateShoppingCardItems = async (input, currentShoppingCard) => {
       await updateDataOptional({ refCodePid, dataOptional, ShoppingCardId })
     }
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -610,10 +589,10 @@ export const registerShoppingCard = async (_root, input, context) => {
     idStore,
     dataExtra,
     ShoppingCard: ShoppingCardId,
-    dataOptional,
+    dataOptional
   } = input.input || {}
   try {
-    if (!id) return new ForbiddenError("no session")
+    if (!id) return new ForbiddenError('no session')
     // Verificar si ya existe una ShoppingCard con el mismo ShoppingCardId
     let existingShoppingCard = null
 
@@ -621,8 +600,8 @@ export const registerShoppingCard = async (_root, input, context) => {
       existingShoppingCard = await ShoppingCard.findOne({
         where: {
           cState: { [Op.gt]: 0 },
-          ShoppingCard: deCode(ShoppingCardId),
-        },
+          ShoppingCard: deCode(ShoppingCardId)
+        }
       })
       if (existingShoppingCard) {
         const shoppingCard = existingShoppingCard
@@ -638,27 +617,25 @@ export const registerShoppingCard = async (_root, input, context) => {
         id: deCode(id),
         idStore: deCode(idStore),
         idUser: deCode(id),
-        pId: deCode(pId),
+        pId: deCode(pId)
       })
       if (dataExtra?.length > 0) {
-        const res = await SaleDataExtra.bulkCreate(
-          dataExtra.map((extra) => {
-            return {
-              exPid: extra.exPid,
-              exState: extra.exState,
-              extraName: extra.extraName,
-              extraPrice: extra.extraPrice,
-              newExtraPrice: extra.newExtraPrice,
-              pCodeRef: null,
-              pDatCre: new Date(Date.now()),
-              pDatMod: new Date(Date.now()),
-              pId: extra.pId,
-              quantity: extra.quantity,
-              refCodePid,
-              shoppingCardId: deCode(data.ShoppingCard),
-              state: extra.state,
-            }
-          })
+        await SaleDataExtra.bulkCreate(
+          dataExtra.map((extra) => ({
+            exPid: extra.exPid,
+            exState: extra.exState,
+            extraName: extra.extraName,
+            extraPrice: extra.extraPrice,
+            newExtraPrice: extra.newExtraPrice,
+            pCodeRef: null,
+            pDatCre: new Date(Date.now()),
+            pDatMod: new Date(Date.now()),
+            pId: extra.pId,
+            quantity: extra.quantity,
+            refCodePid,
+            shoppingCardId: deCode(data.ShoppingCard),
+            state: extra.state
+          }))
         )
       }
       if (Array.isArray(dataOptional) && dataOptional.length > 0) {
@@ -673,7 +650,7 @@ export const registerShoppingCard = async (_root, input, context) => {
               pDatCre,
               required,
               pDatMod,
-              ExtProductFoodsSubOptionalAll,
+              ExtProductFoodsSubOptionalAll
             } = optional
             await ExtProductFoodOptional.create({
               pId: deCode(pId),
@@ -686,29 +663,27 @@ export const registerShoppingCard = async (_root, input, context) => {
               numbersOptionalOnly,
               pDatCre,
               required,
-              pDatMod,
+              pDatMod
             })
             if (
               Array.isArray(ExtProductFoodsSubOptionalAll) &&
               ExtProductFoodsSubOptionalAll?.length > 0
             ) {
               await ExtProductFoodSubOptional.bulkCreate(
-                ExtProductFoodsSubOptionalAll.map((subOptional) => {
-                  return {
-                    pId: deCode(pId),
-                    opExPid: deCode(opExPid),
-                    idStore: deCode(context.restaurant),
-                    opSubExPid: deCode(subOptional.opSubExPid),
-                    OptionalSubProName: subOptional.OptionalSubProName,
-                    exCodeOptionExtra: subOptional.exCodeOptionExtra,
-                    exCode: subOptional.exCode,
-                    pCodeRef: null,
-                    state: subOptional.state,
-                    pDatCre: new Date(Date.now()),
-                    pDatMod: new Date(Date.now()),
-                    check: subOptional.check,
-                  }
-                })
+                ExtProductFoodsSubOptionalAll.map((subOptional) => ({
+                  pId: deCode(pId),
+                  opExPid: deCode(opExPid),
+                  idStore: deCode(context.restaurant),
+                  opSubExPid: deCode(subOptional.opSubExPid),
+                  OptionalSubProName: subOptional.OptionalSubProName,
+                  exCodeOptionExtra: subOptional.exCodeOptionExtra,
+                  exCode: subOptional.exCode,
+                  pCodeRef: null,
+                  state: subOptional.state,
+                  pDatCre: new Date(Date.now()),
+                  pDatMod: new Date(Date.now()),
+                  check: subOptional.check
+                }))
               )
             }
           })
@@ -718,7 +693,7 @@ export const registerShoppingCard = async (_root, input, context) => {
       return data
     }
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -733,10 +708,10 @@ export const getAllShoppingCard = async (_root, { input }, context, info) => {
         [Op.or]: [
           {
             ...(context.User ? { idUser: deCode(context.User.id) } : {}),
-            cState: { [Op.gt]: 0 },
-          },
-        ],
-      },
+            cState: { [Op.gt]: 0 }
+          }
+        ]
+      }
     })
     return context.User ? data : []
   } catch (e) {
@@ -745,66 +720,64 @@ export const getAllShoppingCard = async (_root, { input }, context, info) => {
     )
   }
 }
-// eslint-disable-next-line
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getAllStoreInStore = async (root, args, _, _info) => {
   try {
     const { search, min, max } = args
     let whereSearch = {}
     if (search) {
       whereSearch = {
-        [Op.or]: [{ cpName: { [Op.substring]: search.replace(/\s+/g, " ") } }],
+        [Op.or]: [{ cpName: { [Op.substring]: search.replace(/\s+/g, ' ') } }]
       }
     }
     const data = await Store.findAll({
       attributes: [
-        "idStore",
-        "cId",
-        "id",
-        "dId",
-        "scheduleOpenAll",
-        "ctId",
-        "catStore",
-        "neighborhoodStore",
-        "Viaprincipal",
-        "storeOwner",
-        "storeName",
-        "emailStore",
-        "storePhone",
-        "socialRaz",
-        "Image",
-        "banner",
-        "documentIdentifier",
-        "uPhoNum",
-        "ULocation",
-        "upLat",
-        "upLon",
-        "uState",
-        "siteWeb",
-        "description",
-        "NitStore",
-        "typeRegiments",
-        "typeContribute",
-        "secVia",
-        "addressStore",
-        "createAt",
+        'idStore',
+        'cId',
+        'id',
+        'dId',
+        'scheduleOpenAll',
+        'ctId',
+        'catStore',
+        'neighborhoodStore',
+        'Viaprincipal',
+        'storeOwner',
+        'storeName',
+        'emailStore',
+        'storePhone',
+        'socialRaz',
+        'Image',
+        'banner',
+        'documentIdentifier',
+        'uPhoNum',
+        'ULocation',
+        'upLat',
+        'upLon',
+        'uState',
+        'siteWeb',
+        'description',
+        'NitStore',
+        'typeRegiments',
+        'typeContribute',
+        'secVia',
+        'addressStore',
+        'createAt'
       ],
       where: {
         [Op.or]: [
           {
             ...whereSearch,
-            uState: 2,
-          },
-        ],
+            uState: 2
+          }
+        ]
       },
       limit: max || 100, // Usar solo max como límite
       offset: min || 0, // Usar min como offset si es necesario
       order: [
-      ["createdAt", "DESC"],
-      ["storeName", "DESC"],
-      ["id", "DESC"],
-      ],
+        ['createdAt', 'DESC'],
+        ['storeName', 'DESC'],
+        ['id', 'DESC']
+      ]
     })
 
     // Iterar por cada tienda y obtener los horarios usando getStoreSchedules
@@ -820,19 +793,19 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         if (store?.scheduleOpenAll) {
           return {
             ...store?.toJSON(),
-            open: true,
+            open: true
           }
         }
         return {
           ...store?.toJSON(),
-          open: open,
+          open
         }
       })
     )
 
     return storesWithSchedules
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -843,7 +816,7 @@ export const getOneStore = async (parent, args, context, info) => {
     const attributes = getAttributes(Store, info)
     const data = await Store.findOne({
       attributes,
-      where: { idStore: idStore ? deCode(idStore) : deCode(parent.idStore) },
+      where: { idStore: idStore ? deCode(idStore) : deCode(parent.idStore) }
     })
     const schedules = await getStoreSchedules(
       null,
@@ -855,12 +828,12 @@ export const getOneStore = async (parent, args, context, info) => {
       const { open } = getStatusOpenStore(schedules)
       return {
         ...data?.toJSON(),
-        open: open,
+        open
       }
     }
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -874,7 +847,7 @@ export const updateFavorites = async (_root, { input }, context) => {
     )
     return { ...input, id: deCode(context.User.id) }
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -882,30 +855,30 @@ export const getFavorite = async (_root, args, context) => {
   try {
     const data = await FavoritesModel.findAll({
       attributes: [
-        "id",
-        "fState",
-        "fIStoreId",
-        "idStore",
-        "updateAt",
-        "createAt",
+        'id',
+        'fState',
+        'fIStoreId',
+        'idStore',
+        'updateAt',
+        'createAt'
       ],
-      where: { id: deCode(context.User.id), fState: 1 },
+      where: { id: deCode(context.User.id), fState: 1 }
     })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
 export const getOneFavorite = async (_root, { idStore }, context) => {
   try {
     const data = await FavoritesModel.findOne({
-      attributes: ["id", "fState", "fIStoreId", "idStore"],
-      where: { idStore: deCode(idStore), id: deCode(context.User.id) },
+      attributes: ['id', 'fState', 'fIStoreId', 'idStore'],
+      where: { idStore: deCode(idStore), id: deCode(context.User.id) }
     })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -917,12 +890,12 @@ export const getOneRating = async (_root, args, context, info) => {
       attributes,
       where: {
         idStore: deCode(idStore),
-        id: /* deCode(context.User.id) */ deCode(context.User.id),
-      },
+        id: /* deCode(context.User.id) */ deCode(context.User.id)
+      }
     })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -932,19 +905,19 @@ export const getAllRating = async (_root, args, ctx, info) => {
     const attributes = getAttributes(RatingStore, info)
     const data = await RatingStore.findAll({
       attributes,
-      where: { idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) },
+      where: { idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) }
     })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
 // eslint-disable-next-line
 export const getAllRatingStar = async (_root, { idStore }, ctx, info) => {
   const data = await ratingStoreStart.findAll({
-    attributes: ["rScore", "idStore", "rSId", "createAt"],
-    where: { idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) },
+    attributes: ['rScore', 'idStore', 'rSId', 'createAt'],
+    where: { idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) }
   })
   return data
 }
@@ -957,19 +930,19 @@ export const setRatingStar = async (_root, { input }, context) => {
       defaults: {
         id: deCode(context.User.id),
         idStore: deCode(idStore),
-        rScore,
-      },
+        rScore
+      }
     })
     if (rating) {
       await ratingStoreStart.update(
         {
-          rScore,
+          rScore
         },
         { where: { id: deCode(context.User.id) } }
       )
-      return { success: true, message: "" }
+      return { success: true, message: '' }
     }
-    return { success: true, message: "Subido con éxito" }
+    return { success: true, message: 'Subido con éxito' }
   } catch (error) {
     return { success: false, message: error }
   }
@@ -988,8 +961,8 @@ export const setRating = async (_root, { input }, context) => {
         rGoodTemperature,
         rTasty,
         rGoodCondition,
-        rState: 1,
-      },
+        rState: 1
+      }
     })
     if (rating) {
       await RatingStore.update(
@@ -998,13 +971,13 @@ export const setRating = async (_root, { input }, context) => {
           rAppearance,
           rGoodTemperature,
           rTasty,
-          rGoodCondition,
+          rGoodCondition
         },
         { where: { idStore: deCode(idStore) } }
       )
-      return { success: true, message: "Campos subidos" }
+      return { success: true, message: 'Campos subidos' }
     }
-    return { success: true, message: "Subido con éxito" }
+    return { success: true, message: 'Subido con éxito' }
   } catch (error) {
     return { success: false, message: error }
   }
@@ -1013,21 +986,21 @@ export const setEditNameStore = async (_root, { StoreName }, context) => {
   try {
     await Store.update(
       {
-        storeName: StoreName,
+        storeName: StoreName
       },
       {
         where: {
           idStore: deCode(context.restaurant),
-          id: deCode(context.User.id),
-        },
+          id: deCode(context.User.id)
+        }
       }
     )
-    return { success: true, message: "El Restaurante ha cambiado de nombre" }
+    return { success: true, message: 'El Restaurante ha cambiado de nombre' }
     // eslint-disable-next-line no-unreachable
   } catch (e) {
     return {
       success: true,
-      message: "El Restaurante no pudo cambiar de nombre",
+      message: 'El Restaurante no pudo cambiar de nombre'
     }
   }
 }
@@ -1039,10 +1012,10 @@ export const getAllMatchesStore = async (root, args, context, info) => {
     if (search) {
       whereSearch = {
         [Op.or]: [
-          { storeName: { [Op.substring]: search.replace(/\s+/g, " ") } },
-          { emailStore: { [Op.substring]: search.replace(/\s+/g, " ") } },
-          { Viaprincipal: { [Op.substring]: search.replace(/\s+/g, " ") } },
-        ],
+          { storeName: { [Op.substring]: search.replace(/\s+/g, ' ') } },
+          { emailStore: { [Op.substring]: search.replace(/\s+/g, ' ') } },
+          { Viaprincipal: { [Op.substring]: search.replace(/\s+/g, ' ') } }
+        ]
       }
     }
     const attributes = getAttributes(Store, info)
@@ -1051,17 +1024,17 @@ export const getAllMatchesStore = async (root, args, context, info) => {
       where: {
         [Op.or]: [
           {
-            ...whereSearch,
-          },
-        ],
+            ...whereSearch
+          }
+        ]
       },
-             limit: max || 100,
-        offset: min || 0,
-      order: [["storeName", "ASC"]],
+      limit: max || 100,
+      offset: min || 0,
+      order: [['storeName', 'ASC']]
     })
     return data
   } catch (e) {
-    const error = new Error("Lo sentimos, ha ocurrido un error interno")
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -1069,9 +1042,7 @@ export const getAllMatchesStore = async (root, args, context, info) => {
 export default {
   TYPES: {
     FavoriteStore: {
-      getOneStore: (parent, _args, _context, info) => {
-        return getOneStore(parent, _args, _context, info)
-      },
+      getOneStore: (parent, _args, _context, info) => getOneStore(parent, _args, _context, info)
     },
     CatStore: {
       getAllStore: async (parent, _args, _context, info) => {
@@ -1079,17 +1050,17 @@ export default {
           const attributes = getAttributes(Store, info)
           const data = await Store.findAll({
             attributes,
-            where: { catStore: deCode(parent.catStore), uState: 2 },
+            where: { catStore: deCode(parent.catStore), uState: 2 }
           })
           return data
         } catch {
           return null
         }
-      },
+      }
     },
     ShoppingCard: {
       ExtProductFoodsAll: async (parent, _args, _context, info) => {
-        let whereClause = {}
+        const whereClause = {}
         if (info?.variableValues?.pCodeRef) {
           whereClause.pCodeRef = info.variableValues.pCodeRef
         }
@@ -1097,7 +1068,7 @@ export default {
           whereClause.refCodePid = parent.refCodePid
         }
         whereClause.quantity = {
-          [Op.gt]: 0, // "gt" significa "greater than" (mayor que)
+          [Op.gt]: 0 // "gt" significa "greater than" (mayor que)
         }
 
         if (Object.keys(whereClause).length === 0) {
@@ -1108,8 +1079,8 @@ export default {
           const data = await SaleDataExtra.findAll({
             attributes,
             where: {
-              ...whereClause,
-            },
+              ...whereClause
+            }
           })
           return data
         } catch {
@@ -1131,7 +1102,7 @@ export default {
 
           const data = await ExtProductFoodOptional.findAll({
             attributes,
-            where: whereClause,
+            where: whereClause
           })
 
           return data
@@ -1144,7 +1115,7 @@ export default {
           const attributes = getAttributes(Store, info)
           const data = await Store.findOne({
             attributes,
-            where: { idStore: deCode(parent.idStore) },
+            where: { idStore: deCode(parent.idStore) }
           })
           return data
         } catch {
@@ -1156,21 +1127,21 @@ export default {
           const attributes = getAttributes(productModelFood, info)
           const data = await productModelFood.findOne({
             attributes,
-            where: { pId: deCode(parent.pId) },
+            where: { pId: deCode(parent.pId) }
           })
           return data
         } catch {
           return null
         }
-      },
+      }
     },
 
     Store: {
       // eslint-disable-next-line
       getAllRatingStar: async (parent, _args, _context, info) => {
         const data = await ratingStoreStart.findAll({
-          attributes: ["rScore", "idStore", "rSId", "createAt"],
-          where: { idStore: deCode(parent.idStore) },
+          attributes: ['rScore', 'idStore', 'rSId', 'createAt'],
+          where: { idStore: deCode(parent.idStore) }
         })
         return data
       },
@@ -1179,7 +1150,7 @@ export default {
           const attributes = getAttributes(ScheduleStore, info)
           const data = await ScheduleStore.findAll({
             attributes,
-            where: { idStore: deCode(parent.idStore) },
+            where: { idStore: deCode(parent.idStore) }
           })
           return data
         } catch {
@@ -1192,7 +1163,7 @@ export default {
           const attributes = getAttributes(CountriesModel, info)
           const data = await CountriesModel.findOne({
             attributes,
-            where: { cId: deCode(parent.cId) },
+            where: { cId: deCode(parent.cId) }
           })
           return data
         } catch {
@@ -1204,7 +1175,7 @@ export default {
           const attributes = getAttributes(DepartmentsModel, info)
           const data = await DepartmentsModel.findOne({
             attributes,
-            where: { dId: deCode(parent.dId) },
+            where: { dId: deCode(parent.dId) }
           })
           return data
         } catch {
@@ -1216,14 +1187,14 @@ export default {
           const attributes = getAttributes(CitiesModel, info)
           const data = await CitiesModel.findOne({
             attributes,
-            where: { ctId: deCode(parent.ctId) },
+            where: { ctId: deCode(parent.ctId) }
           })
           return data
         } catch {
           return null
         }
-      },
-    },
+      }
+    }
   },
   QUERIES: {
     getStore,
@@ -1237,7 +1208,7 @@ export default {
     // getAllStoreAdmin,
     getAllShoppingCard,
     getAllStoreInStore,
-    getOneStore,
+    getOneStore
   },
   MUTATIONS: {
     newRegisterStore,

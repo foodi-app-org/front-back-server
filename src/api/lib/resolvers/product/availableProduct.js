@@ -1,8 +1,7 @@
-/* eslint-disable no-undef */
-import productModel from '../../models/product/food'
-import Store from '../../models/Store/Store'
-import { deCode, getAttributes } from '../../utils/util'
 import { Op } from 'sequelize'
+
+import productModel from '../../models/product/food'
+import { deCode, getAttributes } from '../../utils/util'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 
 export const newRegisterFoodProduct = async (_, { input }, ctx) => {
@@ -10,7 +9,12 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   const { idStore } = input
   try {
     // let res = {}
-    await productModel.create({ ...input, pState: 1, id: deCode(id), idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) })
+    await productModel.create({
+      ...input,
+      pState: 1,
+      id: deCode(id),
+      idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
+    })
     return {
       success: true,
       message: 'producto  creado'
@@ -37,21 +41,21 @@ export const getFoodAllProduct = async (root, args, context, info) => {
     whereSearch = {
       ...whereSearch,
       ProDelivery: {
-        [Op.in]: gender.map(x => {return x})
+        [Op.in]: gender.map(x => x)
       }
     }
   }
   if (desc?.length) {
     whereSearch = {
       ...whereSearch,
-      ProDescuento: { [Op.in]: desc.map(x => {return x}) }
+      ProDescuento: { [Op.in]: desc.map(x => x) }
     }
   }
-  //validad que  venga una categoría para hacer el filtro por categorías
+  // validad que  venga una categoría para hacer el filtro por categorías
   if (categories?.length) {
     whereSearch = {
       ...whereSearch,
-      caId: { [Op.in]: categories.map(x => {return deCode(x)}) }
+      caId: { [Op.in]: categories.map(x => deCode(x)) }
     }
   }
 
@@ -73,12 +77,12 @@ export const getFoodAllProduct = async (root, args, context, info) => {
       ]
     },
     limit: max || 100,
-    offset: min || 0, order: [['pDatCre', 'DESC']]
+    offset: min || 0,
+    order: [['pDatCre', 'DESC']]
   })
   return data
 }
 // eslint-disable-next-line
-
 
 export const registerAvailableProduct = async (root, { input }, context) => {
   try {
@@ -104,7 +108,6 @@ export const registerAvailableProduct = async (root, { input }, context) => {
       message: 'Ocurrió un error'
     }
   }
-
 }
 export default {
   TYPES: {

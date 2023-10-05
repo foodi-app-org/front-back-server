@@ -1,7 +1,8 @@
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import UserLocation from '../../models/product/userLocations'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 import dynamicPassword from '../../models/users/dynamicPassword'
 
 export const registerDynamicPassword = async (_root, { input }, context) => {
@@ -14,7 +15,7 @@ export const registerDynamicPassword = async (_root, { input }, context) => {
   } catch (e) {
     const error = new ApolloError('Lo sentimos, ha ocurrido un error interno', 400)
     return error
-  } 
+  }
 }
 export const getAOneDynamicPassword = async (_, _args, ctx, info) => {
   try {

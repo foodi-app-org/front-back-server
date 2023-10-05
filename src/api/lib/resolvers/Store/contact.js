@@ -1,7 +1,8 @@
+import { Op } from 'sequelize'
+
 import contacts from '../../models/Store/contacts'
 import { getAttributes } from '../../utils/util'
 import { deCode } from '../../utils'
-import { Op } from 'sequelize'
 
 export const createContacts = async (_, { input }, ctx) => {
   try {
@@ -42,8 +43,10 @@ export const getAllContacts = async (_, args, ctx, info) => {
             cntState: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['createAt', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['createAt', 'DESC']]
     })
     return data
   } catch (e) {
@@ -84,7 +87,6 @@ export const editOneContacts = async (_root, { input }, context) => {
       return { success: true, message: 'Editado con éxito' }
     }
     return { success: false, message: 'Ocurrió un error, no pudimos editarlo' }
-    
   } catch (error) {
     return { success: false, message: 'Ocurrió un error, no pudimos editarlo' }
   }

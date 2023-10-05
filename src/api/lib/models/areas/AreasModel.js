@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import productModel from '../product/product'
@@ -9,7 +10,7 @@ const AreasModel = sequelize.define('areas', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: INTEGER,
@@ -20,7 +21,7 @@ const AreasModel = sequelize.define('areas', {
       model: productModel,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   aName: {
     type: STRING(120),
@@ -40,7 +41,7 @@ const AreasModel = sequelize.define('areas', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

@@ -1,16 +1,17 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
+const sequelize = connect()
 
 const Categoriadeproducto = sequelize.define('cateproductos', {
   ctpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -21,7 +22,7 @@ const Categoriadeproducto = sequelize.define('cateproductos', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idStore: {
     type: INTEGER,
@@ -32,7 +33,7 @@ const Categoriadeproducto = sequelize.define('cateproductos', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   catName: {
     type: STRING,

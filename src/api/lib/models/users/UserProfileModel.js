@@ -1,4 +1,5 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 import Users from '../Users'
@@ -12,7 +13,7 @@ const Userprofile = sequelize.define('userprofile', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -24,7 +25,7 @@ const Userprofile = sequelize.define('userprofile', {
       key: 'id'
     },
     unique: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   upPhone: {
     type: STRING(20),
@@ -52,7 +53,7 @@ const Userprofile = sequelize.define('userprofile', {
       model: CountriesModel,
       key: 'cId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dId: {
     type: INTEGER,
@@ -63,7 +64,7 @@ const Userprofile = sequelize.define('userprofile', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ctId: {
     type: INTEGER,
@@ -74,7 +75,7 @@ const Userprofile = sequelize.define('userprofile', {
       model: CitiesModel,
       key: 'ctId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   upZipCode: {
     type: STRING(150),

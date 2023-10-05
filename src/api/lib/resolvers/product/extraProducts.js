@@ -1,13 +1,10 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable consistent-return */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import ExtraProductModel from '../../models/product/productExtras'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
 import productsSubOptionalExtra from '../../models/product/productsSubOptionalExtra'
 import { deCode, getAttributes } from '../../utils/util'
-import { handleAuthContext } from '../../utils'
-import { Op } from 'sequelize'
 
 export const deleteextraproductfoods = async (_root, { state, id }) => {
   try {
@@ -16,23 +13,16 @@ export const deleteextraproductfoods = async (_root, { state, id }) => {
       success: true,
       message: 'Eliminado'
     }
-
   } catch (error) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
-
 }
-export const DeleteExtFoodSubsOptional = async (_root, { 
+export const DeleteExtFoodSubsOptional = async (_root, {
   state,
   opSubExPid,
   isCustomSubOpExPid
 }, context) => {
   try {
-    console.log(
-      state,
-      opSubExPid,
-      isCustomSubOpExPid,
-      )
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
@@ -44,20 +34,13 @@ export const DeleteExtFoodSubsOptional = async (_root, {
         ...((isCustomSubOpExPid) ? { opSubExPid: deCode(opSubExPid) } : { exCode: opSubExPid })
       }
     })
-    console.log({
-      where: {
-        ...((isCustomSubOpExPid) ? { opSubExPid: deCode(opSubExPid) } : { exCode: opSubExPid })
-      }
-    })
     return {
       success: true,
       message: 'Eliminado'
     }
-
   } catch (error) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
-
 }
 
 export const editExtFoodSubsOptional = async (_root, {
@@ -72,7 +55,7 @@ export const editExtFoodSubsOptional = async (_root, {
     }
     if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
     await productsSubOptionalExtra.update({
-      OptionalSubProName: OptionalSubProName
+      OptionalSubProName
     }, {
       where: {
         ...((isCustomSubOpExPid) ? { exCode: opSubExPid } : { exCode: opSubExPid })
@@ -82,11 +65,9 @@ export const editExtFoodSubsOptional = async (_root, {
       success: true,
       message: 'Eliminado'
     }
-
   } catch (error) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
-
 }
 export const updateExtProductFoods = async (_root, { input }) => {
   const { exPid, pId, exState, extraName, extraPrice, code } = input
@@ -104,8 +85,7 @@ export const updateExtProductFoods = async (_root, { input }) => {
       })
       return data
     }
-    await ExtraProductModel.update({ state: state == 1 ? 0 : 1 }, { where: { exPid: deCode(exPid) } })
-
+    await ExtraProductModel.update({ state: state === 1 ? 0 : 1 }, { where: { exPid: deCode(exPid) } })
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
@@ -122,7 +102,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
   } = input
   try {
     if (!opExPid) {
-      const data = await productsOptionalExtra.create({
+      await productsOptionalExtra.create({
         state: 1,
         pId: deCode(pId),
         OptionalProName,
@@ -138,7 +118,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
         where: {
           [Op.or]: [
             {
-              code: code
+              code
             }
           ]
         }
@@ -150,7 +130,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
           code,
           numbersOptionalOnly,
           pDatMod: new Date(Date.now())
-        }, { where: { code: code } })
+        }, { where: { code } })
         return { success: true, message: 'Creado' }
       }
     }
@@ -160,13 +140,12 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
 }
 
 export const updateExtProductFoodsSubOptional = async (_root, { input }, context) => {
-
   try {
-    const { 
-      exCode, 
+    const {
+      exCode,
       exCodeOptionExtra,
-      OptionalSubProName, 
-      pId, 
+      OptionalSubProName,
+      pId,
       state
     } = input
 
@@ -174,14 +153,13 @@ export const updateExtProductFoodsSubOptional = async (_root, { input }, context
     if (!OptionalSubProName) throw new Error('Es necesario que el campo no este vacio')
     const data = await productsSubOptionalExtra.create({
       exCode,
-      exCodeOptionExtra: exCodeOptionExtra,
+      exCodeOptionExtra,
       idStore: deCode(context.restaurant),
       OptionalSubProName,
       pId: deCode(pId),
       state
     })
     return data
-
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
@@ -237,13 +215,13 @@ export const updateExtraInProduct = async (_root, { input }, _context) => {
 
 export const ExtProductFoodsAll = async (root, args, context, info) => {
   try {
-    const { min = 0, max = 100, pId } = args;
+    const { min = 0, max = 100, pId } = args
 
     if (!pId) {
       return []
     }
 
-    const attributes = getAttributes(ExtraProductModel, info);
+    const attributes = getAttributes(ExtraProductModel, info)
     const data = await ExtraProductModel.findAll({
       attributes,
       where: {
@@ -254,31 +232,21 @@ export const ExtProductFoodsAll = async (root, args, context, info) => {
       order: [['pDatCre', 'DESC']],
       limit: max,
       offset: min
-    });
+    })
 
-    return data;
+    return data
   } catch (e) {
-    throw new Error(e.message || 'Lo sentimos, ha ocurrido un error interno');
+    throw new Error(e.message || 'Lo sentimos, ha ocurrido un error interno')
   }
-};
-
+}
 
 export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
   try {
     const {
-      search,
       min,
       max,
       pId
     } = args
-    let whereSearch = {}
-    if (search) {
-      whereSearch = {
-        [Op.or]: [
-          { extraName: { [Op.substring]: search.replace(/\s+/g, ' ') } }
-        ]
-      }
-    }
     const attributes = getAttributes(productsOptionalExtra, info)
     const data = await productsOptionalExtra.findAll({
       attributes,
@@ -287,11 +255,12 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
           {
             ...((pId) ? { pId: deCode(pId) } : {}),
             state: { [Op.gt]: 0 }
-            // ...((context.restaurant) ? { idStore: deCode(context.restauran) } : {}),
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['OptionalProName', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['OptionalProName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -299,19 +268,19 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
     return error
   }
 }
-export const DeleteExtProductFoodsOptional = async (root, { 
-  state, 
-  opExPid, 
+export const DeleteExtProductFoodsOptional = async (root, {
+  state,
+  opExPid,
   isCustomOpExPid = false
 }) => {
-  if (!opExPid || typeof state !== 'number') throw new Error('Lo sentimos, ha ocurrido un error interno') 
+  if (!opExPid || typeof state !== 'number') throw new Error('Lo sentimos, ha ocurrido un error interno')
   try {
-    await productsOptionalExtra.update({ 
+    await productsOptionalExtra.update({
       state: state === 1 ? 0 : 1
-    }, { 
-      where: { 
+    }, {
+      where: {
         ...((isCustomOpExPid) ? { code: opExPid } : { opExPid: deCode(opExPid) })
-      } 
+      }
     })
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')
@@ -320,15 +289,7 @@ export const DeleteExtProductFoodsOptional = async (root, {
 }
 export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) => {
   try {
-    const { search, min, max, pId } = args
-    let whereSearch = {}
-    if (search) {
-      whereSearch = {
-        [Op.or]: [
-          { extraName: { [Op.substring]: search.replace(/\s+/g, ' ') } }
-        ]
-      }
-    }
+    const { min, max, pId } = args
     const attributes = getAttributes(productsSubOptionalExtra, info)
     const data = await productsSubOptionalExtra.findAll({
       attributes,
@@ -339,8 +300,10 @@ export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) =
             state: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['OptionalProName', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['OptionalProName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -357,14 +320,13 @@ export const updateMultipleExtProductFoods = async (_root, args, context) => {
     for (const element of setData) {
       const { pId, exState, extraName, extraPrice } = element
       await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } })
-        .catch(() => { return new ApolloError('No ha sido posible procesar su solicitud.', 500) })
+        .catch(() => new ApolloError('No ha sido posible procesar su solicitud.', 500))
     }
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
-
 }
-export const editExtProductFoodOptional =async (_, { input }) => {
+export const editExtProductFoodOptional = async (_, { input }) => {
   try {
     const {
       pId,
@@ -376,9 +338,9 @@ export const editExtProductFoodOptional =async (_, { input }) => {
       numbersOptionalOnly,
       pDatMod,
       ExtProductFoodsSubOptionalAll
-    } = input;
+    } = input
     // Actualiza los datos de ExtProductFoodOptional
-    const updatedExtProductFoodOptional = await productsOptionalExtra.update(
+    await productsOptionalExtra.update(
       {
         OptionalProName,
         state,
@@ -389,7 +351,7 @@ export const editExtProductFoodOptional =async (_, { input }) => {
         pDatMod
       },
       { where: { pId: deCode(pId), opExPid: deCode(opExPid) } }
-    );
+    )
 
     // Actualiza los datos de ExtProductFoodSubOptionalAll
     if (ExtProductFoodsSubOptionalAll && ExtProductFoodsSubOptionalAll.length > 0) {
@@ -402,7 +364,7 @@ export const editExtProductFoodOptional =async (_, { input }) => {
             exCodeOptionExtra,
             exCode,
             state
-          } = subOptionalInput;
+          } = subOptionalInput
 
           await productsSubOptionalExtra.update(
             {
@@ -413,15 +375,14 @@ export const editExtProductFoodOptional =async (_, { input }) => {
               state
             },
             { where: { pId: deCode(pId), opSubExPid: deCode(opSubExPid) } }
-          );
+          )
         })
-      );
+      )
     }
 
     return input
   } catch (error) {
-    console.error('Error al editar ExtProductFoodOptional:', error);
-    throw new Error('No se pudo editar ExtProductFoodOptional');
+    throw new Error('No se pudo editar ExtProductFoodOptional')
   }
 }
 export default {

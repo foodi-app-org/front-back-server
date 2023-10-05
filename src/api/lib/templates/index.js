@@ -1,6 +1,5 @@
 /* eslint-disable import/no-anonymous-default-export */
-export default ({ username, code, company }) => {
-  return `<!DOCTYPE html>
+export default ({ username, code, company }) => `<!DOCTYPE html>
 
   <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml">
   <head>
@@ -78,7 +77,7 @@ export default ({ username, code, company }) => {
   <td>
   <div style="font-family: sans-serif">
   <div style="font-size: 14px; mso-line-height-alt: 16.8px; color: #506bec; line-height: 1.2; font-family: Helvetica Neue, Helvetica, Arial, sans-serif;">
-  <p style="margin: 0; font-size: 14px;"><strong><span style="font-size:38px;">Hello ${ username }</span></strong></p>
+  <p style="margin: 0; font-size: 14px;"><strong><span style="font-size:38px;">Hello ${username}</span></strong></p>
   </div>
   </div>
   </td>
@@ -89,7 +88,7 @@ export default ({ username, code, company }) => {
   <td>
   <div style="font-family: sans-serif">
   <div style="font-size: 14px; mso-line-height-alt: 16.8px; color: #40507a; line-height: 1.2; font-family: Helvetica Neue, Helvetica, Arial, sans-serif;">
-  <p style="margin: 0; font-size: 14px;">We have detected that you have sent an invitation to join the company ${ company } <br/>to the user ${ username }</p>
+  <p style="margin: 0; font-size: 14px;">We have detected that you have sent an invitation to join the company ${company} <br/>to the user ${username}</p>
   </div>
   </div>
   </td>
@@ -109,7 +108,7 @@ export default ({ username, code, company }) => {
   <table border="0" cellpadding="0" cellspacing="0" className="button_block" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
   <tr>
   <td style="padding-bottom:20px;padding-left:10px;padding-right:10px;padding-top:20px;text-align:left;">
-  <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:3000/teams/invite/jejejeje" style="height:48px;width:161px;v-text-anchor:middle;" arcsize="34%" stroke="false" fillcolor="#506bec"><w:anchorlock/><v:textbox inset="5px,0px,0px,0px"><center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px"><![endif]--><a href="http://localhost:3000/teams/manage/${ code }" style="text-decoration:none;display:inline-block;color:#ffffff;background-color:#506bec;border-radius:16px;width:auto;border-top:0px solid TRANSPARENT;border-right:0px solid TRANSPARENT;border-bottom:0px solid TRANSPARENT;border-left:0px solid TRANSPARENT;padding-top:8px;padding-bottom:8px;font-family:Helvetica Neue, Helvetica, Arial, sans-serif;text-align:center;mso-border-alt:none;word-break:keep-all;" target="_blank"><span style="padding-left:25px;padding-right:20px;font-size:16px;display:inline-block;letter-spacing:normal;"><span style="font-size: 16px; line-height: 2; word-break: break-word; mso-line-height-alt: 32px;">Manage access</span></span></a>
+  <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="http://localhost:3000/teams/invite/jejejeje" style="height:48px;width:161px;v-text-anchor:middle;" arcsize="34%" stroke="false" fillcolor="#506bec"><w:anchorlock/><v:textbox inset="5px,0px,0px,0px"><center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px"><![endif]--><a href="http://localhost:3000/teams/manage/${code}" style="text-decoration:none;display:inline-block;color:#ffffff;background-color:#506bec;border-radius:16px;width:auto;border-top:0px solid TRANSPARENT;border-right:0px solid TRANSPARENT;border-bottom:0px solid TRANSPARENT;border-left:0px solid TRANSPARENT;padding-top:8px;padding-bottom:8px;font-family:Helvetica Neue, Helvetica, Arial, sans-serif;text-align:center;mso-border-alt:none;word-break:keep-all;" target="_blank"><span style="padding-left:25px;padding-right:20px;font-size:16px;display:inline-block;letter-spacing:normal;"><span style="font-size: 16px; line-height: 2; word-break: break-word; mso-line-height-alt: 32px;">Manage access</span></span></a>
   <!--[if mso]></center></v:textbox></v:roundrect><![endif]-->
   </td>
   </tr>
@@ -207,4 +206,3 @@ export default ({ username, code, company }) => {
   </table><!-- End -->
   </body>
   </html>`
-}

@@ -1,17 +1,19 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import EmployeesModel from '../employees/EmployeesModel'
 import RequirementsModel from '../requirements/RequirementsModel'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+
 import EmployeesFoldersModel from './EmployeesFoldersModel'
+const sequelize = connect()
 
 const EmployeesRequirementsModel = sequelize.define('employeesrequirements', {
   erId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   eId: {
     type: INTEGER,
@@ -22,7 +24,7 @@ const EmployeesRequirementsModel = sequelize.define('employeesrequirements', {
       model: EmployeesModel,
       key: 'eId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   rId: {
     type: INTEGER,
@@ -33,7 +35,7 @@ const EmployeesRequirementsModel = sequelize.define('employeesrequirements', {
       model: RequirementsModel,
       key: 'rId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   efId: {
     type: INTEGER,
@@ -44,7 +46,7 @@ const EmployeesRequirementsModel = sequelize.define('employeesrequirements', {
       model: EmployeesFoldersModel,
       key: 'efId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   erName: {
     type: STRING(50),
@@ -70,7 +72,7 @@ const EmployeesRequirementsModel = sequelize.define('employeesrequirements', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

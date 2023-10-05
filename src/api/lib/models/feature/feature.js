@@ -1,8 +1,10 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
-const sequelize = connect()
+
 import Typefeature from './TypFeature'
+const sequelize = connect()
 
 const Feature = sequelize.define('feature', {
   fId: {

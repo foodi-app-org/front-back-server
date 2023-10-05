@@ -1,15 +1,17 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+
 import DepartmentsModel from './DepartmentsModel'
+const sequelize = connect()
 
 const CitiesModel = sequelize.define('cities', {
   ctId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dId: {
     type: INTEGER,
@@ -20,7 +22,7 @@ const CitiesModel = sequelize.define('cities', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cName: {
     type: STRING(100),

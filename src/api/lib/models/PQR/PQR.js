@@ -1,16 +1,18 @@
-import { 
-  INTEGER, 
-  STRING, 
-  TEXT, 
-  SMALLINT, 
+import {
+  INTEGER,
+  STRING,
+  TEXT,
+  SMALLINT,
   literal
 } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
-const sequelize = connect()
-import TypePQR from './TypPQR'
 
-// 
+import TypePQR from './TypPQR'
+const sequelize = connect()
+
+//
 
 const PQR = sequelize.define('pqr', {
   hpqrId: {

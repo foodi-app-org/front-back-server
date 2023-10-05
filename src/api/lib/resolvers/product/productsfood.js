@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+
 import AreasModel from '../../models/areas/AreasModel'
 import Feature from '../../models/feature/feature'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -17,9 +18,10 @@ import {
   deCode,
   getAttributes
 } from '../../utils/util'
-import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
+
+import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -43,7 +45,6 @@ export const productsOne = async (root, { pId }, context, info) => {
 }
 // GET ONE PRODUCTS FOOD
 export const productFoodsOne = async (root, { pId }, context, info) => {
-
   try {
     if (!pId) {
       return new Error('Lo sentimos, ha ocurrido un error interno o el producto no esta  registrado, Vuelve a intentarlo mas tarde.')
@@ -63,7 +64,6 @@ export const productFoodsOne = async (root, { pId }, context, info) => {
     return data
   } catch (e) {
     return new Error('Lo sentimos, ha ocurrido un error interno,  Vuelve a intentarlo mas tarde.')
-
   }
 }
 export const getMinPrice = async (root, { idStore }, context) => {
@@ -75,12 +75,13 @@ export const getMinPrice = async (root, { idStore }, context) => {
           idStore: idStore ? deCode(idStore) : deCode(context.restaurant)
         }
       ]
-    }, order: [['ProPrice', 'DESC']]
+    },
+    order: [['ProPrice', 'DESC']]
   })
   let myArray = []
   let N = 0
   if (data?.length > 0) {
-    myArray = data.map(x => { return x.ProPrice })
+    myArray = data.map(x => x.ProPrice)
 
     N = Math.min(...myArray)
     return N
@@ -104,21 +105,21 @@ export const productFoodsAll = async (root, args, context, info) => {
       whereSearch = {
         ...whereSearch,
         ProDelivery: {
-          [Op.in]: gender.map(x => { return x })
+          [Op.in]: gender.map(x => x)
         }
       }
     }
     if (desc?.length) {
       whereSearch = {
         ...whereSearch,
-        ProDescuento: { [Op.in]: desc.map(x => { return x }) }
+        ProDescuento: { [Op.in]: desc.map(x => x) }
       }
     }
-    //validad que  venga una categoría para hacer el filtro por categorías
+    // validad que  venga una categoría para hacer el filtro por categorías
     if (categories?.length) {
       whereSearch = {
         ...whereSearch,
-        carProId: { [Op.in]: categories.map(x => { return deCode(x) }) }
+        carProId: { [Op.in]: categories.map(x => deCode(x)) }
       }
     }
     const attributes = getAttributes(productModelFood, info)
@@ -136,15 +137,16 @@ export const productFoodsAll = async (root, args, context, info) => {
             // ID Productos
             pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             // Productos state
-            pState: pState ? pState: { [Op.gt]: 0 }
+            pState: pState || { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pName', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pName', 'DESC']]
     })
     return data
   } catch (e) {
-
     const error = new Error(e || 'Lo sentimos, ha ocurrido un error interno')
     return error
   }
@@ -161,30 +163,26 @@ export const editProductFoods = async (_root, { input }, context) => {
       }
     })
     return { success: true, message: 'producto actualizado' }
-
   } catch (error) {
     return { success: false, message: 'No pudimos actualizar el producto' }
   }
-
 }
 export const updateProductFoods = async (_root, { input }, context) => {
-  const { 
-    sizeId, 
-    colorId, 
-    cId, 
-    dId, 
-    ctId, 
-    pId, 
-    pState, 
+  const {
+    sizeId,
+    colorId,
+    cId,
+    dId,
+    ctId,
+    pId,
+    pState,
     carProId
   } = input || {}
   try {
-    
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
 
-    
     if (!pId) {
       const data = await productModelFood.create({
         ...input,
@@ -243,8 +241,10 @@ export const productsLogis = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pName', 'ASC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pName', 'ASC']]
     })
     return data
   } catch (e) {
@@ -258,31 +258,29 @@ export default {
     saleExtProductFoodOptional: {
       saleExtProductFoodsSubOptionalAll: async (parent, _args, _context, info) => {
         try {
-          const attributes = getAttributes(ExtProductFoodSubOptional, info);
+          const attributes = getAttributes(ExtProductFoodSubOptional, info)
           const whereClause = {
             exCodeOptionExtra: parent.code,
-            state: { [Op.gt]: 0 },
-          };
+            state: { [Op.gt]: 0 }
+          }
 
           if (info?.variableValues?.pCodeRef) {
-            whereClause.pCodeRef = info.variableValues.pCodeRef;
+            whereClause.pCodeRef = info.variableValues.pCodeRef
           }
 
           const data = await ExtProductFoodSubOptional.findAll({
             attributes,
-            where: whereClause,
-          });
-          const dataWithUuid = data?.map((subOptional) => {
-            return {
-              ...subOptional.dataValues,
+            where: whereClause
+          })
+          const dataWithUuid = data?.map((subOptional) => ({
+            ...subOptional.dataValues,
             opSubExPid: enCode(subOptional?.opSubExPid),
             pId: enCode(subOptional?.pId),
             opExPid: enCode(subOptional?.opExPid)
-            }
-          })
+          }))
           return dataWithUuid
         } catch {
-          return [];
+          return []
         }
       }
     },
@@ -316,7 +314,7 @@ export default {
             attributes,
             where: { pId: deCode(parent.pId) },
             order: [['dayAvailable', 'ASC']], // Ordenar por dayAvailable en orden ascendente
-            raw: true, // Obtener resultados en formato JSON plano
+            raw: true // Obtener resultados en formato JSON plano
           })
           return data
         } catch {

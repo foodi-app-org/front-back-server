@@ -1,6 +1,7 @@
+import { Op } from 'sequelize'
+
 import promosStoreAdmin from '../../models/Store/promosStoreAdmin'
 import { getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const getPromoStoreAdmin = async (_, { min, max, search }, ctx, info) => {
   const attributes = getAttributes(promosStoreAdmin, info)
@@ -23,7 +24,6 @@ export const createAPromoBanner = async (_, { input }, ctx) => {
       ...input
     })
     return { success: true, message: 'Banner creado' }
-
   } catch (error) {
     return { success: false, message: 'error' }
   }

@@ -1,84 +1,85 @@
-import { INTEGER, STRING, TEXT, literal } from "sequelize";
-import connect from "../../db";
-const sequelize = connect();
-import { enCode } from "../../utils/util";
-import Users from "../Users";
-import Store from "../Store/Store";
-let productModelFood = null;
+import { INTEGER, STRING, TEXT, literal } from 'sequelize'
+
+import connect from '../../db'
+import { enCode } from '../../utils/util'
+import Users from '../Users'
+import Store from '../Store/Store'
+const sequelize = connect()
+let productModelFood = null
 
 const catProducts = sequelize.define(
-  "catproducts",
+  'catproducts',
   {
     carProId: {
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      get(x) {
-        return enCode(this.getDataValue(x));
-      },
+      get (x) {
+        return enCode(this.getDataValue(x))
+      }
     },
     // id store
     idStore: {
       type: INTEGER,
       allowNull: true,
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
       references: {
         model: Store,
-        key: "idStore",
+        key: 'idStore'
       },
-      get(x) {
-        return enCode(this.getDataValue(x));
-      },
+      get (x) {
+        return enCode(this.getDataValue(x))
+      }
     },
     // User
     id: {
       type: INTEGER,
       allowNull: true,
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
       references: {
         model: Users,
-        key: "id",
+        key: 'id'
       },
-      get(x) {
-        return enCode(this.getDataValue(x));
-      },
+      get (x) {
+        return enCode(this.getDataValue(x))
+      }
     },
     pName: {
       type: STRING,
-      allowNull: true,
+      allowNull: true
     },
     ProDescription: {
       type: TEXT,
-      allowNull: true,
+      allowNull: true
     },
     pState: {
       type: INTEGER,
-      allowNull: true,
+      allowNull: true
     },
     pDatCre: {
-      type: "TIMESTAMP",
-      defaultValue: literal("CURRENT_TIMESTAMP"),
-      allowNull: true,
+      type: 'TIMESTAMP',
+      defaultValue: literal('CURRENT_TIMESTAMP'),
+      allowNull: true
     },
     pDatMod: {
-      type: "TIMESTAMP",
-      defaultValue: literal("CURRENT_TIMESTAMP"),
-      allowNull: true,
-    },
+      type: 'TIMESTAMP',
+      defaultValue: literal('CURRENT_TIMESTAMP'),
+      allowNull: true
+    }
   },
   {
-    timestamps: false,
+    timestamps: false
   }
-);
+)
 
-export default catProducts;
+export default catProducts
 
-import("../product/productFood").then((module) => {
-  productModelFood = module.default;
+import('../product/productFood').then((module) => {
+  productModelFood = module.default
   catProducts.hasMany(productModelFood, {
-    foreignKey: "carProId",
-    onDelete: "CASCADE",
-  });
-});
+    foreignKey: 'carProId',
+    onDelete: 'CASCADE'
+  })
+})

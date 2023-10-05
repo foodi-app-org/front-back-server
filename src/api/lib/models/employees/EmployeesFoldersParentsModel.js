@@ -1,15 +1,17 @@
 import { INTEGER, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
-import EmployeesFoldersModel from './EmployeesFoldersModel'
 import { enCode } from '../../utils/util'
+
+import EmployeesFoldersModel from './EmployeesFoldersModel'
+const sequelize = connect()
 
 const EmployeesFoldersParentsModel = sequelize.define('employeesfoldersparents', {
   efpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   efId: {
     type: INTEGER,
@@ -20,7 +22,7 @@ const EmployeesFoldersParentsModel = sequelize.define('employeesfoldersparents',
       model: EmployeesFoldersModel,
       key: 'efId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   parentId: {
     type: INTEGER,
@@ -31,7 +33,7 @@ const EmployeesFoldersParentsModel = sequelize.define('employeesfoldersparents',
       model: EmployeesFoldersModel,
       key: 'efId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   efpLevel: {
     type: INTEGER(4),

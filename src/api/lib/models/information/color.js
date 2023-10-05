@@ -1,16 +1,17 @@
 import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
-import connect from '../../db'
 
-const sequelize = connect()
+import connect from '../../db'
 import { enCode } from '../../utils/util'
 
-// 
+const sequelize = connect()
+
+//
 const colorModel = sequelize.define('color', {
   colorId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   colorName: {
     type: STRING(255),

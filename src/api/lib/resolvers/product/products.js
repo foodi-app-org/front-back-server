@@ -1,5 +1,7 @@
 /* eslint-disable consistent-return */
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import AreasModel from '../../models/areas/AreasModel'
 import Feature from '../../models/feature/feature'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -11,7 +13,6 @@ import productModelFood from '../../models/product/productFood'
 import trademarkModel from '../../models/product/trademark'
 import ThirdPartiesModel from '../../models/thirdParties/ThirdPartiesModel'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -51,21 +52,21 @@ export const productsAll = async (root, args, context, info) => {
       whereSearch = {
         ...whereSearch,
         ProDelivery: {
-          [Op.in]: gender.map(x => {return x})
+          [Op.in]: gender.map(x => x)
         }
       }
     }
     if (desc?.length) {
       whereSearch = {
         ...whereSearch,
-        ProDescuento: { [Op.in]: desc.map(x => {return x}) }
+        ProDescuento: { [Op.in]: desc.map(x => x) }
       }
     }
-    //validad que  venga una categoría para hacer el filtro por categorías
+    // validad que  venga una categoría para hacer el filtro por categorías
     if (categories?.length) {
       whereSearch = {
         ...whereSearch,
-        caId: { [Op.in]: categories.map(x => {return deCode(x)}) }
+        caId: { [Op.in]: categories.map(x => deCode(x)) }
       }
     }
     const attributes = getAttributes(productModel, info)
@@ -84,8 +85,10 @@ export const productsAll = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pName', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -110,15 +113,13 @@ export const updateProducts = async (_root, { input }) => {
       })
       return data
     }
-        
+
     const isExist = await productModel.findOne({ attributes: ['pId', 'pName', 'pState', 'sTateLogistic'], where: { pId: deCode(pId) } })
     if (isExist) {
       await productModel.update({ pState: pState === 1 ? 0 : 1 }, { where: { pId: deCode(pId) } })
-    }
-    else {
+    } else {
       throw new ApolloError('No se pudo eliminar el producto debido a un error interno.')
     }
-        
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
@@ -152,8 +153,10 @@ export const productsLogis = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pName', 'ASC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pName', 'ASC']]
     })
     return data
   } catch (e) {
@@ -189,8 +192,10 @@ export const getAllMatchesProducts = async (root, args, context, info) => {
             // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['pName', 'ASC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['pName', 'ASC']]
     })
     return data
   } catch (e) {

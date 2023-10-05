@@ -1,19 +1,19 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import { enCode } from '../../utils/util'
 import connect from '../../db'
 import Users from '../Users'
 import Store from '../Store/Store'
 const sequelize = connect()
 
-// 
-
+//
 
 const Providers = sequelize.define('providers', {
   idProvider: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // id store
   idStore: {
@@ -25,7 +25,7 @@ const Providers = sequelize.define('providers', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // User
   id: {
@@ -37,7 +37,7 @@ const Providers = sequelize.define('providers', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   prName: {
     type: STRING(200),

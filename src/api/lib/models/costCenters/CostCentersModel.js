@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import CustomersModel from '../customers/CustomersModel'
 import CitiesModel from '../information/CitiesModel'
@@ -11,7 +12,7 @@ const CostCentersModel = sequelize.define('costcenters', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cId: {
     type: INTEGER,
@@ -22,7 +23,7 @@ const CostCentersModel = sequelize.define('costcenters', {
       model: CustomersModel,
       key: 'cId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tiId: {
     type: INTEGER,
@@ -33,7 +34,7 @@ const CostCentersModel = sequelize.define('costcenters', {
       model: TypeIdentitiesModel,
       key: 'tiId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cityId: {
     type: INTEGER,
@@ -44,7 +45,7 @@ const CostCentersModel = sequelize.define('costcenters', {
       model: CitiesModel,
       key: 'cId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ccName: {
     type: STRING(200),
@@ -103,7 +104,7 @@ const CostCentersModel = sequelize.define('costcenters', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

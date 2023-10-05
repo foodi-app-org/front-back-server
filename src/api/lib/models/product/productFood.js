@@ -1,6 +1,6 @@
 import { INTEGER, STRING, TEXT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import SizeModel from '../information/size'
 import colorModel from '../information/color'
 import CountriesModel from '../information/CountriesModel'
@@ -12,14 +12,14 @@ import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
-
+const sequelize = connect()
 
 const productModelFood = sequelize.define('productmodelfood', {
   pId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // id store
   idStore: {
@@ -31,7 +31,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // User
   id: {
@@ -43,7 +43,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // CATEGORY PRODUCT
   carProId: {
@@ -55,7 +55,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: catProducts,
       key: 'carProId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // Talla
   sizeId: {
@@ -67,7 +67,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: SizeModel,
       key: 'sizeId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // color
   colorId: {
@@ -79,7 +79,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: colorModel,
       key: 'colorId'
     },
-    get(x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   // Locations
   cId: {
@@ -91,7 +91,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: CountriesModel,
       key: 'cId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   dId: {
     type: INTEGER,
@@ -102,7 +102,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: DepartmentsModel,
       key: 'dId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ctId: {
     type: INTEGER,
@@ -113,7 +113,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: CitiesModel,
       key: 'ctId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   fId: {
     type: INTEGER,
@@ -123,7 +123,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: Feature,
       key: 'fId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   caId: {
     type: INTEGER,
@@ -133,7 +133,7 @@ const productModelFood = sequelize.define('productmodelfood', {
       model: CategoryProductsModel,
       key: 'caId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // poPriority: {
   //     type: Sequelize.SMALLINT,

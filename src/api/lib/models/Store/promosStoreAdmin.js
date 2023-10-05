@@ -1,4 +1,5 @@
 import Sequelize from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 
@@ -8,7 +9,7 @@ export default conn.define('promodashboardstoreadmins', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   comments: {
     type: Sequelize.STRING,

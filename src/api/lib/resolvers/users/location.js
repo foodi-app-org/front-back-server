@@ -1,11 +1,11 @@
-/* eslint-disable import/no-anonymous-default-export */
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+
 import UserLocation from '../../models/product/userLocations'
 import { deCode, getAttributes } from '../../utils/util'
 import CountriesModel from '../../models/information/CountriesModel'
 import DepartmentsModel from '../../models/information/DepartmentsModel'
 import CitiesModel from '../../models/information/CitiesModel'
-import { Op } from 'sequelize'
 
 export const updateUserLocations = async (_root, input, context) => {
   try {
@@ -25,7 +25,6 @@ export const updateUserLocations = async (_root, input, context) => {
     return error
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const deleteUserLocations = async (_root, { uLocationState, locationId }) => {
   try {
     await UserLocation.update({ uLocationState: uLocationState === 1 ? 0 : 1 }, { where: { locationId: deCode(locationId) } })
@@ -42,10 +41,12 @@ export const getUserLocations = async (_root, _args, context, info) => {
   try {
     const attributes = getAttributes(UserLocation, info)
     const data = await UserLocation.findAll({
-      attributes, where: {
+      attributes,
+      where: {
         id: deCode(context.User.id),
         uLocationState: { [Op.gt]: 0 }
-      }, order: [['DatCre', 'DESC']]
+      },
+      order: [['DatCre', 'DESC']]
     })
     return data
   } catch (e) {

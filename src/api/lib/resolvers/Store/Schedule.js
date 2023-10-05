@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { deCode } from '../../utils/util'
 import { Op } from 'sequelize'
+
+import { deCode } from '../../utils/util'
 import ScheduleStore from '../../models/Store/scheduleStore'
 import Store from '../../models/Store/Store'
 
@@ -26,8 +26,7 @@ export const setStoreScheduleReserve = async (_root, { input }) => {
       if (data.schId) {
         await updateStoreSchedule(null, { input: data })
         response = [...response, data]
-      }
-      else {
+      } else {
         const dataNew = await ScheduleStore.create({ schState: 1, idStore: data.idStore, ...data })
         response = [...response, dataNew]
       }
@@ -39,12 +38,13 @@ export const setStoreScheduleReserve = async (_root, { input }) => {
   }
 }
 export const setStoreSchedule = async (_root, { input }, context, _info) => {
-  const { 
-    schHoSta, 
-    schHoEnd, 
+  const {
+    schHoSta,
+    schHoEnd,
     schDay
   } = input || {}
   try {
+    // eslint-disable-next-line no-unused-vars
     const [exist, _created] = await ScheduleStore.findOrCreate({
       where: {
         schDay,
@@ -58,11 +58,11 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
       }
     })
     if (exist) {
-      await ScheduleStore.update({ schHoEnd: schHoEnd, schHoSta: schHoSta },
+      await ScheduleStore.update({ schHoEnd, schHoSta },
         {
           where:
                     {
-                      schDay: schDay,
+                      schDay,
                       // ID Store
                       idStore: deCode(context.restaurant)
                     }
@@ -71,15 +71,13 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
         success: true,
         message: 'actualizado'
       }
-    } 
+    }
     return {
       success: true,
       message: 'Creado con éxito'
     }
-        
   } catch (e) {
     return { success: false, message: e }
-
   }
 }
 
@@ -87,20 +85,19 @@ export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _i
   if (!context.restaurant || !context.User.id) return new ForbiddenError('no session')
 
   try {
-      await Store.update({ scheduleOpenAll: scheduleOpenAll },
-        {
-          where:
+    await Store.update({ scheduleOpenAll },
+      {
+        where:
                     {
                       idStore: deCode(context.restaurant)
                     }
-        })
-      return {
-        success: true,
-        message: 'actualizado'
-      }
+      })
+    return {
+      success: true,
+      message: 'actualizado'
+    }
   } catch (e) {
     return { success: false, message: e }
-
   }
 }
 export const getStoreSchedules = async (root, { schDay, idStore }, context, info) => {
@@ -118,10 +115,11 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
         [Op.or]: [
           {
             schState: 1,
-            idStore: deCode(idStore ? idStore : context.restaurant)
+            idStore: deCode(idStore || context.restaurant)
           }
         ]
-      }, order: [['schDay', 'ASC']]
+      },
+      order: [['schDay', 'ASC']]
     })
     return data
   } catch (e) {
@@ -146,7 +144,7 @@ const getOneStoreSchedules = async (root, { schDay, idStore }, context, info) =>
         [Op.or]: [
           {
             // schState: 1,
-            schDay: schDay,
+            schDay,
             // ID Store
             idStore: idStore ? deCode(idStore) : deCode(context.restaurant)
           }

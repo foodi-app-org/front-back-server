@@ -1,15 +1,17 @@
 import { INTEGER, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
-const sequelize = connect()
+
 import GeneralFoldersModel from './GeneralFoldersModel'
+const sequelize = connect()
 
 const GeneralFoldersParentsModel = sequelize.define('generalfoldersparents', {
   gfpId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   gfId: {
     type: INTEGER,
@@ -20,7 +22,7 @@ const GeneralFoldersParentsModel = sequelize.define('generalfoldersparents', {
       model: GeneralFoldersModel,
       key: 'gfId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   parentId: {
     type: INTEGER,
@@ -31,7 +33,7 @@ const GeneralFoldersParentsModel = sequelize.define('generalfoldersparents', {
       model: GeneralFoldersModel,
       key: 'gfId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   gfpLevel: {
     type: INTEGER(4),

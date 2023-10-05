@@ -1,5 +1,5 @@
-
-export const LoginEmail = ({ 
+/* eslint-disable camelcase */
+export const LoginEmail = ({
   restaurantName,
   deviceId,
   platform,
@@ -8,9 +8,7 @@ export const LoginEmail = ({
   family,
   deviceName,
   version
-}) => {
-
-  return`
+}) => `
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -70,4 +68,3 @@ export const LoginEmail = ({
   </body>
   </html>
 `
-}

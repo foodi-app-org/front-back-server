@@ -1,10 +1,11 @@
 /* eslint-disable import/no-anonymous-default-export */
 /* eslint-disable consistent-return */
+import { Op } from 'sequelize'
+import { ApolloError } from 'apollo-server-core'
+
 import Walletdebt from '../../models/Store/walletdebt'
 import walletdebtproducts from '../../models/Store/walletdebtproducts'
 import { deCode, getAttributes } from '../../utils/util'
-import { Op } from 'sequelize'
-import { ApolloError } from 'apollo-server-core'
 
 export const createwalletdebtproducts = async (_, { input }) => {
   const { RefDebtCode, UserDebtId, pId, ctx, debtAmountProduct } = input || {}
@@ -47,11 +48,9 @@ export const delWalletDebt = async (_, { input }) => {
   try {
     await Walletdebt.update({ debtState: debtState === 1 ? 0 : 1 }, { where: { debtWalletId: deCode(debtWalletId) } })
     return { success: true, message: 'delete' }
-
   } catch (error) {
     return { success: false, message: error }
   }
-
 }
 export const WalletDebt = async (_, { search, min, max }, ctx, info) => {
   let whereSearch = {}
@@ -75,8 +74,10 @@ export const WalletDebt = async (_, { search, min, max }, ctx, info) => {
             debtState: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['debtName', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['debtName', 'DESC']]
     })
     return data
   } catch (e) {
@@ -109,8 +110,10 @@ export const getAllWalletDebtProduct = async (parent, args, ctx, info) => {
             debtProductState: { [Op.gt]: 0 }
           }
         ]
-      },        limit: max || 100,
-        offset: min || 0, order: [['debtProductState', 'DESC']]
+      },
+      limit: max || 100,
+      offset: min || 0,
+      order: [['debtProductState', 'DESC']]
     })
     return data
   } catch {

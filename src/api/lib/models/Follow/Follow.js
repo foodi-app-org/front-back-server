@@ -1,17 +1,18 @@
 import { INTEGER, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import Users from '../UsersLogin/Users'
+const sequelize = connect()
 
-// 
+//
 
 const FollowModel = sequelize.define('followmodel', {
   idFollower: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -23,7 +24,7 @@ const FollowModel = sequelize.define('followmodel', {
       key: 'id'
     },
     unique: false,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   follow: {
     type: INTEGER,
@@ -35,7 +36,7 @@ const FollowModel = sequelize.define('followmodel', {
       key: 'id'
     },
     unique: false,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   fState: {
     type: SMALLINT,

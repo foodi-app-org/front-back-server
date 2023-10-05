@@ -1,10 +1,12 @@
+/* eslint-disable camelcase */
+import { getTokenState } from 'utils'
+import { withIronSessionApiRoute } from 'iron-session/next'
+
 import { newRegisterUser } from '../lib/resolvers/users/user'
 import UserDeviceModel from '../lib/models/users/userDevice'
 import { LoginEmail } from '../lib/templates/LoginEmail'
 import { sendEmail } from '../lib/utils'
-import { getTokenState } from 'utils'
 import { deCode } from '../lib/utils/util'
-import { withIronSessionApiRoute } from 'iron-session/next'
 
 const MAX_AGE = 60 * 60 * 8
 
@@ -25,29 +27,29 @@ export const getDevice = async ({ input }) => {
       id: deCode(userId),
       deviceId: deviceid,
       deviceName: name,
-      short_name: short_name,
-      family: family,
-      platform: platform,
-      locationFormat: locationFormat,
+      short_name,
+      family,
+      platform,
+      locationFormat,
       type: family,
-      version: version
+      version
     })
     const isExist = await UserDeviceModel.findOne({
       attributes: ['deviceId'],
       where: { deviceId: deviceid }
     })
     if (!isExist) {
-      let deviceId = ''
+      const deviceId = ''
       sendEmail({
         from: 'juvi69elpapu@gmail.com',
-        to: email,
+        to: '',
         text: 'Nuevo dispositivo detectado',
         subject: 'Nuevo dispositivo detectado.',
         html: LoginEmail({
           code: deviceId + name,
           or_JWT_Token: short_name
         })
-      }).then(() => { return (res, 'the res') }).catch(err => { return (err, 'the err') })
+      }).then(() => (res)).catch(err => (err))
       // send email
     }
     data = isExist
@@ -59,7 +61,7 @@ export const getDevice = async ({ input }) => {
   return { error, data }
 }
 
-//--- Tokens
+// --- Tokens
 
 /**
  * @description Función que genera el token
@@ -74,7 +76,7 @@ export const getUserFromToken = async token => {
   const tokenState = getTokenState(token)
   const { needRefresh, valid } = tokenState || {}
   try {
-    if (needRefresh === true) return { error: true, user: user, userProfile: userProfile }
+    if (needRefresh === true) return { error: true, user, userProfile }
     if (!valid) return { error: true, message: 'El token no es valido' }
   } catch {
     user = ''
@@ -84,7 +86,6 @@ export const getUserFromToken = async token => {
   return { user, userProfile, error }
 }
 
-
 // eslint-disable-next-line consistent-return
 export default withIronSessionApiRoute(
   // eslint-disable-next-line consistent-return
@@ -92,11 +93,11 @@ export default withIronSessionApiRoute(
     // get user from database then:
     try {
       const { name, username, lastName, email, password, deviceid } = req.body
-      const { 
-        token, 
-        message, 
-        success, 
-        roles, 
+      const {
+        token,
+        message,
+        success,
+        roles,
         storeUserId
       } = await newRegisterUser(null, { name, username, lastName, email, password })
       if (success) {
@@ -113,7 +114,7 @@ export default withIronSessionApiRoute(
           response: 'ok',
           ok: true,
           success,
-          message: message,
+          message,
           storeUserId,
           token
         })

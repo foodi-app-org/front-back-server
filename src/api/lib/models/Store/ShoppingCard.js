@@ -6,32 +6,34 @@ import {
   SMALLINT,
   DATE
 } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
+
 import Store from './Store'
+const sequelize = connect()
 
 const ShoppingCard = sequelize.define('shoppingcards', {
   ShoppingCard: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
     allowNull: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   idUser: {
     type: INTEGER,
     allowNull: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: INTEGER,
     allowNull: false,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   // id store
   idStore: {
@@ -42,7 +44,7 @@ const ShoppingCard = sequelize.define('shoppingcards', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   ShoppingCardRefCode: {
     type: UUID,

@@ -1,6 +1,8 @@
 import Sequelize from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
+
 import StoryModel from './StoryModel'
 
 const conn = connect()
@@ -9,18 +11,18 @@ export default conn.define('storycomment', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   stoId: {
     type: Sequelize.INTEGER,
-    allowNull: true,    
+    allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: StoryModel,
       key: 'stoId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   from: {
     type: Sequelize.STRING,

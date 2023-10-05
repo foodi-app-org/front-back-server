@@ -1,18 +1,18 @@
 import { INTEGER, DATE } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import { enCode } from '../../utils/util'
 import productModelFood from '../product/productFood'
 import Users from '../Users'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
-
+const sequelize = connect()
 
 const SubProducts = sequelize.define('subproducts', {
   subProductsId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
@@ -23,7 +23,7 @@ const SubProducts = sequelize.define('subproducts', {
       model: Users,
       key: 'id'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: INTEGER,
@@ -34,7 +34,7 @@ const SubProducts = sequelize.define('subproducts', {
       model: productModelFood,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   opExPid: {
     type: INTEGER,
@@ -45,7 +45,7 @@ const SubProducts = sequelize.define('subproducts', {
       model: productsOptionalExtra,
       key: 'opExPid'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cDatCre: {
     type: DATE,

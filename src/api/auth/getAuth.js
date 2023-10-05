@@ -1,8 +1,10 @@
 import { withIronSessionApiRoute } from 'iron-session/next'
-import { getUserFromToken } from '.'
+
 import { cookie } from '../lib/router'
 
-export default withIronSessionApiRoute(async function isAuth(req, res) {
+import { getUserFromToken } from '.'
+
+export default withIronSessionApiRoute(async (req, res) => {
   try {
     const { token } = req.session.user || {}
     if (!req.cookies[process.env.SESSION_NAME]) {
@@ -31,13 +33,11 @@ export default withIronSessionApiRoute(async function isAuth(req, res) {
         ok: req.session,
         isSession: false
       })
-
     }
     return res.status(200).json({
       ok: req.session,
       isSession: true
     })
-
   } catch (e) {
     return res.status(200).json({
       ok: req.session,

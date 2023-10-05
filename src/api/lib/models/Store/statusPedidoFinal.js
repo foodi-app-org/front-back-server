@@ -2,10 +2,12 @@ import {
   DATE,
   INTEGER,
   literal,
-  STRING,
+  STRING
 } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
+
 import Store from './Store'
 const sequelize = connect()
 
@@ -14,12 +16,12 @@ const StatusPedidosModel = sequelize.define('statuspedidos', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   id: {
     type: INTEGER,
     allowNull: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
 
   },
   idStore: {
@@ -31,7 +33,7 @@ const StatusPedidosModel = sequelize.define('statuspedidos', {
       model: Store,
       key: 'idStore'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pSState: {
     type: INTEGER,

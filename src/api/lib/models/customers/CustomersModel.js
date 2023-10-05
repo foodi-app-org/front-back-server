@@ -1,4 +1,5 @@
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import CitiesModel from '../information/CitiesModel'
@@ -10,7 +11,7 @@ const CustomersModel = sequelize.define('customers', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   tiId: {
     type: INTEGER,
@@ -21,7 +22,7 @@ const CustomersModel = sequelize.define('customers', {
       model: TypeIdentitiesModel,
       key: 'tiId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cityId: {
     type: INTEGER,
@@ -32,7 +33,7 @@ const CustomersModel = sequelize.define('customers', {
       model: CitiesModel,
       key: 'cId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   cName: {
     type: STRING(200),
@@ -89,7 +90,7 @@ const CustomersModel = sequelize.define('customers', {
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }
-},{
+}, {
   timestamps: false
 })
 

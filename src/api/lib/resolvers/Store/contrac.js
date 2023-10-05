@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApolloError } from 'apollo-server-express'
+
 import Contract from '../../models/Store/contract'
 import { deCode } from '../../utils/util'
 

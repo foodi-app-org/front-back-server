@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+
 import productModel from '../../models/product/food'
 import tagsProduct from '../../models/Store/tagsProduct'
 import { deCode, getAttributes } from '../../utils/util'
@@ -54,21 +55,21 @@ export const getFoodAllProduct = async (root, args, context, info) => {
     whereSearch = {
       ...whereSearch,
       ProDelivery: {
-        [Op.in]: gender.map(x => {return x})
+        [Op.in]: gender.map(x => x)
       }
     }
   }
   if (desc?.length) {
     whereSearch = {
       ...whereSearch,
-      ProDescuento: { [Op.in]: desc.map(x => {return x}) }
+      ProDescuento: { [Op.in]: desc.map(x => x) }
     }
   }
-  //validad que  venga una categoría para hacer el filtro por categorías
+  // validad que  venga una categoría para hacer el filtro por categorías
   if (categories?.length) {
     whereSearch = {
       ...whereSearch,
-      caId: { [Op.in]: categories.map(x => {return deCode(x)}) }
+      caId: { [Op.in]: categories.map(x => deCode(x)) }
     }
   }
 
@@ -88,8 +89,10 @@ export const getFoodAllProduct = async (root, args, context, info) => {
           // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
         }
       ]
-    },        limit: max || 100,
-        offset: min || 0, order: [['pDatCre', 'DESC']]
+    },
+    limit: max || 100,
+    offset: min || 0,
+    order: [['pDatCre', 'DESC']]
   })
   return data
 }

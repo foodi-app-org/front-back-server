@@ -1,15 +1,16 @@
 import { INTEGER, STRING, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import ModulesModel from '../modules/ModulesModel'
 import { enCode } from '../../utils/util'
+const sequelize = connect()
 
 const SubModulesModel = sequelize.define('submodules', {
   smId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   mId: {
     type: INTEGER,
@@ -20,7 +21,7 @@ const SubModulesModel = sequelize.define('submodules', {
       model: ModulesModel,
       key: 'mId'
     },
-    get(x) {return enCode(this.getDataValue(x))}
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   smName: {
     type: STRING(100),

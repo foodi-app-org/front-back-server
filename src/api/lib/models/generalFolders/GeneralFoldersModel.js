@@ -1,18 +1,19 @@
 'use strict'
 
 import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+
 import connect from '../../db'
-const sequelize = connect()
 import ProductsModel from '../product/product'
 import AreasModel from '../areas/AreasModel'
 import { enCode } from '../../utils/util'
+const sequelize = connect()
 
 const GeneralFoldersModel = sequelize.define('generalfolders', {
   gfId: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   pId: {
     type: INTEGER,
@@ -23,7 +24,7 @@ const GeneralFoldersModel = sequelize.define('generalfolders', {
       model: ProductsModel,
       key: 'pId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   aId: {
     type: INTEGER,
@@ -34,7 +35,7 @@ const GeneralFoldersModel = sequelize.define('generalfolders', {
       model: AreasModel,
       key: 'aId'
     },
-    get(x) { return enCode(this.getDataValue(x)) }
+    get (x) { return enCode(this.getDataValue(x)) }
   },
   gfName: {
     type: STRING(60),
@@ -57,7 +58,7 @@ const GeneralFoldersModel = sequelize.define('generalfolders', {
     allowNull: false
   },
   gfDatMod: {
-    type:'TIMESTAMP',
+    type: 'TIMESTAMP',
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
   }

@@ -1,12 +1,18 @@
 import { Router } from 'express'
+
 import { updatePhoto } from '../controller/photos'
 import upload from '../multer'
-import { LoginEmailConfirmation, newRegisterUser } from '../resolvers/users/user'
+import { newRegisterUser } from '../resolvers/users/user'
 import UserDeviceModel from '../models/users/userDevice'
 import { deCode } from '../utils/util'
 import Users from '../models/Users'
 import { LoginEmail } from '../templates/LoginEmail'
-import { comparePasswords, parseUserAgent, sendEmail } from '../utils'
+import {
+  comparePasswords,
+  parseUserAgent,
+  sendEmail
+} from '../utils'
+import Store from '../models/Store/Store'
 const router = Router()
 
 export const cookie = {
@@ -15,7 +21,7 @@ export const cookie = {
   cookieOptions: {
     maxAge: 60 * 60 * 8, // 8 horas
     httpOnly: true,
-    path: "/",
+    path: '/',
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // Configura 'none' en producción
   }
@@ -34,12 +40,13 @@ export const getDevice = async ({ input }) => {
       device,
       family,
       platform
-    } } = input || {}
+    }
+  } = input || {}
   let res = {}
   try {
     const existingDevice = await UserDeviceModel.findOne({
       where: {
-        deviceId: deviceId,
+        deviceId,
         id: deCode(userId)
       }
     })
@@ -59,14 +66,14 @@ export const getDevice = async ({ input }) => {
     res = await UserDeviceModel.create({
       dState: 1,
       id: deCode(userId),
-      deviceId: deviceId,
+      deviceId,
       deviceName: name,
-      short_name: short_name,
-      family: family,
+      short_name,
+      family,
       platform: device,
       locationFormat: locationFormat || null,
       type: platform,
-      version: version
+      version
     })
     sendEmail({
       to: email,
@@ -90,14 +97,13 @@ export const getDevice = async ({ input }) => {
   }
 }
 
-
 router.route('/photos')
   .get(updatePhoto)
   .post(upload.single('image'), updatePhoto)
 
 router.route('/photos/:id')
 
-router.post("/auth", async function (req, res) {
+router.post('/auth', async (req, res) => {
   try {
     const {
       name,
@@ -129,7 +135,7 @@ router.post("/auth", async function (req, res) {
         isLoggedIn: true,
         roles,
         storeUserId,
-        token,
+        token
       }
       await req.session.save()
       if ((useragent || userAgentCurrent) && deviceid) {
@@ -146,7 +152,7 @@ router.post("/auth", async function (req, res) {
         response: 'ok',
         ok: true,
         success,
-        message: message,
+        message,
         storeUserId,
         token
       })
@@ -169,26 +175,89 @@ router.post("/auth", async function (req, res) {
   }
 })
 
-router.post("/auth/loginConfirm", async function (req, res) {
+// eslint-disable-next-line consistent-return
+router.post('/auth/register', async (req, res) => {
   const useragent = req.headers['user-agent']
   try {
     const {
       email,
-      otp,
       deviceid,
       password
     } = req.body
-    const existUser = await Users.findOne({ attributes: ['email', 'uToken', 'id', 'password'], where: { email: email } })
+    if (!email) {
+      return res.status(500).json({
+        response: 'ok',
+        ok: true,
+        success: false,
+        message: 'credenciales incorrectos',
+        storeUserId: null,
+        token: null,
+        idStore: null
+      })
+    }
+    const existUser = await Users.findOne({ attributes: ['email', 'uToken', 'id', 'password'], where: { email } })
     if (existUser && password) {
       const userPassword = existUser?.password
       const isVerifyPassword = await comparePasswords(password, userPassword)
-     if (isVerifyPassword) {
+      if (isVerifyPassword) {
+        const {
+          token,
+          message,
+          success,
+          roles
+        } = await newRegisterUser({
+          email,
+          password
+        })
+        const StoreInfo = await Store.findOne({ attributes: ['idStore', 'id'], where: { id: deCode(existUser.id) } })
+        if (success) {
+          req.session.user = {
+            deviceid,
+            email,
+            isLoggedIn: true,
+            roles: roles || false,
+            storeUserId: StoreInfo || null,
+            token,
+            idStore: StoreInfo?.idStore || null
+          }
+          await req.session.save()
+          const userInfo = parseUserAgent(useragent)
+          const result = {
+            deviceId: deviceid,
+            userId: StoreInfo?.id || StoreInfo?.idStore,
+            os: {
+              ...userInfo
+            }
+          }
+          await getDevice({ input: result })
+          return res.status(200).json({
+            response: 'ok',
+            ok: true,
+            success,
+            message,
+            storeUserId: StoreInfo || null,
+            token,
+            idStore: StoreInfo?.idStore || null
+          })
+        }
+      } else {
+        return res.status(500).json({
+          response: 'ok',
+          ok: true,
+          success: false,
+          message: 'credenciales incorrectos',
+          storeUserId: null,
+          token: null,
+          idStore: null
+        })
+      }
+    } else {
       const {
         token,
         message,
         success,
         roles,
-        storeUserId
+        userId
       } = await newRegisterUser({
         email,
         password
@@ -199,15 +268,15 @@ router.post("/auth/loginConfirm", async function (req, res) {
           email,
           isLoggedIn: true,
           roles: roles || false,
-          storeUserId: StoreInfo || null,
+          storeUserId: null,
           token,
-          idStore
+          idStore: null
         }
         await req.session.save()
         const userInfo = parseUserAgent(useragent)
         const result = {
           deviceId: deviceid,
-          userId: StoreInfo?.id || StoreInfo?.idStore,
+          userId,
           os: {
             ...userInfo
           }
@@ -217,59 +286,13 @@ router.post("/auth/loginConfirm", async function (req, res) {
           response: 'ok',
           ok: true,
           success,
-          message: message,
-          storeUserId: StoreInfo ? StoreInfo : null,
+          message,
+          storeUserId: null,
           token,
-          idStore
+          idStore: null
         })
       }
-     }
     }
-    const {
-      token,
-      message,
-      success,
-      roles,
-      idStore,
-      StoreInfo
-    } = await LoginEmailConfirmation(null, { email, otp })
-    if (success) {
-      req.session.user = {
-        deviceid,
-        email,
-        isLoggedIn: true,
-        roles: roles || false,
-        storeUserId: StoreInfo || null,
-        token,
-        idStore
-      }
-      await req.session.save()
-      const userInfo = parseUserAgent(useragent)
-      const result = {
-        deviceId: deviceid,
-        userId: StoreInfo?.id || StoreInfo?.idStore,
-        os: {
-          ...userInfo
-        }
-      }
-      await getDevice({ input: result })
-      return res.status(200).json({
-        response: 'ok',
-        ok: true,
-        success,
-        message: message,
-        storeUserId: StoreInfo ? StoreInfo : null,
-        token,
-        idStore
-      })
-    }
-    return res.status(500).json({
-      response: 'no ok',
-      ok: false,
-      success: false,
-      message: message,
-      token
-    })
   } catch (error) {
     return res.status(500).json({
       response: 'ok',
