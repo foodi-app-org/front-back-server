@@ -6,7 +6,7 @@ import UserDeviceModel from '../models/users/userDevice'
 import { deCode } from '../utils/util'
 import Users from '../models/Users'
 import { LoginEmail } from '../templates/LoginEmail'
-import { parseUserAgent, sendEmail } from '../utils'
+import { comparePasswords, parseUserAgent, sendEmail } from '../utils'
 const router = Router()
 
 export const cookie = {
@@ -175,8 +175,56 @@ router.post("/auth/loginConfirm", async function (req, res) {
     const {
       email,
       otp,
-      deviceid
+      deviceid,
+      password
     } = req.body
+    const existUser = await Users.findOne({ attributes: ['email', 'uToken', 'id', 'password'], where: { email: email } })
+    if (existUser && password) {
+      const userPassword = existUser?.password
+      const isVerifyPassword = await comparePasswords(password, userPassword)
+     if (isVerifyPassword) {
+      const {
+        token,
+        message,
+        success,
+        roles,
+        storeUserId
+      } = await newRegisterUser({
+        email,
+        password
+      })
+      if (success) {
+        req.session.user = {
+          deviceid,
+          email,
+          isLoggedIn: true,
+          roles: roles || false,
+          storeUserId: StoreInfo || null,
+          token,
+          idStore
+        }
+        await req.session.save()
+        const userInfo = parseUserAgent(useragent)
+        const result = {
+          deviceId: deviceid,
+          userId: StoreInfo?.id || StoreInfo?.idStore,
+          os: {
+            ...userInfo
+          }
+        }
+        await getDevice({ input: result })
+        return res.status(200).json({
+          response: 'ok',
+          ok: true,
+          success,
+          message: message,
+          storeUserId: StoreInfo ? StoreInfo : null,
+          token,
+          idStore
+        })
+      }
+     }
+    }
     const {
       token,
       message,
