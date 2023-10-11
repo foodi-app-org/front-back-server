@@ -1,8 +1,7 @@
 import { Op } from 'sequelize'
 
 import contacts from '../../models/Store/contacts'
-import { getAttributes } from '../../utils/util'
-import { deCode } from '../../utils'
+import { deCode, getAttributes } from '../../utils/util'
 
 export const createContacts = async (_, { input }, ctx) => {
   try {
