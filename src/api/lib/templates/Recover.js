@@ -142,7 +142,7 @@ export default ({ code }) => {
             </tr>
             <tr>
                 <td> <span style="text-align: center; font-size: 14px; color: #A6A29F; line-height: 18px;">
-                        <p style="margin: 0;"> &copy; ${year} ${process.env.BUSSINESS_TITLE} - All rights reserved. </p>
+                        <p style="margin: 0;"> &copy; ${year} ${process.env.BUSINESS_TITLE} - All rights reserved. </p>
                         <p style="margin: 0;"> This is an automatic email </p>
                     </span> </td>
             </tr>

@@ -1,0 +1,30 @@
+type StorePendingToRegister {
+  StorePendingToRegisterId: ID
+  UserId: String
+  UserEmail: String
+  StoreNumber: String
+  createAt: String
+  updateAt: String
+}
+
+# StorePendingToRegisterInput Input
+input StorePendingToRegisterInput {
+  StorePendingToRegisterId: ID
+  UserId: String
+  UserEmail: String
+  StoreNumber: String
+}
+
+
+# Query
+type Query {
+  getStorePendingToRegisterById(StorePendingToRegisterId: ID): StorePendingToRegister
+  getAllStoresPending: [StorePendingToRegister]
+  getAllStoresPendingToRegister: [StorePendingToRegister]
+}
+
+# Mutations
+type Mutation {
+  createStorePendingToRegister(input: StorePendingToRegisterInput): Response
+  updateStorePendingToRegister(input: StorePendingToRegisterInput): Response
+}

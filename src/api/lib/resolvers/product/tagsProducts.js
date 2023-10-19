@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
@@ -7,6 +6,7 @@ import tagsProduct from '../../models/Store/tagsProduct'
 import { deCode, getAttributes } from '../../utils/util'
 
 export const registerTag = async (parent, { input }, ctx) => {
+  if (!input || !ctx.User.id) throw new Error('Ocurrió un error')
   const {
     idStore,
     nameTag,
@@ -24,7 +24,7 @@ export const registerTag = async (parent, { input }, ctx) => {
     })
     return tag
   } catch (error) {
-    throw new Error(error)
+    throw new Error(error.message)
   }
 }
 

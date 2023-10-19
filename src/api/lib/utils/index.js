@@ -1144,46 +1144,48 @@ function getDeviceInfo () {
 }
 
 export function parseUserAgent (userAgent) {
-  const {
-    release,
-    cpuModel,
-    platform
-  } = getDeviceInfo()
   if (!userAgent) return
+
   const browserInfo = {
     name: 'Unknown',
-    short_name: cpuModel,
-    version: release || 'Unknown',
+    short_name: getDeviceInfo().cpuModel,
+    version: getDeviceInfo().release || 'Unknown',
     family: 'Unknown',
-    platform: platform || 'Unknown',
-    device: 'Unknown',
-    os: 'Unknown', // Agregamos 'os' con valor inicial 'Unknown'
-    model: 'Unknown' // Agregamos 'model' con valor inicial 'Unknown'
+    platform: getDeviceInfo().platform || 'Unknown',
+    device: detectDeviceType(userAgent),
+    os: detectOperatingSystem(userAgent),
+    model: detectDeviceModel(userAgent)
   }
-  // Agregar detección del modelo del dispositivo (ejemplo)
+
+  const browser = detectBrowser(userAgent)
+  browserInfo.name = browser.name
+  browserInfo.version = browser.version
+  browserInfo.family = browser.family
+
+  return browserInfo
+}
+
+function detectDeviceType (userAgent) {
+  if (/Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(userAgent)) return 'Mobile'
+  if (/Tablet/i.test(userAgent)) return 'Tablet'
+  return 'Desktop'
+}
+
+function detectDeviceModel (userAgent) {
   const modelPatterns = {
     iPhone: /iPhone/i,
     iPad: /iPad/i,
     SamsungGalaxy: /Samsung Galaxy/i
-    // Agrega más patrones para otros modelos de dispositivos
-  }
-  for (const [modelName, pattern] of Object.entries(modelPatterns)) {
-    if (pattern.test(userAgent)) {
-      browserInfo.model = modelName
-      break
-    }
   }
 
-  // Detect device type
-  if (/Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(userAgent)) {
-    browserInfo.device = 'Mobile'
-  } else if (/Tablet/i.test(userAgent)) {
-    browserInfo.device = 'Tablet'
-  } else if (/Desktop/i.test(userAgent)) {
-    browserInfo.device = 'Desktop'
+  for (const [model, pattern] of Object.entries(modelPatterns)) {
+    if (pattern.test(userAgent)) return model
   }
 
-  // Detect browser name and version
+  return 'Unknown'
+}
+
+function detectBrowser (userAgent) {
   const browserPatterns = {
     Chrome: /Chrome\/([0-9.]+)/,
     Firefox: /Firefox\/([0-9.]+)/,
@@ -1192,57 +1194,28 @@ export function parseUserAgent (userAgent) {
     IE: /MSIE ([0-9.]+)/
   }
 
-  for (const [browser, pattern] of Object.entries(browserPatterns)) {
-    const match = userAgent?.match(pattern)
-    if (match) {
-      browserInfo.name = browser
-      browserInfo.version = match[1]
-      break
-    }
+  for (const [name, pattern] of Object.entries(browserPatterns)) {
+    const match = userAgent.match(pattern)
+    if (match) return { name, version: match[1], family: name }
   }
 
-  // Detect browser family
-  if (/Chrome|CriOS/i.test(userAgent)) {
-    browserInfo.family = 'Chrome'
-  } else if (/Firefox/i.test(userAgent)) {
-    browserInfo.family = 'Firefox'
-  } else if (/Safari/i.test(userAgent)) {
-    browserInfo.family = 'Safari'
-  } else if (/Edge/i.test(userAgent)) {
-    browserInfo.family = 'Edge'
-  } else if (/MSIE|Trident/i.test(userAgent)) {
-    browserInfo.family = 'IE'
-  }
+  return { name: 'Unknown', version: 'Unknown', family: 'Unknown' }
+}
 
-  // Detect platform (OS)
-  if (/Windows/i.test(userAgent)) {
-    browserInfo.platform = 'Windows'
-  } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
-    browserInfo.platform = 'Mac OS X'
-  } else if (/Linux/i.test(userAgent)) {
-    browserInfo.platform = 'Linux'
-  } else if (/Android/i.test(userAgent)) {
-    browserInfo.platform = 'Android'
-  } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
-    browserInfo.platform = 'iOS'
-  }
-  // Agregar detección del sistema operativo (OS) (ejemplo)
+function detectOperatingSystem (userAgent) {
   const osPatterns = {
     Windows: /Windows/i,
     MacOS: /Macintosh|Mac OS X/i,
     Linux: /Linux/i,
     Android: /Android/i,
     iOS: /iPhone|iPad|iPod/i
-    // Agrega más patrones para otros sistemas operativos
   }
 
-  for (const [osName, pattern] of Object.entries(osPatterns)) {
-    if (pattern.test(userAgent)) {
-      browserInfo.os = osName
-      break
-    }
+  for (const [os, pattern] of Object.entries(osPatterns)) {
+    if (pattern.test(userAgent)) return os
   }
-  return browserInfo
+
+  return 'Unknown'
 }
 
 const handleHourPmAM = (hour) => {

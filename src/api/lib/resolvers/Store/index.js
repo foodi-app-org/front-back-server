@@ -14,6 +14,7 @@ import ClientsStore from './Clients'
 import ChatStore from './storeChat'
 import bannerDashboardStore from './bannerMainDashboard'
 import emplooyeStore from './employee'
+import storesPendingToRegister from './storesPendingToRegister'
 
 export default {
   TYPES: {
@@ -23,6 +24,7 @@ export default {
     ...walletDebtStore.TYPES,
     ...ChatStore.TYPES,
     ...emplooyeResolver.TYPES,
+    ...storesPendingToRegister.TYPES,
     ...ScheduleStoreResolver.TYPES,
     ...ClientsStore.TYPES,
     ...createCatOfProductResolver.TYPES,
@@ -36,6 +38,7 @@ export default {
   QUERIES: {
     ...storeResolver.QUERIES,
     ...emplooyeResolver.QUERIES,
+    ...storesPendingToRegister.QUERIES,
     ...ChatStore.QUERIES,
     ...ClientsStore.QUERIES,
     ...walletDebtStore.QUERIES,
@@ -53,6 +56,7 @@ export default {
   },
   MUTATIONS: {
     ...storeResolver.MUTATIONS,
+    ...storesPendingToRegister.MUTATIONS,
     ...ChatStore.MUTATIONS,
     ...walletDebtStore.MUTATIONS,
     ...ContractResolver.MUTATIONS,
