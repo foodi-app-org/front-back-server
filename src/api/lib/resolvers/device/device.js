@@ -1,4 +1,3 @@
-/* eslint-disable import/no-anonymous-default-export */
 import UserDeviceModel from '../../models/users/userDevice'
 import { deCode, getAttributes } from '../../utils/util'
 

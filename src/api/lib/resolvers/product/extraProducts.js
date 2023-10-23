@@ -198,18 +198,34 @@ export const editExtProductFoods = async (_root, { input }, context) => {
   }
   return { success: false, message: 'Ocurrió un error, no pudimos editarlo' }
 }
+const GENERIC_ERROR_MESSAGE = 'No ha sido posible procesar su solicitud.'
+
+export const updateMultipleExtProductFoods = async (_root, args, context) => {
+  const { inputLineItems: { setData } } = args
+  const { restaurant } = context || {}
+
+  for (const element of setData) {
+    const { pId, exState, extraName, extraPrice } = element
+    try {
+      await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } })
+    } catch (e) {
+      throw new ApolloError(GENERIC_ERROR_MESSAGE, 500)
+    }
+  }
+}
+
 export const updateExtraInProduct = async (_root, { input }, _context) => {
   const { pId, idStore } = input || {}
+
   try {
     await ExtraProductModel.create({
       ...input,
       idStore: deCode(idStore),
       pId: deCode(pId)
     })
-    return input
+    return { success: true, data: input }
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno')
-    return error
+    return { success: false, message: 'Lo sentimos, ha ocurrido un error interno' }
   }
 }
 
@@ -312,20 +328,6 @@ export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) =
   }
 }
 
-export const updateMultipleExtProductFoods = async (_root, args, context) => {
-  // eslint-disable-next-line no-unused-vars
-  const { inputLineItems: { setData } } = args
-  const { restaurant } = context || {}
-  try {
-    for (const element of setData) {
-      const { pId, exState, extraName, extraPrice } = element
-      await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } })
-        .catch(() => new ApolloError('No ha sido posible procesar su solicitud.', 500))
-    }
-  } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
-  }
-}
 export const editExtProductFoodOptional = async (_, { input }) => {
   try {
     const {

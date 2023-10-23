@@ -55,7 +55,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
     })
     const idStore = res.idStore
     const inputClient = {
-      clientName: 'COMPRA EN TIENDA',
+      clientName: 'CLIENTES VARIOS',
       clientLastName: '',
       ClientAddress: '',
       ccClient: idStore,
