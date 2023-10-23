@@ -328,11 +328,16 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
-    console.log('🚀 ~ file: store.js:312 ~ e:', e)
+    let message = 'Lo sentimos, ha ocurrido un error inesperado'
+
+    if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
+      message = 'Token expirado'
+    }
+
     return {
       Response: {
         success: false,
-        message: 'Lo sentimos, ha ocurrido un error inesperado'
+        message
       }
     }
   }
