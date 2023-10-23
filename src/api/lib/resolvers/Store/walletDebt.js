@@ -34,7 +34,7 @@ export const createWalletDebt = async (_, { input, inputLineItems }, ctx) => {
       UserDebtId: UserDebtId ? deCode(UserDebtId) : null,
       idStore: deCode(ctx.restaurant)
     })
-    for (let i = 0; i < setData.length; i++) {
+    for (let i = 0; i < setData?.length; i++) {
       const { pId, debtAmountProduct } = setData[i]
       await createwalletdebtproducts(null, { input: { pId, RefDebtCode, UserDebtId, debtAmountProduct, ctx } })
     }

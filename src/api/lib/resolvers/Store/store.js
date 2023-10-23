@@ -1,6 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { GraphQLError } from 'graphql'
-import { Op } from 'sequelize'
+import { Op } from 'sequelize' // Asegúrate de importar Sequelize
 
 import { deCode, getAttributes } from '../../utils/util'
 import { getStatusOpenStore } from '../../utils'
@@ -129,7 +129,26 @@ export const deleteOneItem = async (root, args, context, _info) => {
     return { success: false, message: 'No pudo ser eliminado' }
   }
 }
-// eslint-disable-next-line
+/**
+ * Registers a new sales store.
+ *
+ * @async
+ * @param {Object} root - The root object.
+ * @param {Object} args - The arguments object.
+ * @param {Array} args.input - Input data for the sales.
+ * @param {Number} args.totalProductsPrice - The total price of the products.
+ * @param {boolean} args.pickUp - Whether or not the order is for pick-up.
+ * @param {Number} args.discount - Discount amount, if applicable.
+ * @param {string} args.id - ID of the client.
+ * @param {string} args.idStore - ID of the store.
+ * @param {Number} args.change - Change amount.
+ * @param {string} args.pCodeRef - Reference code for the order.
+ * @param {string} args.payMethodPState - Payment method.
+ * @param {Number} args.valueDelivery - Delivery value.
+ * @param {Object} context - The context object.
+ * @returns {Promise<Object>} The result object containing success status and message.
+ * @throws {GraphQLError} Throws an error if the token has expired.
+ */
 export const registerSalesStore = async (
   root,
   {
@@ -309,6 +328,7 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
+    console.log('🚀 ~ file: store.js:312 ~ e:', e)
     return {
       Response: {
         success: false,
