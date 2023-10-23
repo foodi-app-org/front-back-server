@@ -331,7 +331,7 @@ export const registerSalesStore = async (
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
 
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
-      message = 'Token expirado'
+      message = 'Token expired'
     }
 
     return {
