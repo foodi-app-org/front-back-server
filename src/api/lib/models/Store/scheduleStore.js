@@ -1,4 +1,8 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  literal
+} from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'

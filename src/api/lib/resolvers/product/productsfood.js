@@ -31,8 +31,7 @@ export const productsOne = async (root, { pId }, context, info) => {
       where: {
         [Op.or]: [
           {
-            // ID Productos
-            pId: pId ? deCode(pId) : { [Op.gt]: 0 }
+                        pId: pId ? deCode(pId) : { [Op.gt]: 0 }
           }
         ]
       }
@@ -134,8 +133,7 @@ export const productFoodsAll = async (root, args, context, info) => {
             ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
             // get user
             id: deCode(context.User.id),
-            // ID Productos
-            pId: pId ? deCode(pId) : { [Op.gt]: 0 },
+                        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             // Productos state
             pState: pState || { [Op.gt]: 0 }
           }
@@ -232,13 +230,12 @@ export const productsLogis = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
-            pId: pId ? deCode(pId) : { [Op.gt]: 0 },
+                        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             pState: 0
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
+            
+            
+            
+           
           }
         ]
       },

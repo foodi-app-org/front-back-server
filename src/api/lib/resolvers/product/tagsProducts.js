@@ -80,13 +80,12 @@ export const getFoodAllProduct = async (root, args, context, info) => {
       [Op.or]: [
         {
           ...whereSearch,
-          // ID Productos
-          // pfId: pfId ? deCode(pfId) : { [Op.gt]: 0 },
+                    // pfId: pfId ? deCode(pfId) : { [Op.gt]: 0 },
           pState: 1
-          // // ID departamento
-          // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-          // // ID Cuidad
-          // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
+          
+          
+          
+         
         }
       ]
     },

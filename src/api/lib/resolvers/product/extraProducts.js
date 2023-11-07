@@ -17,6 +17,34 @@ export const deleteextraproductfoods = async (_root, { state, id }) => {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
   }
 }
+
+const editExtraProductFoods = async (_root, { exPid, state, extraName, extraPrice }, context) => {
+  try {
+    if (!context.restaurant || !context?.User?.restaurant?.idStore) {
+      return new ForbiddenError('Token expired')
+    }
+
+    // Validaciones para asegurarse de que se proporcionen los datos necesarios
+    if (!exPid) throw new ApolloError('Se requiere un identificador de producto.', 400)
+    if (!extraName && !extraPrice) throw new ApolloError('Se requiere al menos un campo para actualizar.', 400)
+    // Encuentra y actualiza el producto extra
+    await ExtraProductModel.update({
+      ...(extraName && { extraName }), // Actualiza el nombre si se proporcionó
+      ...(extraPrice && { extraPrice }) // Actualiza el precio si se proporcionó
+    }, {
+      where: { exPid: deCode(exPid) }
+    })
+
+    return {
+      success: true,
+      message: 'Producto extra actualizado con éxito.'
+    }
+  } catch (error) {
+    console.log('🚀 ~ file: extraProducts.js:44 ~ editExtraProductFoods ~ error:', error)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+  }
+}
+
 export const DeleteExtFoodSubsOptional = async (_root, {
   state,
   opSubExPid,
@@ -50,6 +78,7 @@ export const editExtFoodSubsOptional = async (_root, {
   isCustomSubOpExPid
 }, context) => {
   try {
+    if (!OptionalSubProName) throw new ApolloError('Es necesario que el campo nombre no este vacío')
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
@@ -66,7 +95,7 @@ export const editExtFoodSubsOptional = async (_root, {
       message: 'Eliminado'
     }
   } catch (error) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+    throw new ApolloError(error?.message || 'No ha sido posible procesar su solicitud.', 500)
   }
 }
 export const updateExtProductFoods = async (_root, { input }) => {
@@ -174,7 +203,6 @@ export const ExtProductFoodsOptionalOne = async (root, { pId }, context, info) =
       where: {
         [Op.or]: [
           {
-            // ID Productos
             pId: pId ? deCode(pId) : { [Op.gt]: 0 }
           }
         ]
@@ -241,9 +269,12 @@ export const ExtProductFoodsAll = async (root, args, context, info) => {
     const data = await ExtraProductModel.findAll({
       attributes,
       where: {
-        [Op.or]: {
-          pId: deCode(pId)
-        }
+        [Op.or]: [
+          {
+            ...((pId) ? { pId: deCode(pId) } : {}),
+            state: { [Op.gt]: 0 }
+          }
+        ]
       },
       order: [['pDatCre', 'DESC']],
       limit: max,
@@ -413,6 +444,7 @@ export default {
     editExtProductFoodOptional,
     updateMultipleExtProductFoods,
     deleteextraproductfoods,
+    editExtraProductFoods,
     // OPTIONAL
     DeleteExtProductFoodsOptional,
     editExtProductFoods,

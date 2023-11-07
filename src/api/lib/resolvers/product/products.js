@@ -22,7 +22,6 @@ export const productsOne = async (root, { pId }, context, info) => {
       where: {
         [Op.or]: [
           {
-            // ID Productos
             pId: pId ? deCode(pId) : { [Op.gt]: 0 }
           }
         ]
@@ -76,13 +75,8 @@ export const productsAll = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
             pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             pState: { [Op.gt]: 0 }
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
       },
@@ -144,13 +138,8 @@ export const productsLogis = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
             pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             pState: 0
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
           }
         ]
       },
@@ -184,12 +173,8 @@ export const getAllMatchesProducts = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-            // ID Productos
             pState: 1
-            // // ID departamento
-            // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-            // // ID Cuidad
-            // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
+
           }
         ]
       },

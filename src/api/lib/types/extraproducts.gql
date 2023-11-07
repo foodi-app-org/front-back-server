@@ -116,6 +116,7 @@ type Mutation {
     updateMultipleExtProductFoods(inputLineItems: ILineItemsExtraFinal): ExtProductFood
     editExtProductFoods(input: InputExtProductFood!): Response
     deleteextraproductfoods(id: ID, state: Int): Response
+    editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
     DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
     "Registra un ExtProductFoodOptional"
     updateExtProductFoodsOptional(input: InputExtProductFoodOptional): Response

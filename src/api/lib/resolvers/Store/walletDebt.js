@@ -105,8 +105,7 @@ export const getAllWalletDebtProduct = async (parent, args, ctx, info) => {
             ...whereSearch,
             RefDebtCode: (parent.RefDebtCode),
             // ...whereSearch,
-            // ID Productos
-            idStore: deCode(ctx.restaurant),
+                        idStore: deCode(ctx.restaurant),
             debtProductState: { [Op.gt]: 0 }
           }
         ]

@@ -12,10 +12,10 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
     await productModel.create({ ...input, pState: 1, id: deCode(id), idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant) })
     return {
       success: true,
-      message: 'producto  creado'
+      message: 'producto creado'
     }
   } catch (error) {
-    return { success: false, message: error }
+    return { success: false, message: 'producto no creado' || error.message }
   }
 }
 export const getStore = async (root, args, context, info) => {
@@ -73,13 +73,9 @@ export const getFoodAllProduct = async (root, args, context, info) => {
       [Op.or]: [
         {
           ...whereSearch,
-          // ID Productos
           // pfId: pfId ? deCode(pfId) : { [Op.gt]: 0 },
           pState: 1
-          // // ID departamento
-          // dId: dId ? deCode(dId) : { [Op.gt]: 0 },
-          // // ID Cuidad
-          // ctId: ctId ? deCode(ctId) : { [Op.gt]: 0 },
+
         }
       ]
     },
