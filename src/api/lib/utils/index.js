@@ -1,18 +1,16 @@
 import os from 'os'
 
-import moment from 'moment'
 import jwt, { decode } from 'jsonwebtoken'
 import { google } from 'googleapis'
 import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
-
-moment.locale('es')
 
 export const generateToken = dataUser => {
   const expiresIn = process.env.JWT_EXPIRY || '1d'
   const AccessToken = jwt.sign(dataUser, process.env.AUTHO_USER_KEY, { expiresIn })
   return AccessToken
 }
+
 export async function hashPassword (plainPassword) {
   try {
     const saltRounds = 10
@@ -95,7 +93,6 @@ export const passwordConfirm = (value, valueConfirm) => !(value === valueConfirm
 export const numberFormat = value => value ? (parseInt(value) ? new Intl.NumberFormat('de-DE').format(parseFloat(`${value}`.replace(/\./g, ''))) : '') : (value === 0 ? 0 : '')
 
 // valida los inputs
-export const dateFormat = value => moment(value).format('DD-MM-YYYY')
 export const validations = (e, typeNull, typeLetters, typeNumeric, typeRange, minRange, maxRange, typeEmail, typeFormat) => {
   let { value } = e.target
   const { nextSibling } = e.target
