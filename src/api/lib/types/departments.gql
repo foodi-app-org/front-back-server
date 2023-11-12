@@ -1,7 +1,7 @@
 # types
 type Department {
     dId: ID!
-    cId: ID!
+    cId: ID
     dName: String!
     dState: Int
     dDatCre: DateTime

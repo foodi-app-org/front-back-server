@@ -1,6 +1,7 @@
 import { Op } from 'sequelize'
 
 import bannersMaster from '../../../models/bannersMaster'
+import { deCode } from '../../../utils/util'
 
 // Define el resolver para la mutación setBanners
 const setBanners = async (parent, args, context, info) => {
@@ -22,6 +23,29 @@ const setBanners = async (parent, args, context, info) => {
     throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.')
   }
 }
+const deleteOneBannerMaster = async (parent, args, context, info) => {
+  try {
+    // Extrae el ID del banner que se va a eliminar de los argumentos
+    const { id } = args
+
+    // Verifica si el banner con el ID dado existe
+    const bannerToDelete = await bannersMaster.findOne({ BannerId: deCode(id) })
+
+    if (!bannerToDelete) {
+      throw new Error('El banner que intentas eliminar no existe.')
+    }
+
+    // Elimina el banner de la base de datos
+    await bannerToDelete.destroy()
+
+    // Devuelve un mensaje de éxito
+    return 'Banner eliminado exitosamente.'
+  } catch (error) {
+    // Manejo de errores: personaliza según tus necesidades
+    throw new Error('No se pudo eliminar el banner. Por favor, inténtalo de nuevo más tarde.')
+  }
+}
+
 const getAllMasterBanners = async (parent, args, context, info) => {
   try {
     // Extrae los argumentos de búsqueda de entrada
@@ -100,6 +124,7 @@ export default {
     getOneMasterBanners
   },
   MUTATIONS: {
-    setBanners
+    setBanners,
+    deleteOneBannerMaster
   }
 }

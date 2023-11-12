@@ -171,6 +171,7 @@ type Query {
         ctId: ID
         search: String
         min: Int
+        uState: Int
         max: Int
     ): [Store]
     getOneStore(id: ID, StoreName: String, idStore: ID): Store

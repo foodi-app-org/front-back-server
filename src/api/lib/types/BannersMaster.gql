@@ -23,4 +23,5 @@ type Query {
 
 type Mutation {
   setBanners(input: IMasterBanners): MasterBanners
+   deleteOneBannerMaster(id: ID!): String
 }

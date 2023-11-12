@@ -65,7 +65,6 @@ export const getFoodAllProduct = async (root, args, context, info) => {
       ProDescuento: { [Op.in]: desc.map(x => x) }
     }
   }
-  // validad que  venga una categoría para hacer el filtro por categorías
   if (categories?.length) {
     whereSearch = {
       ...whereSearch,
@@ -80,12 +79,7 @@ export const getFoodAllProduct = async (root, args, context, info) => {
       [Op.or]: [
         {
           ...whereSearch,
-                    // pfId: pfId ? deCode(pfId) : { [Op.gt]: 0 },
           pState: 1
-          
-          
-          
-         
         }
       ]
     },

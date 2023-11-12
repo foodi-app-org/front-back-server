@@ -76,7 +76,6 @@ export const catProductsAll = async (root, args, context, info) => {
       ProDescuento: { [Op.in]: desc.map(x => x) }
     }
   }
-  // validad que  venga una categoría para hacer el filtro por categorías
   if (categories?.length) {
     whereSearch = {
       ...whereSearch,
@@ -207,7 +206,6 @@ export const getCatProductsWithProduct = async (root, args, context) => {
         ProDescuento: { [Op.in]: desc.map(x => x) }
       }
     }
-    // validad que  venga una categoría para hacer el filtro por categorías
     if (categories?.length) {
       whereSearch = {
         ...whereSearch,

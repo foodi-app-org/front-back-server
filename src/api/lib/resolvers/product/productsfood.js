@@ -31,7 +31,7 @@ export const productsOne = async (root, { pId }, context, info) => {
       where: {
         [Op.or]: [
           {
-                        pId: pId ? deCode(pId) : { [Op.gt]: 0 }
+            pId: pId ? deCode(pId) : { [Op.gt]: 0 }
           }
         ]
       }
@@ -114,7 +114,6 @@ export const productFoodsAll = async (root, args, context, info) => {
         ProDescuento: { [Op.in]: desc.map(x => x) }
       }
     }
-    // validad que  venga una categoría para hacer el filtro por categorías
     if (categories?.length) {
       whereSearch = {
         ...whereSearch,
@@ -133,7 +132,7 @@ export const productFoodsAll = async (root, args, context, info) => {
             ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
             // get user
             id: deCode(context.User.id),
-                        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
+            pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             // Productos state
             pState: pState || { [Op.gt]: 0 }
           }
@@ -230,12 +229,8 @@ export const productsLogis = async (root, args, context, info) => {
         [Op.or]: [
           {
             ...whereSearch,
-                        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
+            pId: pId ? deCode(pId) : { [Op.gt]: 0 },
             pState: 0
-            
-            
-            
-           
           }
         ]
       },

@@ -3,6 +3,7 @@ import { Op } from 'sequelize'
 
 import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
+import { getAttributes } from '../../utils/util'
 
 /**
  *
@@ -18,18 +19,12 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
   try {
     const { count: countInActive, rows: RowInActive } = await Store.findAndCountAll({
       where: {
-        uState: {
-          [Op.like]: 1
-        }
+        uState: 1
       }
-      // offset: 10,
-      // limit: 2
     })
     const { count, rows } = await Store.findAndCountAll({
       where: {
-        uState: {
-          [Op.like]: 2
-        }
+        uState: 2
       }
     })
     return {
@@ -40,6 +35,18 @@ export const getAllStoreAdminReport = async (_root, _args, _context, _info) => {
     }
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 400)
+    return error
+  }
+}
+export const getAllStoreAdmin = async (_root, _args, _context, info) => {
+  try {
+    const attributes = getAttributes(Store, info)
+    const data = await Store.findAll({
+      attributes
+    })
+    return data
+  } catch (e) {
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -69,6 +76,7 @@ export default {
   },
   QUERIES: {
     getAllStoreAdminReport,
+    getAllStoreAdmin,
     getAllUserActives
   },
   MUTATIONS: {

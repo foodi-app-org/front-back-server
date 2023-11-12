@@ -1230,7 +1230,6 @@ export default {
     getTodaySales,
     getOneFavorite,
     getAllRating,
-    // getAllStoreAdmin,
     getAllShoppingCard,
     getAllStoreInStore,
     getOneStore
