@@ -7,6 +7,7 @@ type ShoppingCard {
     pId: ID
     subProductsId: ID
     ShoppingCardRefCode: String
+    priceProduct: Float
     uuid: String
     discountCardProduct: String
     comments: String

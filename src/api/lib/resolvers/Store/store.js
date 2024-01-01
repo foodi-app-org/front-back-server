@@ -209,6 +209,7 @@ export const registerSalesStore = async (
         comments,
         dataExtra,
         dataOptional,
+        ProPrice,
         refCodePid
       } = element
       const decodePid = deCode(pId)
@@ -222,6 +223,7 @@ export const registerSalesStore = async (
         id: clientId ? deCode(clientId) : deCode(id),
         comments: comments ?? '',
         cState: 0,
+        priceProduct: originalProduct?.ProPrice || 0,
         refCodePid: refCodePid || '',
         cantProducts,
         idStore: deCode(context.restaurant)
@@ -328,6 +330,7 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
+    console.log("🚀 ~ file: store.js:334 ~ e:", e)
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
 
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {

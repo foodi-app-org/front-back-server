@@ -8,6 +8,8 @@ import DepartmentsModel from '../../models/information/DepartmentsModel'
 import CitiesModel from '../../models/information/CitiesModel'
 
 export const updateUserLocations = async (_root, input, context) => {
+  const noSession = await !context || !context.User || !context.User.id
+  if (noSession) throw new ApolloError('No se ha iniciado sesión', 401)
   try {
     const {
       cId,
