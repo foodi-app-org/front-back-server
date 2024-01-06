@@ -60,7 +60,7 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
             ...whereSearch,
             pSState: 4,
             ...((channel) ? { channel } : {}),
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
+            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
             // ID STORE
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }
@@ -88,7 +88,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
         [Op.or]: [
           {
             pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
+            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
             // ID STORE
             channel: 1,
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
@@ -103,7 +103,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
         [Op.or]: [
           {
             pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
+            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
             // ID STORE
             channel: 0,
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
@@ -117,7 +117,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
         [Op.or]: [
           {
             pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
+            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
             // ID STORE
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
           }

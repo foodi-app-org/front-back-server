@@ -193,6 +193,7 @@ export const registerCategoryStore = async (_root, { input }, _context, _info) =
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
 }
+
 export const desCategoryStore = async (_root, { catStore, cState }, _context, _info) => {
   try {
     await CatStore.update({ cState: cState === 0 ? 1 : 0 }, { where: { catStore: deCode(catStore) } })
@@ -213,6 +214,7 @@ export const getAllCatStore = async (_root, { input }, _context, info) => {
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }
+
 export const getOneCatStore = async (_root, { catStore: idCat }, _context, info) => {
   if (!idCat) return new ApolloError('')
   try {

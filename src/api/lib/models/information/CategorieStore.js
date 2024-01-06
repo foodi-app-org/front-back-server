@@ -1,4 +1,9 @@
-import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  SMALLINT,
+  DATE
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'

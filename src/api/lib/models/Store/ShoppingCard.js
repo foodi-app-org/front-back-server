@@ -4,14 +4,15 @@ import {
   UUIDV4,
   STRING,
   SMALLINT,
-  DATE
+  DATE,
+  DECIMAL
 } from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 
 import Store from './Store'
-import { DECIMAL } from 'sequelize'
+
 const sequelize = connect()
 
 const ShoppingCard = sequelize.define('shoppingcards', {

@@ -1,6 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { GraphQLError } from 'graphql'
-import { Op } from 'sequelize' // Asegúrate de importar Sequelize
+import { Op } from 'sequelize'
 
 import { deCode, getAttributes } from '../../utils/util'
 import { getStatusOpenStore } from '../../utils'
@@ -330,7 +330,6 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
-    console.log("🚀 ~ file: store.js:334 ~ e:", e)
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
 
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
@@ -372,6 +371,7 @@ export const getTodaySales = async (_, args, ctx) => {
       },
       order: [['pDatCre', 'DESC']]
     })
+    console.log({START: START.toISOString()}, { NOW: NOW.toISOString() })
     if (data?.length) {
       return data?.length || 0
     } else {
