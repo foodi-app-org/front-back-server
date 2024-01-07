@@ -207,7 +207,8 @@ export const getAllCatStore = async (_root, { input }, _context, info) => {
   try {
     const attributes = getAttributes(CatStore, info)
     const data = await CatStore.findAll({
-      attributes
+      attributes,
+      where: { cState: { [Op.gt]: 0 } }
     })
     return data
   } catch (e) {

@@ -766,6 +766,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         'dId',
         'scheduleOpenAll',
         'ctId',
+        'createdAt',
         'catStore',
         'neighborhoodStore',
         'Viaprincipal',

@@ -163,7 +163,9 @@ type Query {
         search: String
         min: Int
         max: Int
+        createdAt: String
     ): [Store]
+
     getAllStoreAdmin(
         pId: ID
         cId: ID
