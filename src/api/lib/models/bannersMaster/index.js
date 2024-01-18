@@ -14,7 +14,7 @@ export default conn.define('bannersMaster', {
   },
   path: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: true
   },
   name: {
     type: Sequelize.STRING,

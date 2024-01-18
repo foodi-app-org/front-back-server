@@ -11,7 +11,7 @@ const setBanners = async (parent, args, context, info) => {
 
     // Crea un nuevo banner en la base de datos utilizando el modelo "Banner"
     const newBanner = await bannersMaster.create({
-      path: input.path,
+      path: input.path || 'null',
       description: input.description,
       BannersState: input.BannersState,
       name: input.name
@@ -19,7 +19,6 @@ const setBanners = async (parent, args, context, info) => {
     // Devuelve el banner recién creado como resultado
     return newBanner
   } catch (error) {
-    // Manejo de errores: puedes personalizar el manejo de errores según tus necesidades
     throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.')
   }
 }
