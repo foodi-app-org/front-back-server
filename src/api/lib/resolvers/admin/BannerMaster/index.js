@@ -3,21 +3,26 @@ import { Op } from 'sequelize'
 import bannersMaster from '../../../models/bannersMaster'
 import { deCode } from '../../../utils/util'
 
-// Define el resolver para la mutación setBanners
+const fs = require('fs')
+
 const setBanners = async (parent, args, context, info) => {
   try {
     // Extrae los datos del argumento de entrada
     const { input } = args
+    if (input.image) {
+      const { createReadStream, filename } = await input.image.file
+      const stream = createReadStream()
+      const path = `public/${filename}`
 
-    // Crea un nuevo banner en la base de datos utilizando el modelo "Banner"
-    const newBanner = await bannersMaster.create({
-      path: input.path || 'null',
-      description: input.description,
-      BannersState: input.BannersState,
-      name: input.name
-    })
-    // Devuelve el banner recién creado como resultado
-    return newBanner
+      await stream.pipe(fs.createWriteStream(path))
+      const newBanner = await bannersMaster.create({
+        path: `${process.env.URL_ADMIN_SERVER}/${path}` || 'null',
+        description: input.description,
+        BannersState: input.BannersState,
+        name: input.name
+      })
+      return newBanner
+    }
   } catch (error) {
     throw new Error('No se pudo crear el banner. Por favor, inténtalo de nuevo más tarde.')
   }

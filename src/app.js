@@ -66,7 +66,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
     res.send('ONLINE PORT IMAGES!')
   })
   // Routes
-  app.use('/static', express.static('public'))
+  app.use('/public', express.static('public'))
   // this folder for this application will be used to store public files
   app.use('/uploads', express.static('uploads'))
   app.use('/api', indexRoutes)
