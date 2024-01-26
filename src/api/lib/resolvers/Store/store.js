@@ -621,6 +621,7 @@ export const registerShoppingCard = async (_root, input, context) => {
   } = input.input || {}
   try {
     if (!id) return new ForbiddenError('no session')
+    if (comments.length > 140) return new Error('El comentario es muy largo')
     // Verificar si ya existe una ShoppingCard con el mismo ShoppingCardId
     let existingShoppingCard = null
 
@@ -808,31 +809,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         ['id', 'DESC']
       ]
     })
-
-    // Iterar por cada tienda y obtener los horarios usando getStoreSchedules
-    const storesWithSchedules = await Promise.all(
-      data.map(async (store) => {
-        const schedules = await getStoreSchedules(
-          null,
-          { idStore: store?.idStore },
-          null,
-          null
-        )
-        const { open } = getStatusOpenStore(schedules)
-        if (store?.scheduleOpenAll) {
-          return {
-            ...store?.toJSON(),
-            open: true
-          }
-        }
-        return {
-          ...store?.toJSON(),
-          open
-        }
-      })
-    )
-
-    return storesWithSchedules
+    return data
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error

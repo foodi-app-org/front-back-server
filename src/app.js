@@ -92,10 +92,11 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
 
         const { session, message } = await getUserFromToken(token)
-        const sessionExpired = message === 'Session expired, refresh needed'
+        const sessionExpired = (message === 'Session expired, refresh needed')
 
         if (sessionExpired) {
-          throw new GraphQLError('Session expired', {
+          res.setHeader('Session-Expired', 'true')
+          return new GraphQLError('Session expired', {
             extensions: {
               code: 'SESSION_EXPIRED',
               http: { status: 401 }
