@@ -438,6 +438,7 @@ export const updateCache = async ({ cache, query, nameFun, dataNew }) => cache.m
  * @returns {null} no hay retorno
  */
 const TOKEN = 'sma.sv1'
+
 export function setToken (token) {
   if (token === null) return false
   else if (token !== null) return JSON.parse

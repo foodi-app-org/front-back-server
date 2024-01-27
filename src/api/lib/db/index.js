@@ -13,7 +13,6 @@ const dialectOptions = {
     }
   }
 }
-
 function connect () {
   try {
     if (sequelize) return sequelize
@@ -34,7 +33,7 @@ function connect () {
 
     throw new Error(error)
   }
-  // sequelize.sync()
+  sequelize.sync()
   return sequelize
 }
 
