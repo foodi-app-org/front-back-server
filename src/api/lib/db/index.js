@@ -33,7 +33,7 @@ function connect () {
 
     throw new Error(error)
   }
-  sequelize.sync()
+  // sequelize.sync()
   return sequelize
 }
 

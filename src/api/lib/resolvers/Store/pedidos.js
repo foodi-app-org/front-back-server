@@ -7,9 +7,9 @@ import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes } from '../../utils/util'
+import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 
 import { deleteOneItem, getOneStore } from './store'
-import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 // Configura dotenv
 dotenv.config()
 export const createOnePedidoStore = async (_, { input }) => {
@@ -200,25 +200,34 @@ export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
 }
 const cache = {}
 
-const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore, ctx, pSState, search, min, max }) => {
-  const cacheKey = `${model}_${JSON.stringify(attributes)}_${fromDate}_${toDate}_${idStore}_${ctx}_${pSState}_${search}_${min}_${max}`
-  // Verificar si el resultado está en caché
-  if (cache[cacheKey]) return cache[cacheKey]
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0) // Establecer la fecha a las 00:00:00.000 de hoy
-
-  const tomorrow = new Date()
-  tomorrow.setHours(23, 59, 59, 999) // Establecer la fecha a las 23:59:59.999 de hoy
+const getPedidosByState = async ({
+  model,
+  attributes,
+  fromDate,
+  toDate,
+  idStore,
+  ctx,
+  pSState,
+  search,
+  min,
+  max
+}) => {
+  const START = new Date()
+  START.setHours(0, 0, 0, 0)
+  const NOW = new Date()
 
   const where = {
     [Op.and]: [
       {
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
         pSState,
-        pDatCre: {
-          [Op.between]: [fromDate || today, toDate || tomorrow]
-        }
+        ...((fromDate && toDate)
+          ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } }
+          : {
+            pDatCre: {
+              [Op.between]: [START.toISOString(), NOW.toISOString()]
+            }
+          })
       }
     ]
   }
@@ -234,11 +243,8 @@ const getPedidosByState = async ({ model, attributes, fromDate, toDate, idStore,
   const orders = await model.findAll({
     attributes,
     where,
-    order: [['pDatMod', 'DESC']]
+    order: [['pDatCre', 'DESC']]
   })
-
-  // Almacenar el resultado en caché
-  cache[cacheKey] = orders
 
   return orders
 }
@@ -317,13 +323,12 @@ const getOrdersByState = async ({
         ctx,
         pSState
       })
+      console.log({ orders })
       ordersByState[getStatusKey(pSState)] = orders || []
     }
-
     for (let pSState = 1; pSState <= 5; pSState++) {
       await addOrdersByState(pSState)
     }
-
     return ordersByState
   } catch (error) {
     return ordersByState
@@ -353,11 +358,11 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
     'createdAt',
     'updatedAt']
 
-  const ordersByState = await getOrdersByState({ idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes })
   try {
+    const ordersByState = await getOrdersByState({ idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes })
     return ordersByState
   } catch (error) {
-    return ordersByState
+    return new Error('Ocurrio un error')
   }
 }
 
