@@ -9,6 +9,7 @@ import Users from '../../models/Users'
 import { deCode, getAttributes } from '../../utils/util'
 
 import { deleteOneItem, getOneStore } from './store'
+import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 // Configura dotenv
 dotenv.config()
 export const createOnePedidoStore = async (_, { input }) => {
@@ -128,6 +129,33 @@ export const getAllPedidoStore = async (_, args, ctx, info) => {
             // ppState: 0,
             // ID STORE
             idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
+          }
+        ]
+      }
+    })
+    return data
+  } catch (error) {
+    return error
+  }
+}
+
+const getAllIncomingToDayOrders = async (_, args, ctx, info) => {
+  const { idStore, statusOrder } = args
+  try {
+    const START = new Date()
+    START.setHours(0, 0, 0, 0)
+    const NOW = new Date()
+    const attributes = getAttributes(StatusPedidosModel, info)
+    const data = await StatusPedidosModel.findAll({
+      attributes,
+      where: {
+        [Op.or]: [
+          {
+            pSState: statusOrder ?? 1,
+            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
+            pDatCre: {
+              [Op.between]: [START.toISOString(), NOW.toISOString()]
+            }
           }
         ]
       }
@@ -439,6 +467,7 @@ export default {
     getAllPedidoStore,
     getAllPedidoStoreFinal,
     getAllOrdersFromStore,
+    getAllIncomingToDayOrders,
     getOnePedidoStore,
     // User
     getAllPedidoUserFinal

@@ -111,8 +111,10 @@ type StorePedidosFromPSState {
   CONCLUDES: [StorePedidos]
   RECHAZADOS: [StorePedidos]
 }
+
 type Query {
 """Response for find one Store"""
+  getAllIncomingToDayOrders(statusOrder: Int, idStore: ID): [StorePedidos]
   getOnePedidoStore(pCodeRef: String, StoreName: String, idStore: ID): StorePedidos
   getAllPedidoStore(StoreName: String, idStore: ID): [StorePedidos]
   getAllPedidoStoreFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StorePedidos]

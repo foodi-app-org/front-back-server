@@ -371,7 +371,6 @@ export const getTodaySales = async (_, args, ctx) => {
       },
       order: [['pDatCre', 'DESC']]
     })
-    console.log({START: START.toISOString()}, { NOW: NOW.toISOString() })
     if (data?.length) {
       return data?.length || 0
     } else {
