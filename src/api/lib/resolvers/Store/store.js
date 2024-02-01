@@ -851,7 +851,7 @@ export const getOneStore = async (parent, args, context, info) => {
     })
     const schedules = await getStoreSchedules(
       null,
-      { idStore: idStore || parent.idStore },
+      { idStore: idStore ?? parent.idStore },
       null,
       null
     )

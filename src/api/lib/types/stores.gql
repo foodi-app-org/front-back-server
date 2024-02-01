@@ -110,6 +110,7 @@ type Store {
     createdAt: DateTime
     cateStore: CatStore
     pais: Country
+    deliveryTimeMinutes: Int
     city: City
     department: Department
     getStoreSchedules: [StoreSchedule]
