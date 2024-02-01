@@ -199,6 +199,7 @@ type Mutation {
     "registra Store data
     """
     newRegisterStore(input: IStore): AuthPayload
+    createDeliveryTime(minutes: Int!): Response
     createOneContract(input: InputContractType): AuthPayload
     setFavorites(input: IFavorites!): Response!
     setEditNameStore(StoreName: String): Response!

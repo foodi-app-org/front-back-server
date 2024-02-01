@@ -3,6 +3,7 @@ import {
   INTEGER,
   STRING,
   DATE
+  , TINYINT
 } from 'sequelize'
 
 import connect from '../../db'
@@ -12,6 +13,7 @@ import CitiesModel from '../information/CitiesModel'
 import CountriesModel from '../information/CountriesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
 import Users from '../Users'
+
 const sequelize = connect()
 
 const Store = sequelize.define('store', {
@@ -72,6 +74,17 @@ const Store = sequelize.define('store', {
       key: 'catStore'
     },
     get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+  },
+  deliveryTimeMinutes: {
+    type: TINYINT,
+    allowNull: true,
+    validate: {
+      isWithinRange (value) {
+        if (value < 1 || value > 60) {
+          throw new Error('El tiempo de entrega debe estar entre 1 y 60 minutos')
+        }
+      }
+    }
   },
   neighborhoodStore: {
     type: STRING,

@@ -27,6 +27,32 @@ import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
 
 // eslint-disable-next-line
+const createDeliveryTime = async (_, { minutes  }, ctx, lol) => {
+  if (!ctx.restaurant) {
+    return {
+      success: false,
+      message: 'No se pudo crear el tiempo de entrega'
+    }
+  }
+  try {
+    if (minutes < 1 || minutes > 60) {
+      throw new Error('El tiempo de entrega debe estar entre 1 y 60 minutos')
+    }
+    await Store.update(
+      { deliveryTimeMinutes: minutes },
+      { where: { idStore: deCode(ctx.restaurant) } }
+    )
+    return {
+      success: true,
+      message: 'Tiempo de entrega creado'
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: 'No se pudo crear el tiempo de entrega'
+    }
+  }
+}
 export const newRegisterStore = async (_, { input }, ctx, lol) => {
   const { cId, dId, ctId, id, catStore } = input
   try {
@@ -1216,6 +1242,7 @@ export default {
   },
   MUTATIONS: {
     newRegisterStore,
+    createDeliveryTime,
     setFavorites,
     setRatingStar,
     deleteOneItem,
