@@ -3,7 +3,6 @@ import {
   INTEGER,
   STRING,
   DATE
-  , TINYINT
 } from 'sequelize'
 
 import connect from '../../db'
