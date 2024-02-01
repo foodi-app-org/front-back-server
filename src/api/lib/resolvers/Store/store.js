@@ -791,7 +791,6 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         'id',
         'dId',
         'scheduleOpenAll',
-        'deliveryTimeMinutes',
         'ctId',
         'createdAt',
         'catStore',
@@ -805,6 +804,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         'Image',
         'banner',
         'documentIdentifier',
+        'deliveryTimeMinutes',
         'uPhoNum',
         'ULocation',
         'upLat',
@@ -835,6 +835,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         ['id', 'DESC']
       ]
     })
+    console.log(data)
     return data
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')

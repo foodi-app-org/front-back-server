@@ -76,11 +76,12 @@ const Store = sequelize.define('store', {
     get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   deliveryTimeMinutes: {
-    type: TINYINT,
-    allowNull: true,
+    type: INTEGER,
+    allowNull: false,
+    defaultValue: 0,
     validate: {
       isWithinRange (value) {
-        if (value < 1 || value > 60) {
+        if (value && (value < 1 || value > 60)) {
           throw new Error('El tiempo de entrega debe estar entre 1 y 60 minutos')
         }
       }
