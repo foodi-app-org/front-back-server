@@ -19,7 +19,7 @@ export const cookie = {
   password: process.env.SESSION_KEY,
   cookieName: process.env.SESSION_NAME,
   cookieOptions: {
-    maxAge: 60 * 60 * 8, // 8 horas
+    maxAge: 60 * 60 * 24, // 8 horas
     httpOnly: true,
     path: '/',
     secure: process.env.NODE_ENV === 'production', // Ajusta a true en producción

@@ -8,7 +8,7 @@ import { LoginEmail } from '../lib/templates/LoginEmail'
 import { sendEmail } from '../lib/utils'
 import { deCode } from '../lib/utils/util'
 
-const MAX_AGE = 60 * 60 * 8
+const MAX_AGE = 60 * 60 * 24
 
 /**
  * @description Función que guarda el device

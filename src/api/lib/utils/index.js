@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
 
 export const generateToken = dataUser => {
-  const expiresIn = process.env.JWT_EXPIRY || '1d'
+  const expiresIn = '1d'
   const AccessToken = jwt.sign(dataUser, process.env.AUTHO_USER_KEY, { expiresIn })
   return AccessToken
 }

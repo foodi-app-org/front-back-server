@@ -2,13 +2,16 @@ import { withIronSessionApiRoute } from 'iron-session/next'
 
 import { newRegisterUser } from '../lib/resolvers/users/user'
 import { LoginEmail } from '../lib/templates/LoginEmail'
-import { parseUserAgent, sendEmail } from '../lib/utils'
+import {
+  getTokenState,
+  parseUserAgent,
+  sendEmail
+} from '../lib/utils'
 import { deCode } from '../lib/utils/util'
-import { getTokenState } from '../../../utils'
 import UserDeviceModel from '../lib/models/users/userDevice'
 import Users from '../lib/models/Users'
 
-export const MAX_AGE = 60 * 60 * 8
+export const MAX_AGE = 60 * 60 * 24
 
 /**
  * @description Función que guarda el device
@@ -89,7 +92,7 @@ export const getDevice = async ({ input }) => {
 /**
  * @description Función que genera el token
  * @param {string} token Token JWT para el inicio de sesión y el id del usuario
- * @returns {{ user: string, userProfile: object, error: boolean }} devolución del token y los datos
+ * @returns {{ user: string|null, userProfile: object, error: boolean, message: string }} devolución del token y los datos
  */
 export const getUserFromToken = async token => {
   let user = null
