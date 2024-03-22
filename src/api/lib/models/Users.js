@@ -8,7 +8,9 @@ import connect from '../db'
 import { enCode } from '../utils/util'
 const sequelize = connect()
 
-const Users = sequelize.define('users', {
+export const USER_MODEL = 'users'
+
+const Users = sequelize.define(USER_MODEL, {
   id: {
     type: INTEGER,
     primaryKey: true,
@@ -79,9 +81,9 @@ const Users = sequelize.define('users', {
   },
   createAt: {
     type: DATE,
-    default: Date.now()
+    default: Date.now(),
+    defaultValue: Date.now()
   }
-
 })
 
 export default Users

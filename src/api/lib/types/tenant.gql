@@ -1,0 +1,41 @@
+type TenantType {
+  tenantId: ID
+  subdomain: String
+  schemaName: String
+  subscriptionId: String
+  storageId: String
+  subscriberId: String
+  masterPassword: String
+  deleted: Boolean
+  createdAt: String
+  updatedAt: String
+  mailBody: String
+}
+
+# Tenant Input
+input ITenant {
+  tenantId: ID
+  subdomain: String
+  schemaName: String
+  subscriptionId: String
+  storageId: String
+  subscriberId: String
+  masterPassword: String
+  deleted: Boolean
+  createdAt: String
+  updatedAt: String
+  mailBody: String
+}
+
+# Query
+type Query {
+  getAllTenants: [TenantType]
+  getTenantById(tenantId: ID): TenantType
+}
+
+# Mutations
+type Mutation {
+  createTenant(input: ITenant): TenantType
+  updateTenant(input: ITenant): TenantType
+  deleteTenant(tenantId: ID): Boolean
+}

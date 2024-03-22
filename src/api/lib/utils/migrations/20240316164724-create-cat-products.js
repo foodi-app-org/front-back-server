@@ -1,23 +1,14 @@
-import {
-  INTEGER,
-  STRING,
-  TEXT
-} from 'sequelize'
+const { STRING } = require('sequelize')
+const { INTEGER } = require('sequelize')
+const { TEXT } = require('sequelize')
 
-import connect from '../../db'
-import { enCode } from '../../utils/util'
-import Users from '../Users'
-import Store from '../Store/Store'
+const { enCode } = require('../../utils/util')
+const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
+const { CATEGORY_PRODUCT_MODEL } = require('../../models/Store/cat')
+const { USER_MODEL } = require('../../models/Users')
 
-const sequelize = connect()
-
-let productModelFood = null
-
-export const CATEGORY_PRODUCT_MODEL = 'catproducts'
-
-const catProducts = sequelize.define(
-  CATEGORY_PRODUCT_MODEL,
-  {
+exports.up = async (queryInterface, schemaName) => {
+  await queryInterface.createTable(CATEGORY_PRODUCT_MODEL, {
     carProId: {
       type: INTEGER,
       primaryKey: true,
@@ -33,7 +24,10 @@ const catProducts = sequelize.define(
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       references: {
-        model: Store,
+        model: {
+          tableName: STORE_MODEL,
+          schema: defaultSchema
+        },
         key: 'idStore'
       },
       get (x) {
@@ -46,8 +40,12 @@ const catProducts = sequelize.define(
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
+      field: 'id',
       references: {
-        model: Users,
+        model: {
+          tableName: USER_MODEL,
+          schema: defaultSchema
+        },
         key: 'id'
       },
       get (x) {
@@ -76,18 +74,9 @@ const catProducts = sequelize.define(
       defaultValue: new Date(),
       allowNull: true
     }
-  },
-  {
-    timestamps: false
-  }
-)
+  }, { schema: schemaName })
+}
 
-export default catProducts
-
-import('../product/productFood').then((module) => {
-  productModelFood = module.default
-  catProducts.hasMany(productModelFood, {
-    foreignKey: 'carProId',
-    onDelete: 'CASCADE'
-  })
-})
+exports.down = async (queryInterface, schemaName) => {
+  await queryInterface.dropTable(STORE_MODEL, { schema: schemaName })
+}

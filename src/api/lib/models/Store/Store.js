@@ -2,7 +2,8 @@ import {
   BOOLEAN,
   INTEGER,
   STRING,
-  DATE
+  DATE,
+  DataTypes
 } from 'sequelize'
 
 import connect from '../../db'
@@ -15,12 +16,15 @@ import Users from '../Users'
 
 const sequelize = connect()
 
-const Store = sequelize.define('store', {
+export const defaultSchema = 'public'
+export const STORE_MODEL = 'stores'
+
+const Store = sequelize.define(STORE_MODEL, {
   idStore: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
   },
   // Locations
   cId: {
@@ -184,7 +188,6 @@ const Store = sequelize.define('store', {
     type: DATE,
     default: Date.now()
   }
-
 })
 
 export default Store

@@ -5,8 +5,9 @@ import { enCode } from '../../utils/util'
 
 const sequelize = connect()
 
-//
-const colorModel = sequelize.define('color', {
+export const COLOR_MODEL = 'color'
+
+const colorModel = sequelize.define(COLOR_MODEL, {
   colorId: {
     type: INTEGER,
     primaryKey: true,

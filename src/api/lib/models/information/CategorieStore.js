@@ -9,7 +9,9 @@ import connect from '../../db'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
 
-const CatStore = sequelize.define('catstore', {
+export const MODEL_CAT_STORE_NAME = 'catstores'
+
+const CatStore = sequelize.define(MODEL_CAT_STORE_NAME, {
   catStore: {
     type: INTEGER,
     primaryKey: true,

@@ -11,9 +11,12 @@ import recommendedCategorieStoreResolver from './recommended'
 import paymentCardResolver from './paymentCard'
 import adminResolver from './admin'
 import messagesResolver from './messages'
+import tenant from './tenant'
+
 export default {
   ...UserResolvers.TYPES,
   ...storeResolver.TYPES,
+  ...tenant.TYPES,
   ...informationResolver.TYPES,
   ...Providers.TYPES,
   ...products.TYPES,
@@ -27,6 +30,7 @@ export default {
   // Upload: GraphQLUpload,
   Query: {
     ...UserResolvers.QUERIES,
+    ...tenant.QUERIES,
     ...categoriesResolver.QUERIES,
     ...adminResolver.QUERIES,
     ...Providers.QUERIES,
@@ -41,6 +45,7 @@ export default {
   Mutation: {
     ...UserResolvers.MUTATIONS,
     ...Providers.MUTATIONS,
+    ...tenant.MUTATIONS,
     ...categoriesResolver.MUTATIONS,
     ...adminResolver.MUTATIONS,
     ...storeResolver.MUTATIONS,

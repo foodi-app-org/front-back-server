@@ -1,4 +1,8 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  SMALLINT
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
@@ -6,7 +10,9 @@ import { enCode } from '../../utils/util'
 import DepartmentsModel from './DepartmentsModel'
 const sequelize = connect()
 
-const CitiesModel = sequelize.define('cities', {
+export const MODEL_CITIES_NAME = 'cities'
+
+const CitiesModel = sequelize.define(MODEL_CITIES_NAME, {
   ctId: {
     type: INTEGER,
     primaryKey: true,
@@ -34,12 +40,12 @@ const CitiesModel = sequelize.define('cities', {
   },
   cDatCre: {
     type: 'TIMESTAMP',
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: new Date(),
     allowNull: false
   },
   cDatMod: {
     type: 'TIMESTAMP',
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: new Date(),
     allowNull: false
   }
 }, {

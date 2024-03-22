@@ -1,12 +1,12 @@
 # types
 type ProductFood {
     pId: ID!
-    carProId: ID
+    carProId: ID  #Categorías de productFoodos
     sizeId: ID #Talla
     colorId: ID #Color
     idStore: ID #Store
     cId: ID #Country
-    caId: ID #Categorías de productFoodos
+    caId: ID
     dId: ID #Department
     ctId: ID #Cuidad
     tpId: ID #Características

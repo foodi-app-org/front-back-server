@@ -1,7 +1,7 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
-import { deCode } from '../../utils/util'
+import { deCode, getTenantName } from '../../utils/util'
 import ScheduleStore from '../../models/Store/scheduleStore'
 import Store from '../../models/Store/Store'
 
@@ -44,8 +44,19 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
     schDay
   } = input || {}
   try {
+    const existRestaurant = await Store.schema(getTenantName(context?.restaurant)).findOne({
+      where: {
+        idStore: deCode(context.restaurant)
+      }
+    })
+    if (!existRestaurant) {
+      return {
+        success: false,
+        message: 'El restaurante no existe'
+      }
+    }
     // eslint-disable-next-line no-unused-vars
-    const [exist, _created] = await ScheduleStore.findOrCreate({
+    const [exist, _created] = await ScheduleStore.schema(getTenantName(context?.restaurant)).findOrCreate({
       where: {
         schDay,
         // ID Store
@@ -61,11 +72,11 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
       await ScheduleStore.update({ schHoEnd, schHoSta },
         {
           where:
-                    {
-                      schDay,
-                      // ID Store
-                      idStore: deCode(context.restaurant)
-                    }
+          {
+            schDay,
+            // ID Store
+            idStore: deCode(context.restaurant)
+          }
         })
       return {
         success: true,
@@ -85,12 +96,12 @@ export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _i
   if (!context.restaurant || !context.User.id) return new ForbiddenError('no session')
 
   try {
-    await Store.update({ scheduleOpenAll },
+    await Store.schema(getTenantName(context?.restaurant)).update({ scheduleOpenAll },
       {
         where:
-                    {
-                      idStore: deCode(context.restaurant)
-                    }
+        {
+          idStore: deCode(context.restaurant)
+        }
       })
     return {
       success: true,
@@ -102,7 +113,7 @@ export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _i
 }
 export const getStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
-    const data = await ScheduleStore.findAll({
+    const data = await ScheduleStore.schema(getTenantName(context?.restaurant)).findAll({
       attributes: [
         'idStore',
         'schId',
@@ -129,7 +140,7 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
 }
 const getOneStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
-    const data = await ScheduleStore.findOne({
+    const data = await ScheduleStore.schema(getTenantName(context?.restaurant)).findOne({
       attributes: [
         // 'idStore',
         'schId',

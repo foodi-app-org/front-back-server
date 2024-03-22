@@ -12,6 +12,7 @@ import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
+
 const sequelize = connect()
 
 const productModelFood = sequelize.define('productmodelfood', {

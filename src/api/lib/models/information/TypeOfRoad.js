@@ -5,8 +5,9 @@ import { enCode } from '../../utils/util'
 const sequelize = connect()
 
 //
+export const MODEL_TYPEROAD_NAME = 'typeroad'
 
-const TypeRoad = sequelize.define('typeroad', {
+const TypeRoad = sequelize.define(MODEL_TYPEROAD_NAME, {
   rId: {
     type: INTEGER,
     primaryKey: true,

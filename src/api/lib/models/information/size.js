@@ -4,8 +4,6 @@ import connect from '../../db'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
 
-//
-
 const SizeModel = sequelize.define('sizes', {
   sizeId: {
     type: INTEGER,

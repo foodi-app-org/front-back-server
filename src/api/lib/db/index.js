@@ -7,12 +7,22 @@ dotenv.config()
 
 let sequelize = null
 const dialectOptions = {
-  postgres: {
-    ssl: {
-      rejectUnauthorized: false
-    }
+  postgres: {}
+}
+
+if (process.env.NODE_ENV === 'production') {
+  dialectOptions.postgres.ssl = {
+    rejectUnauthorized: false
   }
 }
+
+export const connectConfig = {
+  host: process.env.HOST_DB,
+  port: process.env.PORT_DB,
+  dialect: process.env.DIALECT_DB,
+  dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
+}
+
 function connect () {
   try {
     if (sequelize) return sequelize
@@ -21,18 +31,14 @@ function connect () {
       process.env.USER_DB, // name of the user database
       process.env.PASS_DB, // password of the database
       {
-        host: process.env.HOST_DB,
-        logging: true,
-        port: process.env.PORT_DB,
-        dialect: process.env.DIALECT_DB,
-        dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
+        ...connectConfig
       }
     )
   } catch (error) {
     console.log(error)
     throw new Error(error)
   }
-  // sequelize.sync()
+  sequelize.sync()
   return sequelize
 }
 

@@ -23,6 +23,7 @@ import indexRoutes, { cookie } from './api/lib/router'
 import resolvers from './api/lib/resolvers'
 import typeDefs from './api/lib/typeDefs'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
+import { auth } from './api/lib/middlewares/auth'
 // Configura dotenv
 dotenv.config()
 
@@ -93,8 +94,9 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         parseCookies(req)
         res.setHeader('x-token-access', `${token}`)
         res.setHeader('Access-Control-Allow-Origin', '*')
-        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH')
-
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, DELETE')
+        const ses = await auth(token)
+        if (!ses) return { req, userAgent: '', setCookies: setCookies || [], setHeaders: setHeaders || [], User: null, restaurant: null }
         const { session, message } = await getUserFromToken(token)
         const sessionExpired = (message === 'Session expired, refresh needed')
 

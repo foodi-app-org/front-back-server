@@ -6,9 +6,8 @@ import CountriesModel from '../information/CountriesModel'
 import TypeIdentitiesModel from '../information/TypeIdentitiesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
 import { enCode } from '../../utils/util'
-const sequelize = connect()
 
-//
+const sequelize = connect()
 
 const ThirdPartiesModel = sequelize.define('thirdparties', {
   tpId: {

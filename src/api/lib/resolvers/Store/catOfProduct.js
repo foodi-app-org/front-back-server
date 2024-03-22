@@ -5,11 +5,12 @@ import { ForbiddenError } from 'apollo-server-express'
 import productModelFood from '../../models/product/productFood'
 import catProducts from '../../models/Store/cat'
 import { linkBelongsTo } from '../../utils'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 export const updatedProducts = async (_, { input }, ctx) => {
   try {
-    await catProducts.create({ ...input, pState: 1, id: deCode(ctx.User.id), idStore: deCode(ctx.restaurant) })
+    const res = await catProducts.schema(getTenantName(ctx?.restaurant)).create({ ...input, pState: 1, id: deCode(ctx.User.id), idStore: deCode(ctx.restaurant) })
+
     return {
       success: true,
       message: 'Categoría creada'
@@ -20,9 +21,15 @@ export const updatedProducts = async (_, { input }, ctx) => {
 }
 
 export const editOneCategoryProduct = async (_, { pName, ProDescription, carProId }, ctx) => {
+  if (!ctx?.restaurant) {
+    return {
+      success: false,
+      message: 'Restaurante no encontrado.'
+    }
+  }
   try {
     // Buscar la categoría de producto por carProId
-    const categoryProduct = await catProducts.findOne({ where: { carProId: deCode(carProId) } })
+    const categoryProduct = await catProducts.schema(getTenantName(ctx?.restaurant)).findOne({ where: { carProId: deCode(carProId) } })
 
     if (!categoryProduct) {
       return {
@@ -32,10 +39,15 @@ export const editOneCategoryProduct = async (_, { pName, ProDescription, carProI
     }
 
     // Actualizar los campos de la categoría de producto
-    await categoryProduct.update({
-      pName,
-      ProDescription
-    })
+    await catProducts.schema(getTenantName(ctx?.restaurant)).update(
+      {
+        pName,
+        ProDescription
+      },
+      {
+        where: { carProId: deCode(carProId) } // Agregar la cláusula where para actualizar solo la categoría encontrada
+      }
+    )
 
     return {
       success: true,
@@ -83,7 +95,7 @@ export const catProductsAll = async (root, args, context, info) => {
     }
   }
   const attributes = getAttributes(catProducts, info)
-  const data = await catProducts.findAll({
+  const data = await catProducts.schema(getTenantName(context?.restaurant)).findAll({
     attributes,
     where: {
       [Op.or]: [
@@ -135,12 +147,12 @@ export const deleteCatOfProducts = async (_, { idPc, pState }) => {
     }
   }
 }
-export const deleteCatFinalOfProducts = async (_, { idPc, withProduct }) => {
+export const deleteCatFinalOfProducts = async (_, { idPc, withProduct }, context) => {
   try {
     const decodedId = deCode(idPc)
 
     // Buscar la categoría a borrar
-    const category = await catProducts.findOne({ where: { carProId: decodedId } })
+    const category = await catProducts.schema(getTenantName(context?.restaurant)).findOne({ where: { carProId: decodedId } })
 
     if (!category) {
       return {
@@ -212,7 +224,7 @@ export const getCatProductsWithProduct = async (root, args, context) => {
         caId: { [Op.in]: categories.map(x => deCode(x)) }
       }
     }
-    const { count, rows } = await catProducts.findAndCountAll({
+    const { count, rows } = await catProducts.schema().findAndCountAll({
       where: {
         [Op.and]: [
           {

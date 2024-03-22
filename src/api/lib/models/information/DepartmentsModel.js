@@ -6,7 +6,9 @@ import { enCode } from '../../utils/util'
 import CountriesModel from './CountriesModel'
 const sequelize = connect()
 
-const DepartmentsModel = sequelize.define('departments', {
+export const MODEL_DEPARTMENTS_NAME = 'departments'
+
+const DepartmentsModel = sequelize.define(MODEL_DEPARTMENTS_NAME, {
   dId: {
     type: INTEGER,
     primaryKey: true,
@@ -34,12 +36,12 @@ const DepartmentsModel = sequelize.define('departments', {
   },
   dDatCre: {
     type: 'TIMESTAMP',
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: new Date(),
     allowNull: false
   },
   dDatMod: {
     type: 'TIMESTAMP',
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: new Date(),
     allowNull: false
   }
 }, {

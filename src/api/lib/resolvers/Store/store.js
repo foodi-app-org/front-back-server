@@ -2,7 +2,7 @@ import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { GraphQLError } from 'graphql'
 import { Op } from 'sequelize'
 
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, enCode, getAttributes } from '../../utils/util'
 import { getStatusOpenStore } from '../../utils'
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -19,6 +19,8 @@ import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Store from '../../models/Store/Store'
 import clients from '../../models/Store/clients'
+import { createTenant } from '../tenant/tenant.resolver'
+import Users from '../../models/Users'
 
 import { createClients } from './Clients'
 import { createOnePedidoStore } from './pedidos'
@@ -54,9 +56,32 @@ const createDeliveryTime = async (_, { minutes  }, ctx, lol) => {
   }
 }
 export const newRegisterStore = async (_, { input }, ctx, lol) => {
-  const { cId, dId, ctId, id, catStore } = input
+  const {
+    cId,
+    dId,
+    ctId,
+    id,
+    catStore
+  } = input || {
+    cId: null,
+    dId: null,
+    ctId: null,
+    id: null,
+    catStore: null
+  }
   try {
     let res = {}
+    const findUser = await Users.findOne({
+      where: {
+        id: deCode(id)
+      }
+    })
+    if (!findUser) {
+      return {
+        success: false,
+        message: 'No se encontró el usuario'
+      }
+    }
     const data = await Store.findOne({
       attributes: ['id', 'idStore'],
       where: {
@@ -80,6 +105,31 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       catStore: deCode(catStore)
     })
     const idStore = res.idStore
+
+    const inputTenant = {
+      subdomain: idStore,
+      subscriberId: idStore,
+      schemaName: idStore,
+      subscriptionId: idStore,
+      storageId: res.storeName ?? '',
+      masterPassword: idStore,
+      deleted: false,
+      mailBody: input?.emailStore ?? findUser?.email
+    }
+    const context = {
+      ...ctx,
+      User: {
+        ...ctx.User,
+        restaurant: {
+          idStore
+        }
+      },
+      restaurant: {
+        idStore
+      }
+    }
+    createTenant(null, { input: inputTenant }, context)
+
     const inputClient = {
       clientName: 'CLIENTES VARIOS',
       clientLastName: '',
@@ -89,7 +139,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       gender: 1,
       idStore
     }
-    createClients(null, { input: inputClient })
+    createClients(null, { input: inputClient }, ctx)
     return {
       success: true,
       idStore,
@@ -114,7 +164,6 @@ export const getStore = async (
   context,
   info
 ) => {
-  // Hola mundo
   const attributes = getAttributes(Store, info)
   const data = await Store.findOne({
     attributes,
@@ -835,7 +884,7 @@ export const getAllStoreInStore = async (root, args, _, _info) => {
         ['id', 'DESC']
       ]
     })
-    console.log(data)
+
     return data
   } catch (e) {
     const error = new Error('Lo sentimos, ha ocurrido un error interno')

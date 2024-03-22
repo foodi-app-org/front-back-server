@@ -169,7 +169,7 @@ export default withIronSessionApiRoute(
         response: 'no ok',
         ok: false,
         success: false,
-        message: 'Error 500',
+        message: 'Error 500 para el registro',
         token
       })
     } catch (error) {

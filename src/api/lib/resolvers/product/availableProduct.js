@@ -76,7 +76,6 @@ export const getFoodAllProduct = async (root, args, context, info) => {
   })
   return data
 }
-// eslint-disable-next-line
 
 export const registerAvailableProduct = async (root, { input }, context) => {
   try {

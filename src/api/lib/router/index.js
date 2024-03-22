@@ -157,12 +157,16 @@ router.post('/auth', async (req, res) => {
         token
       })
     }
-
+    console.log(
+      success,
+      message,
+      token
+      )
     return res.status(500).json({
       response: 'no ok',
       ok: false,
       success: false,
-      message: 'Error 500',
+      message: 'Error 500 para el registro',
       token
     })
   } catch (error) {

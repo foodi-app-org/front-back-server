@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 

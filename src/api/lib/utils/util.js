@@ -7,8 +7,23 @@ const { Base64 } = require('js-base64')
 
 const SECRET_KEY = 'f128635fca2edc7bb4e47a577cfe0d1a013dcdceffacad1abb128e640f9e571c'
 
-const enCode = value => {
+export const freeTrialSchema = process.env.FREE_TRIAL_SCHEMA || 'public'
+
+export function replaceHyphensWithUnderscores (str) {
   try {
+    if (!str) return ''
+    return str.replace(/-/g, '_')
+  } catch (error) {
+    console.log('Error:', error)
+  }
+}
+
+export const enCode = value => {
+  try {
+    if (!value || value === '' || value === undefined) return ''
+    if (typeof value !== 'string') {
+      value = value.toString()
+    }
     if (value) {
       const cipher = crypto.createCipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
       let encrypted = cipher.update(value.toString(), 'utf-8', 'hex')
@@ -29,7 +44,7 @@ const enCode = value => {
   }
 }
 
-const deCode = uuidValue => {
+export const deCode = uuidValue => {
   try {
     if (!uuidValue) return ''
 
@@ -93,7 +108,7 @@ const updateOrCreate = async (model, newItem, where) => {
 }
 
 // Busca los campos que coinciden con la base de datos y la query de graphql
-const getAttributes = (model, { fieldNodes }) => {
+export const getAttributes = (model, { fieldNodes }) => {
   // get the fields of the Model (columns of the table)
   const columns = new Set(Object.keys(model.rawAttributes))
   const requested_attributes = fieldNodes[0].selectionSet?.selections
@@ -139,25 +154,14 @@ const filterKeyObject = (data, filters) => {
 
   return values
 }
-/**
- * valida los inputs
- * @version 0.0.1
- * @param {*} data valor
- * @param {boolean} typeNull null
- * @param {boolean} typeRange rango
- * @param {number} minRange minimo de rango
- * @param {number} maxRange maximo de rango
- * @param {boolean} typeLetters letras
- * @param {boolean} typeNumeric numerico
- * @param {boolean} typeEmail correo electronico
- * @param {boolean} typeFormat formato numerico
- * @return {boolean} true o false
- */
+export const getTenantName = (tenantId) => `tenant_${tenantId}`
 
 module.exports = {
   enCode,
   deCode,
   consecutive,
+  getTenantName,
+  replaceHyphensWithUnderscores,
   // pushNotifications,
   UpCrNotFind,
   UpCrFind,

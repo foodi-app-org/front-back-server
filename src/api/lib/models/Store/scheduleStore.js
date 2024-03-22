@@ -11,7 +11,9 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 const sequelize = connect()
 
-const ScheduleStore = sequelize.define('storechedules', {
+export const SCHEDULE_MODEL = 'storechedules'
+
+const ScheduleStore = sequelize.define(SCHEDULE_MODEL, {
   schId: {
     type: INTEGER,
     primaryKey: true,
