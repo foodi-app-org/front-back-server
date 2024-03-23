@@ -6,7 +6,9 @@ import connect from '../../db'
 import Typefeature from './TypFeature'
 const sequelize = connect()
 
-const Feature = sequelize.define('feature', {
+export const FEATURE_MODEL = 'features'
+
+const Feature = sequelize.define(FEATURE_MODEL, {
   fId: {
     type: INTEGER,
     primaryKey: true,

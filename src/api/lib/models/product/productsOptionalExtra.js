@@ -9,9 +9,12 @@ import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 import productModelFood from './productFood'
+
 const sequelize = connect()
 
-const productsOptionalExtra = sequelize.define('productsoptionalextra', {
+export const PRODUCT_OPTIONAL_EXTRA_MODEL = 'productsoptionalextras'
+
+const productsOptionalExtra = sequelize.define(PRODUCT_OPTIONAL_EXTRA_MODEL, {
   opExPid: {
     type: INTEGER,
     primaryKey: true,

@@ -11,8 +11,6 @@ const productModel = sequelize.define('productstore', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    // get(x) {return enCode(this.getDataValue(x))},
-    // get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
     get (x) { return enCode(this.getDataValue(x)) }
   },
   // User

@@ -10,7 +10,6 @@ import { deCode, getAttributes, getTenantName } from '../../utils/util'
 export const updatedProducts = async (_, { input }, ctx) => {
   try {
     const res = await catProducts.schema(getTenantName(ctx?.restaurant)).create({ ...input, pState: 1, id: deCode(ctx.User.id), idStore: deCode(ctx.restaurant) })
-
     return {
       success: true,
       message: 'Categoría creada'
@@ -224,7 +223,7 @@ export const getCatProductsWithProduct = async (root, args, context) => {
         caId: { [Op.in]: categories.map(x => deCode(x)) }
       }
     }
-    const { count, rows } = await catProducts.schema().findAndCountAll({
+    const { count, rows } = await catProducts.schema(getTenantName(context?.restaurant)).findAndCountAll({
       where: {
         [Op.and]: [
           {
@@ -287,10 +286,10 @@ export const getCatProductsWithProductClient = async (root, args, context, info)
 export default {
   TYPES: {
     catProductsWithProduct: {
-      productFoodsAll: async (parent, _args, _context, info) => {
+      productFoodsAll: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.findAll({
+          const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
             attributes,
             where: {
               [Op.or]: [

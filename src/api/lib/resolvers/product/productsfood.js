@@ -16,7 +16,8 @@ import ThirdPartiesModel from '../../models/thirdParties/ThirdPartiesModel'
 import {
   enCode,
   deCode,
-  getAttributes
+  getAttributes,
+  getTenantName
 } from '../../utils/util'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
@@ -49,7 +50,7 @@ export const productFoodsOne = async (root, { pId }, context, info) => {
       return new Error('Lo sentimos, ha ocurrido un error interno o el producto no esta  registrado, Vuelve a intentarlo mas tarde.')
     }
     const attributes = getAttributes(productModelFood, info)
-    const data = await productModelFood.findOne({
+    const data = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({
       attributes,
       where: {
         [Op.or]: [
@@ -121,7 +122,7 @@ export const productFoodsAll = async (root, args, context, info) => {
       }
     }
     const attributes = getAttributes(productModelFood, info)
-    const data = await productModelFood.findAll({
+    const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -179,9 +180,9 @@ export const updateProductFoods = async (_root, { input }, context) => {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
-
+    console.log(context)
     if (!pId) {
-      const data = await productModelFood.create({
+      const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
         ...input,
         pState: 1,
         ValueDelivery: 0,
@@ -197,15 +198,15 @@ export const updateProductFoods = async (_root, { input }, context) => {
       return data
     }
 
-    const existingProduct = await productModelFood.findOne({ where: { pId: deCode(pId) } })
+    const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { pId: deCode(pId) } })
     if (!existingProduct) {
-      throw new ApolloError('El producto no existe.', 404)
+      throw new ApolloError('El producto no existe.', '404')
     }
 
-    await productModelFood.update({ pState: pState === 1 ? 0 : 1 }, { where: { pId: deCode(pId) } })
+    await productModelFood.schema(getTenantName(context?.restaurant)).update({ pState: pState === 1 ? 0 : 1 }, { where: { pId: deCode(pId) } })
     return existingProduct
   } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', '500', e)
   }
 }
 

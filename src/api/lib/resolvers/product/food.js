@@ -3,7 +3,7 @@ import { Op } from 'sequelize'
 
 import productModel from '../../models/product/food'
 import Store from '../../models/Store/Store'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   const id = ctx.User.id || ''
@@ -18,10 +18,12 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
     return { success: false, message: 'producto no creado' || error.message }
   }
 }
+
+// ESTE ES EL REAL
 export const getStore = async (root, args, context, info) => {
   const { id } = args || {}
   const attributes = getAttributes(Store, info)
-  const data = await Store.findOne({
+  const data = await Store.schema(getTenantName(context?.restaurant)).findOne({
     attributes,
     where: {
       idStore: id ? deCode(id) : deCode(context.restaurant),

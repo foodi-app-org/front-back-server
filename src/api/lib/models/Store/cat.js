@@ -22,6 +22,7 @@ const catProducts = sequelize.define(
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
+      unique: true,
       get (x) {
         return enCode(this.getDataValue(x))
       }

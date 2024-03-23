@@ -1,10 +1,18 @@
-import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  SMALLINT,
+  DATE
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
-const SizeModel = sequelize.define('sizes', {
+export const SIZE_MODEL = 'sizes'
+
+const SizeModel = sequelize.define(SIZE_MODEL, {
   sizeId: {
     type: INTEGER,
     primaryKey: true,

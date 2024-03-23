@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TEXT, literal } from 'sequelize'
+import { INTEGER, STRING, TEXT, literal, SMALLINT } from 'sequelize'
 
 import connect from '../../db'
 import SizeModel from '../information/size'
@@ -14,8 +14,11 @@ import Store from '../Store/Store'
 import catProducts from '../Store/cat'
 
 const sequelize = connect()
+sequelize.sync()
 
-const productModelFood = sequelize.define('productmodelfood', {
+export const PRODUCT_FOOD_MODEL = 'productmodelfoods'
+
+const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   pId: {
     type: INTEGER,
     primaryKey: true,
@@ -136,16 +139,11 @@ const productModelFood = sequelize.define('productmodelfood', {
     },
     get (x) { return enCode(this.getDataValue(x)) }
   },
-  // poPriority: {
-  //     type: Sequelize.SMALLINT,
-  //     allowNull: false,
-  //     defaultValue: 1,
-  //     validate: {
-  //         isValidate (value) {
-  //             validations(value, false, false, 0, 0, false, true)
-  //         }
-  //     }
-  // },
+  poPriority: {
+    type: SMALLINT,
+    allowNull: false,
+    defaultValue: 1
+  },
   valueDelivery: {
     type: INTEGER,
     allowNull: true,

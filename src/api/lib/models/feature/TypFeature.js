@@ -4,9 +4,9 @@ import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
 
-//
+export const TYPE_FEATURE_MODEL = 'typefeatures'
 
-const Typefeature = sequelize.define('typefeature', {
+const Typefeature = sequelize.define(TYPE_FEATURE_MODEL, {
   thpId: {
     type: INTEGER,
     primaryKey: true,

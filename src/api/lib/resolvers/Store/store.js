@@ -2,7 +2,7 @@ import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { GraphQLError } from 'graphql'
 import { Op } from 'sequelize'
 
-import { deCode, enCode, getAttributes } from '../../utils/util'
+import { deCode, enCode, getAttributes, getTenantName } from '../../utils/util'
 import { getStatusOpenStore } from '../../utils'
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -29,7 +29,7 @@ import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
 
 // eslint-disable-next-line
-const createDeliveryTime = async (_, { minutes  }, ctx, lol) => {
+const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
   if (!ctx.restaurant) {
     return {
       success: false,
@@ -40,7 +40,7 @@ const createDeliveryTime = async (_, { minutes  }, ctx, lol) => {
     if (minutes < 1 || minutes > 60) {
       throw new Error('El tiempo de entrega debe estar entre 1 y 60 minutos')
     }
-    await Store.update(
+    await Store.schema(getTenantName(ctx?.restaurant)).update(
       { deliveryTimeMinutes: minutes },
       { where: { idStore: deCode(ctx.restaurant) } }
     )
@@ -245,7 +245,7 @@ export const registerSalesStore = async (
         extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
       })
     }
-    const statusPedido = await StatusOrderModel.findOne({
+    const statusPedido = await StatusOrderModel.schema(getTenantName(context?.restaurant)).findOne({
       where: { pCodeRef }
     })
     if (statusPedido) {
@@ -259,7 +259,7 @@ export const registerSalesStore = async (
     let clientId = id || null
     if (!id) {
       if (!context?.restaurant) throw new Error('No se pudo realizar la venta')
-      const data = await clients.findOne({
+      const data = await clients.schema(getTenantName(context?.restaurant)).findOne({
         attributes: ['cliId', 'ccClient'],
         where: { ccClient: context?.restaurant || idStore }
       })
@@ -277,113 +277,113 @@ export const registerSalesStore = async (
         }
       }
     }
-    await Promise.all(input.map(async (element) => {
-      const {
-        pId,
-        cantProducts,
-        comments,
-        dataExtra,
-        dataOptional,
-        ProPrice,
-        refCodePid
-      } = element
-      const decodePid = deCode(pId)
-      if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
-      const originalProduct = await productModelFood.findByPk(decodePid)
-      if (!originalProduct) {
-        throw new Error('No se encontró ningún producto proporcionado, parece que fue eliminado')
-      }
-      const resShoppingCard = await ShoppingCard.create({
-        pId: deCode(pId),
-        id: clientId ? deCode(clientId) : deCode(id),
-        comments: comments ?? '',
-        cState: 0,
-        priceProduct: originalProduct?.ProPrice || 0,
-        refCodePid: refCodePid || '',
-        cantProducts,
-        idStore: deCode(context.restaurant)
-      })
-      if (dataExtra?.length > 0) {
-        await SaleDataExtra.bulkCreate(dataExtra.map(extra => ({
-          exPid: extra.exPid,
-          exState: extra.exState,
-          extraName: extra.extraName,
-          extraPrice: extra.extraPrice,
-          newExtraPrice: extra.newExtraPrice,
-          pCodeRef,
-          pDatCre: new Date(Date.now()),
-          pDatMod: new Date(Date.now()),
-          pId: extra.pId,
-          quantity: extra.quantity,
-          refCodePid,
-          shoppingCardId: deCode(resShoppingCard.ShoppingCard),
-          state: extra.state
-        })))
-      }
-      if (Array.isArray(dataOptional) && dataOptional.length > 0) {
-        await Promise.all(dataOptional.map(async (optional) => {
-          const {
-            opExPid,
-            OptionalProName,
-            state,
-            code,
-            numbersOptionalOnly,
-            pDatCre,
-            required,
-            pDatMod,
-            ExtProductFoodsSubOptionalAll
-          } = optional
-          await ExtProductFoodOptional.create({
-            pId: deCode(pId),
-            opExPid: deCode(opExPid),
-            OptionalProName,
-            state,
-            refCodePid,
-            code,
-            pCodeRef,
-            numbersOptionalOnly,
-            pDatCre,
-            required,
-            pDatMod
-          })
-          if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
-            await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => ({
-              pId: deCode(pId),
-              opExPid: deCode(opExPid),
-              idStore: deCode(context.restaurant),
-              opSubExPid: deCode(subOptional.opSubExPid),
-              OptionalSubProName: subOptional.OptionalSubProName,
-              exCodeOptionExtra: subOptional.exCodeOptionExtra,
-              exCode: subOptional.exCode,
-              pCodeRef,
-              state: subOptional.state,
-              pDatCre: new Date(Date.now()),
-              pDatMod: new Date(Date.now()),
-              check: subOptional.check
-            })))
-          }
-        }))
-      }
+    // await Promise.all(input.map(async (element) => {
+    //   const {
+    //     pId,
+    //     cantProducts,
+    //     comments,
+    //     dataExtra,
+    //     dataOptional,
+    //     ProPrice,
+    //     refCodePid
+    //   } = element
+    //   const decodePid = deCode(pId)
+    //   if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
+    //   const originalProduct = await productModelFood.findByPk(decodePid)
+    //   if (!originalProduct) {
+    //     throw new Error('No se encontró ningún producto proporcionado, parece que fue eliminado')
+    //   }
+    //   const resShoppingCard = await ShoppingCard.create({
+    //     pId: deCode(pId),
+    //     id: clientId ? deCode(clientId) : deCode(id),
+    //     comments: comments ?? '',
+    //     cState: 0,
+    //     priceProduct: originalProduct?.ProPrice || 0,
+    //     refCodePid: refCodePid || '',
+    //     cantProducts,
+    //     idStore: deCode(context.restaurant)
+    //   })
+    //   if (dataExtra?.length > 0) {
+    //     await SaleDataExtra.bulkCreate(dataExtra.map(extra => ({
+    //       exPid: extra.exPid,
+    //       exState: extra.exState,
+    //       extraName: extra.extraName,
+    //       extraPrice: extra.extraPrice,
+    //       newExtraPrice: extra.newExtraPrice,
+    //       pCodeRef,
+    //       pDatCre: new Date(Date.now()),
+    //       pDatMod: new Date(Date.now()),
+    //       pId: extra.pId,
+    //       quantity: extra.quantity,
+    //       refCodePid,
+    //       shoppingCardId: deCode(resShoppingCard.ShoppingCard),
+    //       state: extra.state
+    //     })))
+    //   }
+    //   if (Array.isArray(dataOptional) && dataOptional.length > 0) {
+    //     await Promise.all(dataOptional.map(async (optional) => {
+    //       const {
+    //         opExPid,
+    //         OptionalProName,
+    //         state,
+    //         code,
+    //         numbersOptionalOnly,
+    //         pDatCre,
+    //         required,
+    //         pDatMod,
+    //         ExtProductFoodsSubOptionalAll
+    //       } = optional
+    //       await ExtProductFoodOptional.create({
+    //         pId: deCode(pId),
+    //         opExPid: deCode(opExPid),
+    //         OptionalProName,
+    //         state,
+    //         refCodePid,
+    //         code,
+    //         pCodeRef,
+    //         numbersOptionalOnly,
+    //         pDatCre,
+    //         required,
+    //         pDatMod
+    //       })
+    //       if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
+    //         await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => ({
+    //           pId: deCode(pId),
+    //           opExPid: deCode(opExPid),
+    //           idStore: deCode(context.restaurant),
+    //           opSubExPid: deCode(subOptional.opSubExPid),
+    //           OptionalSubProName: subOptional.OptionalSubProName,
+    //           exCodeOptionExtra: subOptional.exCodeOptionExtra,
+    //           exCode: subOptional.exCode,
+    //           pCodeRef,
+    //           state: subOptional.state,
+    //           pDatCre: new Date(Date.now()),
+    //           pDatMod: new Date(Date.now()),
+    //           check: subOptional.check
+    //         })))
+    //       }
+    //     }))
+    //   }
 
-      const storeOrder = await createOnePedidoStore(null, {
-        input: {
-          change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
-          generateSales: true,
-          id: clientId || id,
-          idStore: context?.restaurant?.replace(/["']/g, ''),
-          payMethodPState,
-          pCodeRef,
-          pickUp,
-          pPRecoger: null,
-          ShoppingCard: resShoppingCard.ShoppingCard
-        }
-      })
-      const { success, message } = storeOrder || {}
-      if (!success) {
-        throw new Error(message || 'Ocurrió un error al crear el pedido')
-      }
-    }))
-    await StatusOrderModel.create({
+    //   const storeOrder = await createOnePedidoStore(null, {
+    //     input: {
+    //       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
+    //       generateSales: true,
+    //       id: clientId || id,
+    //       idStore: context?.restaurant?.replace(/["']/g, ''),
+    //       payMethodPState,
+    //       pCodeRef,
+    //       pickUp,
+    //       pPRecoger: null,
+    //       ShoppingCard: resShoppingCard.ShoppingCard
+    //     }
+    //   })
+    //   const { success, message } = storeOrder || {}
+    //   if (!success) {
+    //     throw new Error(message || 'Ocurrió un error al crear el pedido')
+    //   }
+    // }))
+    await StatusOrderModel.schema(getTenantName(context?.restaurant)).create({
       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
       channel: 1,
       discount,
@@ -430,7 +430,7 @@ export const getTodaySales = async (_, args, ctx) => {
     const NOW = new Date()
 
     // Crear fechas START y NOW dentro de la consulta para asegurarse de que reflejen el mismo día
-    const data = await StatusOrderModel.findAll({
+    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes: ['pSState', 'idStore', 'pDatCre'],
       where: {
         [Op.or]: [

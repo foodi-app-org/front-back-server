@@ -6,9 +6,12 @@ import Store from '../Store/Store'
 
 import productModelFood from './productFood'
 import productsOptionalExtra from './productsOptionalExtra'
+
 const sequelize = connect()
 
-const productsSubOptionalExtra = sequelize.define('productssuboptionalextra', {
+export const PRODUCT_SUB_OPTIONAL_EXTRA = 'productssuboptionalextras'
+
+const productsSubOptionalExtra = sequelize.define(PRODUCT_SUB_OPTIONAL_EXTRA, {
   opSubExPid: {
     type: INTEGER,
     primaryKey: true,

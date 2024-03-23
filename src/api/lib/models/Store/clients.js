@@ -8,7 +8,9 @@ import Store from './Store'
 
 const conn = connect()
 
-export default conn.define('clients', {
+export const CLIENTS_MODEL = 'clients'
+
+export default conn.define(CLIENTS_MODEL, {
   cliId: {
     type: Sequelize.INTEGER,
     primaryKey: true,

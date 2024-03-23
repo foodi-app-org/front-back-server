@@ -1,7 +1,7 @@
 import { Op } from 'sequelize'
 
 import productModel from '../../models/product/food'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 
 export const newRegisterFoodProduct = async (_, { input }, ctx) => {
@@ -85,7 +85,7 @@ export const registerAvailableProduct = async (root, { input }, context) => {
         dayAvailable,
         pId
       } = iterator
-      await productModelFoodAvailable.create({
+      await productModelFoodAvailable.schema(getTenantName(context?.restaurant)).create({
         dayAvailable: parseInt(dayAvailable),
         pId: deCode(pId),
         idStore: idStore ? deCode(idStore) : deCode(context.restaurant)

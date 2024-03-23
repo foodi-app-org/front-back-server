@@ -4,9 +4,9 @@ import { enCode } from '../../utils/util'
 import connect from '../../db'
 const sequelize = connect()
 
-//
+export const CATEGORY_PRODUCT = 'categorieproducts'
 
-const CategoryProductsModel = sequelize.define('categorieproduct', {
+const CategoryProductsModel = sequelize.define(CATEGORY_PRODUCT, {
   caId: {
     type: INTEGER,
     primaryKey: true,

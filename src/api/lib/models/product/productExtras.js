@@ -1,4 +1,8 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  literal
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
@@ -7,7 +11,9 @@ import Store from '../Store/Store'
 import productModelFood from './productFood'
 const sequelize = connect()
 
-const ExtraProductModel = sequelize.define('extrasproducts', {
+export const EXTRA_PRODUCT_MODEL = 'extrasproducts'
+
+const ExtraProductModel = sequelize.define(EXTRA_PRODUCT_MODEL, {
   exPid: {
     type: INTEGER,
     primaryKey: true,

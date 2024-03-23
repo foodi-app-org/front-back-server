@@ -5,9 +5,12 @@ import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 import productModelFood from './productFood'
+
 const sequelize = connect()
 
-const productModelFoodAvailable = sequelize.define('productmodelfoodavailable', {
+export const PRODUCT_FOOD_AVAILABLE = 'productmodelfoodavailables'
+
+const productModelFoodAvailable = sequelize.define(PRODUCT_FOOD_AVAILABLE, {
   availableProductId: {
     type: INTEGER,
     primaryKey: true,

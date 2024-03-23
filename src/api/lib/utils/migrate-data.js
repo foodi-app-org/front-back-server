@@ -2,6 +2,7 @@ import boom from '@hapi/boom'
 
 import Store from '../models/Store/Store'
 import Users from '../models/Users'
+import clients from '../models/Store/clients'
 
 import { deCode } from './util'
 
@@ -12,6 +13,7 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
     // Buscar los datos de la tienda en el esquema público
     const storeData = await Store.findOne({ where: { idStore: idStoreDecoded } })
     const userData = await Users.findOne({ where: { id: deCode(idUser) } })
+    const userClient = await clients.findOne({ where: { idStore: idStoreDecoded } })
 
     if (!storeData) {
       throw boom.notFound('Store not found')
@@ -26,7 +28,7 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
       uState: 1
     })
     if (newUserStoreInSchema && storeData) {
-      const newStoreInSchema = await Store.schema(schemaName).create({
+      await Store.schema(schemaName).create({
         idUser: newUserStoreInSchema.id,
         idStore: deCode(storeData.idStore),
         name: storeData.name,
@@ -39,6 +41,16 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
         uState: 1,
         ...storeData.dataValues
       })
+      if (userClient) {
+        await clients.schema(schemaName).create({
+          idStore: idStoreDecoded,
+          idUser: deCode(newUserStoreInSchema.id),
+          clientNumber: 'SIN NUMERO',
+          clientName: 'CLIENTES VARIOS',
+          ccClient: idStore,
+          clientLastName: 'CLIENTES VARIOS'
+        })
+      }
     }
     return { message: 'Data migration completed successfully' }
   } catch (error) {

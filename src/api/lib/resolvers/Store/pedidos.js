@@ -6,7 +6,7 @@ import pedidosModel from '../../models/Store/pedidos'
 import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 
 import { deleteOneItem, getOneStore } from './store'
@@ -198,7 +198,6 @@ export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
     return error
   }
 }
-const cache = {}
 
 const getPedidosByState = async ({
   model,
@@ -239,13 +238,11 @@ const getPedidosByState = async ({
       ]
     })
   }
-
-  const orders = await model.findAll({
+  const orders = await model.schema(getTenantName(ctx.restaurant)).findAll({
     attributes,
     where,
     order: [['pDatCre', 'DESC']]
   })
-
   return orders
 }
 
@@ -323,7 +320,6 @@ const getOrdersByState = async ({
         ctx,
         pSState
       })
-      console.log({ orders })
       ordersByState[getStatusKey(pSState)] = orders || []
     }
     for (let pSState = 1; pSState <= 5; pSState++) {
@@ -362,7 +358,7 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
     const ordersByState = await getOrdersByState({ idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes })
     return ordersByState
   } catch (error) {
-    return new Error('Ocurrio un error')
+    return new Error('Ocurrió un error')
   }
 }
 
@@ -373,7 +369,7 @@ const getAllPedidoUserFinal = async (_, args, ctx, info) => {
     const fiveHoursAgo = new Date()
     fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5)
 
-    const data = await StatusOrderModel.findAll({
+    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -401,7 +397,7 @@ const getAllPedidoUserFinal = async (_, args, ctx, info) => {
 export const getOnePedidoStore = async (_, { pCodeRef }, ctx, info) => {
   try {
     const attributes = getAttributes(StatusOrderModel, info)
-    const data = await StatusOrderModel.findOne({
+    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).findOne({
       attributes,
       where: {
         pCodeRef
@@ -420,7 +416,7 @@ export default {
       productFoodsOne: async (parent, _args, _context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.findOne({
+          const data = await productModelFood.schema(getTenantName(ctx.restaurant)).findOne({
             attributes,
             where: { pId: deCode(parent.pId) }
           })

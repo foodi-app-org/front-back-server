@@ -4,11 +4,11 @@ import { Op } from 'sequelize'
 import ExtraProductModel from '../../models/product/productExtras'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
 import productsSubOptionalExtra from '../../models/product/productsSubOptionalExtra'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
-export const deleteextraproductfoods = async (_root, { state, id }) => {
+export const deleteextraproductfoods = async (_root, { state, id }, context) => {
   try {
-    await ExtraProductModel.update({ state: state === 1 ? 0 : 1 }, { where: { exPid: deCode(id) } })
+    await ExtraProductModel.schema(getTenantName(context?.restaurant)).update({ state: state === 1 ? 0 : 1 }, { where: { exPid: deCode(id) } })
     return {
       success: true,
       message: 'Eliminado'
@@ -40,8 +40,7 @@ const editExtraProductFoods = async (_root, { exPid, state, extraName, extraPric
       message: 'Producto extra actualizado con éxito.'
     }
   } catch (error) {
-    console.log('🚀 ~ file: extraProducts.js:44 ~ editExtraProductFoods ~ error:', error)
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
   }
 }
 
@@ -54,8 +53,8 @@ export const DeleteExtFoodSubsOptional = async (_root, {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
-    if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
-    await productsSubOptionalExtra.update({
+    if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
+    const res = await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).update({
       state: state === 1 ? 0 : 1
     }, {
       where: {
@@ -67,7 +66,7 @@ export const DeleteExtFoodSubsOptional = async (_root, {
       message: 'Eliminado'
     }
   } catch (error) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
   }
 }
 
@@ -82,8 +81,8 @@ export const editExtFoodSubsOptional = async (_root, {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
-    if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
-    await productsSubOptionalExtra.update({
+    if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
+    await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).update({
       OptionalSubProName
     }, {
       where: {
@@ -95,7 +94,7 @@ export const editExtFoodSubsOptional = async (_root, {
       message: 'Eliminado'
     }
   } catch (error) {
-    throw new ApolloError(error?.message || 'No ha sido posible procesar su solicitud.', 500)
+    throw new ApolloError(error?.message || 'No ha sido posible procesar su solicitud.', '500')
   }
 }
 export const updateExtProductFoods = async (_root, { input }) => {
@@ -116,7 +115,7 @@ export const updateExtProductFoods = async (_root, { input }) => {
     }
     await ExtraProductModel.update({ state: state === 1 ? 0 : 1 }, { where: { exPid: deCode(exPid) } })
   } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
   }
 }
 // OPTIONAL PRODUCTS
@@ -131,7 +130,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
   } = input
   try {
     if (!opExPid) {
-      await productsOptionalExtra.create({
+      await productsOptionalExtra.schema(getTenantName(context?.restaurant)).create({
         state: 1,
         pId: deCode(pId),
         OptionalProName,
@@ -142,7 +141,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
       })
       return { success: true, message: 'Creado' }
     } else {
-      const productsOptional = await productsOptionalExtra.findOne({
+      const productsOptional = await productsOptionalExtra.schema(getTenantName(context?.restaurant)).findOne({
         attributes: ['pId', 'code'],
         where: {
           [Op.or]: [
@@ -153,7 +152,7 @@ export const updateExtProductFoodsOptional = async (_root, { input }, context) =
         }
       })
       if (productsOptional) {
-        await productsOptionalExtra.update({
+        await productsOptionalExtra.schema(getTenantName(context?.restaurant)).update({
           OptionalProName,
           required,
           code,
@@ -179,8 +178,8 @@ export const updateExtProductFoodsSubOptional = async (_root, { input }, context
     } = input
 
     if (!pId) throw new Error('Lo sentimos, No hemos encontrado el producto')
-    if (!OptionalSubProName) throw new Error('Es necesario que el campo no este vacio')
-    const data = await productsSubOptionalExtra.create({
+    if (!OptionalSubProName) throw new Error('Es necesario que el campo no este vacío')
+    const data = await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).create({
       exCode,
       exCodeOptionExtra,
       idStore: deCode(context.restaurant),
@@ -190,7 +189,7 @@ export const updateExtProductFoodsSubOptional = async (_root, { input }, context
     })
     return data
   } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
+    throw new ApolloError('No ha sido posible procesar su solicitud.', '500', e)
   }
 }
 
@@ -235,18 +234,18 @@ export const updateMultipleExtProductFoods = async (_root, args, context) => {
   for (const element of setData) {
     const { pId, exState, extraName, extraPrice } = element
     try {
-      await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } })
+      await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } }, context)
     } catch (e) {
-      throw new ApolloError(GENERIC_ERROR_MESSAGE, 500)
+      throw new ApolloError(GENERIC_ERROR_MESSAGE, '500')
     }
   }
 }
 
-export const updateExtraInProduct = async (_root, { input }, _context) => {
+export const updateExtraInProduct = async (_root, { input }, context) => {
   const { pId, idStore } = input || {}
 
   try {
-    await ExtraProductModel.create({
+    await ExtraProductModel.schema(getTenantName(context?.restaurant)).create({
       ...input,
       idStore: deCode(idStore),
       pId: deCode(pId)
@@ -266,7 +265,7 @@ export const ExtProductFoodsAll = async (root, args, context, info) => {
     }
 
     const attributes = getAttributes(ExtraProductModel, info)
-    const data = await ExtraProductModel.findAll({
+    const data = await ExtraProductModel.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -295,7 +294,7 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
       pId
     } = args
     const attributes = getAttributes(productsOptionalExtra, info)
-    const data = await productsOptionalExtra.findAll({
+    const data = await productsOptionalExtra.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -311,7 +310,7 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
     })
     return data
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno', e)
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -319,10 +318,10 @@ export const DeleteExtProductFoodsOptional = async (root, {
   state,
   opExPid,
   isCustomOpExPid = false
-}) => {
+}, context) => {
   if (!opExPid || typeof state !== 'number') throw new Error('Lo sentimos, ha ocurrido un error interno')
   try {
-    await productsOptionalExtra.update({
+    await productsOptionalExtra.schema(getTenantName(context?.restaurant)).update({
       state: state === 1 ? 0 : 1
     }, {
       where: {
@@ -338,7 +337,7 @@ export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) =
   try {
     const { min, max, pId } = args
     const attributes = getAttributes(productsSubOptionalExtra, info)
-    const data = await productsSubOptionalExtra.findAll({
+    const data = await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -359,7 +358,7 @@ export const ExtProductFoodsSubOptionalAll = async (root, args, context, info) =
   }
 }
 
-export const editExtProductFoodOptional = async (_, { input }) => {
+export const editExtProductFoodOptional = async (_, { input }, context) => {
   try {
     const {
       pId,
@@ -373,7 +372,7 @@ export const editExtProductFoodOptional = async (_, { input }) => {
       ExtProductFoodsSubOptionalAll
     } = input
     // Actualiza los datos de ExtProductFoodOptional
-    await productsOptionalExtra.update(
+    await productsOptionalExtra.schema(getTenantName(context?.restaurant)).update(
       {
         OptionalProName,
         state,
@@ -399,7 +398,7 @@ export const editExtProductFoodOptional = async (_, { input }) => {
             state
           } = subOptionalInput
 
-          await productsSubOptionalExtra.update(
+          await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).update(
             {
               OptionalSubProName,
               exCodeOptionExtra,
@@ -421,9 +420,9 @@ export const editExtProductFoodOptional = async (_, { input }) => {
 export default {
   TYPES: {
     ExtProductFoodOptional: {
-      ExtProductFoodsSubOptionalAll: async (parent, _args, _context, info) => {
+      ExtProductFoodsSubOptionalAll: async (parent, _args, context, info) => {
         const attributes = getAttributes(productsSubOptionalExtra, info)
-        const data = await productsSubOptionalExtra.findAll({
+        const data = await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).findAll({
           attributes,
           where: {
             exCodeOptionExtra: parent.code,

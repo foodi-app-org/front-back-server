@@ -11,7 +11,11 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 const sequelize = connect()
 
-const StatusPedidosModel = sequelize.define('statuspedidos', {
+export const STATUS_ORDER_MODEL = 'statuspedidos'
+
+// sequelize.sync()
+
+const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   stPId: {
     type: INTEGER,
     primaryKey: true,
@@ -96,7 +100,7 @@ const StatusPedidosModel = sequelize.define('statuspedidos', {
     allowNull: false
   }
 }, {
-  timestamps: true
+  timestamps: false
 })
 
 export default StatusPedidosModel
