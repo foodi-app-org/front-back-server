@@ -4,7 +4,9 @@ import connect from '../../../db'
 import { enCode } from '../../../utils/util'
 const sequelize = connect()
 
-const ExtProductFoodSubOptional = sequelize.define('saleextproductfoodsuboptional', {
+export const EXTRA_PRODUCT_FOOD_SUB_OPTIONAL = 'saleextproductfoodsuboptionals'
+
+const ExtProductFoodSubOptional = sequelize.define(EXTRA_PRODUCT_FOOD_SUB_OPTIONAL, {
   idProductFoodSubOptional: {
     type: INTEGER,
     primaryKey: true,

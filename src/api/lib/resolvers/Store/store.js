@@ -2,7 +2,11 @@ import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { GraphQLError } from 'graphql'
 import { Op } from 'sequelize'
 
-import { deCode, enCode, getAttributes, getTenantName } from '../../utils/util'
+import {
+  deCode,
+  getAttributes,
+  getTenantName
+} from '../../utils/util'
 import { getStatusOpenStore } from '../../utils'
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -21,6 +25,7 @@ import Store from '../../models/Store/Store'
 import clients from '../../models/Store/clients'
 import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
+import { NotFountError } from '../../utils/handleError'
 
 import { createClients } from './Clients'
 import { createOnePedidoStore } from './pedidos'
@@ -195,7 +200,7 @@ export const oneCategoriesStore = async (parent, _args, _context, info) => {
 export const deleteOneItem = async (root, args, context, _info) => {
   try {
     const { ShoppingCard: id, cState } = args || {}
-    await ShoppingCard.update(
+    await ShoppingCard.schema(getTenantName(context.restaurant)).update(
       { cState: cState === 1 ? 0 : 1 },
       { where: { ShoppingCard: deCode(id) } }
     )
@@ -277,112 +282,114 @@ export const registerSalesStore = async (
         }
       }
     }
-    // await Promise.all(input.map(async (element) => {
-    //   const {
-    //     pId,
-    //     cantProducts,
-    //     comments,
-    //     dataExtra,
-    //     dataOptional,
-    //     ProPrice,
-    //     refCodePid
-    //   } = element
-    //   const decodePid = deCode(pId)
-    //   if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
-    //   const originalProduct = await productModelFood.findByPk(decodePid)
-    //   if (!originalProduct) {
-    //     throw new Error('No se encontró ningún producto proporcionado, parece que fue eliminado')
-    //   }
-    //   const resShoppingCard = await ShoppingCard.create({
-    //     pId: deCode(pId),
-    //     id: clientId ? deCode(clientId) : deCode(id),
-    //     comments: comments ?? '',
-    //     cState: 0,
-    //     priceProduct: originalProduct?.ProPrice || 0,
-    //     refCodePid: refCodePid || '',
-    //     cantProducts,
-    //     idStore: deCode(context.restaurant)
-    //   })
-    //   if (dataExtra?.length > 0) {
-    //     await SaleDataExtra.bulkCreate(dataExtra.map(extra => ({
-    //       exPid: extra.exPid,
-    //       exState: extra.exState,
-    //       extraName: extra.extraName,
-    //       extraPrice: extra.extraPrice,
-    //       newExtraPrice: extra.newExtraPrice,
-    //       pCodeRef,
-    //       pDatCre: new Date(Date.now()),
-    //       pDatMod: new Date(Date.now()),
-    //       pId: extra.pId,
-    //       quantity: extra.quantity,
-    //       refCodePid,
-    //       shoppingCardId: deCode(resShoppingCard.ShoppingCard),
-    //       state: extra.state
-    //     })))
-    //   }
-    //   if (Array.isArray(dataOptional) && dataOptional.length > 0) {
-    //     await Promise.all(dataOptional.map(async (optional) => {
-    //       const {
-    //         opExPid,
-    //         OptionalProName,
-    //         state,
-    //         code,
-    //         numbersOptionalOnly,
-    //         pDatCre,
-    //         required,
-    //         pDatMod,
-    //         ExtProductFoodsSubOptionalAll
-    //       } = optional
-    //       await ExtProductFoodOptional.create({
-    //         pId: deCode(pId),
-    //         opExPid: deCode(opExPid),
-    //         OptionalProName,
-    //         state,
-    //         refCodePid,
-    //         code,
-    //         pCodeRef,
-    //         numbersOptionalOnly,
-    //         pDatCre,
-    //         required,
-    //         pDatMod
-    //       })
-    //       if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
-    //         await ExtProductFoodSubOptional.bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => ({
-    //           pId: deCode(pId),
-    //           opExPid: deCode(opExPid),
-    //           idStore: deCode(context.restaurant),
-    //           opSubExPid: deCode(subOptional.opSubExPid),
-    //           OptionalSubProName: subOptional.OptionalSubProName,
-    //           exCodeOptionExtra: subOptional.exCodeOptionExtra,
-    //           exCode: subOptional.exCode,
-    //           pCodeRef,
-    //           state: subOptional.state,
-    //           pDatCre: new Date(Date.now()),
-    //           pDatMod: new Date(Date.now()),
-    //           check: subOptional.check
-    //         })))
-    //       }
-    //     }))
-    //   }
+    await Promise.all(input.map(async (element) => {
+      const {
+        pId,
+        cantProducts,
+        comments,
+        dataExtra,
+        dataOptional,
+        ProPrice,
+        refCodePid
+      } = element
+      const decodePid = deCode(pId)
+      if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
+      const originalProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(decodePid)
+      if (!originalProduct) {
+        throw new NotFountError('No se encontró ningún producto proporcionado, parece que fue eliminado')
+      }
+      const resShoppingCard = await ShoppingCard.schema(getTenantName(context?.restaurant)).create({
+        pId: deCode(pId),
+        id: clientId ? deCode(clientId) : deCode(id),
+        comments: comments ?? '',
+        cState: 0,
+        priceProduct: originalProduct?.ProPrice || 0,
+        refCodePid: refCodePid || '',
+        cantProducts,
+        idStore: deCode(context.restaurant)
+      })
+      if (dataExtra?.length > 0) {
+        SaleDataExtra.belongsTo(ShoppingCard, { foreignKey: 'shoppingCardId' })
+        await SaleDataExtra.schema(getTenantName(context.restaurant)).bulkCreate(dataExtra.map(extra => ({
+          exPid: extra.exPid,
+          exState: extra.exState,
+          extraName: extra.extraName,
+          extraPrice: extra.extraPrice,
+          newExtraPrice: extra.newExtraPrice,
+          pCodeRef,
+          pDatCre: new Date(Date.now()),
+          pDatMod: new Date(Date.now()),
+          pId: extra.pId,
+          quantity: extra.quantity,
+          refCodePid,
+          shoppingCardId: deCode(resShoppingCard?.ShoppingCard),
+          state: extra.state
+        })))
+      }
 
-    //   const storeOrder = await createOnePedidoStore(null, {
-    //     input: {
-    //       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
-    //       generateSales: true,
-    //       id: clientId || id,
-    //       idStore: context?.restaurant?.replace(/["']/g, ''),
-    //       payMethodPState,
-    //       pCodeRef,
-    //       pickUp,
-    //       pPRecoger: null,
-    //       ShoppingCard: resShoppingCard.ShoppingCard
-    //     }
-    //   })
-    //   const { success, message } = storeOrder || {}
-    //   if (!success) {
-    //     throw new Error(message || 'Ocurrió un error al crear el pedido')
-    //   }
-    // }))
+      if (Array.isArray(dataOptional) && dataOptional.length > 0) {
+        await Promise.all(dataOptional.map(async (optional) => {
+          const {
+            opExPid,
+            OptionalProName,
+            state,
+            code,
+            numbersOptionalOnly,
+            pDatCre,
+            required,
+            pDatMod,
+            ExtProductFoodsSubOptionalAll
+          } = optional
+          await ExtProductFoodOptional.schema(getTenantName(context.restaurant)).create({
+            pId: deCode(pId),
+            opExPid: deCode(opExPid),
+            OptionalProName,
+            state,
+            refCodePid,
+            code,
+            pCodeRef,
+            numbersOptionalOnly,
+            pDatCre,
+            required,
+            pDatMod
+          })
+          if ((Array.isArray(ExtProductFoodsSubOptionalAll)) && ExtProductFoodsSubOptionalAll?.length > 0) {
+            await ExtProductFoodSubOptional.schema(getTenantName(context.restaurant)).bulkCreate(ExtProductFoodsSubOptionalAll.map(subOptional => ({
+              pId: deCode(pId),
+              opExPid: deCode(opExPid),
+              idStore: deCode(context.restaurant),
+              opSubExPid: deCode(subOptional.opSubExPid),
+              OptionalSubProName: subOptional.OptionalSubProName,
+              exCodeOptionExtra: subOptional.exCodeOptionExtra,
+              exCode: subOptional.exCode,
+              pCodeRef,
+              state: subOptional.state,
+              pDatCre: new Date(Date.now()),
+              pDatMod: new Date(Date.now()),
+              check: subOptional.check
+            })))
+          }
+        }))
+      }
+
+      const storeOrder = await createOnePedidoStore(null, {
+        input: {
+          change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
+          generateSales: true,
+          id: clientId || id,
+          idStore: context?.restaurant?.replace(/["']/g, ''),
+          payMethodPState,
+          pCodeRef,
+          pickUp,
+          pPRecoger: null,
+          ShoppingCard: resShoppingCard?.ShoppingCard
+        }
+      }, context)
+      const { success, message } = storeOrder || {}
+      if (!success) {
+        throw new Error(message || 'Ocurrió un error al crear el pedido')
+      }
+    }))
     await StatusOrderModel.schema(getTenantName(context?.restaurant)).create({
       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
       channel: 1,
@@ -405,8 +412,16 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
+    console.log('🚀 ~ e:', e)
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
+    if (e instanceof NotFountError) {
+      message = e.message
+    }
 
+    if (e instanceof Error) {
+      message = e.message
+    }
+    // console.log(e)
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
       message = 'Token expired'
     }
@@ -1141,7 +1156,7 @@ export default {
       }
     },
     ShoppingCard: {
-      ExtProductFoodsAll: async (parent, _args, _context, info) => {
+      ExtProductFoodsAll: async (parent, _args, context, info) => {
         const whereClause = {}
         if (info?.variableValues?.pCodeRef) {
           whereClause.pCodeRef = info.variableValues.pCodeRef
@@ -1158,7 +1173,7 @@ export default {
         }
         try {
           const attributes = getAttributes(SaleDataExtra, info)
-          const data = await SaleDataExtra.findAll({
+          const data = await SaleDataExtra.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: {
               ...whereClause
@@ -1169,7 +1184,7 @@ export default {
           return []
         }
       },
-      salesExtProductFoodOptional: async (parent, _args, _context, info) => {
+      salesExtProductFoodOptional: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(ExtProductFoodOptional, info)
           const whereClause = {}
@@ -1182,7 +1197,7 @@ export default {
             whereClause.refCodePid = parent.refCodePid
           }
 
-          const data = await ExtProductFoodOptional.findAll({
+          const data = await ExtProductFoodOptional.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: whereClause
           })
@@ -1192,10 +1207,10 @@ export default {
           return []
         }
       },
-      getStore: async (parent, _args, _context, info) => {
+      getStore: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(Store, info)
-          const data = await Store.findOne({
+          const data = await Store.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { idStore: deCode(parent.idStore) }
           })
@@ -1204,10 +1219,10 @@ export default {
           return null
         }
       },
-      productFood: async (parent, _args, _context, info) => {
+      productFood: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.findOne({
+          const data = await productModelFood.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { pId: deCode(parent.pId) }
           })
@@ -1227,10 +1242,10 @@ export default {
         })
         return data
       },
-      getStoreSchedules: async (parent, _args, _context, info) => {
+      getStoreSchedules: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(ScheduleStore, info)
-          const data = await ScheduleStore.findAll({
+          const data = await ScheduleStore.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: { idStore: deCode(parent.idStore) }
           })

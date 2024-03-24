@@ -6,7 +6,9 @@ import { enCode } from '../../../utils/util'
 import ShoppingCard from './../ShoppingCard'
 const sequelize = connect()
 
-const SaleDataExtra = sequelize.define('saledataextras', {
+export const SALES_DATA_EXTRA_PRODUCTO = 'saledataextras'
+
+const SaleDataExtra = sequelize.define(SALES_DATA_EXTRA_PRODUCTO, {
   id: {
     type: INTEGER,
     primaryKey: true,
@@ -75,6 +77,6 @@ const SaleDataExtra = sequelize.define('saledataextras', {
   }
 })
 
-SaleDataExtra.belongsTo(ShoppingCard)
+// SaleDataExtra.belongsTo(ShoppingCard)
 
 export default SaleDataExtra

@@ -8,7 +8,9 @@ import productsOptionalExtra from './../../product/productsOptionalExtra'
 
 const sequelize = connect()
 
-const ExtProductFoodOptional = sequelize.define('saleextproductfoodoptional', {
+export const EXTRA_PRODUCT_FOOD_OPTIONAL = 'saleextproductfoodoptionals'
+
+const ExtProductFoodOptional = sequelize.define(EXTRA_PRODUCT_FOOD_OPTIONAL, {
   idSaleProductOptional: {
     type: INTEGER,
     primaryKey: true,

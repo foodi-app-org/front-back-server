@@ -249,7 +249,7 @@ export default {
   TYPES: {
     // only for sales store
     saleExtProductFoodOptional: {
-      saleExtProductFoodsSubOptionalAll: async (parent, _args, _context, info) => {
+      saleExtProductFoodsSubOptionalAll: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(ExtProductFoodSubOptional, info)
           const whereClause = {
@@ -261,7 +261,7 @@ export default {
             whereClause.pCodeRef = info.variableValues.pCodeRef
           }
 
-          const data = await ExtProductFoodSubOptional.findAll({
+          const data = await ExtProductFoodSubOptional.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: whereClause
           })
@@ -287,10 +287,10 @@ export default {
           throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
         }
       },
-      ExtProductFoodOptional: async (parent, _args, _context, info) => {
+      ExtProductFoodOptional: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(ExtProductFoodOptional, info)
-          const data = await ExtProductFoodOptional.findAll({
+          const data = await ExtProductFoodOptional.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: { pId: deCode(parent.pId) }
           })
@@ -299,11 +299,11 @@ export default {
           return null
         }
       },
-      getAllAvailableProduct: async (parent, _args, _context, info) => {
+      getAllAvailableProduct: async (parent, _args, context, info) => {
         try {
           if (!parent.pId) return []
           const attributes = getAttributes(productModelFoodAvailable, info)
-          const data = await productModelFoodAvailable.findAll({
+          const data = await productModelFoodAvailable.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: { pId: deCode(parent.pId) },
             order: [['dayAvailable', 'ASC']], // Ordenar por dayAvailable en orden ascendente
@@ -314,10 +314,10 @@ export default {
           return []
         }
       },
-      getStore: async (parent, _args, _context, info) => {
+      getStore: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(Store, info)
-          const data = await Store.findOne({
+          const data = await Store.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { idStore: deCode(parent.idStore) }
           })

@@ -10,10 +10,8 @@ import { enCode } from '../../utils/util'
 
 import Store from './Store'
 const sequelize = connect()
-
+sequelize.sync()
 export const STATUS_ORDER_MODEL = 'statuspedidos'
-
-// sequelize.sync()
 
 const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   stPId: {
@@ -98,9 +96,19 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     type: 'TIMESTAMP',
     defaultValue: literal('CURRENT_TIMESTAMP'),
     allowNull: false
+  },
+  createdAt: {
+    type: 'TIMESTAMP',
+    defaultValue: literal('CURRENT_TIMESTAMP'),
+    allowNull: false
+  },
+  updatedAt: {
+    type: 'TIMESTAMP',
+    defaultValue: literal('CURRENT_TIMESTAMP'),
+    allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: true
 })
 
 export default StatusPedidosModel

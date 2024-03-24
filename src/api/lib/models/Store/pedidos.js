@@ -5,9 +5,12 @@ import { enCode } from '../../utils/util'
 
 import Store from './Store'
 import ShoppingCard from './ShoppingCard'
+
 const sequelize = connect()
 
-const pedidosModel = sequelize.define('storepedidos', {
+export const ORDER_MODEL = 'storepedidos'
+
+const pedidosModel = sequelize.define(ORDER_MODEL, {
   pdpId: {
     type: INTEGER,
     primaryKey: true,

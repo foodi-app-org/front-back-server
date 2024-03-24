@@ -3,12 +3,13 @@ const { INTEGER } = require('sequelize')
 const { DATE } = require('sequelize')
 
 const { enCode } = require('../../utils/util')
-const { STATUS_ORDER_MODEL } = require('../../models/Store/statusPedidoFinal')
+const { ORDER_MODEL } = require('../../models/Store/pedidos')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
+const { SHOPPING_CARD_MODEL } = require('../../models/Store/ShoppingCard')
 
 exports.up = async (queryInterface, schemaName) => {
-  await queryInterface.createTable(STATUS_ORDER_MODEL, {
-    stPId: {
+  await queryInterface.createTable(ORDER_MODEL, {
+    pdpId: {
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -16,7 +17,18 @@ exports.up = async (queryInterface, schemaName) => {
     },
     id: {
       type: INTEGER,
+      allowNull: true
+    },
+    ShoppingCard: {
+      type: INTEGER,
       allowNull: true,
+      references: {
+        model: {
+          tableName: SHOPPING_CARD_MODEL,
+          schema: schemaName
+        },
+        key: 'ShoppingCard'
+      },
       get (x) { return enCode(this.getDataValue(x)) }
     },
     idStore: {
@@ -35,55 +47,37 @@ exports.up = async (queryInterface, schemaName) => {
         return enCode(this.getDataValue(x))
       }
     },
-    pSState: {
+    ppState: {
       type: INTEGER,
-      defaultValue: 0
-    },
-    valueDelivery: {
-      type: INTEGER,
-      defaultValue: 0
-    },
-    locationUser: {
-      type: STRING,
-      allowNull: true
-    },
-    discount: {
-      type: INTEGER,
-      allowNull: true
-    },
-    tip: {
-      type: INTEGER,
-      allowNull: true,
-      defaultValue: 0
-    },
-    change: {
-      type: INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0
     },
     pCodeRef: {
-      type: STRING(100),
-      unique: true,
+      type: STRING(15),
       allowNull: false
     },
-    totalProductsPrice: {
+    change: {
       type: INTEGER,
-      allowNull: false
-    },
-    payMethodPState: {
-      type: INTEGER,
-      defaultValue: 1
-    },
-    pickUp: {
-      type: INTEGER,
-      defaultValue: 0
-    },
-    channel: {
-      type: INTEGER, // store or client-store
-      defaultValue: 0
+      allowNull: true
     },
     pPDate: {
       type: DATE
+    },
+    pPStateP: {
+      type: INTEGER,
+      defaultValue: 0
+    },
+    payMethodPState: {
+      type: INTEGER,
+      defaultValue: 0
+    },
+    pPRecoger: {
+      type: INTEGER,
+      defaultValue: 0
+    },
+    unidProducts: {
+      type: INTEGER,
+      allowNull: true
     },
     pDatCre: {
       type: 'TIMESTAMP',
@@ -107,5 +101,5 @@ exports.up = async (queryInterface, schemaName) => {
 }
 
 exports.down = async (queryInterface, schemaName) => {
-  await queryInterface.dropTable(STATUS_ORDER_MODEL, { schema: schemaName })
+  await queryInterface.dropTable(ORDER_MODEL, { schema: schemaName })
 }

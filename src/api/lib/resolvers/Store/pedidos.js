@@ -7,12 +7,12 @@ import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
-import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
 
 import { deleteOneItem, getOneStore } from './store'
 // Configura dotenv
 dotenv.config()
-export const createOnePedidoStore = async (_, { input }) => {
+
+export const createOnePedidoStore = async (_, { input }, context) => {
   const {
     id,
     idStore,
@@ -22,7 +22,7 @@ export const createOnePedidoStore = async (_, { input }) => {
     pPRecoger
   } = input || {}
   try {
-    await pedidosModel.create({
+    await pedidosModel.schema(getTenantName(context.restaurant)).create({
       ...input,
       pPStateP: 1,
       id: deCode(id),
@@ -42,7 +42,7 @@ export const createOnePedidoStore = async (_, { input }) => {
   }
 }
 // eslint-disable-next-line
-const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, ctx) => {
+const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, context) => {
   if (![0, 1, 2, 3, 4, 5].includes(pPStateP)) {
     return {
       success: false,
@@ -57,7 +57,7 @@ const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, ctx) => 
     5: 'Pedido rechazado'
   }
   try {
-    await StatusOrderModel.update(
+    await StatusOrderModel.schema(getTenantName(context.restaurant)).update(
       { pSState: pPStateP, pDatMod },
       { where: { pCodeRef } }
     )
@@ -97,7 +97,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
     })
     for (const element of setInput) {
       const { ShoppingCard, idStore } = element
-      await deleteOneItem(null, { ShoppingCard, cState: 1 })
+      await deleteOneItem(null, { ShoppingCard, cState: 1 }, ctx, null)
       await createOnePedidoStore(null, {
         input: {
           id: ctx.User.id,
@@ -109,7 +109,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
           payMethodPState,
           pPRecoger
         }
-      })
+      }, ctx)
     }
     return { success: true, message: 'Update' }
   } catch (error) {
@@ -145,8 +145,8 @@ const getAllIncomingToDayOrders = async (_, args, ctx, info) => {
     const START = new Date()
     START.setHours(0, 0, 0, 0)
     const NOW = new Date()
-    const attributes = getAttributes(StatusPedidosModel, info)
-    const data = await StatusPedidosModel.findAll({
+    const attributes = getAttributes(StatusOrderModel, info)
+    const data = await StatusOrderModel.findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -413,10 +413,10 @@ export default {
   TYPES: {
     StorePedidos: {
       // getOneStore,
-      productFoodsOne: async (parent, _args, _context, info) => {
+      productFoodsOne: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.schema(getTenantName(ctx.restaurant)).findOne({
+          const data = await productModelFood.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { pId: deCode(parent.pId) }
           })
@@ -426,10 +426,10 @@ export default {
         }
       },
       getOneStore: async (parent, args, context, info) => await getOneStore(parent, args, context, info),
-      getUser: async (parent, _args, _context, info) => {
+      getUser: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(Users, info)
-          const data = await Users.findOne({
+          const data = await Users.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { id: deCode(parent.id) }
           })
@@ -438,10 +438,10 @@ export default {
           return null
         }
       },
-      getAllPedidoStore: async (parent, _args, _context, info) => {
+      getAllPedidoStore: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(pedidosModel, info)
-          const data = await pedidosModel.findAll({
+          const data = await pedidosModel.schema(getTenantName(context.restaurant)).findAll({
             attributes,
             where: { pCodeRef: parent.pCodeRef }
           })
@@ -450,10 +450,10 @@ export default {
           return null
         }
       },
-      getAllShoppingCard: async (parent, _args, _context, info) => {
+      getAllShoppingCard: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(ShoppingCard, info)
-          const data = await ShoppingCard.findOne({
+          const data = await ShoppingCard.schema(getTenantName(context.restaurant)).findOne({
             attributes,
             where: { ShoppingCard: deCode(parent.ShoppingCard) }
           })

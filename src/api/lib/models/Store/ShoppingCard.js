@@ -15,7 +15,9 @@ import Store from './Store'
 
 const sequelize = connect()
 
-const ShoppingCard = sequelize.define('shoppingcards', {
+export const SHOPPING_CARD_MODEL = 'shoppingcards'
+
+const ShoppingCard = sequelize.define(SHOPPING_CARD_MODEL, {
   ShoppingCard: {
     type: INTEGER,
     primaryKey: true,

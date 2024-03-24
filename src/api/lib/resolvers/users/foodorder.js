@@ -2,21 +2,21 @@
 import { Op } from 'sequelize'
 
 import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 // store
-export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
+export const getAllPedidoStoreFinal = async (_, args, context, info) => {
   const { idStore } = args || {}
   try {
     const attributes = getAttributes(StatusPedidosModel, info)
-    const data = await StatusPedidosModel.findAll({
+    const data = await StatusPedidosModel.schema(getTenantName(context.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
           {
             // ID STORE
             pSState: { [Op.between]: [0, `${4}`] },
-            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
+            idStore: idStore ? deCode(idStore) : deCode(context.restaurant)
           }
         ]
       }
@@ -27,7 +27,7 @@ export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
   }
 }
 
-export const getAllSalesStore = async (_, args, ctx, info) => {
+export const getAllSalesStore = async (_, args, context, info) => {
   const {
     idStore,
     min,
@@ -38,7 +38,7 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
     toDate
   } = args || {}
   try {
-    if (!ctx?.restaurant || !ctx?.User?.id) throw Error('Ha caducado la session', 500)
+    if (!context?.restaurant || !context?.User?.id) throw Error('Ha caducado la session')
 
     let whereSearch = {}
     if (search) {
@@ -52,7 +52,7 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
     }
 
     const attributes = getAttributes(StatusPedidosModel, info)
-    const data = await StatusPedidosModel.findAll({
+    const data = await StatusPedidosModel.schema(getTenantName(context.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -62,7 +62,7 @@ export const getAllSalesStore = async (_, args, ctx, info) => {
             ...((channel) ? { channel } : {}),
             ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
             // ID STORE
-            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
+            idStore: idStore ? deCode(idStore) : deCode(context.restaurant)
           }
         ]
       },
@@ -82,7 +82,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
     toDate
   } = args || {}
   try {
-    const data = await StatusPedidosModel.findAll({
+    const data = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
@@ -97,7 +97,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
       }
     })
 
-    const dataDelivery = await StatusPedidosModel.findAll({
+    const dataDelivery = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
@@ -111,7 +111,7 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
         ]
       }
     })
-    const dataTotal = await StatusPedidosModel.findAll({
+    const dataTotal = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes: ['totalProductsPrice'],
       where: {
         [Op.or]: [
@@ -147,7 +147,7 @@ export const getAllSalesStoreStatistic = async (_, args, ctx, info) => {
   const { idStore, min, max, fromDate, toDate } = args || {}
   try {
     const attributes = getAttributes(StatusPedidosModel, info)
-    const data = await StatusPedidosModel.findAll({
+    const data = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
       attributes,
       where: {
         [Op.or]: [
@@ -172,7 +172,7 @@ export const getOneSalesStore = async (_, args, ctx, info) => {
   const { pCodeRef } = args || {}
   try {
     const attributes = getAttributes(StatusPedidosModel, info)
-    const data = await StatusPedidosModel.findOne({
+    const data = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findOne({
       attributes,
       where: {
         [Op.or]: [
