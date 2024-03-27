@@ -8,7 +8,9 @@ import DepartmentsModel from '../information/DepartmentsModel'
 import CitiesModel from '../information/CitiesModel'
 const sequelize = connect()
 
-const Userprofile = sequelize.define('userprofile', {
+export const USER_PROFILE_MODEL = 'userprofiles'
+
+const UserProfile = sequelize.define(USER_PROFILE_MODEL, {
   upId: {
     type: INTEGER,
     primaryKey: true,
@@ -103,4 +105,4 @@ const Userprofile = sequelize.define('userprofile', {
   timestamps: false
 })
 
-export default Userprofile
+export default UserProfile

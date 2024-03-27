@@ -306,7 +306,7 @@ export const ExtProductFoodsOptionalAll = async (root, args, context, info) => {
       },
       limit: max || 100,
       offset: min || 0,
-      order: [['OptionalProName', 'DESC']]
+      order: [['pDatCre', 'DESC']]
     })
     return data
   } catch (e) {

@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { Op } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 
 import AreasModel from '../../models/areas/AreasModel'
 import Feature from '../../models/feature/feature'
@@ -91,61 +91,60 @@ export const productFoodsAll = async (root, args, context, info) => {
   try {
     const { search, min, max, pId, gender, desc, categories, toDate, fromDate, pState } = args
     let whereSearch = {}
+
     if (search) {
+      const searchString = `%${search.replace(/\s+/g, ' ')}%`
       whereSearch = {
         [Op.or]: [
-          { pName: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-          { ProPrice: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-          { ProDescuento: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-          { ProDelivery: { [Op.substring]: search.replace(/\s+/g, ' ') } }
+          Sequelize.where(Sequelize.literal('"pName"::text'), { [Op.iLike]: searchString }),
+          Sequelize.where(Sequelize.literal('"ProPrice"::text'), { [Op.iLike]: searchString }),
+          Sequelize.where(Sequelize.literal('"ProDescuento"::text'), { [Op.iLike]: searchString }),
+          Sequelize.where(Sequelize.literal('"ProDelivery"::text'), { [Op.iLike]: searchString })
         ]
       }
     }
+
     if (gender?.length) {
       whereSearch = {
         ...whereSearch,
-        ProDelivery: {
-          [Op.in]: gender.map(x => x)
-        }
+        ProDelivery: { [Op.in]: gender }
       }
     }
+
     if (desc?.length) {
       whereSearch = {
         ...whereSearch,
-        ProDescuento: { [Op.in]: desc.map(x => x) }
+        ProDescuento: { [Op.in]: desc }
       }
     }
+
     if (categories?.length) {
       whereSearch = {
         ...whereSearch,
         carProId: { [Op.in]: categories.map(x => deCode(x)) }
       }
     }
+
     const attributes = getAttributes(productModelFood, info)
+
     const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
-        [Op.or]: [
-          {
-            ...whereSearch,
-            // get restaurant
-            idStore: deCode(context.restaurant),
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {}),
-            // get user
-            id: deCode(context.User.id),
-            pId: pId ? deCode(pId) : { [Op.gt]: 0 },
-            // Productos state
-            pState: pState || { [Op.gt]: 0 }
-          }
-        ]
+        ...whereSearch,
+        idStore: deCode(context.restaurant),
+        id: deCode(context.User.id),
+        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
+        pState: pState ?? { [Op.gt]: 0 },
+        ...(fromDate && toDate ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {})
       },
       limit: max || 100,
       offset: min || 0,
       order: [['pName', 'DESC']]
     })
+
     return data
   } catch (e) {
-    const error = new Error(e || 'Lo sentimos, ha ocurrido un error interno')
+    const error = new Error(e.message || 'Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }
@@ -180,7 +179,6 @@ export const updateProductFoods = async (_root, { input }, context) => {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
-    console.log(context)
     if (!pId) {
       const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
         ...input,

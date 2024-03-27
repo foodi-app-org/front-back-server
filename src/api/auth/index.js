@@ -16,7 +16,6 @@ export const MAX_AGE = 60 * 60 * 24
 /**
  * @description Función que guarda el device
  * @param {string} input Args
- * @returns {{ user: string, userProfile: object, error: boolean }} devolución del token y los datos
  */
 export const getDevice = async ({ input }) => {
   const {

@@ -1,10 +1,9 @@
 import UserDeviceModel from '../../models/users/userDevice'
-import { deCode, getAttributes } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 /**
  *
  * @param {*} _root no usado
- * @param {*} param1 _
  * @param {*} context context info global
  * @param {*} info _
  * @returns
@@ -12,7 +11,7 @@ import { deCode, getAttributes } from '../../utils/util'
 export const getDeviceUsers = async (_root, _args, context, info) => {
   try {
     const attributes = getAttributes(UserDeviceModel, info)
-    const data = await UserDeviceModel.findAll({
+    const data = await UserDeviceModel.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         id: deCode(context.User.id)
@@ -20,7 +19,7 @@ export const getDeviceUsers = async (_root, _args, context, info) => {
     })
     return data
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno', e, 500)
+    const error = new Error('Lo sentimos, ha ocurrido un error interno')
     return error
   }
 }

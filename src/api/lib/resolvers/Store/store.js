@@ -412,7 +412,6 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
-    console.log('🚀 ~ e:', e)
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
     if (e instanceof NotFountError) {
       message = e.message

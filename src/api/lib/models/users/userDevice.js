@@ -3,9 +3,12 @@ import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import Users from '../Users'
+
 const sequelize = connect()
 
-const UserDeviceModel = sequelize.define('userdevice', {
+export const USER_DEVICE_MODEL = 'userdevice'
+
+const UserDeviceModel = sequelize.define(USER_DEVICE_MODEL, {
   dId: {
     type: INTEGER,
     primaryKey: true,
