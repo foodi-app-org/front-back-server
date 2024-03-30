@@ -5,6 +5,8 @@ import { google } from 'googleapis'
 import bcrypt from 'bcrypt'
 import nodemailer from 'nodemailer'
 
+require('dotenv').config()
+
 export const generateToken = dataUser => {
   const expiresIn = '1d'
   const AccessToken = jwt.sign(dataUser, process.env.AUTHO_USER_KEY, { expiresIn })
@@ -1507,4 +1509,12 @@ export const generateCode = async (length = 6) => {
   const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min
 
   return randomNumber
+}
+
+export function addDaysToCurrentDate () {
+  const trialDays = process.env.TRIAL_DAYS ? parseInt(process.env.TRIAL_DAYS) : 0
+  const currentDate = new Date()
+  const endDate = new Date(currentDate)
+  endDate.setDate(currentDate.getDate() + trialDays)
+  return endDate.toISOString()
 }

@@ -7,7 +7,7 @@ import {
   getAttributes,
   getTenantName
 } from '../../utils/util'
-import { getStatusOpenStore } from '../../utils'
+import { addDaysToCurrentDate, getStatusOpenStore } from '../../utils'
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
 import CountriesModel from '../../models/information/CountriesModel'
@@ -26,12 +26,14 @@ import clients from '../../models/Store/clients'
 import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
 import { NotFountError } from '../../utils/handleError'
+import subscriptions from '../../models/subscriptions/subscriptions'
 
 import { createClients } from './Clients'
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
+require('dotenv').config()
 
 // eslint-disable-next-line
 const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
@@ -97,7 +99,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       return {
         success: false,
         message: 'Ya existe una tienda registrada',
-        idStore: data.idStore
+        idStore: data?.idStore
       }
     }
     res = await Store.create({
@@ -133,7 +135,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
         idStore
       }
     }
-    createTenant(null, { input: inputTenant }, context)
+    await createTenant(null, { input: inputTenant }, context)
 
     const inputClient = {
       clientName: 'CLIENTES VARIOS',
@@ -144,7 +146,7 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       gender: 1,
       idStore
     }
-    createClients(null, { input: inputClient }, ctx)
+    await createClients(null, { input: inputClient }, ctx)
     return {
       success: true,
       idStore,

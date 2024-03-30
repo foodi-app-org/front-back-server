@@ -12,10 +12,12 @@ import paymentCardResolver from './paymentCard'
 import adminResolver from './admin'
 import messagesResolver from './messages'
 import tenant from './tenant'
+import subscriptions from './subscriptions/export'
 
 export default {
   ...UserResolvers.TYPES,
   ...storeResolver.TYPES,
+  ...subscriptions.TYPES,
   ...tenant.TYPES,
   ...informationResolver.TYPES,
   ...Providers.TYPES,
@@ -30,6 +32,7 @@ export default {
   // Upload: GraphQLUpload,
   Query: {
     ...UserResolvers.QUERIES,
+    ...subscriptions.QUERIES,
     ...tenant.QUERIES,
     ...categoriesResolver.QUERIES,
     ...adminResolver.QUERIES,
@@ -45,6 +48,7 @@ export default {
   Mutation: {
     ...UserResolvers.MUTATIONS,
     ...Providers.MUTATIONS,
+    ...subscriptions.MUTATIONS,
     ...tenant.MUTATIONS,
     ...categoriesResolver.MUTATIONS,
     ...adminResolver.MUTATIONS,

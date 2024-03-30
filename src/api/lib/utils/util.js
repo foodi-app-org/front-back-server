@@ -156,11 +156,23 @@ const filterKeyObject = (data, filters) => {
 }
 export const getTenantName = (tenantId) => `tenant_${tenantId}`
 
+export const removeTenantPrefix = (tenantName) => {
+  // Verificar si el nombre del tenant comienza con "tenant_"
+  if (tenantName.startsWith('tenant_')) {
+    // Eliminar el prefijo "tenant_"
+    return tenantName.slice(7)
+  } else {
+    // Si el nombre no tiene el prefijo, devolverlo sin cambios
+    return tenantName
+  }
+}
+
 module.exports = {
   enCode,
   deCode,
   consecutive,
   getTenantName,
+  removeTenantPrefix,
   replaceHyphensWithUnderscores,
   // pushNotifications,
   UpCrNotFind,

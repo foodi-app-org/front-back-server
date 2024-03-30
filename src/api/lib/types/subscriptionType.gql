@@ -1,0 +1,50 @@
+type SubscriptionType {
+  subscriptionTypeId: ID!
+  name: String!
+  description: String!
+  priceMonth: String
+  priceYear: String
+  modules: String
+  priceMonthId: String
+  priceYearId: String
+  storageSize: String
+  deleted: Boolean!
+  createdAt: String!
+  updatedAt: String!
+  Subscriptions: [Subscription] # Esto asume que tienes definido el type Subscription
+}
+
+type Query {
+  getSubscriptionTypes: [SubscriptionType!]!
+  getSubscriptionTypeById(subscriptionTypeId: ID!): SubscriptionType
+  # Otros campos de consulta según tus necesidades
+}
+
+input CreateSubscriptionTypeInput {
+  name: String!
+  description: String!
+  priceMonth: String
+  priceYear: String
+  modules: String
+  priceMonthId: String
+  priceYearId: String
+  storageSize: String
+}
+
+input UpdateSubscriptionTypeInput {
+  name: String
+  description: String
+  priceMonth: String
+  priceYear: String
+  modules: String
+  priceMonthId: String
+  priceYearId: String
+  storageSize: String
+  deleted: Boolean
+}
+
+type Mutation {
+  createSubscriptionType(input: CreateSubscriptionTypeInput!): SubscriptionType!
+  updateSubscriptionType(subscriptionTypeId: ID!, input: UpdateSubscriptionTypeInput!): SubscriptionType!
+  deleteSubscriptionType(subscriptionTypeId: ID!): SubscriptionType!
+}

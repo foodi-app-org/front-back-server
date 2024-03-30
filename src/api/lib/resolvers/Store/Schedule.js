@@ -41,12 +41,13 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
   const {
     schHoSta,
     schHoEnd,
+    idStore,
     schDay
   } = input || {}
   try {
     const existRestaurant = await Store.schema(getTenantName(context?.restaurant)).findOne({
       where: {
-        idStore: deCode(context.restaurant)
+        idStore: deCode(context.restaurant) ?? deCode(idStore)
       }
     })
     if (!existRestaurant) {
@@ -69,7 +70,7 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
       }
     })
     if (exist) {
-      await ScheduleStore.update({ schHoEnd, schHoSta },
+      await ScheduleStore.schema(getTenantName(context?.restaurant)).update({ schHoEnd, schHoSta },
         {
           where:
           {
@@ -80,7 +81,7 @@ export const setStoreSchedule = async (_root, { input }, context, _info) => {
         })
       return {
         success: true,
-        message: 'actualizado'
+        message: 'Actualizado'
       }
     }
     return {

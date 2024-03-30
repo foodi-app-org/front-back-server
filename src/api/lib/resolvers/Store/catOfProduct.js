@@ -9,7 +9,12 @@ import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 export const updatedProducts = async (_, { input }, ctx) => {
   try {
-    const res = await catProducts.schema(getTenantName(ctx?.restaurant)).create({ ...input, pState: 1, id: deCode(ctx.User.id), idStore: deCode(ctx.restaurant) })
+    const res = await catProducts.schema(getTenantName(ctx?.restaurant)).create({
+      ...input,
+      pState: 1,
+      id: deCode(ctx.User.id),
+      idStore: deCode(ctx.restaurant)
+    })
     return {
       success: true,
       message: 'Categoría creada'
@@ -100,7 +105,6 @@ export const catProductsAll = async (root, args, context, info) => {
       [Op.or]: [
         {
           ...whereSearch,
-          id: deCode(context.User.id),
           pState: { [Op.gt]: 0 }
         }
       ]

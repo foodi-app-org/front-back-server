@@ -1,0 +1,22 @@
+type Subscription {
+  subscriptionId: ID!
+  ownerId: String!
+  subscriptionType: SubscriptionType!
+  status: Boolean!
+  currentPeriodStart: String!
+  currentPeriodEnd: String!
+  businessName: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Query {
+  subscriptions: [Subscription]!
+  validateFreeSubscription(subscriptionId: ID, idStore: ID): Subscription
+}
+
+type Mutation {
+  createSubscription(ownerId: String!, subscriptionTypeId: String!, status: Boolean!, currentPeriodStart: String!, currentPeriodEnd: String!, businessName: String): Subscription!
+  updateSubscription(subscriptionId: ID!, ownerId: String, subscriptionTypeId: String, status: Boolean, currentPeriodStart: String, currentPeriodEnd: String, businessName: String): Subscription!
+  deleteSubscription(subscriptionId: ID!): Boolean!
+}

@@ -3,8 +3,11 @@ import boom from '@hapi/boom'
 import Store from '../models/Store/Store'
 import Users from '../models/Users'
 import clients from '../models/Store/clients'
+import subscriptions from '../models/subscriptions/subscriptions'
 
 import { deCode } from './util'
+
+import { addDaysToCurrentDate } from '.'
 
 export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
   try {
@@ -51,6 +54,15 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
           clientLastName: 'CLIENTES VARIOS'
         })
       }
+      // creamos el plan gratuito
+      const dataSubscription = {
+        subscriptionTypeId: '1',
+        email: userData.name,
+        businessName: schemaName,
+        currentPeriodStart: new Date().toISOString(),
+        currentPeriodEnd: addDaysToCurrentDate()
+      }
+      await subscriptions.schema(schemaName).create({ ...dataSubscription })
     }
     return { message: 'Data migration completed successfully' }
   } catch (error) {
