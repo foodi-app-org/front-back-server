@@ -42,7 +42,7 @@ const Subscription = conn.define(SUBSCRIPTION_MODEL, {
   },
   businessName: {
     type: Sequelize.STRING(50),
-    unique: true
+    unique: false
   },
   createdAt: {
     type: 'TIMESTAMP',

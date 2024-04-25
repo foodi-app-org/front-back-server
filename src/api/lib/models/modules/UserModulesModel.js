@@ -5,10 +5,11 @@ import UsersModel from '../users/UsersModel'
 import { enCode } from '../../utils/util'
 
 import ModulesModel from './ModulesModel'
+
 const sequelize = connect()
-/**
- * @deprecated
- */
+
+export const USER_MODULES_MODEL = 'usermodules'
+
 const UserModulesModel = sequelize.define('usermodules', {
   umdId: {
     type: INTEGER,

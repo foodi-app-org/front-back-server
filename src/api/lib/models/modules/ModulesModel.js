@@ -1,10 +1,17 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  literal
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
-const ModulesModel = sequelize.define('modules', {
+export const MODULES_MODEL = 'modules'
+
+const ModulesModel = sequelize.define(MODULES_MODEL, {
   mId: {
     type: INTEGER,
     primaryKey: true,
@@ -12,11 +19,11 @@ const ModulesModel = sequelize.define('modules', {
     get (x) { return enCode(this.getDataValue(x)) }
   },
   mName: {
-    type: STRING(100),
+    type: STRING,
     allowNull: false
   },
   mPath: {
-    type: STRING(50),
+    type: STRING,
     allowNull: false
   },
   mPriority: {

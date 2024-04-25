@@ -7,7 +7,9 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 
 const conn = connect()
-export default conn.define('storefavoritesuser', {
+conn.sync()
+
+export default conn.define('storefavoritesusers', {
   fIStoreId: {
     type: Sequelize.INTEGER,
     primaryKey: true,

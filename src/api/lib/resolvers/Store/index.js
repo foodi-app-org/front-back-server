@@ -15,10 +15,11 @@ import ChatStore from './storeChat'
 import bannerDashboardStore from './bannerMainDashboard'
 import emplooyeStore from './employee'
 import storesPendingToRegister from './storesPendingToRegister'
-
+import modules from './modules'
 export default {
   TYPES: {
     ...storeResolver.TYPES,
+    ...modules.TYPES,
     ...bannerDashboardStore.TYPES,
     ...emplooyeStore.TYPES,
     ...walletDebtStore.TYPES,
@@ -36,6 +37,7 @@ export default {
     ...createCatOfProductsResolver.TYPES
   },
   QUERIES: {
+    ...modules.QUERIES,
     ...storeResolver.QUERIES,
     ...emplooyeResolver.QUERIES,
     ...storesPendingToRegister.QUERIES,
@@ -55,6 +57,7 @@ export default {
     ...ContractResolver.QUERIES
   },
   MUTATIONS: {
+    ...modules.MUTATIONS,
     ...storeResolver.MUTATIONS,
     ...storesPendingToRegister.MUTATIONS,
     ...ChatStore.MUTATIONS,

@@ -5,7 +5,9 @@ import { enCode } from '../../utils/util'
 
 const conn = connect()
 
-export default conn.define('bannersMaster', {
+conn.sync()
+
+export default conn.define('bannersMasters', {
   BannerId: {
     type: Sequelize.INTEGER,
     primaryKey: true,

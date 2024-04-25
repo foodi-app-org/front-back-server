@@ -34,7 +34,6 @@ export const updateSubscription = async (_root, args, context, _info) => {
     await subscription.update(updates)
     return subscription
   } catch (error) {
-    console.error(error)
     throw new Error('Failed to update subscription.')
   }
 }

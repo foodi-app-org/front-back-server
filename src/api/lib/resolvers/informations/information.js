@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-express'
-import { Op } from 'sequelize'
+import sequelize, { Op } from 'sequelize'
 
-import CatStore from '../../models/information/CategorieStore'
+import CatStore, { MODEL_CAT_STORE_NAME } from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
 import colorModel from '../../models/information/color'
 import CountriesModel from '../../models/information/CountriesModel'
@@ -14,6 +14,7 @@ import {
   filterKeyObject,
   getAttributes
 } from '../../utils/util'
+import connect from '../../db'
 
 // cities
 export const getCities = async (_root, _args, _context, info) => {
@@ -215,6 +216,125 @@ export const getAllCatStore = async (_root, { input }, _context, info) => {
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }
+
+// Función para llenar la tabla de categorías
+const categoriesData = [
+  {
+    cName: 'Restaurante de Mariscos',
+    csDescription: 'Delicias del mar frescas y sabrosas',
+    cPathImage: '/imagenes/restaurante_mariscos.jpg'
+  },
+  {
+    cName: 'Restaurante de Carnes',
+    csDescription: 'Cortes de carne premium y parrilladas',
+    cPathImage: '/imagenes/restaurante_carnes.jpg'
+  },
+  {
+    cName: 'Restaurante de Vegetariano/Vegano',
+    csDescription: 'Platos saludables y creativos sin carne',
+    cPathImage: '/imagenes/restaurante_vegetariano.jpg'
+  },
+  {
+    cName: 'Cafetería',
+    csDescription: 'Café de calidad y bocadillos deliciosos',
+    cPathImage: '/imagenes/cafeteria.jpg'
+  },
+  {
+    cName: 'Pastelería',
+    csDescription: 'Pasteles, postres y dulces irresistibles',
+    cPathImage: '/imagenes/pasteleria.jpg'
+  },
+  {
+    cName: 'Bar de Tapas',
+    csDescription: 'Tapas variadas y bebidas refrescantes',
+    cPathImage: '/imagenes/bar_tapas.jpg'
+  },
+  {
+    cName: 'Sushi',
+    csDescription: 'Sushi fresco y rolls creativos',
+    cPathImage: '/imagenes/restaurante_sushi.jpg'
+  },
+  {
+    cName: 'Comida Fusion',
+    csDescription: 'Innovadoras combinaciones de sabores de todo el mundo',
+    cPathImage: '/imagenes/restaurante_fusion.jpg'
+  },
+  {
+    cName: 'Restaurante Chino',
+    csDescription: 'Comida china auténtica',
+    cPathImage: '/imagenes/restaurante_chino.jpg'
+  },
+  {
+    cName: 'Restaurante Mexicano',
+    csDescription: 'Deliciosa comida mexicana',
+    cPathImage: '/imagenes/restaurante_mexicano.jpg'
+  },
+  {
+    cName: 'Restaurante Italiano',
+    csDescription: 'Auténtica comida italiana',
+    cPathImage: '/imagenes/restaurante_italiano.jpg'
+  },
+  {
+    cName: 'Restaurante Japonés',
+    csDescription: 'Sushi y comida japonesa',
+    cPathImage: '/imagenes/restaurante_japones.jpg'
+  },
+  {
+    cName: 'Restaurante Coreano',
+    csDescription: 'Comida coreana tradicional',
+    cPathImage: '/imagenes/restaurante_coreano.jpg'
+  },
+  {
+    cName: 'Comida Rápida',
+    csDescription: 'Sabrosas opciones de comida rápida',
+    cPathImage: '/imagenes/comida_rapida.jpg'
+  },
+  {
+    cName: 'Pizzería',
+    csDescription: 'Auténtica pizza recién horneada',
+    cPathImage: '/imagenes/pizzeria.jpg'
+  },
+  {
+    cName: 'Restaurante Español',
+    csDescription: 'Tapas y platos españoles',
+    cPathImage: '/imagenes/restaurante_espanol.jpg'
+  }
+]
+// Variable para almacenar los nombres de categorías ya creadas
+const createdCategories = new Set()
+
+// Función para llenar la tabla de categorías
+async function fillCatStoreTable () {
+  try {
+    for (const category of categoriesData) {
+      // Verificar si la categoría ya existe en la base de datos o si ya ha sido creada
+      if (!createdCategories.has(category.cName)) {
+        const existingCategory = await CatStore.findOne({ where: { cName: category.cName } })
+
+        // Si no existe, procede a crearla
+        if (!existingCategory) {
+          await CatStore.create(category)
+          createdCategories.add(category.cName) // Agregar el nombre de la categoría a la lista de creadas
+          console.log(`Categoría '${category.cName}' creada exitosamente.`)
+        } else {
+          console.log(`La categoría '${category.cName}' ya existe en la base de datos. No se creará.`)
+        }
+      } else {
+        console.log(`La categoría '${category.cName}' ya ha sido creada en esta ejecución. No se creará de nuevo.`)
+      }
+    }
+  } catch (error) {
+    console.error('Error al crear categorías:', error)
+  }
+}
+
+const conn = connect()
+// Hook afterSync para ejecutar la función fillCatStoreTable después de sincronizar las tablas
+conn.addHook('afterSync', 'fillCatStoreTable', (e) => {
+  if (e.name.plural === MODEL_CAT_STORE_NAME) {
+    fillCatStoreTable()
+  }
+})
 
 export const getOneCatStore = async (_root, { catStore: idCat }, _context, info) => {
   if (!idCat) return new ApolloError('')

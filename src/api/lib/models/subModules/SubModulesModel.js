@@ -5,7 +5,9 @@ import ModulesModel from '../modules/ModulesModel'
 import { enCode } from '../../utils/util'
 const sequelize = connect()
 
-const SubModulesModel = sequelize.define('submodules', {
+export const SUB_MODULES_MODEL = 'submodules'
+
+const SubModulesModel = sequelize.define(SUB_MODULES_MODEL, {
   smId: {
     type: INTEGER,
     primaryKey: true,
