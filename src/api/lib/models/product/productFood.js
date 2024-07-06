@@ -14,7 +14,6 @@ import Store from '../Store/Store'
 import catProducts from '../Store/cat'
 
 const sequelize = connect()
-sequelize.sync()
 
 export const PRODUCT_FOOD_MODEL = 'productmodelfoods'
 

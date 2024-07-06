@@ -10,7 +10,7 @@ import { enCode } from '../../utils/util'
 
 import Store from './Store'
 const sequelize = connect()
-sequelize.sync()
+
 export const STATUS_ORDER_MODEL = 'statuspedidos'
 
 const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {

@@ -7,7 +7,6 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 
 const conn = connect()
-conn.sync()
 
 export default conn.define('storefavoritesusers', {
   fIStoreId: {
