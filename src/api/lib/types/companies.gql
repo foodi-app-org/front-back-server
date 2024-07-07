@@ -42,12 +42,6 @@ type ReCompany {
     lineItemsTeam: [lineItemsTeam]
 }
 
-"""Response Company"""
-type Response {
-    success: Boolean
-    message: String
-}
-
 
 input IlineItemsTeam {
     _id: ID

@@ -21,8 +21,11 @@ import {
 } from '../../utils/util'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
+import Joi from 'joi'
 
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
+import { productFoodSchema } from './schema'
+import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -149,14 +152,65 @@ export const productFoodsAll = async (root, args, context, info) => {
   }
 }
 
+const editProductInputSchema = Joi.object({
+  pName: Joi.string().required(),
+  pId: Joi.string().required(),
+  ProDescuento: Joi.number().allow(null, '').optional(),
+  ProPrice: Joi.number().required().max(MAX_INTEGER_MYSQL).messages(stringMessages('Precio del producto', MAX_INTEGER_MYSQL)),
+  ProDescription: Joi.string().allow(null, '').optional(),
+  ProImage: Joi.string().allow(null, '').optional(),
+  ValueDelivery: Joi.number().allow(null, '').optional().max(MAX_INTEGER_MYSQL).messages(stringMessages('Precio del domicilio', MAX_INTEGER_MYSQL)),
+  ProUniDisponibles: Joi.number().allow(null, '').optional(),
+  ProProtegido: Joi.any().allow(null, '').optional(),
+  ProAssurance: Joi.any().allow(null, '').optional(),
+  ProWidth: Joi.number().allow(null, '').optional(),
+  ProHeight: Joi.number().allow(null, '').optional(),
+  ProLength: Joi.number().allow(null, '').optional(),
+  ProWeight: Joi.number().allow(null, '').optional(),
+  ProQuantity: Joi.number().allow(null, '').optional(),
+  ProOutstanding: Joi.number().allow(null, '').optional(),
+  ProDelivery: Joi.number().allow(null, '').optional(),
+  ProVoltaje: Joi.any().allow(null, '').optional(),
+  pState: Joi.number().allow(null, '').optional(),
+  sTateLogistic: Joi.number().allow(null, '').optional()
+})
+
 export const editProductFoods = async (_root, { input }, context) => {
   try {
-    const { pName, pId, ProDescuento, ProPrice, ProDescription, ProImage, ValueDelivery } = input || {}
-    await productModelFood.update({ pName, ProDescuento, ProPrice, ProDescription, ProImage, ValueDelivery }, {
+    const { error } = editProductInputSchema.validate(input)
+    const errors = error?.details.map(e => ({
+      message: e.message,
+      path: e.path,
+      type: e.type,
+      context: e.context
+    }))
+    if (error) {
+      return {
+        success: false,
+        message: 'Error de validación',
+        errors
+      }
+    }
+    const {
+      pName,
+      pId,
+      ProDescuento,
+      ProPrice,
+      ProDescription,
+      ProImage,
+      ValueDelivery
+    } = input || {}
+    await productModelFood.schema(getTenantName(context?.restaurant)).update({
+      pName,
+      ProDescuento,
+      ProPrice,
+      ProDescription,
+      ProImage,
+      ValueDelivery
+    }, {
       where: {
         pId: deCode(pId),
         idStore: deCode(context.restaurant)
-
       }
     })
     return { success: true, message: 'producto actualizado' }
@@ -164,9 +218,12 @@ export const editProductFoods = async (_root, { input }, context) => {
     return { success: false, message: 'No pudimos actualizar el producto' }
   }
 }
+
+
 export const updateProductFoods = async (_root, { input }, context) => {
   const {
     sizeId,
+    ValueDelivery,
     colorId,
     cId,
     dId,
@@ -180,10 +237,29 @@ export const updateProductFoods = async (_root, { input }, context) => {
       return new ForbiddenError('Token expired')
     }
     if (!pId) {
+      const { error } = productFoodSchema.validate(input)
+      if (error) {
+        return {
+          success: false,
+          data: null,
+          message: 'Error de validación',
+          errors: error?.details.map(e => ({
+            message: e.message,
+            path: e.path,
+            type: e.type,
+            context: e.context
+          }))
+        }
+      }
+    }
+    const transaction = await productModelFood.sequelize.transaction()
+    if (!pId) {
+      const { count } = await productModelFood.schema(getTenantName(context?.restaurant)).findAndCountAll({ transaction })
+      const lengthProduct = Number(count)
       const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
+        ValueDelivery: ValueDelivery,
         ...input,
         pState: 1,
-        ValueDelivery: 0,
         idStore: deCode(context.restaurant),
         carProId: deCode(carProId),
         id: deCode(context.User.id),
@@ -191,9 +267,15 @@ export const updateProductFoods = async (_root, { input }, context) => {
         colorId: colorId ? deCode(colorId) : null,
         cId: cId ? deCode(cId) : null,
         dId: dId ? deCode(dId) : null,
-        ctId: ctId ? deCode(ctId) : null
+        ctId: ctId ? deCode(ctId) : null,
+        poPriority: lengthProduct + 1
       })
-      return data
+      await transaction.commit()
+      return {
+        success: true,
+        data,
+        message: 'Producto creado correctamente'
+      }
     }
 
     const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { pId: deCode(pId) } })
@@ -202,9 +284,15 @@ export const updateProductFoods = async (_root, { input }, context) => {
     }
 
     await productModelFood.schema(getTenantName(context?.restaurant)).update({ pState: pState === 1 ? 0 : 1 }, { where: { pId: deCode(pId) } })
-    return existingProduct
+    return {
+      success: true,
+      message: 'Producto actualizado correctamente'
+    }
   } catch (e) {
-    throw new ApolloError('No ha sido posible procesar su solicitud.', '500', e)
+    return {
+      success: false,
+      message: e.message || 'No pudimos actualizar el producto'
+    }
   }
 }
 

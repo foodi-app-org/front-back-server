@@ -1,0 +1,22 @@
+"""Context error"""
+type contextError {
+    limit: Int
+    value: Int
+    label: String
+    key: String
+}
+
+"""Errors"""
+type errors {
+    path: [String]
+    message: String
+    type: String
+    context: contextError
+
+}
+"""Response global"""
+type Response {
+    success: Boolean
+    message: String
+    errors: [errors]
+}

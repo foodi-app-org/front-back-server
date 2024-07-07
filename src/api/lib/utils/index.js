@@ -1518,3 +1518,23 @@ export function addDaysToCurrentDate () {
   endDate.setDate(currentDate.getDate() + trialDays)
   return endDate.toISOString()
 }
+
+export const stringMessages = (a, max, min) => {
+  const object = {
+    'string.base': `${a} debería ser un tipo de 'texto'`,
+    'string.empty': `${a} no puede ser un campo vacío`,
+    'string.min': `"${a}" debe tener una longitud mínima de ${min}`,
+    'string.max': `"${a}" debe tener una longitud máxima de ${max}`,
+    'number.max': `"${a}" debe ser menor o igual a ${max}`,
+    'number.min': `"${a}" debe ser mayor o igual a ${max}`,
+    'any.required': `"${a}" es un campo requerido`,
+    'string.email': `"${a}" debe ser un email válido`,
+    'string.pattern.base': `"${a}" con el formato incorrecto`,
+    'string.uri': `"${a}" debe ser una URL válida`,
+    'string.uriCustom': `"${a}" debe ser una URL válida`
+  }
+
+  return object
+}
+
+export const MAX_INTEGER_MYSQL = 2147483647
