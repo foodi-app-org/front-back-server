@@ -170,6 +170,7 @@ router.post('/auth', async (req, res) => {
       token
     })
   } catch (error) {
+    console.log("🚀 ~ router.post ~ error:", error)
     return res.status(500).json({
       response: 'no ok',
       ok: false,

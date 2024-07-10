@@ -125,6 +125,7 @@ type Query {
 type Mutation {
     "Registra un productFood"
      updateProductFoods(input: InputProductFood): ResponseProduct
+     updateMultipleProducts(input: [InputProductFood]): [ResponseProduct]
     "edita un productFoodo"
     editProductFoods(input: InputProductFood): Response
     "Borra un productFoodo"

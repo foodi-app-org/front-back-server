@@ -1,6 +1,7 @@
 /* eslint-disable consistent-return */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op, Sequelize } from 'sequelize'
+import Joi from 'joi'
 
 import AreasModel from '../../models/areas/AreasModel'
 import Feature from '../../models/feature/feature'
@@ -21,11 +22,10 @@ import {
 } from '../../utils/util'
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
-import Joi from 'joi'
+import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
 
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import { productFoodSchema } from './schema'
-import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -219,8 +219,8 @@ export const editProductFoods = async (_root, { input }, context) => {
   }
 }
 
-
 export const updateProductFoods = async (_root, { input }, context) => {
+  console.log('🚀 ~ updateProductFoods ~ context:', context)
   const {
     sizeId,
     ValueDelivery,
@@ -257,7 +257,7 @@ export const updateProductFoods = async (_root, { input }, context) => {
       const { count } = await productModelFood.schema(getTenantName(context?.restaurant)).findAndCountAll({ transaction })
       const lengthProduct = Number(count)
       const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
-        ValueDelivery: ValueDelivery,
+        ValueDelivery,
         ...input,
         pState: 1,
         idStore: deCode(context.restaurant),
@@ -293,6 +293,79 @@ export const updateProductFoods = async (_root, { input }, context) => {
       success: false,
       message: e.message || 'No pudimos actualizar el producto'
     }
+  }
+}
+/**
+ * Updates or creates multiple products.
+ *
+ * @param {Object} _root - The root object.
+ * @param {Object} args - The arguments object.
+ * @param {Array} args.input - The input array of product data.
+ * @param {Object} context - The context object containing restaurant and user information.
+ * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
+ */
+const updateMultipleProducts = async (_root, { input }, context) => {
+  try {
+    const promises = input.map(async (productInput) => {
+      const {
+        sizeId,
+        ValueDelivery,
+        colorId,
+        cId,
+        dId,
+        ctId,
+        pId,
+        carProId
+      } = productInput || {}
+
+      if (!pId) {
+        const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
+          ValueDelivery,
+          ...productInput,
+          pState: 1,
+          idStore: deCode(context.restaurant),
+          carProId: carProId ? deCode(carProId) : null,
+          id: deCode(context.User.id),
+          sizeId: sizeId ? deCode(sizeId) : null,
+          colorId: colorId ? deCode(colorId) : null,
+          cId: cId ? deCode(cId) : null,
+          dId: dId ? deCode(dId) : null,
+          ctId: ctId ? deCode(ctId) : null,
+          poPriority: 0
+        })
+
+        return {
+          success: true,
+          data,
+          message: 'Producto creado correctamente'
+        }
+      }
+
+      return null
+    })
+
+    const results = await Promise.all(promises)
+
+    // Filter out null results
+    const filteredResults = results.filter(result => result !== null)
+
+    return filteredResults
+  } catch (error) {
+    return [{
+      success: false,
+      message: `Error al actualizar o crear productos: ${error.message}`,
+      errors: [{
+        path: ['updateMultipleProducts'],
+        message: error.message,
+        type: 'INTERNAL_SERVER_ERROR',
+        context: {
+          limit: 0,
+          value: 0,
+          label: 'updateMultipleProducts',
+          key: 'updateMultipleProducts'
+        }
+      }]
+    }]
   }
 }
 
@@ -529,6 +602,7 @@ export default {
   },
   MUTATIONS: {
     updateProductFoods,
+    updateMultipleProducts,
     editProductFoods
   }
 }

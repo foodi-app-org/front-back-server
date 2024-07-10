@@ -13,7 +13,8 @@ const categories = [
   { pName: 'Acompañamientos' },
   { pName: 'Menú Infantil' },
   { pName: 'Postres' },
-  { pName: 'Bebidas' }
+  { pName: 'Bebidas' },
+  { pName: 'NINGUNO' }
 ]
 
 const mappedCategories = categories.map(category => ({
