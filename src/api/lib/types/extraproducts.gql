@@ -1,129 +1,129 @@
 # types
 type ExtProductFood {
-    pId: ID!
-    exPid: ID
-    exState: Int
-    extraName: String
-    extraPrice: Float
-    quantity: Int
-    newExtraPrice: Int
-    state: Int
-    pDatCre: DateTime
-    pDatMod: DateTime
+	pId: ID!
+	exPid: ID
+	exState: Int
+	extraName: String
+	extraPrice: Float
+	quantity: Int
+	newExtraPrice: Int
+	state: Int
+	pDatCre: DateTime
+	pDatMod: DateTime
 }
 # type OPTIONAL PRODUCT
 type ExtProductFoodOptional {
-    pId: ID!
-    opExPid: ID
-    OptionalProName: String
-    state: Int
-    code: String
-    required: Int
-    numbersOptionalOnly: Int
-    pDatCre: DateTime
-    pDatMod: DateTime
-    ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptional]
+	pId: ID!
+	opExPid: ID
+	OptionalProName: String
+	state: Int
+	code: String
+	required: Int
+	numbersOptionalOnly: Int
+	pDatCre: DateTime
+	pDatMod: DateTime
+	ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptional]
 }
 # type SUB_OPTIONAL PRODUCT
 type ExtProductFoodSubOptional {
-    pId: ID
-    opExPid: ID
-    idStore: ID
-    opSubExPid: ID #main
-    OptionalSubProName: String
-    exCodeOptionExtra: String #Relación con ExtProductFoodOptional
-    exCode: String #Relación con ExtProductFoodOptional
-    state: Int
-    pDatCre: DateTime
-    pDatMod: DateTime
+	pId: ID
+	opExPid: ID
+	idStore: ID
+	opSubExPid: ID # main
+	OptionalSubProName: String
+	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
+	exCode: String # Relación con ExtProductFoodOptional
+	state: Int
+	pDatCre: DateTime
+	pDatMod: DateTime
 }
 input InputExtProductFoodSubOptional {
-    pId: ID
-    opExPid: ID
-    idStore: ID
-    opSubExPid: ID #main
-    OptionalSubProName: String
-    exCodeOptionExtra: String #Relación con ExtProductFoodOptional
-    exCode: String #Relación con ExtProductFoodOptional
-    state: Int
-    pDatCre: DateTime
-    pDatMod: DateTime
+	pId: ID
+	opExPid: ID
+	idStore: ID
+	opSubExPid: ID # main
+	OptionalSubProName: String
+	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
+	exCode: String # Relación con ExtProductFoodOptional
+	state: Int
+	pDatCre: DateTime
+	pDatMod: DateTime
 }
 # INPUT OPTIONAL
 input InputExtProductFoodOptional {
-    pId: ID
-    opExPid: ID
-    code: String
-    OptionalProName: String
-    state: Int
-    required: Int
-    numbersOptionalOnly: Int
+	pId: ID
+	opExPid: ID
+	code: String
+	OptionalProName: String
+	state: Int
+	required: Int
+	numbersOptionalOnly: Int
 }
 # Inputs
 input InputExtProductFood {
-    pId: ID!
-    exPid: ID
-    exState: Int
-    extraName: String
-    extraPrice: Float
-    state: Int
-    pDatCre: DateTime
-    pDatMod: DateTime
+	pId: ID!
+	exPid: ID
+	exState: Int
+	extraName: String
+	extraPrice: Float
+	state: Int
+	pDatCre: DateTime
+	pDatMod: DateTime
 }
 input ILineItemsExtraFinal {
-    setData: [InputExtProductFood]
+	setData: [InputExtProductFood]
 }
 input EditExtProductFoodOptionalInput {
-  pId: ID!
-  opExPid: ID
-  OptionalProName: String
-  state: Int
-  code: String
-  required: Int
-  numbersOptionalOnly: Int
-  pDatMod: DateTime
-  ExtProductFoodsSubOptionalAll: [EditExtProductFoodSubOptionalInput]
+	pId: ID!
+	opExPid: ID
+	OptionalProName: String
+	state: Int
+	code: String
+	required: Int
+	numbersOptionalOnly: Int
+	pDatMod: DateTime
+	ExtProductFoodsSubOptionalAll: [EditExtProductFoodSubOptionalInput]
 }
 
 input EditExtProductFoodSubOptionalInput {
-  pId: ID
-  opExPid: ID
-  idStore: ID
-  opSubExPid: ID
-  OptionalSubProName: String
-  exCodeOptionExtra: String
-  exCode: String
-  state: Int
+	pId: ID
+	opExPid: ID
+	idStore: ID
+	opSubExPid: ID
+	OptionalSubProName: String
+	exCodeOptionExtra: String
+	exCode: String
+	state: Int
 }
 
 # Queries
 type Query {
-    "Consulta todos los ExtProductFood"
-    ExtProductFoodsOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFood
-    ExtProductFoodsAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
-    ExtProductFoodsLogis(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
-    "Consulta todos los ExtProductFoodOptional"
-    ExtProductFoodsOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodOptional]
-    ExtProductFoodsOptionalOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFoodOptional
-    "Consulta todos los ExtSubProductFoodOptional"
-    ExtProductFoodsSubOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodSubOptional]
-    ExtProductFoodsSubOptionalOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFoodSubOptional
+	"Consulta todos los ExtProductFood"
+	ExtProductFoodsOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFood
+	ExtProductFoodsAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
+	ExtProductFoodsLogis(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
+	"Consulta todos los ExtProductFoodOptional"
+	ExtProductFoodsOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodOptional]
+	ExtProductFoodsOptionalOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFoodOptional
+	"Consulta todos los ExtSubProductFoodOptional"
+	ExtProductFoodsSubOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodSubOptional]
+	ExtProductFoodsSubOptionalOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFoodSubOptional
 }
 # Mutations
 type Mutation {
-    "Registra un ExtProductFood"
-    updateExtProductFoods(input: InputExtProductFood): ExtProductFood
-    updateMultipleExtProductFoods(inputLineItems: ILineItemsExtraFinal): ExtProductFood
-    editExtProductFoods(input: InputExtProductFood!): Response
-    deleteextraproductfoods(id: ID, state: Int): Response
-    editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
-    DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
-    "Registra un ExtProductFoodOptional"
-    updateExtProductFoodsOptional(input: InputExtProductFoodOptional): Response
-    "Registra un ExtProductFoodSubOptional"
-    updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
-    DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
-    editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
-    "EDITA UN EXTRAPRODUCTOPTIONAL"
-    editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
+	"Registra un ExtProductFood"
+	updateExtProductFoods(input: InputExtProductFood): ExtProductFood
+	updateMultipleExtProductFoods(inputLineItems: ILineItemsExtraFinal): ExtProductFood
+	editExtProductFoods(input: InputExtProductFood!): Response
+	deleteextraproductfoods(id: ID, state: Int): Response
+	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
+	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
+	"Registra un ExtProductFoodOptional"
+	updateExtProductFoodsOptional(input: InputExtProductFoodOptional): Response
+	"Registra un ExtProductFoodSubOptional"
+	updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
+	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
+	editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
+	"EDITA UN EXTRAPRODUCTOPTIONAL"
+	editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
 }

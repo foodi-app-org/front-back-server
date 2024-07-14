@@ -10,7 +10,7 @@ type Product {
     tpId: ID #Características
     fId: ID #Características principales
     pName: String
-    ProPrice: String
+    ProPrice: Float
     ProDescuento: String
     ProUniDisponibles: String
     ProDescription: String
@@ -60,7 +60,7 @@ input InputProduct {
     caId: ID #Categorías de productos
     fId: ID #Características principales
     pName: String
-    ProPrice: String
+    ProPrice: Float
     ProDescuento: String
     ProUniDisponibles: String
     ProDescription: String

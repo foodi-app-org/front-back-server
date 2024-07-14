@@ -6,14 +6,16 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 let sequelize = null
-const dialectOptions = {
-  postgres: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false // Permitir certificados autofirmados
+const dialectOptions = process.env.NODE_ENV === 'development'
+  ? {
+    postgres: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false // Permitir certificados autofirmados
+      }
     }
   }
-}
+  : {}
 
 export const connectConfig = {
   host: process.env.HOST_DB,

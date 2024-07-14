@@ -35,7 +35,7 @@ const ShoppingCard = sequelize.define(SHOPPING_CARD_MODEL, {
     get (x) { return enCode(this.getDataValue(x)) }
   },
   priceProduct: {
-    type: DECIMAL(10, 2),
+    type: DECIMAL(1000, 2),
     allowNull: false,
     defaultValue: 0.00
   },

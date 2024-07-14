@@ -1,9 +1,15 @@
-import { INTEGER, STRING, DATE } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  DATE,
+  DECIMAL
+} from 'sequelize'
 
 import connect from '../../../db'
 import { enCode } from '../../../utils/util'
 
 import ShoppingCard from './../ShoppingCard'
+
 const sequelize = connect()
 
 export const SALES_DATA_EXTRA_PRODUCTO = 'saledataextras'
@@ -52,7 +58,7 @@ const SaleDataExtra = sequelize.define(SALES_DATA_EXTRA_PRODUCTO, {
     allowNull: false
   },
   extraPrice: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: false
   },
   state: {
@@ -72,7 +78,7 @@ const SaleDataExtra = sequelize.define(SALES_DATA_EXTRA_PRODUCTO, {
     allowNull: false
   },
   newExtraPrice: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: false
   }
 })

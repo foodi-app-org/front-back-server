@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { Op, Sequelize } from 'sequelize'
+import { Op, QueryTypes, Sequelize } from 'sequelize'
 import Joi from 'joi'
 
 import AreasModel from '../../models/areas/AreasModel'
@@ -23,10 +23,12 @@ import {
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
+import paymentIdentities from '../../models/payment_identities'
 
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import { productFoodSchema } from './schema'
-
+import sequelize from 'sequelize'
+import seque from '../../db'
 export const productsOne = async (root, { pId }, context, info) => {
   try {
     const attributes = getAttributes(productModelFood, info)
@@ -220,7 +222,6 @@ export const editProductFoods = async (_root, { input }, context) => {
 }
 
 export const updateProductFoods = async (_root, { input }, context) => {
-  console.log('🚀 ~ updateProductFoods ~ context:', context)
   const {
     sizeId,
     ValueDelivery,
@@ -317,7 +318,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
         pId,
         carProId
       } = productInput || {}
-
+      console.log(productInput.ProPrice)
       if (!pId) {
         const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
           ValueDelivery,
@@ -353,7 +354,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
   } catch (error) {
     return [{
       success: false,
-      message: `Error al actualizar o crear productos: ${error.message}`,
+      message: `Error al crear productos: ${error.message}`,
       errors: [{
         path: ['updateMultipleProducts'],
         message: error.message,

@@ -1,4 +1,4 @@
-const { STRING, literal } = require('sequelize')
+const { STRING, literal, DECIMAL } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { TEXT } = require('sequelize')
 const { SMALLINT } = require('sequelize')
@@ -182,7 +182,7 @@ exports.up = async (queryInterface, schemaName) => {
       defaultValue: 1
     },
     valueDelivery: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: true,
       defaultValue: 0
     },
@@ -195,11 +195,15 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false
     },
     ProPrice: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
+      allowNull: true
+    },
+    vat: {
+      type: DECIMAL(1000, 2),
       allowNull: true
     },
     ProDescuento: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: true
     },
     ProUniDisponibles: {

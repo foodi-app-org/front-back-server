@@ -9,6 +9,7 @@ import CitiesModel from '../information/CitiesModel'
 import Feature from '../feature/feature'
 import CategoryProductsModel from '../Categories/CategoryProducts'
 import { enCode } from '../../utils/util'
+import { DECIMAL } from 'sequelize'
 const sequelize = connect()
 
 const productModel = sequelize.define('product', {
@@ -115,7 +116,7 @@ const productModel = sequelize.define('product', {
     allowNull: true
   },
   ProDescuento: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   ProUniDisponibles: {

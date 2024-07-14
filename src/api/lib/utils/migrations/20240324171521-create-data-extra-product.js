@@ -5,6 +5,7 @@ const { DATE } = require('sequelize')
 const { enCode } = require('../../utils/util')
 const { SALES_DATA_EXTRA_PRODUCTO } = require('../../models/Store/sales/saleExtraProduct')
 const { SHOPPING_CARD_MODEL } = require('../../models/Store/ShoppingCard')
+const { DECIMAL } = require('sequelize')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(SALES_DATA_EXTRA_PRODUCTO, {
@@ -55,7 +56,7 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false
     },
     extraPrice: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: false
     },
     state: {
@@ -75,7 +76,7 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false
     },
     newExtraPrice: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: false
     },
     createdAt: {

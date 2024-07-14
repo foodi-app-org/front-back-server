@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TEXT, literal, SMALLINT } from 'sequelize'
+import { INTEGER, STRING, TEXT, literal, SMALLINT, DECIMAL } from 'sequelize'
 
 import connect from '../../db'
 import SizeModel from '../information/size'
@@ -72,6 +72,10 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     },
     get (x) { return enCode(this.getDataValue(x)) }
   },
+  vat: {
+    type: DECIMAL(1000, 2),
+    allowNull: true
+  },
   // color
   colorId: {
     type: INTEGER,
@@ -144,7 +148,7 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     defaultValue: 1
   },
   valueDelivery: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true,
     defaultValue: 0
   },
@@ -157,11 +161,11 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     allowNull: false
   },
   ProPrice: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   ProDescuento: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   ProUniDisponibles: {

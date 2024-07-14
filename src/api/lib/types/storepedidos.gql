@@ -14,7 +14,7 @@ type StorePedidos {
   pPStateP: Int
   payMethodPState: Int
   pPRecoger: Int
-  totalProductsPrice: Int
+  totalProductsPrice: Float
   unidProducts: Int
   pDatCre: DateTime
   pDatMod: DateTime
@@ -85,7 +85,7 @@ input SET_INPUT_SHOPPING_PRODUCTS_ITEMS {
   pPStateP: Int # 5 estados - confirmado - proceso - preparacion - salida - cancelado  
   payMethodPState: Int  
   pPRecoger: Int
-  totalProductsPrice: Int
+  totalProductsPrice: Float
   locationUser: String
 }
 # input sales store
@@ -96,7 +96,7 @@ input InputSaleStore {
   pPStateP: Int # 5 estados - confirmado - proceso - preparacion - salida - cancelado
   payMethodPState: Int
   pPRecoger: Int
-  totalProductsPrice: Int
+  totalProductsPrice: Float
 }
 type TypeInputSalesChannel {
     restaurant: Int,

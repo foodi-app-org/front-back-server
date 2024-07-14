@@ -15,7 +15,7 @@ type ProductFood {
     pCode: String
     ProPrice: Float
     free: Int
-    ProDescuento: String
+    ProDescuento: Float
     ProUniDisponibles: String
     ProDescription: String
     ValueDelivery: Float

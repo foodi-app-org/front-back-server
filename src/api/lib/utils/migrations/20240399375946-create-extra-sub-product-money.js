@@ -1,5 +1,9 @@
-const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const {
+  STRING,
+  literal,
+  INTEGER,
+  DECIMAL
+} = require('sequelize')
 
 const { enCode } = require('../../utils/util')
 const { EXTRA_PRODUCT_MODEL } = require('../../models/product/productExtras')
@@ -55,7 +59,7 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false
     },
     extraPrice: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: true
     },
     // state

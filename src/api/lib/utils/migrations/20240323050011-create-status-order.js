@@ -1,6 +1,11 @@
-const { STRING, literal, DataTypes } = require('sequelize')
-const { INTEGER } = require('sequelize')
-const { DATE } = require('sequelize')
+const {
+  STRING,
+  literal,
+  DataTypes,
+  INTEGER,
+  DATE,
+  DECIMAL
+} = require('sequelize')
 
 const { enCode } = require('../../utils/util')
 const { STATUS_ORDER_MODEL } = require('../../models/Store/statusPedidoFinal')
@@ -67,7 +72,7 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false
     },
     totalProductsPrice: {
-      type: INTEGER,
+      type: DECIMAL(1000, 2),
       allowNull: false
     },
     payMethodPState: {

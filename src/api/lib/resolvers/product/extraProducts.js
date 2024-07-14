@@ -4,7 +4,11 @@ import { Op } from 'sequelize'
 import ExtraProductModel from '../../models/product/productExtras'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
 import productsSubOptionalExtra from '../../models/product/productsSubOptionalExtra'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
+import {
+  deCode,
+  getAttributes,
+  getTenantName
+} from '../../utils/util'
 
 export const deleteextraproductfoods = async (_root, { state, id }, context) => {
   try {
@@ -54,7 +58,7 @@ export const DeleteExtFoodSubsOptional = async (_root, {
       return new ForbiddenError('Token expired')
     }
     if (!opSubExPid && isCustomSubOpExPid) throw new ApolloError('No ha sido posible procesar su solicitud.', '500')
-    const res = await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).update({
+    await productsSubOptionalExtra.schema(getTenantName(context?.restaurant)).update({
       state: state === 1 ? 0 : 1
     }, {
       where: {
@@ -228,11 +232,20 @@ export const editExtProductFoods = async (_root, { input }, context) => {
 const GENERIC_ERROR_MESSAGE = 'No ha sido posible procesar su solicitud.'
 
 export const updateMultipleExtProductFoods = async (_root, args, context) => {
-  const { inputLineItems: { setData } } = args
+  const { inputLineItems: { setData } } = args || {
+    inputLineItems: {
+      setData: []
+    }
+  }
   const { restaurant } = context || {}
 
   for (const element of setData) {
-    const { pId, exState, extraName, extraPrice } = element
+    const {
+      pId,
+      exState,
+      extraName,
+      extraPrice
+    } = element
     try {
       await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } }, context)
     } catch (e) {

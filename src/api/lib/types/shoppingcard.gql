@@ -92,7 +92,7 @@ input IShoppingCard {
     cName: String
     comments: String
     cantProducts: Int
-    ProPrice: Int
+    ProPrice: Float
     refCodePid: String
     totalExtra: Int
     cState: Int

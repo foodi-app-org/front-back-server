@@ -4,6 +4,7 @@ import connect from '../../db'
 import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
+import { DECIMAL } from 'sequelize'
 const sequelize = connect()
 
 const productModel = sequelize.define('productstore', {
@@ -46,7 +47,7 @@ const productModel = sequelize.define('productstore', {
     allowNull: true
   },
   ProDescuento: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   ProDescription: {

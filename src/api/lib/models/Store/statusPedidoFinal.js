@@ -2,13 +2,15 @@ import {
   DATE,
   INTEGER,
   literal,
-  STRING
+  STRING,
+  DECIMAL
 } from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 
 import Store from './Store'
+
 const sequelize = connect()
 
 export const STATUS_ORDER_MODEL = 'statuspedidos'
@@ -42,7 +44,7 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     defaultValue: 0
   },
   valueDelivery: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     defaultValue: 0
   },
   locationUser: {
@@ -69,7 +71,7 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     allowNull: false
   },
   totalProductsPrice: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: false
   },
   payMethodPState: {

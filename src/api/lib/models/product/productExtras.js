@@ -1,7 +1,8 @@
 import {
   INTEGER,
   STRING,
-  literal
+  literal,
+  DECIMAL
 } from 'sequelize'
 
 import connect from '../../db'
@@ -9,6 +10,7 @@ import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 import productModelFood from './productFood'
+
 const sequelize = connect()
 
 export const EXTRA_PRODUCT_MODEL = 'extrasproducts'
@@ -53,7 +55,7 @@ const ExtraProductModel = sequelize.define(EXTRA_PRODUCT_MODEL, {
     allowNull: false
   },
   extraPrice: {
-    type: INTEGER,
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   // state
