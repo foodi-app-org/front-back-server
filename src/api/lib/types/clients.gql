@@ -29,17 +29,34 @@ input IClients {
     createAt: DateTime
     updateAt: DateTime
 }
+"Respuesta de la petición del cliente"
+type ResponseClient {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: Clients
+}
+
+"Respuesta de la petición de los clientes"
+type ResponseClients {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [Clients]
+    pagination: Pagination 
+}
+
 # Queries
 type Query {
     "Consulta todos los países"
     getOneClients(cliId: ID): Clients
-    getAllClients(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int): [Clients]
+    getAllClients(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, page: Int): ResponseClients
 }
 
 # Mutations
 type Mutation {
     "Registra un cliente"
-    createClients(input: IClients): Clients
+    createClients(input: IClients): ResponseClient
     editOneClient(input: IClients): Response
     deleteClient(cliId: ID, clState: Int!): Response
 }
