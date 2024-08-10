@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return */
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { Op, QueryTypes, Sequelize } from 'sequelize'
+import { Op, Sequelize } from 'sequelize'
 import Joi from 'joi'
 
 import AreasModel from '../../models/areas/AreasModel'
@@ -23,12 +23,10 @@ import {
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
-import paymentIdentities from '../../models/payment_identities'
 
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import { productFoodSchema } from './schema'
-import sequelize from 'sequelize'
-import seque from '../../db'
+
 export const productsOne = async (root, { pId }, context, info) => {
   try {
     const attributes = getAttributes(productModelFood, info)

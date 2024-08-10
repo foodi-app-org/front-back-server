@@ -1,22 +1,36 @@
 type Roles {
-  id: ID
-  name: String
-}
-input IRole {
-  id: ID
-  name: String
-}
-type Query {
-"""Response for Role"""
-  getRole(id: ID, name: String): Roles
-  getRoles: [Roles]
+  idRole: ID
+  name: String!
+  priority: Int
+  description: String
+  permissions: JSON!
+  createdAt: DateTime
+  updatedAt: DateTime
 }
 
-"""Response for Role"""
-type RolePayload {
-  success: Boolean
-  message: String
+input IRole {
+  idRole: ID
+  name: String! 
+  priority: Int
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
 }
+
+type ResponseRoles {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [Roles]
+    pagination: Pagination 
+}
+
+type Query {
+"""Response for Role"""
+  getRole(idRole: ID, name: String): Roles!
+  getRoles: ResponseRoles
+}
+
 type Mutation {
 """Response for user login"""
   createRoleMutation(input: IRole) : Roles

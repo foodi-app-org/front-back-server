@@ -22,13 +22,15 @@ type EmployeeStore {
     eId: ID
     idStore: ID
     id: ID
+    idRole: ID
     idEmployee: ID
     eSalary: Float
     typeContract: String
-    uEmail: String
+    eEmail: String
     termContract: String
     eDatAdm: DateTime
     eState: Int
+    status: String
     tpEmail: String
 
 }
@@ -48,6 +50,7 @@ input IEmployee {
     eArl: String
     eBoxComp: String
     eState: Int
+    status: String
     tpNumDoc: String
     tpName: String
     tpLasNam: String
@@ -62,18 +65,31 @@ input IEmployeeStore {
     idEmployee: ID
     eSalary: Float
     typeContract: String
-    uEmail: String
+    eEmail: String
     tpEmail: String
     termContract: String
     eDatAdm: DateTime
     eState: Int
+    idRole: ID!
 }
 
+type ResponseEmployee {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [EmployeeStore]
+    pagination: Pagination 
+}
+type ResponseLoginEmployee {
+    token: String
+    idStore: String
+    success: Boolean
+    message: String
+}
 # Query
 type Query {
     "Devuelve todos los empleados"
-    employees(umId: ID, cId: ID, aId: ID, idStore: ID, max: Int, min: Int): [EmployeeStore]
-    employeesFor(umId: ID, cId: ID, aId: ID, idStore: ID, max: Int, min: Int): [Employee]
+    employees(umId: ID, cId: ID, aId: ID, idStore: ID, max: Int, min: Int): ResponseEmployee
     "Devuelve un empleado"
     employee(eId: ID, tpId: ID): Employee
     employeeStore(eId: ID, tpId: ID, aId: ID, idStore: ID, max: Int, min: Int): EmployeeStore
@@ -82,10 +98,7 @@ type Query {
 # Mutation
 type Mutation {
     "Esto crea un nuevo empleado"
-    createEmployee(input: IEmployee!): Response
-    createOneEmployeeStore(input: IEmployeeStore): Response
     createOneEmployeeStoreAndUser(input: IEmployeeStore): Response
     deleteEmployeeStore(eId: ID, tpId: ID, idStore: ID): Response
-    
-
+    loginEmployeeInStore(eEmail: String, eId: ID, idStore: ID, tenantId: String, idUser: ID): ResponseLoginEmployee
 }

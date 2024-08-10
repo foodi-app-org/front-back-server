@@ -1,6 +1,10 @@
-const { DATE, DataTypes } = require('sequelize')
-const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const {
+  STRING,
+  INTEGER,
+  JSONB,
+  DATE,
+  DataTypes
+} = require('sequelize')
 
 const { enCode } = require('../../utils/util')
 const { USER_MODEL } = require('../../models/Users')
@@ -12,6 +16,11 @@ exports.up = async (queryInterface, schemaName) => {
       primaryKey: true,
       autoIncrement: true,
       get (value) { return enCode(this.getDataValue(value)) }
+    },
+    associateStore: {
+      type: JSONB,
+      allowNull: true,
+      unique: false
     },
     name: {
       type: STRING,
@@ -27,7 +36,7 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING,
       require: true,
       trim: true,
-      unique: true
+      unique: false
     },
     email: {
       type: STRING,

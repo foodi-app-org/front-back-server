@@ -14,9 +14,11 @@ import messagesResolver from './messages'
 import tenant from './tenant'
 import clients from './clients'
 import subscriptions from './subscriptions/export'
+import roles from './roles'
 
 export default {
   ...UserResolvers.TYPES,
+  ...roles.TYPES,
   ...clients.TYPES,
   ...storeResolver.TYPES,
   ...storeResolver.TYPES,
@@ -35,6 +37,7 @@ export default {
   // Upload: GraphQLUpload,
   Query: {
     ...UserResolvers.QUERIES,
+    ...roles.QUERIES,
     ...clients.QUERIES,
     ...subscriptions.QUERIES,
     ...tenant.QUERIES,
@@ -51,6 +54,7 @@ export default {
   },
   Mutation: {
     ...UserResolvers.MUTATIONS,
+    ...roles.MUTATIONS,
     ...clients.MUTATIONS,
     ...Providers.MUTATIONS,
     ...subscriptions.MUTATIONS,

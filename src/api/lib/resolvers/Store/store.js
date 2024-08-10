@@ -26,13 +26,12 @@ import clients from '../../models/Store/clients'
 import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
 import { NotFountError } from '../../utils/handleError'
-import subscriptions from '../../models/subscriptions/subscriptions'
 
-import { createClients } from './Clients'
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
+import { createClients } from '../clients/clients'
 require('dotenv').config()
 
 // eslint-disable-next-line

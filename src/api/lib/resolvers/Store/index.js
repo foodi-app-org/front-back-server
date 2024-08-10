@@ -2,7 +2,6 @@ import storeResolver from './store'
 import ScheduleStoreResolver from './Schedule'
 import createCatOfProductsResolver from './catOfProducts'
 import createCatOfProductResolver from './catOfProduct'
-import emplooyeResolver from './emplooye'
 import ContractResolver from './contrac'
 import pedidosResolver from './pedidos'
 import setVisitorStore from './VisitorStore'
@@ -23,7 +22,6 @@ export default {
     ...emplooyeStore.TYPES,
     ...walletDebtStore.TYPES,
     ...ChatStore.TYPES,
-    ...emplooyeResolver.TYPES,
     ...storesPendingToRegister.TYPES,
     ...ScheduleStoreResolver.TYPES,
     ...createCatOfProductResolver.TYPES,
@@ -37,7 +35,6 @@ export default {
   QUERIES: {
     ...modules.QUERIES,
     ...storeResolver.QUERIES,
-    ...emplooyeResolver.QUERIES,
     ...storesPendingToRegister.QUERIES,
     ...ChatStore.QUERIES,
     ...walletDebtStore.QUERIES,
@@ -67,7 +64,6 @@ export default {
     ...ScheduleStoreResolver.MUTATIONS,
     ...contactStore.MUTATIONS,
     ...pedidosResolver.MUTATIONS,
-    ...emplooyeResolver.MUTATIONS,
     ...createCatOfProductResolver.MUTATIONS,
     ...storyStore.MUTATIONS,
     ...createCatOfProductsResolver.MUTATIONS

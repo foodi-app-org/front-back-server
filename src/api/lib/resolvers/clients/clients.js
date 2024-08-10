@@ -27,7 +27,6 @@ export const createClients = async (_root, { input }, context) => {
         data: null
       }
     }
-
     const data = await clients.schema(getTenantName(context.restaurant)).create({
       ...input,
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
@@ -164,7 +163,6 @@ export const getAllClients = async (_root, { idStore, search, fromDate, min, max
       }
     }
   } catch (e) {
-    console.error('Error fetching clients:', e)
     throw new ApolloError('Unable to process your request.', 500, e)
   }
 }

@@ -1,5 +1,3 @@
-import path from 'path'
-
 import { Umzug, SequelizeStorage } from 'umzug'
 import { STRING } from 'sequelize'
 

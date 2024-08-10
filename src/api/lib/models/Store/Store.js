@@ -2,8 +2,7 @@ import {
   BOOLEAN,
   INTEGER,
   STRING,
-  DATE,
-  DataTypes
+  DATE
 } from 'sequelize'
 
 import connect from '../../db'

@@ -89,7 +89,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const setCookies = []
         const setHeaders = []
         const token = req.headers.authorization?.split(' ')[1]
-        const restaurant = req.headers.restaurant || {}
+        const restaurant = req.headers.restaurant ?? null
 
         parseCookies(req)
         res.setHeader('x-token-access', `${token}`)
@@ -98,6 +98,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const ses = await auth(token)
         if (!ses) return { req, userAgent: '', setCookies: setCookies || [], setHeaders: setHeaders || [], User: null, restaurant: null }
         const { session, message } = await getUserFromToken(token)
+        console.log("🚀 ~ context: ~ session, message:", session, message)
         const sessionExpired = (message === 'Session expired, refresh needed')
 
         if (sessionExpired) {
@@ -123,7 +124,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const User = jwt.verify(token, AUTHO_USER_KEY)
         const userAgent = req.headers['user-agent']
 
-        return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant || {} }
+        return { req, userAgent, setCookies: setCookies || [], setHeaders: setHeaders || [], User: User || {}, restaurant: restaurant ?? null }
       } catch (error) {
         if (error.message === 'jwt expired') {
           throw new GraphQLError(error.message, {
@@ -132,7 +133,6 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         }
       }
     }
-
   })
   await server.start()
   server.applyMiddleware({ app })

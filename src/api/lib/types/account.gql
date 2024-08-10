@@ -23,6 +23,7 @@ input IAccount {
     aType: typeAccount
     aDescription: String
 }
+
 enum typeAccount {
   ASSETS,
   EXPENSE,

@@ -18,6 +18,7 @@
     description: String
     password: String
     createAt: DateTime
+    associateStore: JSON
     role: [Roles]
   }
   # Token
@@ -61,7 +62,7 @@ input LoginInput {
 
   type Query {
 """Response for find one User"""
-    getUser(id: ID, userName: String): User
+    getUser(id: ID, userName: String, email: String): User
     getOneUser(id: ID, uEmail: String): User
     getUsers: [User]
     users: [User]

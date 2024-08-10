@@ -5,6 +5,7 @@ import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 import UserProfile from '../../models/users/UserProfileModel'
 import {
+  comparePasswords,
   filterKeyObject,
   generateCode,
   generateToken,
@@ -16,14 +17,19 @@ import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import recover from '../../templates/Recover'
 import { getDevice } from '../../router'
 
+/**
+ * Registers a new user or verifies an existing user's password
+ * @param {Object} input
+ * @param {string} input.name
+ * @param {string} input.password
+ * @param {string} input.email
+ * @param {string} input.username
+ * @returns {Promise<Object>}
+ */
 export const newRegisterUser = async (input) => {
-  const {
-    name,
-    password,
-    email,
-    username
-  } = input || {}
-  const defaultResponse = {
+  const { name, password, email, username } = input || {}
+
+  const defaultErrorResponse = {
     token: '',
     roles: false,
     storeUserId: {},
@@ -35,18 +41,36 @@ export const newRegisterUser = async (input) => {
   }
 
   try {
-    const encryptedPassword = await hashPassword(password)
-    const [user] = await Users.findOrCreate({
-      where: { email },
-      defaults: {
-        name,
-        password: encryptedPassword,
-        email,
-        username,
-        uState: 1
+    let user = await Users.findOne({ where: { email } })
+
+    if (user) {
+      const isMatch = await comparePasswords(password, user.password)
+      if (!isMatch) {
+        return {
+          ...defaultErrorResponse,
+          message: 'Revisa que tus datos sean correctos.'
+        }
       }
+    } else {
+      const encryptedPassword = await hashPassword(password)
+      const result = await Users.findOrCreate({
+        where: { email },
+        defaults: {
+          name,
+          password: encryptedPassword,
+          email,
+          username,
+          uState: 1
+        }
+      })
+      user = result[0] // Asigna el usuario creado o encontrado a la variable user
+    }
+
+    const StoreInfo = await Store.findOne({
+      attributes: ['idStore', 'id'],
+      where: { id: deCode(user.id) }
     })
-    const StoreInfo = await Store.findOne({ attributes: ['idStore', 'id'], where: { id: deCode(user.id) } })
+
     const tokenGoogle = {
       name,
       email,
@@ -54,7 +78,9 @@ export const newRegisterUser = async (input) => {
       restaurant: StoreInfo,
       id: user.id
     }
+
     const token = generateToken(tokenGoogle)
+
     return {
       token,
       roles: false,
@@ -65,8 +91,8 @@ export const newRegisterUser = async (input) => {
       message: `Bienvenido ${name ?? ''}`
     }
   } catch (error) {
-    console.log("🚀 ~ newRegisterUser ~ error:", error)
-    return defaultResponse
+    console.log('🚀 ~ newRegisterUser ~ error:', error)
+    return defaultErrorResponse
   }
 }
 
@@ -179,12 +205,16 @@ export const LoginEmailConfirmation = async (_root, { email, otp }, context, inf
     return { success: false, message: error.message || 'Error' }
   }
 }
-export const getUser = async (_, args, context, info) => {
-  if (!context.User.id) return new ForbiddenError('no session')
+export const getUser = async (_, { email }, context, info) => {
   try {
     const attributes = getAttributes(Users, info)
-    const user = await Users.schema(getTenantName(context?.restaurant)).findOne({ attributes, where: { id: deCode(context.User.id) } })
-    return user
+    if (context?.restaurant) {
+      const user = await Users.schema(getTenantName(context?.restaurant)).findOne({ attributes, where: { id: deCode(context.User.id) } })
+      return user
+    }
+    const publicUser = await Users.findOne({ attributes, where: { email } })
+    console.log('🚀 ~ getUser ~ publicUser:', publicUser)
+    return publicUser
   } catch (e) {
     throw new ApolloError('Inicie session correctamente')
   }

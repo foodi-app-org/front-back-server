@@ -1,72 +1,39 @@
-import { INTEGER, STRING, DATE, SMALLINT, literal } from 'sequelize'
+import {
+  STRING,
+  SMALLINT,
+  literal,
+  UUID,
+  UUIDV4,
+  INTEGER
+} from 'sequelize'
 
 import connect from '../../db'
-import AreasModel from '../areas/AreasModel'
-import { enCode } from '../../utils/util'
-import ThirdPartiesModel from '../thirdParties/ThirdPartiesModel'
+
 const sequelize = connect()
 
-const EmployeesModel = sequelize.define('employees', {
+export const EMPLOYEE_MODEL_NAME = 'employees'
+
+const EmployeesModel = sequelize.define(EMPLOYEE_MODEL_NAME, {
   eId: {
+    type: UUID,
+    primaryKey: false,
+    autoIncrement: false,
+    defaultValue: UUIDV4
+  },
+  priority: {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
-  },
-  aId: {
-    type: INTEGER,
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: AreasModel,
-      key: 'aId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
-  },
-  tpId: {
-    type: INTEGER,
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: ThirdPartiesModel,
-      key: 'tpId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
-  },
-  eEnterprise: {
-    type: STRING(150)
-  },
-  eSalary: {
-    type: INTEGER,
     allowNull: false
   },
-  eCharge: {
-    type: STRING(50)
-  },
-  typeContract: {
-    type: STRING(50)
-  },
-  termContract: {
-    type: STRING(50)
-  },
-  eDatAdm: {
-    type: DATE,
+  eEmail: {
+    type: STRING,
     allowNull: false
-  },
-  eDatRet: {
-    type: DATE
-  },
-  eArl: {
-    type: STRING(100)
-  },
-  eBoxComp: {
-    type: STRING(100)
   },
   eState: {
     type: SMALLINT,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 1
   },
   eDatCre: {
     type: 'TIMESTAMP',

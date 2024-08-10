@@ -44,6 +44,12 @@ exports.up = async (queryInterface, schemaName) => {
         { smName: 'Eliminados', smPath: 'products/disabled', smPriority: 2, smState: 1 },
         { smName: 'Crear', smPath: 'products/create', smPriority: 3, smState: 1 }
       ]
+    },
+    {
+      module: { mName: 'Compras', mPath: 'shopping', mPriority: 11, mIcon: 11, mState: 1 }
+    },
+    {
+      module: { mName: 'Roles y usuarios', mPath: 'roles', mPriority: 12, mIcon: 8, mState: 1 }
     }
   ]
 

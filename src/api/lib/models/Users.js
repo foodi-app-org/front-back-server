@@ -2,10 +2,12 @@ import {
   INTEGER,
   STRING,
   DATE
+  , JSONB
 } from 'sequelize'
 
 import connect from '../db'
 import { enCode } from '../utils/util'
+
 const sequelize = connect()
 
 export const USER_MODEL = 'users'
@@ -16,6 +18,11 @@ const Users = sequelize.define(USER_MODEL, {
     primaryKey: true,
     autoIncrement: true,
     get (value) { return enCode(this.getDataValue(value)) }
+  },
+  associateStore: {
+    type: JSONB,
+    allowNull: true,
+    unique: false
   },
   name: {
     type: STRING,
@@ -31,7 +38,7 @@ const Users = sequelize.define(USER_MODEL, {
     type: STRING,
     require: true,
     trim: true,
-    unique: true
+    unique: false
   },
   email: {
     type: STRING,

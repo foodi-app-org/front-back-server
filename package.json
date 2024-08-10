@@ -51,6 +51,7 @@
     "eslint-plugin-n": "^16.1.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
+    "esm": "3.2.25",
     "husky": "^8.0.3",
     "nodemon": "2.0.15",
     "sequelize-cli": "^6.6.2"
@@ -68,7 +69,8 @@
     "build": "babel src/ --out-dir build",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
-    "migration:run": "npm run babel-node src/api/lib/db/migrations/index.js up",
+    "migration:run:public": "npm run babel-node src/api/lib/db/migrations/index.js up",
+    "migration:tenants:run": "npm run babel-node src/api/lib/utils/migrate-tenants.js",
     "dev": "nodemon --exec npm run babel-node src/app.js",
     "migration:down": "npx sequelize-cli db:migrate:undo",
     "lint": "eslint .",

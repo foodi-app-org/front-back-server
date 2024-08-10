@@ -1,7 +1,9 @@
-const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
-const { DATE } = require('sequelize')
-const { SMALLINT } = require('sequelize')
+const {
+  STRING,
+  INTEGER,
+  SMALLINT,
+  literal
+} = require('sequelize')
 
 const { enCode } = require('../../utils/util')
 const { CLIENTS_MODEL } = require('../../models/Store/clients')

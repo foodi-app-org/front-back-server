@@ -1,33 +1,60 @@
-import employeesModel from '../../models/Store/employees'
-import { deCode, getAttributes } from '../../utils/util'
+import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
+import Joi from 'joi'
 
-export const createEmployee = async (_, { input }, ctx) => {
-  try {
-    const exist = await employeesModel.findOne({ where: { tpNumDoc: input.tpNumDoc, idStore: deCode(ctx.restaurant) } })
-    if (exist) {
-      return {
-        success: false,
-        message: 'el numero de documento ya se encuentra registrado'
-      }
-    }
-    await employeesModel.create({ ...input, idStore: deCode(ctx.restaurant) })
-    return {
-      success: true,
-      message: 'creada'
-    }
-  } catch (error) {
-    return { success: false, message: error }
-  }
-}
+import employeesModel from '../../models/Store/employees'
+import {
+  deCode,
+  enCode,
+  getAttributes,
+  getTenantName
+} from '../../utils/util'
+import { LoginEmail } from '../../templates/LoginEmail'
+import {
+  generateCode,
+  generateToken,
+  hashPassword,
+  sendEmail
+} from '../../utils'
+import Users from '../../models/Users'
+import GenericService from '../../services'
+import Store from '../../models/Store/Store'
 
 // eslint-disable-next-line
-export const employees = async (_, args, ctx, info) => {
+export const employees = async (_, args, ctx) => {
   try {
-    const attributes = getAttributes(employeesModel, info)
-    return await employeesModel.findAll({
+    const employeeService = new GenericService(employeesModel, getTenantName)
+    // Definir los filtros y parámetros de pagination
+    const where = {
+      eState: { [Op.gt]: 0 }
+    }
+
+    const searchFields = [] // Campos a buscar en la búsqueda
+    const attributes = ['idRole', 'priority', 'createdAt', 'updatedAt', 'eEmail', 'idStore', 'eId', 'eState', 'status']
+    const pagination = {
+      max: args.max, // Máximo número de registros por página
+      page: args.page // Página actual
+    }
+
+    // Obtener los roles usando el servicio genérico
+    if (!ctx?.User) {
+      return {
+        success: false,
+        message: 'Session expired',
+        data: [],
+        errors: null,
+        pagination: {}
+      }
+    }
+    const idStore = ctx.User.restaurant.idStore
+    const response = await employeeService.getAll({
+      where,
+      searchFields,
       attributes,
-      where: { idStore: deCode(ctx.restaurant) }
+      idStore,
+      pagination
     })
+    return response
   } catch (error) {
     throw new Error(error)
   }
@@ -47,7 +74,6 @@ export const employeeStore = async (_, args, ctx, info) => {
     throw new Error(error)
   }
 }
-// eslint-disable-next-line
 export const deleteEmployeeStore = async (_, args, ctx, _info) => {
   const { eId } = args || {}
   try {
@@ -69,6 +95,185 @@ export const deleteEmployeeStore = async (_, args, ctx, _info) => {
   }
 }
 
+/**
+ * Creates a user and an employee store entry.
+ * @param {object} _root - The root object.
+ * @param {object} args - The arguments object.
+ * @param {object} args.input - The input data.
+ * @param {string} args.input.uEmail - The email of the user.
+ * @param {string} args.input.idRole - The role ID.
+ * @param {string} args.input.idStore - The store ID.
+ * @param {object} context - The context object.
+ * @returns {object} The result object containing success status and message.
+ */
+const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
+  try {
+    const schema = Joi.object({
+      eEmail: Joi.string().email().required(),
+      idRole: Joi.string().required(),
+      idStore: Joi.string().required()
+    })
+
+    const { error } = schema.validate(input)
+    if (error) {
+      return {
+        success: false,
+        message: 'Validation error',
+        errors: error.details.map(detail => ({
+          path: detail.path,
+          message: detail.message,
+          type: detail.type,
+          context: detail.context
+        })),
+        data: null
+      }
+    }
+
+    const { eEmail, idRole, idStore } = input ?? {}
+
+    const dataObjUserEmployee = {
+      eState: 1,
+      email: eEmail,
+      restaurant: context.restaurant
+    }
+
+    const tempPassword = await generateCode()
+    const token = await generateToken(dataObjUserEmployee)
+
+    const tenantName = getTenantName(context?.restaurant)
+    const existingUser = await Users.schema(tenantName).findOne({
+      attributes: ['id', 'email'],
+      where: { email: eEmail }
+    })
+
+    if (existingUser) {
+      return { success: false, message: 'El usuario ya existe en tus registros.' }
+    }
+
+    const basicData = {
+      name: 'USUARIO INVITADO',
+      username: 'USUARIO INVITADO',
+      lastName: tempPassword
+    }
+
+    const encryptedPassword = await hashPassword(`${tempPassword}`)
+    const userGuestTenant = await Users.schema(tenantName).create({
+      ...basicData,
+      email: eEmail,
+      password: encryptedPassword
+    })
+
+    const existingPublicUser = await Users.findOne({
+      attributes: ['id', 'email', 'associateStore'],
+      where: { email: eEmail }
+    })
+
+    const findStore = await Store.schema(tenantName).findOne({
+      where: {
+        idStore: deCode(idStore)
+      }
+    })
+
+    const storeInfo = {
+      tenantName,
+      active: true,
+      idStore,
+      storeName: findStore?.storeName ?? ''
+    }
+
+    if (!existingPublicUser) {
+      const newPublicUser = await Users.create({
+        ...basicData,
+        email: eEmail,
+        password: encryptedPassword,
+        associateStore: [storeInfo] // Inicializa associateStore como un array con un objeto
+      })
+
+      if (newPublicUser) {
+        await employeesModel.schema(tenantName).create({
+          idStore: deCode(idStore),
+          idRole,
+          eEmail,
+          idUser: userGuestTenant?.dataValues?.id
+        })
+      }
+    } else {
+      const updatedAssociateStore = existingPublicUser.associateStore || []
+      updatedAssociateStore.push(storeInfo) // Agrega un nuevo objeto al array
+
+      await Users.update({
+        associateStore: updatedAssociateStore
+      }, {
+        where: {
+          email: eEmail
+        }
+      })
+
+      await employeesModel.schema(tenantName).create({
+        idStore: deCode(idStore),
+        idRole,
+        eEmail
+      })
+    }
+
+    await sendEmail({
+      from: 'juvi69elpapu@gmail.com',
+      to: eEmail,
+      text: 'Invitation.',
+      subject: 'Invitation.',
+      html: LoginEmail({
+        code: tempPassword,
+        or_JWT_Token: token
+      })
+    })
+
+    return { success: true, message: 'User and employee created successfully.' }
+  } catch (error) {
+    return new ApolloError(error.message || 'Lo sentimos, ha ocurrido un error interno')
+  }
+}
+
+const loginEmployeeInStore = async (_root, { eId, idStore, eEmail }, context) => {
+  const tenantName = getTenantName(idStore)
+  const verifyUser = await Users.schema(tenantName).findOne({
+    attributes: ['id', 'username', 'name'],
+    where: {
+      email: eEmail
+    }
+  })
+  if (verifyUser) {
+    const findEmployee = await employeesModel.schema(tenantName).findOne({
+      attributes: ['eId', 'idUser', 'idStore'],
+      where: {
+        idUser: verifyUser?.dataValues?.id,
+        eState: 1
+      }
+    })
+    if (findEmployee) {
+      const StoreInfo = await Store.schema(tenantName).findOne({
+        attributes: ['idStore', 'storeName', 'id'],
+        where: {
+          idStore: deCode(idStore)
+        }
+      })
+      const tokenGoogle = {
+        name: verifyUser?.dataValues?.name,
+        email: eEmail,
+        username: verifyUser?.dataValues?.username,
+        restaurant: StoreInfo,
+        id: enCode(StoreInfo?.dataValues?.id) // id del dueño de la tienda
+      }
+      const token = generateToken(tokenGoogle)
+      return {
+        success: true,
+        message: 'Empleado verificado',
+        token,
+        idStore
+      }
+    }
+  }
+}
+
 export default {
   TYPES: {
   },
@@ -77,7 +282,8 @@ export default {
     employeeStore
   },
   MUTATIONS: {
-    createEmployee,
+    createOneEmployeeStoreAndUser,
+    loginEmployeeInStore,
     deleteEmployeeStore
   }
 }

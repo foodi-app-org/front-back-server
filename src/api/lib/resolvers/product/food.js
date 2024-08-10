@@ -21,16 +21,21 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
 
 // ESTE ES EL REAL
 export const getStore = async (root, args, context, info) => {
-  const { id } = args || {}
-  const attributes = getAttributes(Store, info)
-  const data = await Store.schema(getTenantName(context?.restaurant)).findOne({
-    attributes,
-    where: {
-      idStore: id ? deCode(id) : deCode(context.restaurant),
-      id: id ? deCode(id) : deCode(context.User.id)
-    }
-  })
-  return data
+  try {
+    const { id } = args || {}
+    console.log({restaurant: context?.restaurant, Userid: context.User.id, id })
+    const attributes = getAttributes(Store, info)
+    const data = await Store.schema(getTenantName(context?.restaurant)).findOne({
+      attributes,
+      where: {
+        idStore: id ? deCode(id) : deCode(context.restaurant),
+        id: id ? deCode(id) : deCode(context.User.id)
+      }
+    })
+    return data
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 export const getFoodAllProduct = async (root, args, context, info) => {

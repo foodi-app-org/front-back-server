@@ -114,6 +114,14 @@ router.post('/auth', async (req, res) => {
       useragent,
       deviceid
     } = req.body || {}
+    if (!password) {
+      return res.status(400).json({
+        response: 'no ok',
+        ok: false,
+        success: false,
+        message: 'Password is required'
+      })
+    }
     const userAgentCurrent = req.headers['user-agent']
     const {
       token,

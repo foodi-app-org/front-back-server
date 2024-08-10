@@ -38,7 +38,6 @@ type UserReport {
 }
   type Query {
     bucketExistsQuery(idUser: ID, BucketName: String!): AuthPayload
-    getAllRoles: [Roles]
     getAllStoreAdminReport(country: String): StoreReport
     getAllUserActives(country: String): UserReport
     getAlUserLocation(country: String): [User]
@@ -49,8 +48,5 @@ type UserReport {
 # Mutations
 type Mutation {
   createOneBucket(BucketName: String!): Boolean
-  createRoleMutation(input: IRole!): Roles
-  createRoles: Roles
-  removeBucketMinio(idUser: ID!, BucketName: String!): Roles
   removeOneRole(id: ID): Boolean
 }

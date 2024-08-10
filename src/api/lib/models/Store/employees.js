@@ -1,4 +1,4 @@
-import Sequelize from 'sequelize'
+import { literal, INTEGER, STRING, SMALLINT, UUIDV4, UUID } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
@@ -7,16 +7,18 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 
 const conn = connect()
+conn.sync()
+export const EMPLOYEE_MODEL_NAME = 'employees'
 
-export default conn.define('employees', {
+export default conn.define(EMPLOYEE_MODEL_NAME, {
   eId: {
-    type: Sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    type: UUID,
+    primaryKey: false,
+    autoIncrement: false,
+    defaultValue: UUIDV4
   },
   idStore: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -27,7 +29,7 @@ export default conn.define('employees', {
     get (x) { return enCode(this.getDataValue(x)) }
   },
   idUser: {
-    type: Sequelize.INTEGER,
+    type: INTEGER,
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -37,81 +39,39 @@ export default conn.define('employees', {
     },
     get (x) { return enCode(this.getDataValue(x)) }
   },
-  eEnterprise: {
-    type: Sequelize.SMALLINT,
-    allowNull: true,
-    defaultValue: 1
+  idRole: {
+    type: UUID,
+    allowNull: false
   },
-  eSalary: {
-    type: Sequelize.INTEGER(2),
-    allowNull: true,
-    defaultValue: 0
+  priority: {
+    type: INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false
   },
-  typeContract: {
-    type: Sequelize.STRING
-  },
-  termContract: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  eDatAdm: {
-    type: 'TIMESTAMP',
-    allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-  },
-  eDatRet: {
-    type: 'TIMESTAMP',
-    allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-  },
-  eArl: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  eBoxComp: {
-    type: Sequelize.STRING,
-    allowNull: true
+  eEmail: {
+    type: STRING,
+    allowNull: false
   },
   eState: {
-    type: Sequelize.SMALLINT,
-    allowNull: true,
+    type: SMALLINT,
+    allowNull: false,
     defaultValue: 1
   },
-  tpNumDoc: {
-    type: Sequelize.STRING,
-    unique: true,
-    allowNull: true
-  },
-  tpName: {
-    type: Sequelize.STRING,
-    unique: false,
-    allowNull: true
-  },
-  tpLasNam: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  tpPhone: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  tpEmail: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  tpState: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
-  createAt: {
-    type: 'TIMESTAMP',
+  status: {
+    type: STRING,
     allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: 'INACTIVE'
   },
-  updateAt: {
+  createdAt: {
     type: 'TIMESTAMP',
-    allowNull: false,
-    defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    defaultValue: literal('CURRENT_TIMESTAMP'),
+    allowNull: false
+  },
+  updatedAt: {
+    type: 'TIMESTAMP',
+    defaultValue: literal('CURRENT_TIMESTAMP'),
+    allowNull: false
   }
 }, {
   timestamps: false

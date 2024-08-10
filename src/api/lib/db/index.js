@@ -24,7 +24,7 @@ export const connectConfig = {
   dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
 }
 
-function connect() {
+function connect () {
   try {
     if (sequelize) return sequelize
     sequelize = new Sequelize(
