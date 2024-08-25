@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 let sequelize = null
-const dialectOptions = process.env.NODE_ENV === 'development'
+const dialectOptions = process.env.NODE_ENV !== 'development'
   ? {
     postgres: {
       ssl: {
