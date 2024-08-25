@@ -12,6 +12,7 @@ input IRole {
   idRole: ID
   name: String! 
   priority: Int
+  permissions: JSON!
   description: String
   createdAt: DateTime
   updatedAt: DateTime
@@ -25,13 +26,20 @@ type ResponseRoles {
     pagination: Pagination 
 }
 
+type CreateRoleResponse {
+   success: Boolean
+    message: String
+    errors: [errors]
+    data: Roles
+}
+
 type Query {
 """Response for Role"""
   getRole(idRole: ID, name: String): Roles!
-  getRoles: ResponseRoles
+  getRoles(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, page: Int): ResponseRoles
 }
 
 type Mutation {
 """Response for user login"""
-  createRoleMutation(input: IRole) : Roles
+  createRoleMutation(input: IRole) : CreateRoleResponse
 }

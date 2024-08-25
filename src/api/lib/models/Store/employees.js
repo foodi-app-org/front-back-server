@@ -7,7 +7,7 @@ import { enCode } from '../../utils/util'
 import Store from './Store'
 
 const conn = connect()
-conn.sync()
+
 export const EMPLOYEE_MODEL_NAME = 'employees'
 
 export default conn.define(EMPLOYEE_MODEL_NAME, {

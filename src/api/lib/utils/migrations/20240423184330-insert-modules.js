@@ -49,7 +49,7 @@ exports.up = async (queryInterface, schemaName) => {
       module: { mName: 'Compras', mPath: 'shopping', mPriority: 11, mIcon: 11, mState: 1 }
     },
     {
-      module: { mName: 'Roles y usuarios', mPath: 'roles', mPriority: 12, mIcon: 8, mState: 1 }
+      module: { mName: 'Roles y usuarios', mPath: 'management', mPriority: 12, mIcon: 8, mState: 1 }
     }
   ]
 

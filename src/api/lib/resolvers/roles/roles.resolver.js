@@ -13,6 +13,7 @@ const createRoleMutation = async (_root, { input }, context) => {
   const { restaurant } = User ?? {
     restaurant: null
   }
+
   if (!restaurant?.idStore) {
     return new GraphQLError('Session expired', {
       extensions: {
@@ -21,16 +22,36 @@ const createRoleMutation = async (_root, { input }, context) => {
       }
     })
   }
+
   try {
-    const newRole = await Role.schema(getTenantName(context?.restaurant)).create({
+    const newRole = await Role.schema(getTenantName(restaurant?.idStore)).create({
       ...input,
-      idStore: deCode(restaurant?.idStore)
+      idStore: deCode(restaurant.idStore)
     })
-    return newRole
+
+    return {
+      success: true,
+      message: 'Role created successfully',
+      data: newRole,
+      errors: []
+    }
   } catch (error) {
-    throw new ApolloError('Error creating role', '500', error)
+    return {
+      success: false,
+      message: 'Error creating role',
+      errors: [
+        {
+          path: 'createRoleMutation',
+          message: error.message,
+          type: error.name,
+          context: null
+        }
+      ],
+      data: null
+    }
   }
 }
+
 
 const getRoles = async (_root, args, context) => {
   try {

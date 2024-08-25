@@ -91,6 +91,9 @@ const Users = sequelize.define(USER_MODEL, {
     default: Date.now(),
     defaultValue: Date.now()
   }
+}, {
+  freezeTableName: true, // Evita pluralizar el nombre de la tabla
+  timestamps: true // Si no necesitas timestamps por defecto
 })
 
 export default Users

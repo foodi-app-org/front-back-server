@@ -4,8 +4,7 @@ import {
   DATE,
   UUIDV4,
   UUID,
-  JSON,
-  TINYINT
+  JSON
 } from 'sequelize'
 
 import connect from '../../db'
@@ -13,7 +12,6 @@ import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 const sequelize = connect()
-sequelize.sync()
 
 export const ROLE_MODEL = 'roles'
 

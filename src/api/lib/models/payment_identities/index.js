@@ -6,8 +6,6 @@ import util from '../../utils/util'
 
 const conn = connect()
 
-// conn.sync({ force: false })
-
 export default conn.define('payment_identities', {
   id: {
     type: INTEGER,
