@@ -114,7 +114,7 @@ export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _i
 }
 export const getStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
-    const data = await ScheduleStore.schema(getTenantName(context?.restaurant)).findAll({
+    const data = await ScheduleStore.schema(getTenantName(context?.restaurant ?? idStore)).findAll({
       attributes: [
         'idStore',
         'schId',
@@ -127,7 +127,7 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
         [Op.or]: [
           {
             schState: 1,
-            idStore: deCode(idStore || context.restaurant)
+            idStore: deCode(idStore ?? context.restaurant)
           }
         ]
       },

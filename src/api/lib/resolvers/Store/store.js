@@ -911,7 +911,7 @@ export const getOneStore = async (parent, args, context, info) => {
   const { idStore } = args || {}
   try {
     const attributes = getAttributes(Store, info)
-    const data = await Store.findOne({
+    const data = await Store.schema(getTenantName(idStore)).findOne({
       attributes,
       where: { idStore: idStore ? deCode(idStore) : deCode(parent.idStore) }
     })
@@ -1294,7 +1294,6 @@ export default {
     }
   },
   QUERIES: {
-    getStore,
     getFavorite,
     getAllRatingStar,
     getOneRating,
