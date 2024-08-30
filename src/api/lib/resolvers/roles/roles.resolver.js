@@ -52,12 +52,11 @@ const createRoleMutation = async (_root, { input }, context) => {
   }
 }
 
-
 const getRoles = async (_root, args, context) => {
   try {
     const roleService = new GenericService(Role, getTenantName)
 
-    // Definir los filtros y parámetros de paginación
+    // Definir los filtros y parámetros de pagination
     const where = {
       state: { [Op.gt]: 0 }
     }
@@ -85,7 +84,11 @@ const getRoles = async (_root, args, context) => {
       searchFields,
       attributes,
       idStore,
-      pagination
+      pagination,
+      orderFields: [
+        { field: 'priority', direction: 'ASC' },
+        { field: 'createdAt', direction: 'DESC' }
+      ]
     })
     return response
   } catch (error) {
@@ -105,6 +108,85 @@ export const getRole = async (_root, { idRole, name }) => {
     throw new ApolloError('Error fetching role', '500', error)
   }
 }
+const updateRolesPriority = async (_root, { roles }, context) => {
+  const idStore = context?.User?.restaurant?.idStore ?? null
+  const tenantName = getTenantName(idStore)
+
+  // Start a transaction
+  const transaction = await Role.schema(tenantName).sequelize.transaction()
+
+  try {
+    // Set temporary negative priority to avoid unique constraint violation
+    await Promise.all(roles.map((role, index) =>
+      Role.schema(tenantName).update({ priority: -index - 1 }, {
+        where: { idRole: role.idRole },
+        transaction
+      })
+    ))
+
+    // Update roles with the correct priority
+    await Promise.all(roles.map(role =>
+      Role.schema(tenantName).update({ priority: role.priority }, {
+        where: { idRole: role.idRole },
+        transaction
+      })
+    ))
+
+    // Commit the transaction
+    await transaction.commit()
+    return {
+      success: true,
+      message: 'Roles updated successfully'
+    }
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await transaction.rollback()
+    return {
+      success: false,
+      message: 'Ocurrió un error'
+    }
+  }
+}
+
+const removeRoles = async (_root, { roleIds }, context) => {
+  const idStore = context?.User?.restaurant?.idStore ?? null
+  const tenantName = getTenantName(idStore)
+
+  // Start a transaction
+  const transaction = await Role.schema(tenantName).sequelize.transaction()
+
+  try {
+    // Validate roleIds is an array and contains values
+    if (!Array.isArray(roleIds) || roleIds.length === 0) {
+      throw new Error('No role IDs provided.')
+    }
+
+    // Update roles state to 0 using a for loop
+    for (const idRole of roleIds) {
+      await Role.schema(tenantName).update(
+        { state: 0 },
+        {
+          where: { idRole },
+          transaction
+        }
+      )
+    }
+
+    // Commit the transaction
+    await transaction.commit()
+    return {
+      success: true,
+      message: 'Roles updated to state 0 successfully'
+    }
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await transaction.rollback()
+    return {
+      success: false,
+      message: `An error occurred: ${error.message}`
+    }
+  }
+}
 
 export default {
   QUERIES: {
@@ -113,6 +195,8 @@ export default {
   },
   TYPES: {},
   MUTATIONS: {
-    createRoleMutation
+    createRoleMutation,
+    updateRolesPriority,
+    removeRoles
   }
 }

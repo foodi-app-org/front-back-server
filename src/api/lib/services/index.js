@@ -25,7 +25,7 @@ class GenericService {
    * @param {Array} params.attributes - Attributes to select.
    * @param {Object} params.context - The request context.
    * @param {Object} params.pagination - Pagination details.
-   * @param {string} [params.orderField='createAt'] - Field to order by.
+   * @param {Array} [params.orderFields=[{field: 'createdAt', direction: 'DESC'}]] - Array of fields to order by.
    * @returns {Promise<Object>} The result object containing data and pagination info.
    * @throws {ApolloError} When unable to fetch data.
    */
@@ -34,18 +34,16 @@ class GenericService {
     attributes,
     idStore,
     pagination,
-    where = {
-      order: 'DESC'
-    },
-    orderField = 'createdAt'
+    where = {},
+    orderFields = [{ field: 'createdAt', direction: 'DESC' }]
   }) {
     try {
       if (!searchFields || !Array.isArray(searchFields)) {
-        throw new ApolloError('Invalid searchFields parameter.', '400');
+        throw new ApolloError('Invalid searchFields parameter.', '400')
       }
 
       if (!attributes || !Array.isArray(attributes)) {
-        throw new ApolloError('Invalid attributes parameter.', '400');
+        throw new ApolloError('Invalid attributes parameter.', '400')
       }
 
       let whereSearch = {
@@ -64,7 +62,7 @@ class GenericService {
           [Op.and]: [
             whereSearch,
             {
-              ...(where?.fromDate && where?.toDate) && { createAt: { [Op.between]: [where?.fromDate, where?.toDate] } },
+              ...(where?.fromDate && where?.toDate) && { createdAt: { [Op.between]: [where?.fromDate, where?.toDate] } },
               idStore: where?.idStore ? deCode(where?.idStore) : deCode(idStore)
             }
           ]
@@ -75,23 +73,24 @@ class GenericService {
       const currentPage = pagination.page || 1
       const offset = (currentPage - 1) * pageSize
 
-      const query = this.model.schema(this.tenantNameGetter(idStore)).findAll({
+      // Construct the order array
+      const order = orderFields.map(({ field, direction }) => [field, direction])
+
+      const data = await this.model.schema(this.tenantNameGetter(idStore)).findAll({
         attributes,
         where: {
           [Op.and]: [
             whereSearch,
             {
-              ...(where.fromDate && where?.toDate) && { createAt: { [Op.between]: [where?.fromDate, where?.toDate] } },
+              ...(where.fromDate && where?.toDate) && { createdAt: { [Op.between]: [where?.fromDate, where?.toDate] } },
               idStore: where?.idStore ? deCode(where?.idStore) : deCode(idStore)
             }
           ]
         },
         limit: pageSize,
         offset,
-        order: where?.order !== 'DESC' ? [[orderField, 'DESC']] : [[orderField, 'ASC']]
+        order
       })
-
-      const data = await query
 
       return {
         success: true,

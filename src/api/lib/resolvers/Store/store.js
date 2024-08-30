@@ -7,7 +7,7 @@ import {
   getAttributes,
   getTenantName
 } from '../../utils/util'
-import { addDaysToCurrentDate, getStatusOpenStore } from '../../utils'
+import { getStatusOpenStore } from '../../utils'
 import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
 import CountriesModel from '../../models/information/CountriesModel'
@@ -26,12 +26,12 @@ import clients from '../../models/Store/clients'
 import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
 import { NotFountError } from '../../utils/handleError'
+import { createClients } from '../clients/clients'
 
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
-import { createClients } from '../clients/clients'
 require('dotenv').config()
 
 // eslint-disable-next-line
@@ -269,7 +269,7 @@ export const registerSalesStore = async (
         attributes: ['cliId', 'ccClient'],
         where: { ccClient: context?.restaurant || idStore }
       })
-      clientId = data.cliId
+      clientId = data?.cliId
       if (!data) {
         throw new Error('Elija un cliente, no se pudo realizar la venta')
       }

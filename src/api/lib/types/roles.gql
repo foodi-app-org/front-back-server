@@ -17,6 +17,10 @@ input IRole {
   createdAt: DateTime
   updatedAt: DateTime
 }
+input IParamsPriority {
+  idRole: ID
+  priority: Int
+}
 
 type ResponseRoles {
     success: Boolean
@@ -33,6 +37,13 @@ type CreateRoleResponse {
     data: Roles
 }
 
+type UpdateRoleResponse {
+   success: Boolean
+    message: String
+    errors: [errors]
+    data: Roles
+}
+
 type Query {
 """Response for Role"""
   getRole(idRole: ID, name: String): Roles!
@@ -42,4 +53,6 @@ type Query {
 type Mutation {
 """Response for user login"""
   createRoleMutation(input: IRole) : CreateRoleResponse
+  updateRolesPriority(roles: [IParamsPriority]!): UpdateRoleResponse
+  removeRoles(roleIds: [ID!]!): UpdateRoleResponse
 }
