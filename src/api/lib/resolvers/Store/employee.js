@@ -241,6 +241,46 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
   }
 }
 
+const removeEmployee = async (_root, { employeeIds }, context) => {
+  const idStore = context?.User?.restaurant?.idStore ?? null
+  const tenantName = getTenantName(idStore)
+
+  // Start a transaction
+  const transaction = await Role.schema(tenantName).sequelize.transaction()
+
+  try {
+    // Validate employeeIds is an array and contains values
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+      throw new Error('No role IDs provided.')
+    }
+
+    // Update roles state to 0 using a for loop
+    for (const eId of employeeIds) {
+      await employeesModel.schema(tenantName).update(
+        { eState: 0 },
+        {
+          where: { eId, priority: null },
+          transaction
+        }
+      )
+    }
+
+    // Commit the transaction
+    await transaction.commit()
+    return {
+      success: true,
+      message: 'Roles updated to state 0 successfully'
+    }
+  } catch (error) {
+    // Rollback the transaction in case of error
+    await transaction.rollback()
+    return {
+      success: false,
+      message: `An error occurred: ${error.message}`
+    }
+  }
+}
+
 const loginEmployeeInStore = async (_root, { eId, idStore, eEmail }, context) => {
   const tenantName = getTenantName(idStore)
   const verifyUser = await Users.schema(tenantName).findOne({
@@ -319,6 +359,7 @@ export default {
   },
   MUTATIONS: {
     createOneEmployeeStoreAndUser,
+    removeEmployee,
     loginEmployeeInStore,
     deleteEmployeeStore
   }

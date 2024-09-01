@@ -89,6 +89,14 @@ type ResponseLoginEmployee {
     success: Boolean
     message: String
 }
+
+type UpdateEmployeeResponse {
+   success: Boolean
+    message: String
+    errors: [errors]
+    data: [EmployeeStore]
+}
+
 # Query
 type Query {
     "Devuelve todos los empleados"
@@ -104,4 +112,5 @@ type Mutation {
     createOneEmployeeStoreAndUser(input: IEmployeeStore): Response
     deleteEmployeeStore(eId: ID, tpId: ID, idStore: ID): Response
     loginEmployeeInStore(eEmail: String, eId: ID, idStore: ID, tenantId: String, idUser: ID): ResponseLoginEmployee
+    removeEmployee(employeeIds: [ID!]!): UpdateEmployeeResponse
 }
