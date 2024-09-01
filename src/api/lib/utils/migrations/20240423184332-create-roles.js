@@ -1,6 +1,5 @@
 const { INTEGER, STRING, DATE, UUIDV4, UUID } = require('sequelize')
 const { JSON } = require('sequelize')
-const { TINYINT } = require('sequelize')
 
 const { enCode } = require('../util')
 const { ROLE_MODEL } = require('../../models/roles')
@@ -11,7 +10,7 @@ exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(ROLE_MODEL, {
     idRole: {
       type: UUID,
-      primaryKey: false,
+      primaryKey: true,
       autoIncrement: false,
       defaultValue: UUIDV4,
       unique: true
@@ -35,9 +34,7 @@ exports.up = async (queryInterface, schemaName) => {
     },
     priority: {
       type: INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false
+      allowNull: true
     },
     name: {
       type: STRING,

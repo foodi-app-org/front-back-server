@@ -18,7 +18,7 @@ export const ROLE_MODEL = 'roles'
 const Role = sequelize.define(ROLE_MODEL, {
   idRole: {
     type: UUID,
-    primaryKey: false,
+    primaryKey: true,
     autoIncrement: false,
     defaultValue: UUIDV4,
     unique: true
@@ -36,9 +36,7 @@ const Role = sequelize.define(ROLE_MODEL, {
   },
   priority: {
     type: INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    allowNull: false
+    allowNull: true
   },
   name: {
     type: STRING,

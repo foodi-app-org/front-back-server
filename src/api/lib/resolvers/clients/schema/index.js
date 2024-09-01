@@ -8,5 +8,6 @@ export const clientSchema = joi.object({
   ccClient: joi.string().allow(null, '').optional(),
   gender: joi.number().allow(null, 0).optional(),
   clientNumber: joi.string().allow(null, '').optional(),
+  idStore: joi.string().required().messages(stringMessages('id de la tienda')).max(180).messages(stringMessages('idStore')),
   ClientAddress: joi.string().allow(null, '').optional()
 })

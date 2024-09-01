@@ -19,6 +19,7 @@ import {
 import Users from '../../models/Users'
 import GenericService from '../../services'
 import Store from '../../models/Store/Store'
+import Role from '../../models/roles'
 
 // eslint-disable-next-line
 export const employees = async (_, args, ctx) => {
@@ -111,6 +112,7 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
     const schema = Joi.object({
       eEmail: Joi.string().email().required(),
       idRole: Joi.string().required(),
+      nameEmployee: Joi.string().required(),
       idStore: Joi.string().required()
     })
 
@@ -129,7 +131,12 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
       }
     }
 
-    const { eEmail, idRole, idStore } = input ?? {}
+    const {
+      eEmail,
+      idRole,
+      idStore,
+      nameEmployee
+    } = input ?? {}
 
     const dataObjUserEmployee = {
       eState: 1,
@@ -151,9 +158,10 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
     }
 
     const basicData = {
-      name: 'USUARIO INVITADO',
+      name: nameEmployee,
       username: 'USUARIO INVITADO',
-      lastName: tempPassword
+      lastName: tempPassword,
+      uState: 1
     }
 
     const encryptedPassword = await hashPassword(`${tempPassword}`)
@@ -276,6 +284,34 @@ const loginEmployeeInStore = async (_root, { eId, idStore, eEmail }, context) =>
 
 export default {
   TYPES: {
+    EmployeeStore: {
+      user: async (parent, _args, context, info) => {
+        try {
+          const attributes = getAttributes(Users, info)
+          const user = await Users.schema(getTenantName(context?.restaurant)).findOne({
+            attributes,
+            where: { email: parent.dataValues.eEmail, uState: 1 }
+          })
+          return user
+        } catch {
+          return null
+        }
+      },
+      roles: async (parent, _args, context, info) => {
+        try {
+          const attributes = getAttributes(Role, info)
+          const idRole = parent.dataValues.idRole
+          const where = { idRole }
+          const role = await Role.schema(getTenantName(context?.restaurant)).findOne({ attributes, where })
+          if (!role) {
+            throw new ApolloError('Role not found', '404')
+          }
+          return role
+        } catch {
+          return null
+        }
+      }
+    }
   },
   QUERIES: {
     employees,

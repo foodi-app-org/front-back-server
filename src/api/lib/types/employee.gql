@@ -32,6 +32,8 @@ type EmployeeStore {
     eState: Int
     status: String
     tpEmail: String
+    user: User
+    roles: Roles
 
 }
 
@@ -69,6 +71,7 @@ input IEmployeeStore {
     tpEmail: String
     termContract: String
     eDatAdm: DateTime
+    nameEmployee: String
     eState: Int
     idRole: ID!
 }

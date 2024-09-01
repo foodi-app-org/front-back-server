@@ -43,7 +43,7 @@ export const createTenant = async (_, { input }, context) => {
       return new ApolloError('El subdominio ya está en uso, elija otro subdominio.', '500')
     }
     const tenant = await Tenant.create(input)
-    createTenantSchema({
+    await createTenantSchema({
       domainSchema: idStore,
       idStore,
       idUser: User?.id ?? null

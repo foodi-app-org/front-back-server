@@ -9,10 +9,10 @@ import GenericService from '../../services'
 const createRoleMutation = async (_root, { input }, context) => {
   const { User } = context || {
     User: { restaurant: null }
-  }
+  };
   const { restaurant } = User ?? {
     restaurant: null
-  }
+  };
 
   if (!restaurant?.idStore) {
     return new GraphQLError('Session expired', {
@@ -20,21 +20,34 @@ const createRoleMutation = async (_root, { input }, context) => {
         code: 'SESSION_EXPIRED',
         http: { status: 401 }
       }
-    })
+    });
   }
 
   try {
-    const newRole = await Role.schema(getTenantName(restaurant?.idStore)).create({
+    const tenantName = getTenantName(restaurant?.idStore);
+
+    // Obtener el valor máximo de `priority` actual
+    const maxPriorityRole = await Role.schema(tenantName).findOne({
+      where: { idStore: deCode(restaurant.idStore) },
+      order: [['priority', 'DESC']]
+    });
+
+    // Incrementar el valor de `priority`
+    const newPriority = (maxPriorityRole?.priority ?? 0) + 1;
+
+    // Crear el nuevo rol con el priority autoincrementado
+    const newRole = await Role.schema(tenantName).create({
       ...input,
-      idStore: deCode(restaurant.idStore)
-    })
+      idStore: deCode(restaurant.idStore),
+      priority: newPriority
+    });
 
     return {
       success: true,
       message: 'Role created successfully',
       data: newRole,
       errors: []
-    }
+    };
   } catch (error) {
     return {
       success: false,
@@ -48,9 +61,10 @@ const createRoleMutation = async (_root, { input }, context) => {
         }
       ],
       data: null
-    }
+    };
   }
-}
+};
+
 
 const getRoles = async (_root, args, context) => {
   try {
@@ -116,8 +130,20 @@ const updateRolesPriority = async (_root, { roles }, context) => {
   const transaction = await Role.schema(tenantName).sequelize.transaction()
 
   try {
+    // Fetch only the roles with state = 1
+    const existingRoles = await Role.schema(tenantName).findAll({
+      where: { state: 1 },
+      transaction
+    })
+
+    // Combine and sort roles by the provided priority
+    const updatedRoles = existingRoles.map(existingRole => {
+      const roleToUpdate = roles.find(role => role.idRole === existingRole.idRole)
+      return roleToUpdate ? { ...existingRole, ...roleToUpdate } : existingRole
+    }).sort((a, b) => a.priority - b.priority)
+
     // Set temporary negative priority to avoid unique constraint violation
-    await Promise.all(roles.map((role, index) =>
+    await Promise.all(updatedRoles.map((role, index) =>
       Role.schema(tenantName).update({ priority: -index - 1 }, {
         where: { idRole: role.idRole },
         transaction
@@ -125,7 +151,7 @@ const updateRolesPriority = async (_root, { roles }, context) => {
     ))
 
     // Update roles with the correct priority
-    await Promise.all(roles.map(role =>
+    await Promise.all(updatedRoles.map(role =>
       Role.schema(tenantName).update({ priority: role.priority }, {
         where: { idRole: role.idRole },
         transaction
@@ -143,7 +169,7 @@ const updateRolesPriority = async (_root, { roles }, context) => {
     await transaction.rollback()
     return {
       success: false,
-      message: 'Ocurrió un error'
+      message: `Ocurrió un error, ${error.message}`
     }
   }
 }
@@ -166,7 +192,7 @@ const removeRoles = async (_root, { roleIds }, context) => {
       await Role.schema(tenantName).update(
         { state: 0 },
         {
-          where: { idRole },
+          where: { idRole, priority: null },
           transaction
         }
       )

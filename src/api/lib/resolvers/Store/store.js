@@ -32,6 +32,7 @@ import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
+
 require('dotenv').config()
 
 // eslint-disable-next-line
@@ -61,26 +62,20 @@ const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
     }
   }
 }
-export const newRegisterStore = async (_, { input }, ctx, lol) => {
+export const newRegisterStore = async (_, { input }, ctx) => {
   const {
-    cId,
-    dId,
-    ctId,
-    id,
-    catStore
-  } = input || {
-    cId: null,
-    dId: null,
-    ctId: null,
-    id: null,
-    catStore: null
-  }
+    cId = null,
+    dId = null,
+    ctId = null,
+    id = null,
+    catStore = null,
+    emailStore
+  } = input || {}
+
   try {
-    let res = {}
+    // Verificar si el usuario existe
     const findUser = await Users.findOne({
-      where: {
-        id: deCode(id)
-      }
+      where: { id: deCode(id) }
     })
     if (!findUser) {
       return {
@@ -88,20 +83,34 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
         message: 'No se encontró el usuario'
       }
     }
-    const data = await Store.findOne({
-      attributes: ['id', 'idStore'],
-      where: {
-        id: deCode(id)
-      }
+
+    // Verificar si ya existe una tienda registrada para este usuario
+    const existingStore = await Store.findOne({
+      attributes: ['id', 'idStore', 'emailStore'],
+      where: { id: deCode(id) }
     })
-    if (data) {
+    if (existingStore) {
       return {
         success: false,
         message: 'Ya existe una tienda registrada',
-        idStore: data?.idStore
+        idStore: existingStore.idStore
       }
     }
-    res = await Store.create({
+
+    // Verificar si el emailStore ya está en uso
+    const existingEmailStore = await Store.findOne({
+      where: { emailStore }
+    })
+    if (existingEmailStore) {
+      return {
+        success: false,
+        message: 'Ya existe una cuenta con el mismo correo',
+        idStore: null
+      }
+    }
+
+    // Crear la tienda
+    const newStore = await Store.create({
       ...input,
       uState: 2,
       cId: deCode(cId),
@@ -110,17 +119,18 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       ctId: deCode(ctId),
       catStore: deCode(catStore)
     })
-    const idStore = res.idStore
+    const idStore = newStore.idStore
 
+    // Crear el tenant
     const inputTenant = {
       subdomain: idStore,
       subscriberId: idStore,
       schemaName: idStore,
       subscriptionId: idStore,
-      storageId: res.storeName ?? '',
+      storageId: newStore.storeName ?? '',
       masterPassword: idStore,
       deleted: false,
-      mailBody: input?.emailStore ?? findUser?.email
+      mailBody: emailStore ?? findUser.email
     }
     const context = {
       ...ctx,
@@ -135,7 +145,11 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       }
     }
     await createTenant(null, { input: inputTenant }, context)
-
+    const newUserContext = {
+      ...context,
+      restaurant: idStore
+    }
+    // Crear el cliente por defecto
     const inputClient = {
       clientName: 'CLIENTES VARIOS',
       clientLastName: '',
@@ -145,20 +159,21 @@ export const newRegisterStore = async (_, { input }, ctx, lol) => {
       gender: 1,
       idStore
     }
-    await createClients(null, { input: inputClient }, ctx)
+    const { success, message } = await createClients(null, { input: inputClient }, newUserContext)
     return {
       success: true,
       idStore,
-      message: 'Tienda creada'
+      message: `${success ? 'Tienda creada Correctamente' : message || 'Tienda creada pero falto el usuario'}`
     }
   } catch (error) {
     return {
       success: false,
-      message: error?.message || '',
+      message: error?.message || 'Ocurrió un error inesperado',
       idStore: null
     }
   }
 }
+
 // eslint-disable-next-line
 export const getStore = async (
   _root,
@@ -290,7 +305,6 @@ export const registerSalesStore = async (
         comments,
         dataExtra,
         dataOptional,
-        ProPrice,
         refCodePid
       } = element
       const decodePid = deCode(pId)

@@ -27,12 +27,12 @@ export const createClients = async (_root, { input }, context) => {
         data: null
       }
     }
+
     const data = await clients.schema(getTenantName(context.restaurant)).create({
       ...input,
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       idUser: idUser ? deCode(idUser) : null
     })
-
     return {
       success: true,
       message: 'Client created successfully',
@@ -55,7 +55,7 @@ export const createClients = async (_root, { input }, context) => {
   } catch (e) {
     return {
       success: false,
-      message: 'An error occurred',
+      message: e || 'An error occurred',
       errors: [{
         path: null,
         message: e.message,

@@ -14,7 +14,7 @@ exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(EMPLOYEE_MODEL_NAME, {
     eId: {
       type: UUID,
-      primaryKey: false,
+      primaryKey: true,
       autoIncrement: false,
       defaultValue: UUIDV4
     },
