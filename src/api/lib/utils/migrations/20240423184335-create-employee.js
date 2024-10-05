@@ -7,7 +7,6 @@ const { EMPLOYEE_MODEL_NAME } = require('../../models/Store/employees')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { enCode } = require('../util')
 const { USER_MODEL } = require('../../models/Users')
-const { ROLE_MODEL } = require('../../models/roles')
 
 exports.up = async (queryInterface, schemaName) => {
   // Crea una tabla "employees"

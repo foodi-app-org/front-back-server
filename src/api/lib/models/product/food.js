@@ -1,10 +1,10 @@
-import { INTEGER, STRING, TEXT, SMALLINT, literal } from 'sequelize'
+import { INTEGER, STRING, TEXT, SMALLINT, literal, DECIMAL } from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
-import { DECIMAL } from 'sequelize'
+
 const sequelize = connect()
 
 const productModel = sequelize.define('productstore', {

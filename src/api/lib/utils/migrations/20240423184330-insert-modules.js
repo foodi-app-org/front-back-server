@@ -50,6 +50,9 @@ exports.up = async (queryInterface, schemaName) => {
     },
     {
       module: { mName: 'Roles y usuarios', mPath: 'management', mPriority: 12, mIcon: 8, mState: 1 }
+    },
+    {
+      module: { mName: 'Configuración', mPath: 'configuration', mPriority: 13, mIcon: 14, mState: 1 }
     }
   ]
 
