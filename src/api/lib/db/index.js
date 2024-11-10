@@ -35,7 +35,7 @@ function connect () {
         ...connectConfig
       }
     )
-    // sequelize.sync({})
+    sequelize.sync({})
   } catch (error) {
     console.log(error.message)
     throw new Error(error)
