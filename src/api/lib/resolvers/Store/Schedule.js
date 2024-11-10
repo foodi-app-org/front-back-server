@@ -112,8 +112,27 @@ export const setScheduleOpenAll = async (_root, { scheduleOpenAll }, context, _i
     return { success: false, message: e }
   }
 }
+
+/**
+ * Fetches store schedules based on the provided day and store ID.
+ *
+ * @param {Object} root - The root object.
+ * @param {Object} params - The parameters for the function.
+ * @param {string} params.schDay - The day for which schedules are requested.
+ * @param {string} params.idStore - The ID of the store.
+ * @param {Object} context - The context object containing restaurant information.
+ * @param {Object} info - GraphQL info object.
+ * @returns {Promise<Array|ApolloError>} - Returns an array of schedules or an error.
+ */
 export const getStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
+    const storeId = deCode(context.restaurant ?? idStore)
+
+    // Ensure storeId is a valid integer
+    if (!storeId || isNaN(storeId)) {
+      throw new Error('Invalid store ID.')
+    }
+
     const data = await ScheduleStore.schema(getTenantName(context?.restaurant ?? idStore)).findAll({
       attributes: [
         'idStore',
@@ -127,18 +146,23 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
         [Op.or]: [
           {
             schState: 1,
-            idStore: deCode(idStore ?? context.restaurant)
+            idStore: storeId // Use validated storeId
           }
         ]
       },
       order: [['schDay', 'ASC']]
     })
+
     return data
   } catch (e) {
-    const error = new ApolloError(e || 'Lo sentimos, ha ocurrido un error interno')
-    return error
+    // Log the error for debugging
+    console.error(e)
+
+    const errorMessage = e.message || 'Lo sentimos, ha ocurrido un error interno'
+    throw new ApolloError(errorMessage)
   }
 }
+
 const getOneStoreSchedules = async (root, { schDay, idStore }, context, info) => {
   try {
     const data = await ScheduleStore.schema(getTenantName(context?.restaurant)).findOne({

@@ -1,4 +1,9 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  SMALLINT,
+  literal
+} from 'sequelize'
 
 import connect from '../../db'
 import { enCode } from '../../utils/util'
@@ -6,7 +11,7 @@ import Users from '../Users'
 
 const sequelize = connect()
 
-export const USER_DEVICE_MODEL = 'userdevice'
+export const USER_DEVICE_MODEL = 'userdevices'
 
 const UserDeviceModel = sequelize.define(USER_DEVICE_MODEL, {
   dId: {

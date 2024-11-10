@@ -1,4 +1,6 @@
 /* eslint-disable consistent-return */
+import crypto from 'crypto'
+
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op, Sequelize } from 'sequelize'
 import Joi from 'joi'
@@ -231,10 +233,12 @@ export const updateProductFoods = async (_root, { input }, context) => {
     pState,
     carProId
   } = input || {}
+
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
     }
+
     if (!pId) {
       const { error } = productFoodSchema.validate(input)
       if (error) {
@@ -251,25 +255,30 @@ export const updateProductFoods = async (_root, { input }, context) => {
         }
       }
     }
-    const transaction = await productModelFood.sequelize.transaction()
+
     if (!pId) {
-      const { count } = await productModelFood.schema(getTenantName(context?.restaurant)).findAndCountAll({ transaction })
+      const { count } = await productModelFood
+        .schema(getTenantName(context?.restaurant))
+        .findAndCountAll()
       const lengthProduct = Number(count)
-      const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
-        ValueDelivery,
-        ...input,
-        pState: 1,
-        idStore: deCode(context.restaurant),
-        carProId: deCode(carProId),
-        id: deCode(context.User.id),
-        sizeId: sizeId ? deCode(sizeId) : null,
-        colorId: colorId ? deCode(colorId) : null,
-        cId: cId ? deCode(cId) : null,
-        dId: dId ? deCode(dId) : null,
-        ctId: ctId ? deCode(ctId) : null,
-        poPriority: lengthProduct + 1
-      })
-      await transaction.commit()
+
+      const data = await productModelFood
+        .schema(getTenantName(context?.restaurant))
+        .create({
+          ValueDelivery,
+          ...input,
+          pState: 1,
+          idStore: deCode(context.restaurant),
+          carProId: deCode(carProId),
+          id: deCode(context.User.id),
+          sizeId: sizeId ? deCode(sizeId) : null,
+          colorId: colorId ? deCode(colorId) : null,
+          cId: cId ? deCode(cId) : null,
+          dId: dId ? deCode(dId) : null,
+          ctId: ctId ? deCode(ctId) : null,
+          poPriority: lengthProduct + 1
+        })
+
       return {
         success: true,
         data,
@@ -277,12 +286,21 @@ export const updateProductFoods = async (_root, { input }, context) => {
       }
     }
 
-    const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { pId: deCode(pId) } })
+    const existingProduct = await productModelFood
+      .schema(getTenantName(context?.restaurant))
+      .findOne({ where: { pId: deCode(pId) } })
+
     if (!existingProduct) {
       throw new ApolloError('El producto no existe.', '404')
     }
 
-    await productModelFood.schema(getTenantName(context?.restaurant)).update({ pState: pState === 1 ? 0 : 1 }, { where: { pId: deCode(pId) } })
+    await productModelFood
+      .schema(getTenantName(context?.restaurant))
+      .update(
+        { pState: pState === 1 ? 0 : 1 },
+        { where: { pId: deCode(pId) } }
+      )
+
     return {
       success: true,
       message: 'Producto actualizado correctamente'
@@ -294,6 +312,7 @@ export const updateProductFoods = async (_root, { input }, context) => {
     }
   }
 }
+
 /**
  * Updates or creates multiple products.
  *
@@ -304,6 +323,7 @@ export const updateProductFoods = async (_root, { input }, context) => {
  * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
  */
 const updateMultipleProducts = async (_root, { input }, context) => {
+  console.log('🚀 ~ updateMultipleProducts ~ input:', input)
   try {
     const promises = input.map(async (productInput) => {
       const {
@@ -314,10 +334,20 @@ const updateMultipleProducts = async (_root, { input }, context) => {
         dId,
         ctId,
         pId,
-        carProId
+        carProId,
+        ProBarCode
       } = productInput || {}
-      console.log(productInput.ProPrice)
       if (!pId) {
+        const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant))
+          .findOne({ where: { ProBarCode, idStore: deCode(context.restaurant) } })
+
+        if (existingProduct) {
+          return {
+            success: false,
+            data: productInput,
+            message: `El código de barras ${ProBarCode} ya se encuentra registrado para otro producto`
+          }
+        }
         const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
           ValueDelivery,
           ...productInput,
@@ -330,7 +360,8 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           cId: cId ? deCode(cId) : null,
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
-          poPriority: 0
+          poPriority: 0,
+          ProBarCode: productInput?.ProBarCode ?? crypto.randomBytes(6).toString('hex').toUpperCase()
         })
 
         return {

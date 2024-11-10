@@ -13,7 +13,7 @@ import { clientSchema } from './schema'
 export const createClients = async (_root, { input }, context) => {
   const { idUser, idStore } = input || {}
   try {
-    const { error } = clientSchema.validate(input)
+    const { error } = clientSchema.validate({ ...input, idStore })
     if (error) {
       return {
         success: false,

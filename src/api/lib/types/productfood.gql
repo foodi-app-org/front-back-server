@@ -1,6 +1,6 @@
 # types
 type ProductFood {
-    pId: ID!
+    pId: ID
     carProId: ID  #Categorías de productFoodos
     sizeId: ID #Talla
     colorId: ID #Color
@@ -33,6 +33,7 @@ type ProductFood {
     ProVoltaje: String
     pState: Int
     sTateLogistic: Int
+    ProBarCode: String
     pDatCre: DateTime
     pDatMod: DateTime
     thirdParties: ThirdParties
@@ -90,6 +91,8 @@ input InputProductFood {
     ProOutstanding: Int
     ProDelivery: Int
     ProVoltaje: String
+    vat: Float
+    ProBarCode: String
     pState: Int
     sTateLogistic: Int
     pDatCre: DateTime

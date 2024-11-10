@@ -36,5 +36,6 @@ export const productFoodSchema = Joi.object({
   sTateLogistic: Joi.number().allow(null, '').integer().optional(),
   pDatCre: Joi.date().iso().optional(),
   pDatMod: Joi.date().iso().optional(),
-  vat: Joi.number().allow(null, '').optional()
+  vat: Joi.number().allow(null, '').optional(),
+  ProBarCode: Joi.number().allow(null, '').optional()
 })

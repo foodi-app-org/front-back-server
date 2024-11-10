@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 let sequelize = null
-const dialectOptions = process.env.NODE_ENV !== 'development'
+const dialectOptions = String(process.env.USE_SSL_CONNECTION) === 'true'
   ? {
     postgres: {
       ssl: {
@@ -35,7 +35,7 @@ function connect () {
         ...connectConfig
       }
     )
-    sequelize.sync({})
+    // process.env.USE_SSL_CONNECTION === 'true' && sequelize.sync({})
   } catch (error) {
     console.log(error.message)
     throw new Error(error)

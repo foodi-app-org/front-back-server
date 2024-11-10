@@ -13,6 +13,8 @@ import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
 
+const crypto = require('crypto')
+
 const sequelize = connect()
 
 export const PRODUCT_FOOD_MODEL = 'productmodelfoods'
@@ -73,8 +75,13 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     get (x) { return enCode(this.getDataValue(x)) }
   },
   vat: {
-    type: DECIMAL(1000, 2),
-    allowNull: true
+    type: DECIMAL(6, 2),
+    allowNull: true,
+    defaultValue: 0.00, // define un valor por defecto
+    validate: {
+      min: 0,
+      max: 100
+    }
   },
   // color
   colorId: {
@@ -247,6 +254,14 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     type: STRING,
     allowNull: true
   },
+  ProBarCode: {
+    type: STRING(50), // Espacio suficiente para cualquier tipo de código de barras, incluidos los alfanuméricos largos.
+    allowNull: true,
+    unique: true,
+    validate: {
+      len: [1, 50]
+    }
+  },
   pDatCre: {
     type: 'TIMESTAMP',
     defaultValue: literal('CURRENT_TIMESTAMP'),
@@ -258,7 +273,17 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: false,
+  hooks: {
+    beforeCreate (product) {
+      if (!product.ProBarCode) {
+        product.ProBarCode = crypto.randomBytes(6).toString('hex').toUpperCase()
+      }
+    },
+    beforeUpdate (product) {
+      product.pDatMod = literal('CURRENT_TIMESTAMP')
+    }
+  }
 })
 
 export default productModelFood

@@ -20,6 +20,7 @@ import Users from '../../models/Users'
 import GenericService from '../../services'
 import Store from '../../models/Store/Store'
 import Role from '../../models/roles'
+import { LogInfo } from '../../utils/logs'
 
 // eslint-disable-next-line
 export const employees = async (_, args, ctx) => {
@@ -163,7 +164,7 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
       lastName: tempPassword,
       uState: 1
     }
-
+    LogInfo(basicData)
     const encryptedPassword = await hashPassword(`${tempPassword}`)
     const userGuestTenant = await Users.schema(tenantName).create({
       ...basicData,
@@ -197,7 +198,7 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
         associateStore: [storeInfo] // Inicializa associateStore como un array con un objeto
       })
 
-      if (newPublicUser) {
+      if (newPublicUser && userGuestTenant?.dataValues?.id) {
         await employeesModel.schema(tenantName).create({
           idStore: deCode(idStore),
           idRole,
@@ -239,6 +240,8 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
   } catch (error) {
     return new ApolloError(error.message || 'Lo sentimos, ha ocurrido un error interno')
   }
+    console.log("🚀 ~ createOneEmployeeStoreAndUser ~ basicData:", basicData)
+    console.log("🚀 ~ createOneEmployeeStoreAndUser ~ basicData:", basicData)
 }
 
 const removeEmployee = async (_root, { employeeIds }, context) => {

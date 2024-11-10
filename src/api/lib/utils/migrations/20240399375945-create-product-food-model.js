@@ -199,8 +199,13 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: true
     },
     vat: {
-      type: DECIMAL(1000, 2),
-      allowNull: true
+      type: DECIMAL(6, 2),
+      allowNull: true,
+      defaultValue: 0.00, // define un valor por defecto
+      validate: {
+        min: 0,
+        max: 100
+      }
     },
     ProDescuento: {
       type: DECIMAL(1000, 2),
@@ -284,6 +289,14 @@ exports.up = async (queryInterface, schemaName) => {
     ProVoltaje: {
       type: STRING,
       allowNull: true
+    },
+    ProBarCode: {
+      type: STRING(50), // Espacio suficiente para cualquier tipo de código de barras, incluidos los alfanuméricos largos.
+      allowNull: true,
+      unique: true,
+      validate: {
+        len: [1, 50]
+      }
     },
     pDatCre: {
       type: 'TIMESTAMP',
