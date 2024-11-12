@@ -27,6 +27,8 @@ jobs:
             exit 1
           fi
         working-directory: ${{ github.workspace }}
+      - name: Run migrations
+        run: npm run migration:tenants:run
 
   deploy:
     name: Deploy app

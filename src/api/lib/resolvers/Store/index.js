@@ -14,9 +14,12 @@ import bannerDashboardStore from './bannerMainDashboard'
 import emplooyeStore from './employee'
 import storesPendingToRegister from './storesPendingToRegister'
 import modules from './modules'
+import tables from './tables'
+
 export default {
   TYPES: {
     ...storeResolver.TYPES,
+    ...tables.TYPES,
     ...modules.TYPES,
     ...bannerDashboardStore.TYPES,
     ...emplooyeStore.TYPES,
@@ -34,6 +37,7 @@ export default {
   },
   QUERIES: {
     ...modules.QUERIES,
+    ...tables.QUERIES,
     ...storeResolver.QUERIES,
     ...storesPendingToRegister.QUERIES,
     ...ChatStore.QUERIES,
@@ -52,6 +56,7 @@ export default {
   },
   MUTATIONS: {
     ...modules.MUTATIONS,
+    ...tables.MUTATIONS,
     ...storeResolver.MUTATIONS,
     ...storesPendingToRegister.MUTATIONS,
     ...ChatStore.MUTATIONS,
