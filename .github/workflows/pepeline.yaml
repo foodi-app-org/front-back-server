@@ -1,5 +1,4 @@
-name: CI/CD Pipeline
-
+name: CI Pipeline
 on:
   push:
     branches:
@@ -7,93 +6,51 @@ on:
       - develop
 
 jobs:
-  # Validación de mensajes de commit
   validate-commit:
     name: Validate Commit Message
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: 14
 
       - name: Install dependencies
-        run: npm ci # npm ci es más rápido y confiable para entornos de CI/CD
+        run: npm install
 
       - name: Validate commit messages
         run: |
           last_commit_message=$(git log -1 --pretty=format:%s)
           if [[ ! "$last_commit_message" =~ ^(fix:|feat:) ]]; then
-            echo "Error: The commit message does not follow the required format (fix: or feat:)"
+            echo "Error: The commit message does not follow the expected format (fix: or feat:)"
             exit 1
           fi
-
-  # Ejecución de migraciones
-  run-migrations:
-    name: Run Database Migrations
-    runs-on: ubuntu-latest
-    needs: validate-commit
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: npm ci
+        working-directory: ${{ github.workspace }}
 
       - name: Run migrations
         run: npm run migration:tenants:run
 
-  # Construcción de la aplicación
-  build-app:
-    name: Build Application
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
-    needs: run-migrations
+    needs: validate-commit
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: 14
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build app
         run: npm run build
-        env:
-          NODE_ENV: production # Configuración del entorno de compilación
 
-  # Despliegue en servidor
-  deploy:
-    name: Deploy Application
-    runs-on: ubuntu-latest
-    needs: build-app
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Deploy to Server
-        run: |
-          # Implementa tu script de despliegue aquí
-          # Ejemplo: ssh user@server "cd /path/to/app && git pull && npm install && npm run start"
-          echo "Implement deployment script here"
-        env:
-          SSH_KEY: ${{ secrets.SSH_KEY }} # Llave SSH para conexión al servidor
+      - name: Run tests
+        run: npm test
