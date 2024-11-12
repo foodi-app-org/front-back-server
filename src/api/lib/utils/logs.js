@@ -5,7 +5,7 @@ async function ResponseService (status, code, message, data) {
   return { status, response: { code, message, data } }
 }
 function formatMessage (msg) {
-  return typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg;
+  return typeof msg === 'object' ? JSON.stringify(msg, null, 2) : msg
 }
 
 function LogSuccess (msg) {

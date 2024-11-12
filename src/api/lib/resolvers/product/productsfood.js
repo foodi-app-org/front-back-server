@@ -323,7 +323,6 @@ export const updateProductFoods = async (_root, { input }, context) => {
  * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
  */
 const updateMultipleProducts = async (_root, { input }, context) => {
-  console.log('🚀 ~ updateMultipleProducts ~ input:', input)
   try {
     const promises = input.map(async (productInput) => {
       const {

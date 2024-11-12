@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize')
 
-const { MODEL_DEPARTMENTS_NAME } = require('../../models/information/DepartmentsModel')
 const { MODEL_COUNTRIES_NAME } = require('../../models/information/CountriesModel')
 const { enCode } = require('../../utils/util')
 const { MODEL_CITIES_NAME } = require('../../models/information/CitiesModel')

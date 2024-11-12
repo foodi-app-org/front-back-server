@@ -240,8 +240,6 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
   } catch (error) {
     return new ApolloError(error.message || 'Lo sentimos, ha ocurrido un error interno')
   }
-    console.log("🚀 ~ createOneEmployeeStoreAndUser ~ basicData:", basicData)
-    console.log("🚀 ~ createOneEmployeeStoreAndUser ~ basicData:", basicData)
 }
 
 const removeEmployee = async (_root, { employeeIds }, context) => {

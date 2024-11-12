@@ -2,6 +2,8 @@
 import Sequelize from 'sequelize'
 import dotenv from 'dotenv'
 
+import { LogDanger } from '../utils/logs'
+
 // Configura dotenv
 dotenv.config()
 
@@ -37,7 +39,7 @@ function connect () {
     )
     process.env.USE_SSL_CONNECTION === 'true' && sequelize.sync({})
   } catch (error) {
-    console.log(error.message)
+    LogDanger(error.message)
     throw new Error(error)
   }
   return sequelize

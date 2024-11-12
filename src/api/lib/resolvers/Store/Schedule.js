@@ -155,9 +155,6 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
 
     return data
   } catch (e) {
-    // Log the error for debugging
-    console.error(e)
-
     const errorMessage = e.message || 'Lo sentimos, ha ocurrido un error interno'
     throw new ApolloError(errorMessage)
   }

@@ -1,4 +1,3 @@
-const { DataTypes } = require('sequelize')
 const { DATE } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 const { STRING } = require('sequelize')

@@ -1,4 +1,4 @@
-import Sequelize, { INTEGER, UUID } from 'sequelize'
+import Sequelize, { INTEGER } from 'sequelize'
 
 import connect from '../../db'
 // import { enCode } from '../../utils/util'

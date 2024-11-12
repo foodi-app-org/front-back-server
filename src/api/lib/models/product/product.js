@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TEXT, literal } from 'sequelize'
+import { INTEGER, STRING, TEXT, literal, DECIMAL } from 'sequelize'
 
 import connect from '../../db'
 import SizeModel from '../information/size'
@@ -9,7 +9,7 @@ import CitiesModel from '../information/CitiesModel'
 import Feature from '../feature/feature'
 import CategoryProductsModel from '../Categories/CategoryProducts'
 import { enCode } from '../../utils/util'
-import { DECIMAL } from 'sequelize'
+
 const sequelize = connect()
 
 const productModel = sequelize.define('product', {

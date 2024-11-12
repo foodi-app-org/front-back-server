@@ -14,7 +14,7 @@ export function replaceHyphensWithUnderscores (str) {
     if (!str) return ''
     return str.replace(/-/g, '_')
   } catch (error) {
-    console.log('Error:', error)
+    return ''
   }
 }
 

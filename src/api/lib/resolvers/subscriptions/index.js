@@ -9,7 +9,6 @@ export const subscriptions = async (_root, _args, context, _info) => {
     const data = await SubscriptionModel.schema(getTenantName(context?.restaurant)).findAll()
     return data
   } catch (error) {
-    console.error(error)
     throw new Error('Failed to fetch subscriptions.')
   }
 }
@@ -19,7 +18,6 @@ export const createSubscription = async (_root, args, context, _info) => {
     const data = await SubscriptionModel.schema(getTenantName(context?.restaurant)).create(args)
     return data
   } catch (error) {
-    console.error(error)
     throw new Error('Failed to create subscription.')
   }
 }
@@ -88,7 +86,6 @@ export const deleteSubscription = async (_root, args, context, _info) => {
     await subscription.destroy()
     return true
   } catch (error) {
-    console.error(error)
     throw new Error('Failed to delete subscription.')
   }
 }

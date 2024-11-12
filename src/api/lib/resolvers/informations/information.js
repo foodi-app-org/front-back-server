@@ -1,5 +1,5 @@
 import { ApolloError } from 'apollo-server-express'
-import sequelize, { Op } from 'sequelize'
+import { Op } from 'sequelize'
 
 import CatStore, { MODEL_CAT_STORE_NAME } from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
@@ -15,6 +15,7 @@ import {
   getAttributes
 } from '../../utils/util'
 import connect from '../../db'
+import { LogDanger, LogSuccess, LogWarning } from '../../utils/logs'
 
 // cities
 export const getCities = async (_root, _args, _context, info) => {
@@ -213,7 +214,6 @@ export const getAllCatStore = async (_root, { input }, _context, info) => {
     })
     return data
   } catch (e) {
-    console.log("🚀 ~ getAllCatStore ~ e:", e)
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }
@@ -316,16 +316,16 @@ async function fillCatStoreTable () {
         if (!existingCategory) {
           await CatStore.create(category)
           createdCategories.add(category.cName) // Agregar el nombre de la categoría a la lista de creadas
-          console.log(`Categoría '${category.cName}' creada exitosamente.`)
+          LogSuccess(`Categoría '${category.cName}' creada exitosamente.`)
         } else {
-          console.log(`La categoría '${category.cName}' ya existe en la base de datos. No se creará.`)
+          LogWarning(`La categoría '${category.cName}' ya existe en la base de datos. No se creará.`)
         }
       } else {
-        console.log(`La categoría '${category.cName}' ya ha sido creada en esta ejecución. No se creará de nuevo.`)
+        LogWarning(`La categoría '${category.cName}' ya ha sido creada en esta ejecución. No se creará de nuevo.`)
       }
     }
   } catch (error) {
-    console.error('Error al crear categorías:', error)
+    LogDanger(`Error al crear categorías: ${error.message}`)
   }
 }
 

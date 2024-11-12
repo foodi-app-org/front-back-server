@@ -9,10 +9,10 @@ import GenericService from '../../services'
 const createRoleMutation = async (_root, { input }, context) => {
   const { User } = context || {
     User: { restaurant: null }
-  };
+  }
   const { restaurant } = User ?? {
     restaurant: null
-  };
+  }
 
   if (!restaurant?.idStore) {
     return new GraphQLError('Session expired', {
@@ -20,34 +20,34 @@ const createRoleMutation = async (_root, { input }, context) => {
         code: 'SESSION_EXPIRED',
         http: { status: 401 }
       }
-    });
+    })
   }
 
   try {
-    const tenantName = getTenantName(restaurant?.idStore);
+    const tenantName = getTenantName(restaurant?.idStore)
 
     // Obtener el valor máximo de `priority` actual
     const maxPriorityRole = await Role.schema(tenantName).findOne({
       where: { idStore: deCode(restaurant.idStore) },
       order: [['priority', 'DESC']]
-    });
+    })
 
     // Incrementar el valor de `priority`
-    const newPriority = (maxPriorityRole?.priority ?? 0) + 1;
+    const newPriority = (maxPriorityRole?.priority ?? 0) + 1
 
     // Crear el nuevo rol con el priority autoincrementado
     const newRole = await Role.schema(tenantName).create({
       ...input,
       idStore: deCode(restaurant.idStore),
       priority: newPriority
-    });
+    })
 
     return {
       success: true,
       message: 'Role created successfully',
       data: newRole,
       errors: []
-    };
+    }
   } catch (error) {
     return {
       success: false,
@@ -61,10 +61,9 @@ const createRoleMutation = async (_root, { input }, context) => {
         }
       ],
       data: null
-    };
+    }
   }
-};
-
+}
 
 const getRoles = async (_root, args, context) => {
   try {

@@ -1,4 +1,4 @@
-import { ApolloError, ForbiddenError } from 'apollo-server-express'
+import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
 import Store from '../../models/Store/Store'
@@ -91,7 +91,6 @@ export const newRegisterUser = async (input) => {
       message: `Bienvenido ${name ?? ''}`
     }
   } catch (error) {
-    console.log('🚀 ~ newRegisterUser ~ error:', error)
     return defaultErrorResponse
   }
 }
@@ -213,7 +212,6 @@ export const getUser = async (_, { email }, context, info) => {
       return user
     }
     const publicUser = await Users.findOne({ attributes, where: { email } })
-    console.log('🚀 ~ getUser ~ publicUser:', publicUser)
     return publicUser
   } catch (e) {
     throw new ApolloError('Inicie session correctamente')

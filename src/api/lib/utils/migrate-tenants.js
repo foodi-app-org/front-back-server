@@ -1,5 +1,6 @@
 import connect from '../db'
 
+import { LogDanger, LogSuccess } from './logs'
 import { UmzugMigrator } from './migrate-models'
 
 const tenantMigrator = async () => {
@@ -11,9 +12,9 @@ const tenantMigrator = async () => {
 
     try {
       await umzug.up() // Ejecuta todas las migraciones pendientes
-      console.log(`Migrated schema: ${schema}`)
+      LogSuccess(`Migrated schema: ${schema}`)
     } catch (error) {
-      console.error(`Failed to migrate schema: ${schema}`, error)
+      LogDanger(`Failed to migrate schema: ${schema} ${error}`)
     }
   }
 
@@ -24,9 +25,9 @@ const tenantMigrator = async () => {
 
 if (require.main === module) {
   tenantMigrator().then((result) => {
-    console.log(result.message)
+    LogSuccess(`Tenant migration completed successfully, ${result.message}`)
   }).catch((error) => {
-    console.error('Error during tenant migration:', error)
+    LogDanger(`Error during tenant migration: ${error}`)
   })
 }
 

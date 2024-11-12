@@ -13,6 +13,7 @@ import {
   sendEmail
 } from '../utils'
 import Store from '../models/Store/Store'
+import { LogInfo } from '../utils/logs'
 const router = Router()
 
 export const cookie = {
@@ -165,11 +166,7 @@ router.post('/auth', async (req, res) => {
         token
       })
     }
-    console.log(
-      success,
-      message,
-      token
-      )
+    LogInfo(`Success: ${success}, Message: ${message}, Token: ${token}`)
     return res.status(500).json({
       response: 'no ok',
       ok: false,
@@ -178,7 +175,6 @@ router.post('/auth', async (req, res) => {
       token
     })
   } catch (error) {
-    console.log("🚀 ~ router.post ~ error:", error)
     return res.status(500).json({
       response: 'no ok',
       ok: false,

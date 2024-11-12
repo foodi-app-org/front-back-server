@@ -23,7 +23,6 @@ export const newRegisterFoodProduct = async (_, { input }, ctx) => {
 export const getStore = async (root, args, context, info) => {
   try {
     const { id } = args || {}
-    console.log({restaurant: context?.restaurant, Userid: context.User.id, id })
     const attributes = getAttributes(Store, info)
     const data = await Store.schema(getTenantName(context?.restaurant)).findOne({
       attributes,

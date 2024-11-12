@@ -2,6 +2,7 @@ import { Op } from 'sequelize'
 import { ApolloError } from 'apollo-server-express'
 
 import { deCode } from '../utils/util'
+import { LogDanger } from '../utils/logs'
 
 /**
  * @class GenericService
@@ -103,7 +104,7 @@ class GenericService {
         }
       }
     } catch (e) {
-      console.error('Error fetching data:', e)
+      LogDanger(e.message)
       throw new ApolloError('Unable to process your request.', '500', { internalData: e })
     }
   }

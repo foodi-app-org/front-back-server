@@ -24,6 +24,7 @@ import resolvers from './api/lib/resolvers'
 import typeDefs from './api/lib/typeDefs'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
 import { auth } from './api/lib/middlewares/auth'
+import { LogInfo } from './api/lib/utils/logs'
 // Configura dotenv
 dotenv.config()
 
@@ -98,7 +99,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         const ses = await auth(token)
         if (!ses) return { req, userAgent: '', setCookies: setCookies || [], setHeaders: setHeaders || [], User: null, restaurant: null }
         const { session, message } = await getUserFromToken(token)
-        console.log("🚀 ~ context: ~ session, message:", session, message)
+        LogInfo(`Session: ${session}, Message: ${message}`)
         const sessionExpired = (message === 'Session expired, refresh needed')
 
         if (sessionExpired) {

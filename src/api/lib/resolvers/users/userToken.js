@@ -1,10 +1,4 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { getUserFromToken } from 'pages/api/auth'
-
-import Users from '../../models/Users'
-import { deCode } from '../../utils/util'
-import Store from '../../models/Store/Store'
-import { generateToken } from '../../utils'
 /**
  * New user token.
  * @param {Object} _ Not used
@@ -18,8 +12,6 @@ import { generateToken } from '../../utils'
 // eslint-disable-next-line consistent-return
 const refreshUserPayrollToken = async (_, { id, token }) => {
   try {
-    console.log('first')
-    return { success: false, message: 'heloooooooo', tokenAuth: 'sedasd' }
     // const { session, message } = await getUserFromToken(token)
     // const sessionExpired = (message === 'Session expired, refresh needed')
 
