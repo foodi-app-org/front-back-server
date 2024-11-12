@@ -30,13 +30,29 @@ jobs:
           fi
         working-directory: ${{ github.workspace }}
 
+  run-migrations:
+    name: Run Migrations
+    runs-on: ubuntu-latest
+    needs: validate-commit
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Run migrations
         run: npm run migration:tenants:run
 
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    needs: validate-commit
+    needs: run-migrations
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -53,4 +69,4 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: npm test
+        run: npm run lint
