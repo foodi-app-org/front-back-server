@@ -13,7 +13,7 @@ const dialectOptions = String(process.env.USE_SSL_CONNECTION) === 'true'
     postgres: {
       ssl: {
         require: true,
-        rejectUnauthorized: false // Permitir certificados autofirmados
+        rejectUnauthorized: false // Permitir certificados
       }
     }
   }
@@ -23,7 +23,8 @@ export const connectConfig = {
   host: process.env.HOST_DB,
   port: process.env.PORT_DB,
   dialect: process.env.DIALECT_DB,
-  dialectOptions: dialectOptions[process.env.DIALECT_DB] || {}
+  dialectOptions: dialectOptions[process.env.DIALECT_DB] || {},
+  logging: false
 }
 
 function connect () {

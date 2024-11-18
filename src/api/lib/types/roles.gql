@@ -31,7 +31,7 @@ type ResponseRoles {
 }
 
 type CreateRoleResponse {
-   success: Boolean
+    success: Boolean
     message: String
     errors: [errors]
     data: Roles

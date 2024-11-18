@@ -1,4 +1,10 @@
-const { UUID, UUIDV4, SMALLINT, STRING, literal } = require('sequelize')
+const {
+  UUID,
+  UUIDV4,
+  SMALLINT,
+  STRING,
+  literal
+} = require('sequelize')
 
 const { STORE_TABLES, tableStateEnum } = require('../../models/storeTables')
 

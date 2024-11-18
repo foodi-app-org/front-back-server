@@ -27,6 +27,7 @@ import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
 import { NotFountError } from '../../utils/handleError'
 import { createClients } from '../clients/clients'
+import { LogDanger, LogInfo, LogSuccess, LogWarning } from '../../utils/logs'
 
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
@@ -38,6 +39,7 @@ require('dotenv').config()
 // eslint-disable-next-line
 const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
   if (!ctx.restaurant) {
+    LogDanger('No se pudo crear el tiempo de entrega')
     return {
       success: false,
       message: 'No se pudo crear el tiempo de entrega'
@@ -45,17 +47,20 @@ const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
   }
   try {
     if (minutes < 1 || minutes > 60) {
+      LogWarning('El tiempo de entrega debe estar entre 1 y 60 minutos')
       throw new Error('El tiempo de entrega debe estar entre 1 y 60 minutos')
     }
     await Store.schema(getTenantName(ctx?.restaurant)).update(
       { deliveryTimeMinutes: minutes },
       { where: { idStore: deCode(ctx.restaurant) } }
     )
+    LogSuccess('Tiempo de entrega creado')
     return {
       success: true,
       message: 'Tiempo de entrega creado'
     }
   } catch (error) {
+    LogDanger('No se pudo crear el tiempo de entrega')
     return {
       success: false,
       message: 'No se pudo crear el tiempo de entrega'
@@ -78,6 +83,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       where: { id: deCode(id) }
     })
     if (!findUser) {
+      LogDanger('No se encontró el usuario')
       return {
         success: false,
         message: 'No se encontró el usuario'
@@ -90,6 +96,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       where: { id: deCode(id) }
     })
     if (existingStore) {
+      LogWarning('Ya existe una tienda registrada')
       return {
         success: false,
         message: 'Ya existe una tienda registrada',
@@ -102,6 +109,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       where: { emailStore }
     })
     if (existingEmailStore) {
+      LogWarning('Ya existe una cuenta con el mismo correo')
       return {
         success: false,
         message: 'Ya existe una cuenta con el mismo correo',
@@ -160,6 +168,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       idStore
     }
     const { success, message } = await createClients(null, { input: inputClient }, newUserContext)
+    LogInfo(message)
     return {
       success: true,
       idStore,
@@ -192,6 +201,7 @@ export const getStore = async (
       idStore: deCode(context.restaurant)
     }
   })
+  LogSuccess('Datos de la tienda obtenidos correctamente')
   return data
 }
 // eslint-disable-next-line
@@ -261,7 +271,9 @@ export const registerSalesStore = async (
   },
   context) => {
   try {
+    LogInfo(`registerSalesStore: pCodeRef: ${pCodeRef} Iniciando venta`)
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
+      LogDanger('registerSalesStore: Expired token')
       throw new GraphQLError('Token expired', {
         extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
       })
@@ -270,6 +282,7 @@ export const registerSalesStore = async (
       where: { pCodeRef }
     })
     if (statusPedido) {
+      LogDanger(`registerSalesStore: pCodeRef ${pCodeRef} already exists`)
       return {
         Response: {
           success: false,
@@ -286,6 +299,7 @@ export const registerSalesStore = async (
       })
       clientId = data?.cliId
       if (!data) {
+        LogDanger(`registerSalesStore: pCodeRef: ${pCodeRef} No client found`)
         throw new Error('Elija un cliente, no se pudo realizar la venta')
       }
     }
@@ -311,6 +325,7 @@ export const registerSalesStore = async (
       if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
       const originalProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(decodePid)
       if (!originalProduct) {
+        LogDanger(`registerSalesStore: pCodeRef: ${pCodeRef} Product not found`)
         throw new NotFountError('No se encontró ningún producto proporcionado, parece que fue eliminado')
       }
       const resShoppingCard = await ShoppingCard.schema(getTenantName(context?.restaurant)).create({
@@ -419,6 +434,7 @@ export const registerSalesStore = async (
       totalProductsPrice,
       valueDelivery
     })
+    LogSuccess(`registerSalesStore: pCodeRef: ${pCodeRef} Venta exitosa`)
     return {
       ShoppingCard: null,
       Response: {
@@ -439,6 +455,7 @@ export const registerSalesStore = async (
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
       message = 'Token expired'
     }
+    LogDanger(`registerSalesStore: ${message}, ${e}`)
 
     return {
       Response: {

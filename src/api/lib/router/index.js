@@ -13,7 +13,7 @@ import {
   sendEmail
 } from '../utils'
 import Store from '../models/Store/Store'
-import { LogInfo } from '../utils/logs'
+import { LogInfo, LogSuccess } from '../utils/logs'
 const router = Router()
 
 export const cookie = {
@@ -45,6 +45,15 @@ export const getDevice = async ({ input }) => {
   } = input || {}
   let res = {}
   try {
+    // const store = await Store.findOne({ where: { id: userId } })
+    console.log("🚀 ~ getDevice ~ store:", input)
+    // const tenantName = getTenantName(idStore)
+    // const existingDevice = await UserDeviceModel.schema(tenantName).findOne({
+    //   where: {
+    //     deviceId,
+    //     id: deCode(userId)
+    //   }
+    // })
     const existingDevice = await UserDeviceModel.findOne({
       where: {
         deviceId,
@@ -147,12 +156,16 @@ router.post('/auth', async (req, res) => {
         token
       }
       await req.session.save()
+      console.log('Hola', useragent, userAgentCurrent)
       if ((useragent || userAgentCurrent) && deviceid) {
+        console.log('Entro', useragent, userAgentCurrent)
         const userInfo = parseUserAgent(userAgentCurrent || useragent)
         const result = {
           deviceId: deviceid,
           userId: storeUserId?.id || storeUserId?.idStore,
-          os: userInfo
+          os: userInfo,
+          email,
+          idStore: storeUserId?.idStore ?? null
         }
         await getDevice({ input: result })
       }
@@ -166,7 +179,7 @@ router.post('/auth', async (req, res) => {
         token
       })
     }
-    LogInfo(`Success: ${success}, Message: ${message}, Token: ${token}`)
+    LogInfo(`Success: ${success}, Message: ${message}`)
     return res.status(500).json({
       response: 'no ok',
       ok: false,
@@ -194,6 +207,7 @@ router.post('/auth/register', async (req, res) => {
       password
     } = req.body
     if (!email) {
+      LogInfo('Credentials are required')
       return res.status(500).json({
         response: 'ok',
         ok: true,
@@ -229,6 +243,7 @@ router.post('/auth/register', async (req, res) => {
             token,
             idStore: StoreInfo?.idStore || null
           }
+          LogSuccess(`Success: ${success}, Message: ${message}`)
           await req.session.save()
           const userInfo = parseUserAgent(useragent)
           const result = {
@@ -250,6 +265,7 @@ router.post('/auth/register', async (req, res) => {
           })
         }
       } else {
+        LogInfo('Credentials are incorrect')
         return res.status(500).json({
           response: 'ok',
           ok: true,

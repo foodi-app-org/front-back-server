@@ -24,7 +24,7 @@ import resolvers from './api/lib/resolvers'
 import typeDefs from './api/lib/typeDefs'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
 import { auth } from './api/lib/middlewares/auth'
-import { LogInfo } from './api/lib/utils/logs'
+import { LogInfo, LogSuccess } from './api/lib/utils/logs'
 // Configura dotenv
 dotenv.config()
 
@@ -161,11 +161,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
   )
 
   httpServer.listen(GRAPHQL_PORT, () => {
-    console.log(
-      `🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
-    )
-    console.log(
-      `🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`
-    )
+    LogSuccess(`🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
+    LogSuccess(`🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
   })
 })()
