@@ -1,7 +1,8 @@
 const { literal } = require('sequelize')
 const { INTEGER } = require('sequelize')
+const { STRING } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { PRODUCT_FOOD_AVAILABLE } = require('../../models/product/productFoodAvailable')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
@@ -9,14 +10,15 @@ const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(PRODUCT_FOOD_AVAILABLE, {
     availableProductId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
-    // id store
+    // id PRODUCT_FOOD_MODEL
     pId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -27,11 +29,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'pId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -41,9 +43,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     dayAvailable: {

@@ -2,7 +2,6 @@ import { literal, INTEGER, STRING, SMALLINT, UUIDV4, UUID } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 
@@ -18,26 +17,25 @@ export default conn.define(EMPLOYEE_MODEL_NAME, {
     defaultValue: UUIDV4
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   idUser: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   idRole: {
     type: UUID,

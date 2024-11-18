@@ -24,6 +24,7 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
     delete userData?.dataValues.id
     // // Crear una nueva entrada en la tabla del esquema especificado
     const newUserStoreInSchema = await Users.schema(schemaName).create({
+      id: idUser,
       name: userData.name,
       email: userData.email,
       username: userData.username,

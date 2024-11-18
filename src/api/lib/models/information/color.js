@@ -1,7 +1,6 @@
-import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
+import { STRING, SMALLINT, DATE, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 const sequelize = connect()
 
@@ -9,10 +8,10 @@ export const COLOR_MODEL = 'color'
 
 const colorModel = sequelize.define(COLOR_MODEL, {
   colorId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   colorName: {
     type: STRING(255),

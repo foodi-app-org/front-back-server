@@ -1,17 +1,15 @@
-import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
+import { STRING, SMALLINT, DATE, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
-const sequelize = connect()
 
-//
+const sequelize = connect()
 
 const TypeIdentitiesModel = sequelize.define('typeidentities', {
   tiId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   tiName: {
     type: STRING(100),

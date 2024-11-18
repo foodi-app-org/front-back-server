@@ -2,11 +2,11 @@ import {
   INTEGER,
   STRING,
   SMALLINT,
-  literal
+  literal,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Users from '../Users'
 
 const sequelize = connect()
@@ -15,21 +15,22 @@ export const USER_DEVICE_MODEL = 'userdevices'
 
 const UserDeviceModel = sequelize.define(USER_DEVICE_MODEL, {
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   deviceId: {
     type: STRING(200),

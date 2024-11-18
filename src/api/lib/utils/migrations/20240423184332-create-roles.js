@@ -1,7 +1,6 @@
 const { INTEGER, STRING, DATE, UUIDV4, UUID } = require('sequelize')
 const { JSON } = require('sequelize')
 
-const { enCode } = require('../util')
 const { ROLE_MODEL } = require('../../models/roles')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 
@@ -17,7 +16,7 @@ exports.up = async (queryInterface, schemaName) => {
     },
     // id store
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -27,9 +26,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     priority: {

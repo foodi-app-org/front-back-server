@@ -1,15 +1,16 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
+
 const sequelize = connect()
 
 const UsersLevelsModel = sequelize.define('userslevels', {
   ulId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   ulName: {
     type: STRING(100),

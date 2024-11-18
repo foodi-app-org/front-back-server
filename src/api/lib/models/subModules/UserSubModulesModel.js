@@ -1,10 +1,10 @@
-import { INTEGER, literal } from 'sequelize'
+import { INTEGER, literal, UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import UserModulesModel from '../modules/UserModulesModel'
 
 import SubModulesModel from './SubModulesModel'
+
 const sequelize = connect()
 
 /**
@@ -12,32 +12,33 @@ const sequelize = connect()
  */
 const UserSubModulesModel = sequelize.define('usersubmodules', {
   usmId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   umdId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: UserModulesModel,
       key: 'umdId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   smId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: SubModulesModel,
       key: 'smId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   usmPriority: {
     type: INTEGER,

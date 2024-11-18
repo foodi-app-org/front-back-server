@@ -6,27 +6,26 @@ const { DECIMAL } = require('sequelize')
 const { UUID } = require('sequelize')
 const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { SHOPPING_CARD_MODEL } = require('../../models/Store/ShoppingCard')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(SHOPPING_CARD_MODEL, {
     ShoppingCard: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     id: {
-      type: INTEGER,
-      allowNull: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      type: STRING(36),
+      allowNull: true
     },
     idUser: {
-      type: INTEGER,
-      allowNull: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      type: STRING(36),
+      allowNull: true
     },
     priceProduct: {
       type: DECIMAL(1000, 2),
@@ -34,13 +33,12 @@ exports.up = async (queryInterface, schemaName) => {
       defaultValue: 0.00
     },
     pId: {
-      type: INTEGER,
-      allowNull: false,
-      get (x) { return enCode(this.getDataValue(x)) }
+      type: STRING(36),
+      allowNull: false
     },
     // id store
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -50,9 +48,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     ShoppingCardRefCode: {

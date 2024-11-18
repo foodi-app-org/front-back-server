@@ -2,10 +2,10 @@ import {
   INTEGER,
   STRING,
   TEXT
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
 
@@ -19,40 +19,32 @@ const catProducts = sequelize.define(
   CATEGORY_PRODUCT_MODEL,
   {
     carProId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      unique: true,
-      get (x) {
-        return enCode(this.getDataValue(x))
-      }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     // id store
     idStore: {
-      type: INTEGER,
-      allowNull: true,
+      type: STRING(36),
+      allowNull: false,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       references: {
         model: Store,
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     // User
     id: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       references: {
         model: Users,
         key: 'id'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     pName: {

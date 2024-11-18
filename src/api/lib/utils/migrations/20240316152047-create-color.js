@@ -1,19 +1,17 @@
-const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const { STRING, UUIDV4 } = require('sequelize')
 const { DATE } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 
-const { enCode } = require('../util')
 const { COLOR_MODEL } = require('../../models/information/color')
 
 exports.up = async (queryInterface, schemaName) => {
   // Crea una tabla "users"
   await queryInterface.createTable(COLOR_MODEL, {
     colorId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     colorName: {
       type: STRING(255),

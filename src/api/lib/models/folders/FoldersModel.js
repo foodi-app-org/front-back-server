@@ -1,28 +1,27 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import UsersModel from '../users/UsersModel'
+
 const sequelize = connect()
 //
 
 const FoldersModel = sequelize.define('folders', {
   fId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   uId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: UsersModel,
       key: 'uId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   fName: {
     type: STRING(100),

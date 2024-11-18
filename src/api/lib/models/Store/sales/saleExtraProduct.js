@@ -3,10 +3,10 @@ import {
   STRING,
   DATE,
   DECIMAL
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../../db'
-import { enCode } from '../../../utils/util'
 
 import ShoppingCard from './../ShoppingCard'
 
@@ -16,21 +16,20 @@ export const SALES_DATA_EXTRA_PRODUCTO = 'saledataextras'
 
 const SaleDataExtra = sequelize.define(SALES_DATA_EXTRA_PRODUCTO, {
   id: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   shoppingCardId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: ShoppingCard,
       key: 'ShoppingCard'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   pId: {
     type: STRING,

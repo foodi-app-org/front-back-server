@@ -1,16 +1,17 @@
 const { STRING, literal } = require('sequelize')
 const { INTEGER } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { MODULES_MODEL } = require('../../models/modules/ModulesModel')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(MODULES_MODEL, {
     mId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     mName: {
       type: STRING,

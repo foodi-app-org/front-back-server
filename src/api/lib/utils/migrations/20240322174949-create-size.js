@@ -1,18 +1,17 @@
-const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const { STRING, UUIDV4 } = require('sequelize')
 const { DATE } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { SIZE_MODEL } = require('../../models/information/size')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(SIZE_MODEL, {
     sizeId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     sizeName: {
       type: STRING(100),

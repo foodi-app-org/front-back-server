@@ -1,39 +1,40 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { INTEGER, STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 import Users from '../Users'
+
 const sequelize = connect()
 
 const dynamicPassword = sequelize.define('dynamicpassword', {
   dPassId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   deviceId: {
     type: STRING(200),

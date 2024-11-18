@@ -1,11 +1,10 @@
 const {
   STRING,
-  INTEGER,
   SMALLINT,
   literal
 } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { CLIENTS_MODEL } = require('../../models/Store/clients')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { USER_MODEL } = require('../../models/Users')
@@ -13,13 +12,14 @@ const { USER_MODEL } = require('../../models/Users')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(CLIENTS_MODEL, {
     cliId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -29,13 +29,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     idUser: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -45,8 +42,7 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'id'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     clState: {
       type: SMALLINT,

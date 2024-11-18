@@ -8,7 +8,6 @@ import {
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 const sequelize = connect()
@@ -24,15 +23,14 @@ const Role = sequelize.define(ROLE_MODEL, {
     unique: true
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   priority: {
     type: INTEGER,

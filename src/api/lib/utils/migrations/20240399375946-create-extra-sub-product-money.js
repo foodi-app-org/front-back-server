@@ -5,21 +5,23 @@ const {
   DECIMAL
 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { EXTRA_PRODUCT_MODEL } = require('../../models/product/productExtras')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
+const { UUIDV4 } = require('sequelize')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(EXTRA_PRODUCT_MODEL, {
     exPid: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     pId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -30,11 +32,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'pId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -44,9 +45,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     exState: {

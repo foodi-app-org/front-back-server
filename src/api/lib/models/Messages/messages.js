@@ -1,16 +1,15 @@
-import { INTEGER, STRING, UUID, UUIDV4, literal } from 'sequelize'
+import { STRING, UUID, UUIDV4, literal } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
 
 const sequelize = connect()
 
 const MessagesModel = sequelize.define('messages', {
   id: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   content: {
     type: STRING,

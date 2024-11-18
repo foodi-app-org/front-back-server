@@ -1,28 +1,28 @@
-import { INTEGER, STRING, BOOLEAN, DATE } from 'sequelize'
+import { INTEGER, STRING, BOOLEAN, DATE, UUIDV4 } from 'sequelize'
 
 import connect from '../../../db'
-import { enCode } from '../../../utils/util'
+
 const sequelize = connect()
 
 export const EXTRA_PRODUCT_FOOD_SUB_OPTIONAL = 'saleextproductfoodsuboptionals'
 
 const ExtProductFoodSubOptional = sequelize.define(EXTRA_PRODUCT_FOOD_SUB_OPTIONAL, {
   idProductFoodSubOptional: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   extProductFoodId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true
   },
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true
   },
   opExPid: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false
   },
   pCodeRef: {
@@ -31,11 +31,11 @@ const ExtProductFoodSubOptional = sequelize.define(EXTRA_PRODUCT_FOOD_SUB_OPTION
     allowNull: true
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true
   },
   opSubExPid: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true
   },
   OptionalSubProName: {

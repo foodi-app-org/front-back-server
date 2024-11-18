@@ -1,31 +1,25 @@
-const { DataTypes } = require('sequelize')
+const { DataTypes, UUIDV4, STRING } = require('sequelize')
 
 const { MODEL_DEPARTMENTS_NAME } = require('../../models/information/DepartmentsModel')
 const { MODEL_COUNTRIES_NAME } = require('../../models/information/CountriesModel')
-const { enCode } = require('../../utils/util')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(MODEL_DEPARTMENTS_NAME, {
     dId: {
-      type: DataTypes.INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-      get (x) {
-        return enCode(this.getDataValue(x))
-      }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     cId: {
-      type: DataTypes.INTEGER,
+      type: STRING(36),
       allowNull: false,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       references: {
         model: MODEL_COUNTRIES_NAME,
         key: 'cId'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     dName: {

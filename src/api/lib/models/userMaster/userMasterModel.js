@@ -1,6 +1,6 @@
 import { INTEGER, STRING, literal } from 'sequelize'
 
-import { enCode } from '../../utils/util'
+
 import connect from '../../db'
 const sequelize = connect()
 
@@ -9,7 +9,7 @@ const UserMasters = sequelize.define('usermastermodel', {
     type: INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    
   },
   umSeCredential: {
     type: STRING(200),

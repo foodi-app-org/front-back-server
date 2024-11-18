@@ -1,4 +1,4 @@
-import { INTEGER, STRING, TEXT, literal, SMALLINT, DECIMAL } from 'sequelize'
+import { INTEGER, STRING, TEXT, literal, SMALLINT, DECIMAL, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import SizeModel from '../information/size'
@@ -8,7 +8,6 @@ import DepartmentsModel from '../information/DepartmentsModel'
 import CitiesModel from '../information/CitiesModel'
 import Feature from '../feature/feature'
 import CategoryProductsModel from '../Categories/CategoryProducts'
-import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
@@ -21,58 +20,58 @@ export const PRODUCT_FOOD_MODEL = 'productmodelfoods'
 
 const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   // id store
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   // User
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   // CATEGORY PRODUCT
   carProId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: catProducts,
       key: 'carProId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   // Talla
   sizeId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: SizeModel,
       key: 'sizeId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   vat: {
     type: DECIMAL(6, 2),
@@ -85,69 +84,69 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   },
   // color
   colorId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: colorModel,
       key: 'colorId'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
+
   },
   // Locations
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CountriesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: CitiesModel,
       key: 'ctId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   fId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Feature,
       key: 'fId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   caId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CategoryProductsModel,
       key: 'caId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   poPriority: {
     type: SMALLINT,

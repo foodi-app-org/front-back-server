@@ -1,30 +1,30 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { INTEGER, STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
 
 import Typefeature from './TypFeature'
+
 const sequelize = connect()
 
 export const FEATURE_MODEL = 'features'
 
 const Feature = sequelize.define(FEATURE_MODEL, {
   fId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   thpId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Typefeature,
       key: 'thpId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   hpqrQuestion: {
     type: STRING(120),

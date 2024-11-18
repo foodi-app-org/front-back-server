@@ -1,17 +1,15 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
-const sequelize = connect()
 
-//
+const sequelize = connect()
 
 const TypePQRArea = sequelize.define('typeareapqr', {
   areaPqrId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   thpName: {
     type: STRING(100),

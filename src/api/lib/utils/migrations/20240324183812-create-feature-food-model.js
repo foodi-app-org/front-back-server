@@ -1,8 +1,7 @@
 const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
 const { SMALLINT } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../util')
 const { FEATURE_MODEL } = require('../../models/feature/feature')
 const { TYPE_FEATURE_MODEL } = require('../../models/feature/TypFeature')
 const { defaultSchema } = require('../../models/Store/Store')
@@ -10,13 +9,13 @@ const { defaultSchema } = require('../../models/Store/Store')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(FEATURE_MODEL, {
     fId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     thpId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: false,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -26,8 +25,8 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'thpId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     hpqrQuestion: {
       type: STRING(120),

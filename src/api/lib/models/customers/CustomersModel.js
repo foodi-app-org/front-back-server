@@ -1,39 +1,39 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import CitiesModel from '../information/CitiesModel'
 import TypeIdentitiesModel from '../information/TypeIdentitiesModel'
+
 const sequelize = connect()
 
 const CustomersModel = sequelize.define('customers', {
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   tiId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: TypeIdentitiesModel,
       key: 'tiId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   cityId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CitiesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   cName: {
     type: STRING(200),

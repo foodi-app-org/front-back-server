@@ -1,7 +1,7 @@
-const { STRING, literal } = require('sequelize')
+const { STRING, literal, UUIDV4 } = require('sequelize')
 const { INTEGER } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { PRODUCT_SUB_OPTIONAL_EXTRA } = require('../../models/product/productsSubOptionalExtra')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
@@ -10,13 +10,14 @@ const { PRODUCT_OPTIONAL_EXTRA_MODEL } = require('../../models/product/productsO
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(PRODUCT_SUB_OPTIONAL_EXTRA, {
     opSubExPid: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     pId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -27,11 +28,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'pId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -42,13 +42,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     opExPid: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -59,8 +56,7 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'opExPid'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     OptionalSubProName: {
       type: STRING,

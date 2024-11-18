@@ -5,7 +5,6 @@ const { STRING, SMALLINT, literal } = require('sequelize')
 
 const { EMPLOYEE_MODEL_NAME } = require('../../models/Store/employees')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
-const { enCode } = require('../util')
 const { USER_MODEL } = require('../../models/Users')
 
 exports.up = async (queryInterface, schemaName) => {
@@ -18,7 +17,7 @@ exports.up = async (queryInterface, schemaName) => {
       defaultValue: UUIDV4
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -28,13 +27,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     idUser: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -44,8 +40,7 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'id'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     idRole: {
       type: UUID,

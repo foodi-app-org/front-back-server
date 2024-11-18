@@ -2,21 +2,21 @@ const { STRING, DataTypes } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { DATE } = require('sequelize')
 const { DECIMAL } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { SALES_DATA_EXTRA_PRODUCTO } = require('../../models/Store/sales/saleExtraProduct')
 const { SHOPPING_CARD_MODEL } = require('../../models/Store/ShoppingCard')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(SALES_DATA_EXTRA_PRODUCTO, {
     id: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     shoppingCardId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -27,11 +27,10 @@ exports.up = async (queryInterface, schemaName) => {
 
         },
         key: 'ShoppingCard'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
     },
     pId: {
-      type: STRING,
+      type: STRING(36),
       allowNull: false
     },
     pCodeRef: {

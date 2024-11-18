@@ -2,11 +2,11 @@ import {
   BOOLEAN,
   INTEGER,
   STRING,
-  DATE
+  DATE,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import CatStore from '../information/CategorieStore'
 import CitiesModel from '../information/CitiesModel'
 import CountriesModel from '../information/CountriesModel'
@@ -20,62 +20,57 @@ export const STORE_MODEL = 'stores'
 
 const Store = sequelize.define(STORE_MODEL, {
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
-  // Locations
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: null,
     onDelete: null,
     references: {
       model: CountriesModel,
       key: 'cId'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: null,
     onDelete: null,
     unique: true,
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: null,
     onDelete: null,
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
   },
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: null,
     onDelete: null,
     references: {
       model: CitiesModel,
       key: 'ctId'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
   },
   catStore: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: null,
     onDelete: null,
     references: {
       model: CatStore,
       key: 'catStore'
-    },
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    }
   },
   deliveryTimeMinutes: {
     type: INTEGER,

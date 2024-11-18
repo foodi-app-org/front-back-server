@@ -1,9 +1,5 @@
-const { DATE, DataTypes } = require('sequelize')
-const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
-const { BOOLEAN } = require('sequelize')
+const { STRING, INTEGER, BOOLEAN, DATE, DataTypes, UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { MODEL_COUNTRIES_NAME } = require('../../models/information/CountriesModel')
 const { USER_MODEL } = require('../../models/Users')
@@ -14,14 +10,15 @@ const { MODEL_CAT_STORE_NAME } = require('../../models/information/CategorieStor
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(STORE_MODEL, {
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     // Locations
     cId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: null,
       onDelete: null,
       field: 'cId',
@@ -31,11 +28,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'cId'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
     },
     id: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: null,
       onDelete: null,
       unique: true,
@@ -46,11 +42,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'id'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
     },
     dId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: null,
       onDelete: null,
       field: 'dId',
@@ -60,11 +55,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'dId'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
     },
     ctId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: null,
       onDelete: null,
       field: 'ctId',
@@ -74,11 +68,10 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'ctId'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
     },
     catStore: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: null,
       onDelete: null,
       field: 'catStore',
@@ -88,8 +81,7 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'catStore'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
     },
     deliveryTimeMinutes: {
       type: INTEGER,

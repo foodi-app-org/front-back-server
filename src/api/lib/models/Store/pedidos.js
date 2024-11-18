@@ -1,7 +1,6 @@
-import { INTEGER, STRING, DATE, literal } from 'sequelize'
+import { INTEGER, STRING, DATE, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 import ShoppingCard from './ShoppingCard'
@@ -12,34 +11,35 @@ export const ORDER_MODEL = 'storepedidos'
 
 const pedidosModel = sequelize.define(ORDER_MODEL, {
   pdpId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true
   },
   ShoppingCard: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     references: {
       model: ShoppingCard,
       key: 'ShoppingCard'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   idStore: {
-    type: INTEGER,
+    unique: false,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   ppState: {
     type: INTEGER,

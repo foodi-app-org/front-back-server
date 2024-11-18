@@ -1,29 +1,31 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import ModulesModel from '../modules/ModulesModel'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 export const SUB_MODULES_MODEL = 'submodules'
 
 const SubModulesModel = sequelize.define(SUB_MODULES_MODEL, {
   smId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
+
   },
   mId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: ModulesModel,
       key: 'mId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   smName: {
     type: STRING(100),

@@ -3,19 +3,20 @@ const {
   INTEGER,
   JSONB,
   DATE,
+  UUIDV4,
   DataTypes
 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { USER_MODEL } = require('../../models/Users')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(USER_MODEL, {
     id: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (value) { return enCode(this.getDataValue(value)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     associateStore: {
       type: JSONB,

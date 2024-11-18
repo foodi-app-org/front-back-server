@@ -50,7 +50,7 @@ export const createTenant = async (_, { input }, context) => {
     })
     return tenant
   } catch (error) {
-    throw new ApolloError('Error al crear un nuevo inquilino.', '500', error)
+    throw new ApolloError(`Error al crear un nuevo inquilino. ${error.message}`, '500', error)
   }
 }
 

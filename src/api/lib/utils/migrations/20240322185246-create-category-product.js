@@ -1,17 +1,16 @@
-const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const { STRING, literal, UUIDV4 } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { CATEGORY_PRODUCT } = require('../../models/Categories/CategoryProducts')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(CATEGORY_PRODUCT, {
     caId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     cpName: {
       type: STRING(200),

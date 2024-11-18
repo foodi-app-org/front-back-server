@@ -1,24 +1,25 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
 import Users from '../Users'
 import CountriesModel from '../information/CountriesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
 import CitiesModel from '../information/CitiesModel'
+
 const sequelize = connect()
 
 export const USER_PROFILE_MODEL = 'userprofiles'
 
 const UserProfile = sequelize.define(USER_PROFILE_MODEL, {
   upId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -26,8 +27,8 @@ const UserProfile = sequelize.define(USER_PROFILE_MODEL, {
       model: Users,
       key: 'id'
     },
-    unique: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    unique: true
+
   },
   upPhone: {
     type: STRING(20),
@@ -47,37 +48,37 @@ const UserProfile = sequelize.define(USER_PROFILE_MODEL, {
   },
   // Locations
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CountriesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: CitiesModel,
       key: 'ctId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   upZipCode: {
     type: STRING(150),

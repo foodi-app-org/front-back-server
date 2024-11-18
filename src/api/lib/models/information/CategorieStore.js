@@ -1,22 +1,24 @@
 import {
-  INTEGER,
   STRING,
   SMALLINT,
-  DATE
+  DATE,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 export const MODEL_CAT_STORE_NAME = 'catstores'
 
+sequelize.sync()
 const CatStore = sequelize.define(MODEL_CAT_STORE_NAME, {
   catStore: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   cName: {
     type: STRING(100),

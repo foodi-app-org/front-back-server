@@ -1,17 +1,18 @@
-import { INTEGER, STRING, DATE } from 'sequelize'
+import { INTEGER, STRING, DATE, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
+
 const sequelize = connect()
 
 //
 
 const trademarkModel = sequelize.define('trademark', {
   tId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   Name: {
     type: STRING(255),

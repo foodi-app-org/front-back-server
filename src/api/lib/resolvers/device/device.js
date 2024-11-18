@@ -1,7 +1,7 @@
 import UserDeviceModel from '../../models/users/userDevice'
 import { parseUserAgent } from '../../utils'
 import { LogDanger, LogInfo, LogSuccess } from '../../utils/logs'
-import { deCode, enCode, getAttributes, getTenantName } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 /**
  *
@@ -74,16 +74,17 @@ const newRegisterDeviceUser = async (_root, { input }, context) => {
     })
 
     if (existingDevice) {
-      LogDanger(`Este dispositivo ya está registrado para este usuario: ${existingDevice.deviceId}, id: ${enCode(existingDevice.id)}`)
+      LogDanger(`Este dispositivo ya está registrado para este usuario: ${existingDevice.deviceId}, id: ${existingDevice.id}`)
       return {
         success: false,
         message: 'Este dispositivo ya está registrado para este usuario',
         deviceUser: existingDevice
       }
     }
+    console.log(context?.User?.id)
     // Crear el nuevo registro de DeviceUser
     const newDevice = await UserDeviceModel.schema(tenantSchema).create({
-      id: 1,
+      id: context?.User?.id,
       deviceId,
       deviceName: os.name || 'Dispositivo desconocido',
       locationFormat: null || 'Formato desconocido',
@@ -97,7 +98,7 @@ const newRegisterDeviceUser = async (_root, { input }, context) => {
     })
 
     // // Retornar respuesta exitosa
-    LogSuccess(`Dispositivo registrado con éxito: ${newDevice.deviceId}, id: ${enCode(newDevice.id)}`)
+    LogSuccess(`Dispositivo registrado con éxito: ${newDevice.deviceId}, id: ${newDevice.id}`)
     return {
       success: true,
       message: 'Dispositivo registrado con éxito'

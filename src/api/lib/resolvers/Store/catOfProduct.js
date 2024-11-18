@@ -5,7 +5,7 @@ import { ForbiddenError } from 'apollo-server-express'
 import productModelFood from '../../models/product/productFood'
 import catProducts from '../../models/Store/cat'
 import { linkBelongsTo } from '../../utils'
-import { deCode, enCode, getAttributes, getTenantName } from '../../utils/util'
+import { deCode, getAttributes, getTenantName } from '../../utils/util'
 
 export const updatedProducts = async (_, { input }, ctx) => {
   try {
@@ -293,7 +293,7 @@ export default {
       productFoodsAll: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.schema(getTenantName(enCode(parent.dataValues.idStore) ?? context?.restaurant)).findAll({
+          const data = await productModelFood.schema(getTenantName(parent.dataValues.idStore ?? context?.restaurant)).findAll({
             attributes,
             where: {
               [Op.or]: [

@@ -1,29 +1,28 @@
-const { STRING, DataTypes } = require('sequelize')
+const { STRING, DataTypes, UUIDV4 } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { DATE } = require('sequelize')
 const { BOOLEAN } = require('sequelize')
 
-const { enCode } = require('../util')
 const { EXTRA_PRODUCT_FOOD_SUB_OPTIONAL } = require('../../models/Store/sales/saleExtProductFoodSubOptional')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(EXTRA_PRODUCT_FOOD_SUB_OPTIONAL, {
     idProductFoodSubOptional: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     extProductFoodId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true
     },
     pId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true
     },
     opExPid: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: false
     },
     pCodeRef: {
@@ -32,11 +31,11 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: true
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true
     },
     opSubExPid: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true
     },
     OptionalSubProName: {

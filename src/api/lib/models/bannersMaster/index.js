@@ -1,16 +1,15 @@
-import Sequelize from 'sequelize'
+import Sequelize, { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 const conn = connect()
 
 export default conn.define('bannersMasters', {
   BannerId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   path: {
     type: Sequelize.STRING,

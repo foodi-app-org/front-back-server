@@ -1,12 +1,11 @@
 import {
-  INTEGER,
   STRING,
   SMALLINT,
   DATE
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 const sequelize = connect()
 
@@ -14,10 +13,11 @@ export const SIZE_MODEL = 'sizes'
 
 const SizeModel = sequelize.define(SIZE_MODEL, {
   sizeId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   sizeName: {
     type: STRING(100),

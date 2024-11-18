@@ -1,17 +1,17 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
+
 const sequelize = connect()
 
 export const CATEGORY_PRODUCT = 'categorieproducts'
 
 const CategoryProductsModel = sequelize.define(CATEGORY_PRODUCT, {
   caId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   cpName: {
     type: STRING(200),

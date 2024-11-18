@@ -1,40 +1,38 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils'
 
 import FoldersModel from './FoldersModel'
+
 const sequelize = connect()
 //
 
 const FolderParentsModel = sequelize.define('folderparents', {
   fpId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   fId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: FoldersModel,
       key: 'fId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   parentId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: FoldersModel,
       key: 'fId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   fpLevel: {
     type: INTEGER,

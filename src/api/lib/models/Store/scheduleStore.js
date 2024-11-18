@@ -1,46 +1,46 @@
 import {
   INTEGER,
   STRING,
-  literal
+  literal,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
+
 const sequelize = connect()
 
 export const SCHEDULE_MODEL = 'storechedules'
 
 const ScheduleStore = sequelize.define(SCHEDULE_MODEL, {
   schId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   schDay: {
     type: INTEGER,

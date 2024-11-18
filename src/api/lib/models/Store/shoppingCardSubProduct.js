@@ -1,51 +1,52 @@
-import { INTEGER, DATE } from 'sequelize'
+import { INTEGER, DATE, UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import productModelFood from '../product/productFood'
 import Users from '../Users'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
+
 const sequelize = connect()
 
 const SubProducts = sequelize.define('subproducts', {
   subProductsId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productModelFood,
       key: 'pId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   opExPid: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productsOptionalExtra,
       key: 'opExPid'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   cDatCre: {
     type: DATE,

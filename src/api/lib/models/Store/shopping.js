@@ -1,8 +1,7 @@
-import Sequelize from 'sequelize'
+import Sequelize, { UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 
@@ -10,32 +9,32 @@ const conn = connect()
 
 export default conn.define('shopping', {
   shoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
+
   },
   idStore: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   id: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   shoName: {
     type: Sequelize.STRING,

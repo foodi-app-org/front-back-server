@@ -1,43 +1,43 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { INTEGER, STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
 import Users from '../Users'
 import Store from '../Store/Store'
+
 const sequelize = connect()
 
 //
 
 const Providers = sequelize.define('providers', {
   idProvider: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   // id store
   idStore: {
-    type: INTEGER,
-    allowNull: true,
+    type: STRING(36),
+    allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   // User
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   prName: {
     type: STRING(200),

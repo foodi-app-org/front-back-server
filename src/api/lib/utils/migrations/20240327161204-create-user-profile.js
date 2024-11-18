@@ -1,7 +1,6 @@
 const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { USER_PROFILE_MODEL } = require('../../models/users/UserProfileModel')
 const { MODEL_DEPARTMENTS_NAME } = require('../../models/information/DepartmentsModel')
 const { defaultSchema } = require('../../models/Store/Store')
@@ -12,13 +11,14 @@ const { MODEL_CITIES_NAME } = require('../../models/information/CitiesModel')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(USER_PROFILE_MODEL, {
     upId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     id: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: false,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -29,8 +29,8 @@ exports.up = async (queryInterface, schemaName) => {
         },
         key: 'id'
       },
-      unique: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      unique: true
+
     },
     upPhone: {
       type: STRING(20),
@@ -50,7 +50,7 @@ exports.up = async (queryInterface, schemaName) => {
     },
     // Locations
     cId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -60,11 +60,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'cId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     dId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       allowNull: true,
@@ -74,11 +74,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'dId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     ctId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       allowNull: true,
@@ -88,8 +88,8 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'ctId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     upZipCode: {
       type: STRING(150),

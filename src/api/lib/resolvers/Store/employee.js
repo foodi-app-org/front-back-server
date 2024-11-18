@@ -5,7 +5,6 @@ import Joi from 'joi'
 import employeesModel from '../../models/Store/employees'
 import {
   deCode,
-  enCode,
   getAttributes,
   getTenantName
 } from '../../utils/util'
@@ -310,7 +309,7 @@ const loginEmployeeInStore = async (_root, { eId, idStore, eEmail }, context) =>
         email: eEmail,
         username: verifyUser?.dataValues?.username,
         restaurant: StoreInfo,
-        id: enCode(StoreInfo?.dataValues?.id) // id del dueño de la tienda
+        id: StoreInfo?.dataValues?.id // id del dueño de la tienda
       }
       const token = generateToken(tokenGoogle)
       return {

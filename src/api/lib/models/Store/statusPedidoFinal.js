@@ -4,10 +4,11 @@ import {
   literal,
   STRING,
   DECIMAL
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 
 import Store from './Store'
 
@@ -17,30 +18,28 @@ export const STATUS_ORDER_MODEL = 'statuspedidos'
 
 const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   stPId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
-    allowNull: true,
-    get (x) { return enCode(this.getDataValue(x)) }
-
+    type: STRING(36),
+    allowNull: true
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   pSState: {
-    type: INTEGER,
+    type: STRING(36),
     defaultValue: 0
   },
   valueDelivery: {

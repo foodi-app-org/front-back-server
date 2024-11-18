@@ -1,27 +1,26 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import productModel from '../product/product'
+
 const sequelize = connect()
 
 const AreasModel = sequelize.define('areas', {
   aId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productModel,
       key: 'pId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   aName: {
     type: STRING(120),

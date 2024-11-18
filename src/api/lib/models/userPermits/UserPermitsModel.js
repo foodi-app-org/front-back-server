@@ -1,39 +1,40 @@
-import { INTEGER, literal } from 'sequelize'
+import { INTEGER, literal, STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import SubModulesModel from '../subModules/SubModulesModel'
 import Users from '../UsersLogin/Users'
+
 const sequelize = connect()
 
 const UserPermitsModel = sequelize.define('userpermits', {
   upId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   smId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: SubModulesModel,
       key: 'smId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   upState: {
     type: INTEGER,

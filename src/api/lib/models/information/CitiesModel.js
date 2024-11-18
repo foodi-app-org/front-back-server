@@ -1,34 +1,34 @@
 import {
-  INTEGER,
   STRING,
   SMALLINT
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import DepartmentsModel from './DepartmentsModel'
+
 const sequelize = connect()
 
 export const MODEL_CITIES_NAME = 'cities'
 
 const CitiesModel = sequelize.define(MODEL_CITIES_NAME, {
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   cName: {
     type: STRING(100),

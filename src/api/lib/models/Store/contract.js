@@ -1,20 +1,21 @@
-import { INTEGER, STRING, literal, TEXT } from 'sequelize'
+import { STRING, literal, TEXT, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
+
 const sequelize = connect()
 
 const Contract = sequelize.define('contract', {
   ctrId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     unique: true,
     allowNull: false,
     onUpdate: 'CASCADE',
@@ -22,20 +23,19 @@ const Contract = sequelize.define('contract', {
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   idStore: {
     unique: true,
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   ctCode: {
     type: TEXT,

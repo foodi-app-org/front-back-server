@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 
 const conn = connect()
 
@@ -11,7 +11,7 @@ const StorePendingToRegisterModel = conn.define('storesPending', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    
   },
   // ID del usuario
   UserId: {

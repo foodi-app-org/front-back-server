@@ -1,51 +1,52 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import CustomersModel from '../customers/CustomersModel'
 import CitiesModel from '../information/CitiesModel'
 import TypeIdentitiesModel from '../information/TypeIdentitiesModel'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 const CostCentersModel = sequelize.define('costcenters', {
   ccId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CustomersModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   tiId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: TypeIdentitiesModel,
       key: 'tiId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   cityId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CitiesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   ccName: {
     type: STRING(200),

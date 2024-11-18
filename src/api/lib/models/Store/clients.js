@@ -1,8 +1,7 @@
-import Sequelize from 'sequelize'
+import Sequelize, { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 
@@ -12,32 +11,31 @@ export const CLIENTS_MODEL = 'clients'
 
 export default conn.define(CLIENTS_MODEL, {
   cliId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   idStore: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   idUser: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   clState: {
     type: Sequelize.SMALLINT,

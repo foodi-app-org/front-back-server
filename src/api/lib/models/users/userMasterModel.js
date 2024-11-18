@@ -1,15 +1,16 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 const UserMastersModel = sequelize.define('usermasters', {
   umId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   umIdAWS: {
     type: STRING(200),

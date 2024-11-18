@@ -19,48 +19,50 @@ export function replaceHyphensWithUnderscores (str) {
 }
 
 export const enCode = value => {
-  try {
-    if (!value || value === '' || value === undefined) return ''
-    if (typeof value !== 'string') {
-      value = value.toString()
-    }
-    if (value) {
-      const cipher = crypto.createCipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
-      let encrypted = cipher.update(value.toString(), 'utf-8', 'hex')
-      encrypted += cipher.final('hex')
+  if (value) return value
+  // try {
+  //   if (!value || value === '' || value === undefined) return ''
+  //   if (typeof value !== 'string') {
+  //     value = value.toString()
+  //   }
+  //   if (value) {
+  //     const cipher = crypto.createCipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
+  //     let encrypted = cipher.update(value.toString(), 'utf-8', 'hex')
+  //     encrypted += cipher.final('hex')
 
-      const uuid = [
-        encrypted.substr(0, 8),
-        encrypted.substr(8, 4),
-        encrypted.substr(12, 4),
-        encrypted.substr(16, 4),
-        encrypted.substr(20)
-      ].join('-')
+  //     const uuid = [
+  //       encrypted.substr(0, 8),
+  //       encrypted.substr(8, 4),
+  //       encrypted.substr(12, 4),
+  //       encrypted.substr(16, 4),
+  //       encrypted.substr(20)
+  //     ].join('-')
 
-      return uuid
-    }
-  } catch (error) {
-    return ''
-  }
+  //     return uuid
+  //   }
+  // } catch (error) {
+  //   return ''
+  // }
 }
 
 export const deCode = uuidValue => {
-  try {
-    if (!uuidValue) return ''
+  if (uuidValue) return uuidValue
+  // try {
+  //   if (!uuidValue) return ''
 
-    if (typeof uuidValue !== 'string') {
-      uuidValue = uuidValue.toString()
-    }
+  //   if (typeof uuidValue !== 'string') {
+  //     uuidValue = uuidValue.toString()
+  //   }
 
-    const encryptedHex = uuidValue.replace(/-/g, '')
-    const decipher = crypto.createDecipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
-    let decrypted = decipher.update(encryptedHex, 'hex', 'utf-8') // Cambia 'hex' a 'utf-8'
-    decrypted += decipher.final('utf-8') // Cambia 'hex' a 'utf-8'
+  //   const encryptedHex = uuidValue.replace(/-/g, '')
+  //   const decipher = crypto.createDecipher('aes-256-cbc', Buffer.from(SECRET_KEY, 'hex'))
+  //   let decrypted = decipher.update(encryptedHex, 'hex', 'utf-8') // Cambia 'hex' a 'utf-8'
+  //   decrypted += decipher.final('utf-8') // Cambia 'hex' a 'utf-8'
 
-    return parseInt(decrypted, 10)
-  } catch (error) {
-    return ''
-  }
+  //   return parseInt(decrypted, 10)
+  // } catch (error) {
+  //   return ''
+  // }
 }
 
 const linkBelongsTo = (modelOne, modelTwo, target, foreign) => modelOne.belongsTo(modelTwo, {

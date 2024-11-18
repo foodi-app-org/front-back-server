@@ -9,7 +9,6 @@ import {
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 
@@ -19,20 +18,21 @@ export const SHOPPING_CARD_MODEL = 'shoppingcards'
 
 const ShoppingCard = sequelize.define(SHOPPING_CARD_MODEL, {
   ShoppingCard: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
-    allowNull: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    type: STRING(36),
+    allowNull: true
+
   },
   idUser: {
-    type: INTEGER,
-    allowNull: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    type: STRING(36),
+    allowNull: true
+
   },
   priceProduct: {
     type: DECIMAL(1000, 2),
@@ -40,20 +40,19 @@ const ShoppingCard = sequelize.define(SHOPPING_CARD_MODEL, {
     defaultValue: 0.00
   },
   pId: {
-    type: INTEGER,
-    allowNull: false,
-    get (x) { return enCode(this.getDataValue(x)) }
+    type: STRING(36),
+    allowNull: false
+
   },
   // id store
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   ShoppingCardRefCode: {
     type: UUID,

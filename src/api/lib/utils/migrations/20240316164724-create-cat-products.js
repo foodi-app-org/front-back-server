@@ -1,8 +1,7 @@
-const { STRING } = require('sequelize')
+const { STRING, UUIDV4 } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { TEXT } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { CATEGORY_PRODUCT_MODEL } = require('../../models/Store/cat')
 const { USER_MODEL } = require('../../models/Users')
@@ -10,16 +9,15 @@ const { USER_MODEL } = require('../../models/Users')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(CATEGORY_PRODUCT_MODEL, {
     carProId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) {
-        return enCode(this.getDataValue(x))
-      }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     // id store
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -29,14 +27,12 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
+
     },
     // User
     id: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -47,9 +43,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'id'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     pName: {

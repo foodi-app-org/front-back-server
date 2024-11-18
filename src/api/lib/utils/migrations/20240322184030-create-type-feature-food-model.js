@@ -2,7 +2,7 @@ const { STRING, literal } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { TYPE_FEATURE_MODEL } = require('../../models/feature/TypFeature')
 
 exports.up = async (queryInterface, schemaName) => {
@@ -11,7 +11,7 @@ exports.up = async (queryInterface, schemaName) => {
       type: INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      
     },
     thpName: {
       type: STRING(100),

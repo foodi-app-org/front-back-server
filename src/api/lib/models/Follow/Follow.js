@@ -1,21 +1,19 @@
-import { INTEGER, SMALLINT, literal } from 'sequelize'
+import { INTEGER, SMALLINT, literal, STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Users from '../UsersLogin/Users'
-const sequelize = connect()
 
-//
+const sequelize = connect()
 
 const FollowModel = sequelize.define('followmodel', {
   idFollower: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -23,11 +21,11 @@ const FollowModel = sequelize.define('followmodel', {
       model: Users,
       key: 'id'
     },
-    unique: false,
-    get (x) { return enCode(this.getDataValue(x)) }
+    unique: false
+
   },
   follow: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -35,8 +33,8 @@ const FollowModel = sequelize.define('followmodel', {
       model: Users,
       key: 'id'
     },
-    unique: false,
-    get (x) { return enCode(this.getDataValue(x)) }
+    unique: false
+
   },
   fState: {
     type: SMALLINT,

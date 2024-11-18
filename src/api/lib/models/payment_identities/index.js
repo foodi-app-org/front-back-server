@@ -1,18 +1,15 @@
-import Sequelize, { INTEGER } from 'sequelize'
+import Sequelize, { UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
-// import { enCode } from '../../utils/util'
-import util from '../../utils/util'
 
 const conn = connect()
 
 export default conn.define('payment_identities', {
   id: {
-    type: INTEGER,
-    allowNull: false,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return util.enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   data: {
     type: Sequelize.JSONB,

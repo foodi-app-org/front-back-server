@@ -1,17 +1,18 @@
-import { INTEGER, STRING, SMALLINT } from 'sequelize'
+import { STRING, SMALLINT, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 export const MODEL_COUNTRIES_NAME = 'countries'
 
 const CountriesModel = sequelize.define(MODEL_COUNTRIES_NAME, {
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   cName: {
     type: STRING(100),

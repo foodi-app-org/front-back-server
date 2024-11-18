@@ -1,8 +1,7 @@
-import { INTEGER, literal } from 'sequelize'
+import { INTEGER, literal, UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
 import UsersModel from '../users/UsersModel'
-import { enCode } from '../../utils/util'
 
 import ModulesModel from './ModulesModel'
 
@@ -12,32 +11,31 @@ export const USER_MODULES_MODEL = 'usermodules'
 
 const UserModulesModel = sequelize.define('usermodules', {
   umdId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   mId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: ModulesModel,
       key: 'mId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   umId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: UsersModel,
       key: 'umId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   umdState: {
     type: INTEGER,

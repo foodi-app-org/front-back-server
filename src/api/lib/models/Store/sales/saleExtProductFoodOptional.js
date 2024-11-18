@@ -1,7 +1,6 @@
-import { INTEGER, STRING, DATE } from 'sequelize'
+import { INTEGER, STRING, DATE, UUIDV4 } from 'sequelize'
 
 import connect from '../../../db'
-import { enCode } from '../../../utils/util'
 import productModelFood from '../../product/productFood'
 
 import productsOptionalExtra from './../../product/productsOptionalExtra'
@@ -12,25 +11,22 @@ export const EXTRA_PRODUCT_FOOD_OPTIONAL = 'saleextproductfoodoptionals'
 
 const ExtProductFoodOptional = sequelize.define(EXTRA_PRODUCT_FOOD_OPTIONAL, {
   idSaleProductOptional: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) {
-      return enCode(this.getDataValue(x))
-    }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productModelFood,
       key: 'pId'
-    },
-    get (x) {
-      return enCode(this.getDataValue(x))
     }
+
   },
   pCodeRef: {
     type: STRING(100),
@@ -42,17 +38,15 @@ const ExtProductFoodOptional = sequelize.define(EXTRA_PRODUCT_FOOD_OPTIONAL, {
     allowNull: true
   },
   opExPid: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productsOptionalExtra,
       key: 'opExPid'
-    },
-    get (x) {
-      return enCode(this.getDataValue(x))
     }
+
   },
   OptionalProName: {
     type: STRING,

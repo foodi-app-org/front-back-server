@@ -1,64 +1,63 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import CitiesModel from '../information/CitiesModel'
 import CountriesModel from '../information/CountriesModel'
 import TypeIdentitiesModel from '../information/TypeIdentitiesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
-import { enCode } from '../../utils/util'
 
 const sequelize = connect()
 
 const ThirdPartiesModel = sequelize.define('thirdparties', {
   tpId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   countryId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CountriesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CitiesModel,
       key: 'ctId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   tiId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: TypeIdentitiesModel,
       key: 'tiId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   tpNitDV: {
     type: STRING(2),

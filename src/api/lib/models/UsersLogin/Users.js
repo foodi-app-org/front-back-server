@@ -1,21 +1,21 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import UsersModel from '../users/UsersModel'
+
 const sequelize = connect()
 
 //
 
 const userSessionsModel = sequelize.define('usersessions', {
   usId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   uId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -23,8 +23,8 @@ const userSessionsModel = sequelize.define('usersessions', {
       model: UsersModel,
       key: 'uId'
     },
-    unique: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    unique: true
+
   },
   usToken: {
     type: STRING(255),

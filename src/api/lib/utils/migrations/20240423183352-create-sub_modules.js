@@ -1,20 +1,21 @@
 const { STRING, literal } = require('sequelize')
 const { INTEGER } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { SUB_MODULES_MODEL } = require('../../models/subModules/SubModulesModel')
 const { MODULES_MODEL } = require('../../models/modules/ModulesModel')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(SUB_MODULES_MODEL, {
     smId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     mId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: false,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -24,8 +25,8 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'mId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     smName: {
       type: STRING(100),

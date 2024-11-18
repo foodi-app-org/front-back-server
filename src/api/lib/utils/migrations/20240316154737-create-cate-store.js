@@ -1,18 +1,18 @@
-const { DATE } = require('sequelize')
+const { DATE, UUIDV4 } = require('sequelize')
 const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
+
 const { MODEL_CAT_STORE_NAME } = require('../../models/information/CategorieStore')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(MODEL_CAT_STORE_NAME, {
     catStore: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     cName: {
       type: STRING(100),

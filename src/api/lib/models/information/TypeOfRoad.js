@@ -1,7 +1,7 @@
-import { INTEGER, STRING, SMALLINT, DATE } from 'sequelize'
+import { STRING, SMALLINT, DATE, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 //
@@ -9,10 +9,10 @@ export const MODEL_TYPEROAD_NAME = 'typeroad'
 
 const TypeRoad = sequelize.define(MODEL_TYPEROAD_NAME, {
   rId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   rName: {
     type: STRING(100),

@@ -1,7 +1,6 @@
-import { INTEGER, literal } from 'sequelize'
+import { INTEGER, literal, STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 import productModelFood from './productFood'
@@ -12,34 +11,33 @@ export const PRODUCT_FOOD_AVAILABLE = 'productmodelfoodavailables'
 
 const productModelFoodAvailable = sequelize.define(PRODUCT_FOOD_AVAILABLE, {
   availableProductId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   // id store
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
-
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productModelFood,
       key: 'pId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   dayAvailable: {
     type: INTEGER,

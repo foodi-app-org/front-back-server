@@ -1,36 +1,33 @@
 import {
-  INTEGER,
   STRING,
   TEXT,
   SMALLINT,
   literal
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import TypePQR from './TypPQR'
-const sequelize = connect()
 
-//
+const sequelize = connect()
 
 const PQR = sequelize.define('pqr', {
   hpqrId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   thpId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: TypePQR,
       key: 'thpId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   hpqrQuestion: {
     type: STRING(120),

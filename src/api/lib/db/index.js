@@ -38,7 +38,7 @@ function connect () {
         ...connectConfig
       }
     )
-    process.env.USE_SSL_CONNECTION === 'true' && sequelize.sync({})
+    process.env.USE_SSL_CONNECTION !== 'true' && sequelize.sync({})
   } catch (error) {
     LogDanger(error.message)
     throw new Error(error)

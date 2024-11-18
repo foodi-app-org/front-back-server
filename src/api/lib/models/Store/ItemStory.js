@@ -1,7 +1,6 @@
-import Sequelize from 'sequelize'
+import Sequelize, { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import Store from './Store'
 import StoryModel from './StoryModel'
@@ -9,32 +8,33 @@ import StoryModel from './StoryModel'
 const conn = connect()
 export default conn.define('storyitemphotostore', {
   iStoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   idStore: {
-    type: Sequelize.INTEGER,
+    unique: false,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   stoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: StoryModel,
       key: 'stoId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   itemImage: {
     type: Sequelize.STRING,

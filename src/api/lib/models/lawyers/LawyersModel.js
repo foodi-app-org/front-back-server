@@ -1,6 +1,5 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
-import { enCode } from '../../utils/util'
 import connect from '../../db'
 import ThirdPartiesModel from '../thirdParties/ThirdPartiesModel'
 
@@ -8,13 +7,13 @@ const sequelize = connect()
 
 const LawyersModel = sequelize.define('lawyers', {
   lId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   tpId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -22,8 +21,8 @@ const LawyersModel = sequelize.define('lawyers', {
       model: ThirdPartiesModel,
       key: 'tpId'
     },
-    unique: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    unique: true
+
   },
   lCollectionEntity: {
     type: STRING,

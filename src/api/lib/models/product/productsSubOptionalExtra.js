@@ -1,7 +1,6 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Store from '../Store/Store'
 
 import productModelFood from './productFood'
@@ -13,43 +12,43 @@ export const PRODUCT_SUB_OPTIONAL_EXTRA = 'productssuboptionalextras'
 
 const productsSubOptionalExtra = sequelize.define(PRODUCT_SUB_OPTIONAL_EXTRA, {
   opSubExPid: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   pId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productModelFood,
       key: 'pId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   opExPid: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: productsOptionalExtra,
       key: 'opExPid'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   OptionalSubProName: {
     type: STRING,

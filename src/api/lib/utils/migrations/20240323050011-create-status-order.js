@@ -6,26 +6,26 @@ const {
   DATE,
   DECIMAL
 } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { STATUS_ORDER_MODEL } = require('../../models/Store/statusPedidoFinal')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(STATUS_ORDER_MODEL, {
     stPId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     id: {
-      type: INTEGER,
-      allowNull: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      type: STRING(36),
+      allowNull: true
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -35,9 +35,6 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     pSState: {

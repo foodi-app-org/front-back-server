@@ -1,8 +1,6 @@
 import Sequelize, { INTEGER } from 'sequelize'
 
 import connect from '../../db'
-// import { enCode } from '../../utils/util'
-import util from '../../utils/util'
 
 const conn = connect()
 
@@ -11,8 +9,7 @@ export default conn.define('tenant', {
     type: INTEGER,
     primaryKey: true,
     allowNull: false,
-    autoIncrement: true,
-    get (x) { return util.enCode(this.getDataValue(x)) }
+    autoIncrement: true
   },
   subdomain: {
     type: Sequelize.STRING(50),

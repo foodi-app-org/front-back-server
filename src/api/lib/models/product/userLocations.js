@@ -1,64 +1,63 @@
-import { INTEGER, STRING, literal } from 'sequelize'
+import { INTEGER, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import CitiesModel from '../information/CitiesModel'
 import CountriesModel from '../information/CountriesModel'
 import DepartmentsModel from '../information/DepartmentsModel'
 import Users from '../Users'
+
 const sequelize = connect()
 
 const UserLocation = sequelize.define('userlocation', {
   locationId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   // Locations
   cId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: CountriesModel,
       key: 'cId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   dId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: DepartmentsModel,
       key: 'dId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   ctId: {
-    type: INTEGER,
+    type: STRING(36),
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     allowNull: true,
     references: {
       model: CitiesModel,
       key: 'ctId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   // latitud
   uLatitud: {

@@ -1,28 +1,28 @@
-import { INTEGER, STRING, SMALLINT, literal } from 'sequelize'
+import { INTEGER, STRING, SMALLINT, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import UserMastersModel from './userMasterModel'
+
 const sequelize = connect()
 
 const UsersModel = sequelize.define('usersnot', {
   uId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   umId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: UserMastersModel,
       key: 'umId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   uName: {
     type: STRING(100),

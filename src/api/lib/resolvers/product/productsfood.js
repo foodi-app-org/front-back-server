@@ -17,7 +17,6 @@ import Store from '../../models/Store/Store'
 import tagsProduct from '../../models/Store/tagsProduct'
 import ThirdPartiesModel from '../../models/thirdParties/ThirdPartiesModel'
 import {
-  enCode,
   deCode,
   getAttributes,
   getTenantName
@@ -132,14 +131,20 @@ export const productFoodsAll = async (root, args, context, info) => {
 
     const attributes = getAttributes(productModelFood, info)
 
+    if (pId) {
+      whereSearch = {
+        ...whereSearch,
+        // eslint-disable-next-line no-unneeded-ternary
+        pId: pId ? pId : { [Op.gt]: 0 }
+      }
+    }
     const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
       attributes,
       where: {
         ...whereSearch,
-        idStore: deCode(context.restaurant),
-        id: deCode(context.User.id),
-        pId: pId ? deCode(pId) : { [Op.gt]: 0 },
-        pState: pState ?? { [Op.gt]: 0 },
+        idStore: context.restaurant,
+        id: context.User.id,
+        pState: pState || { [Op.gt]: 0 },
         ...(fromDate && toDate ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {})
       },
       limit: max || 100,
@@ -455,9 +460,9 @@ export default {
           })
           const dataWithUuid = data?.map((subOptional) => ({
             ...subOptional.dataValues,
-            opSubExPid: enCode(subOptional?.opSubExPid),
-            pId: enCode(subOptional?.pId),
-            opExPid: enCode(subOptional?.opExPid)
+            opSubExPid: subOptional?.opSubExPid,
+            pId: subOptional?.pId,
+            opExPid: subOptional?.opExPid
           }))
           return dataWithUuid
         } catch {

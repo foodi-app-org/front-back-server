@@ -1,21 +1,21 @@
 const { STRING, literal } = require('sequelize')
-const { INTEGER } = require('sequelize')
 const { SMALLINT } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../../utils/util')
 const { USER_MODEL } = require('../../models/Users')
 const { USER_DEVICE_MODEL } = require('../../models/users/userDevice')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(USER_DEVICE_MODEL, {
     dId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     id: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -25,8 +25,8 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'id'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     deviceId: {
       type: STRING(200),

@@ -1,15 +1,15 @@
-import Sequelize from 'sequelize'
+import Sequelize, { UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 const conn = connect()
 export default conn.define('promodashboardstoreadmins', {
   pSoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   comments: {
     type: Sequelize.STRING,

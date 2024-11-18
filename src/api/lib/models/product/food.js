@@ -1,7 +1,6 @@
-import { INTEGER, STRING, TEXT, SMALLINT, literal, DECIMAL } from 'sequelize'
+import { INTEGER, STRING, TEXT, SMALLINT, literal, DECIMAL, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 import Users from '../Users'
 import Store from '../Store/Store'
 
@@ -9,34 +8,33 @@ const sequelize = connect()
 
 const productModel = sequelize.define('productstore', {
   pfId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   // User
   id: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Users,
       key: 'id'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   // id store
   idStore: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: Store,
       key: 'idStore'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   pName: {
     type: STRING,

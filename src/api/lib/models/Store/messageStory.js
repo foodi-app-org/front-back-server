@@ -1,28 +1,28 @@
-import Sequelize from 'sequelize'
+import Sequelize, { UUIDV4, STRING } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 import StoryModel from './StoryModel'
 
 const conn = connect()
 export default conn.define('storycomment', {
   cStoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   stoId: {
-    type: Sequelize.INTEGER,
+    type: STRING(36),
     allowNull: true,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: StoryModel,
       key: 'stoId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
+
   },
   from: {
     type: Sequelize.STRING,

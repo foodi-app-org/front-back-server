@@ -2,10 +2,10 @@ import {
   INTEGER,
   STRING,
   literal
+  , UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-import { enCode } from '../../utils/util'
 
 const sequelize = connect()
 
@@ -13,10 +13,10 @@ export const MODULES_MODEL = 'modules'
 
 const ModulesModel = sequelize.define(MODULES_MODEL, {
   mId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   mName: {
     type: STRING,

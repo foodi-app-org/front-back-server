@@ -1,27 +1,27 @@
-import { INTEGER, SMALLINT, STRING, literal } from 'sequelize'
+import { INTEGER, SMALLINT, STRING, literal, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import AreasModel from '../areas/AreasModel'
-import { enCode } from '../../utils/util'
+
 const sequelize = connect()
 
 const RequirementsModel = sequelize.define('requirements', {
   rId: {
-    type: INTEGER,
+    type: STRING(36),
     primaryKey: true,
-    autoIncrement: true,
-    get (x) { return enCode(this.getDataValue(x)) }
+    autoIncrement: false,
+    defaultValue: UUIDV4,
+    allowNull: false
   },
   aId: {
-    type: INTEGER,
+    type: STRING(36),
     allowNull: false,
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
     references: {
       model: AreasModel,
       key: 'aId'
-    },
-    get (x) { return enCode(this.getDataValue(x)) }
+    }
   },
   rPriority: {
     type: SMALLINT,

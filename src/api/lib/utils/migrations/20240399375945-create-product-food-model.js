@@ -2,8 +2,8 @@ const { STRING, literal, DECIMAL } = require('sequelize')
 const { INTEGER } = require('sequelize')
 const { TEXT } = require('sequelize')
 const { SMALLINT } = require('sequelize')
+const { UUIDV4 } = require('sequelize')
 
-const { enCode } = require('../util')
 const { SIZE_MODEL } = require('../../models/information/size')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
 const { USER_MODEL } = require('../../models/Users')
@@ -19,13 +19,14 @@ const { CATEGORY_PRODUCT } = require('../../models/Categories/CategoryProducts')
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(PRODUCT_FOOD_MODEL, {
     pId: {
-      type: INTEGER,
+      type: STRING(36),
       primaryKey: true,
-      autoIncrement: true,
-      get (x) { return enCode(this.getDataValue(x)) }
+      autoIncrement: false,
+      defaultValue: UUIDV4,
+      allowNull: false
     },
     idStore: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -35,14 +36,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'idStore'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
     },
     // User
     id: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -53,14 +51,12 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'id'
-      },
-      get (x) {
-        return enCode(this.getDataValue(x))
       }
+
     },
     // CATEGORY PRODUCT
     carProId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -71,12 +67,12 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'carProId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     // Talla
     sizeId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -87,12 +83,12 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'sizeId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     // color
     colorId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -102,12 +98,12 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'colorId'
-      },
-      get (x) { return this.getDataValue(x) ? enCode(this.getDataValue(x)) : null }
+      }
+
     },
     // Locations
     cId: {
-      type: INTEGER,
+      type: STRING(36),
       allowNull: true,
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
@@ -117,11 +113,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'cId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     dId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       allowNull: true,
@@ -131,11 +127,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'dId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     ctId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       allowNull: true,
@@ -145,11 +141,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'ctId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     fId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       field: 'fId',
@@ -159,11 +155,11 @@ exports.up = async (queryInterface, schemaName) => {
           schema: defaultSchema
         },
         key: 'fId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     caId: {
-      type: INTEGER,
+      type: STRING(36),
       onUpdate: 'CASCADE',
       onDelete: 'CASCADE',
       field: 'caId',
@@ -173,8 +169,8 @@ exports.up = async (queryInterface, schemaName) => {
           schema: schemaName
         },
         key: 'caId'
-      },
-      get (x) { return enCode(this.getDataValue(x)) }
+      }
+
     },
     poPriority: {
       type: SMALLINT,
