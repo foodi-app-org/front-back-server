@@ -18,6 +18,10 @@ const CountriesModel = sequelize.define(MODEL_COUNTRIES_NAME, {
     type: STRING(100),
     allowNull: false
   },
+  code_ctId: {
+    type: STRING(10),
+    allowNull: false
+  },
   cCalCod: {
     type: STRING(10),
     allowNull: false

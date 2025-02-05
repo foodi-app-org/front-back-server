@@ -116,15 +116,16 @@ export const newRegisterStore = async (_, { input }, ctx) => {
         idStore: null
       }
     }
+    console.log("🚀 ~ newRegisterStore ~ idStore:", true)
 
     // Crear la tienda
-    const newStore = await Store.create({
+    const newStore = await Store.schema('public').create({
       ...input,
       uState: 2,
-      cId: deCode(cId),
-      id: deCode(id),
-      dId: deCode(dId),
-      ctId: deCode(ctId),
+      cId: 'f0a59395-9ad2-426f-817c-eb034578fa80',
+      id: '96ac3484-54e6-41d0-96bc-4077c3cd31fd',
+      dId: '622b4edc-62f8-418e-9222-42861deec133',
+      ctId: '0855c115-c6ea-46a7-b58b-d2398e16867a',
       catStore: deCode(catStore)
     })
     const idStore = newStore.idStore

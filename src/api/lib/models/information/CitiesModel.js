@@ -34,6 +34,10 @@ const CitiesModel = sequelize.define(MODEL_CITIES_NAME, {
     type: STRING(100),
     allowNull: false
   },
+  code_ctId: {
+    type: STRING(100),
+    allowNull: false
+  },
   cState: {
     type: SMALLINT,
     allowNull: false

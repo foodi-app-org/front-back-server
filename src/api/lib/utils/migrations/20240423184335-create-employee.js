@@ -48,8 +48,8 @@ exports.up = async (queryInterface, schemaName) => {
     },
     priority: {
       type: INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+      primaryKey: process.env.DIALECT_DB !== 'sqlite',
+      autoIncrement: process.env.DIALECT_DB !== 'sqlite',
       allowNull: false
     },
     eEmail: {

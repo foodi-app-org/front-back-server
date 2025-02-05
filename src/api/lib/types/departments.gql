@@ -4,6 +4,7 @@ type Department {
     cId: ID
     dName: String!
     dState: Int
+    code_dId: String
     dDatCre: DateTime
     dDatMod: DateTime
 }

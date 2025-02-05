@@ -7,10 +7,11 @@ const sequelize = connect()
 
 export const MigrationFolder = {
   Tenanted: 'tenanted',
+  public: 'public',
   Private: 'private'
 }
 
-export const UmzugMigrator = async (schemaName) => {
+export const UmzugMigrator = async (schemaName, dir) => {
   const model = sequelize.define(
     'MigrationsMeta',
     {
@@ -32,7 +33,7 @@ export const UmzugMigrator = async (schemaName) => {
   )
   return new Umzug({
     migrations: {
-      glob: ['migrations/*.js', { cwd: __dirname }],
+      glob: [dir ?? 'migrations/*.js', { cwd: __dirname }],
       resolve: ({ name, path, context }) => {
         const migration = require(path || '')
         return {

@@ -19,6 +19,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: DataTypes.STRING(10),
       allowNull: false
     },
+    code_ctId: {
+      type: STRING(10),
+      allowNull: false
+    },
     cState: {
       type: DataTypes.SMALLINT,
       allowNull: true,

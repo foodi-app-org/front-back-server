@@ -1,48 +1,67 @@
 'use strict'
+import path from 'path'
+
 import Sequelize from 'sequelize'
 import dotenv from 'dotenv'
 
-import { LogDanger } from '../utils/logs'
+import { LogDanger, LogInfo } from '../utils/logs'
 
-// Configura dotenv
+// Configurar dotenv
 dotenv.config()
 
 let sequelize = null
-const dialectOptions = String(process.env.USE_SSL_CONNECTION) === 'true'
-  ? {
-    postgres: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false // Permitir certificados
-      }
-    }
-  }
-  : {}
 
-export const connectConfig = {
-  host: process.env.HOST_DB,
-  port: process.env.PORT_DB,
-  dialect: process.env.DIALECT_DB,
-  dialectOptions: dialectOptions[process.env.DIALECT_DB] || {},
-  logging: false
-}
+// Detectar si se ejecuta en modo empaquetado (Electron)
+export const useSQLITE = process.env.DIALECT_DB === 'sqlite'
+
+// Configuración de conexión
+const connectConfig = useSQLITE
+  ? {
+    dialect: 'sqlite',
+    storage: path.join(__dirname, './database.sqlite'),
+    logging: false,
+    schema: 'public'
+  }
+  : {
+    host: process.env.HOST_DB,
+    port: process.env.PORT_DB,
+    dialect: process.env.DIALECT_DB || 'postgres',
+    dialectOptions: String(process.env.USE_SSL_CONNECTION) === 'true'
+      ? {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false // Permitir certificados
+        }
+      }
+      : {},
+    logging: false
+  }
 
 function connect () {
   try {
     if (sequelize) return sequelize
-    sequelize = new Sequelize(
-      process.env.NAME_DB, // name of the database
-      process.env.USER_DB, // name of the user database
-      process.env.PASS_DB, // password of the database
-      {
-        ...connectConfig
-      }
-    )
-    process.env.USE_SSL_CONNECTION !== 'true' && sequelize.sync({})
+
+    if (useSQLITE) {
+      LogInfo('🔗 Using SQLite database')
+      sequelize = new Sequelize(connectConfig)
+    } else {
+      LogInfo('🔗 Using PostgreSQL database')
+      sequelize = new Sequelize(
+        process.env.NAME_DB,
+        process.env.USER_DB,
+        process.env.PASS_DB,
+        connectConfig
+      )
+    }
+
+    if (useSQLITE) {
+      sequelize.sync() // Solo sincronizar en SQLite
+    }
   } catch (error) {
     LogDanger(error.message)
     throw new Error(error)
   }
+
   return sequelize
 }
 

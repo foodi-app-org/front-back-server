@@ -32,6 +32,7 @@
     "pg": "8.11.3",
     "pg-hstore": "2.3.4",
     "sequelize": "^6.37.1",
+    "sqlite3": "^5.1.7",
     "subscriptions-transport-ws": "0.11.0",
     "umzug": "^3.2.1"
   },
@@ -69,7 +70,7 @@
     "build": "babel src/ --out-dir build",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
-    "migration:run:public": "npm run babel-node src/api/lib/db/migrations/index.js up",
+    "migration:run:public": "npm run babel-node src/api/lib/db/migrations/migrations.public.js up",
     "migration:tenants:run": "npm run babel-node src/api/lib/utils/migrate-tenants.js",
     "dev": "nodemon --exec npm run babel-node src/app.js",
     "migration:down": "npx sequelize-cli db:migrate:undo",

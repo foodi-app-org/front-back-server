@@ -65,19 +65,19 @@ exports.up = async (queryInterface, schemaName) => {
   )
 
   // Preparar los datos de los submódulos con su respectivo id de módulo
-  const submodulesData = modulesWithSubmodules.flatMap(({ module, submodules }, index) => {
-    const moduleId = insertedModules[index].mId // Obtener el ID del módulo insertado
-    if (submodules?.length) {
-      return submodules.map(submodule => ({ ...submodule, mId: moduleId }))
-    }
-    return [] // Add a return statement to satisfy the requirement of Array.prototype.flatMap()
-  })
+  // const submodulesData = modulesWithSubmodules.flatMap(({ module, submodules }, index) => {
+  //   const moduleId = insertedModules[index].mId // Obtener el ID del módulo insertado
+  //   if (submodules?.length) {
+  //     return submodules.map(submodule => ({ ...submodule, mId: moduleId }))
+  //   }
+  //   return [] // Add a return statement to satisfy the requirement of Array.prototype.flatMap()
+  // })
 
   // Insertar los submódulos
-  await queryInterface.bulkInsert(
-    { tableName: SUB_MODULES_MODEL, schema: schemaName },
-    submodulesData
-  )
+  // await queryInterface.bulkInsert(
+  //   { tableName: SUB_MODULES_MODEL, schema: schemaName },
+  //   submodulesData
+  // )
 }
 
 exports.down = async (queryInterface, schemaName) => {

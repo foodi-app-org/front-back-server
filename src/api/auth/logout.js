@@ -21,6 +21,8 @@ export default withIronSessionApiRoute(
         })
       }
     } catch (error) {
+      console.log("🚀 ~ error:", error)
+
       return res.status(200).json({
         status: 500,
         error: error.message,
