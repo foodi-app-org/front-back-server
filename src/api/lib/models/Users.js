@@ -29,6 +29,10 @@ const Users = sequelize.define(USER_MODEL, {
     type: STRING,
     require: true
   },
+  idRole: {
+    type: STRING(36),
+    allowNull: true
+  },
   username: {
     type: STRING,
     require: true,

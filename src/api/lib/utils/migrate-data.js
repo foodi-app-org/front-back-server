@@ -1,6 +1,7 @@
 import boom from '@hapi/boom'
 
 import Store from '../models/Store/Store'
+import Role from '../models/roles'
 import Users from '../models/Users'
 import clients from '../models/Store/clients'
 import subscriptions from '../models/subscriptions/subscriptions'
@@ -64,6 +65,27 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
         currentPeriodEnd: addDaysToCurrentDate()
       }
       await subscriptions.schema(schemaName).create({ ...dataSubscription })
+      const allPermissions = ['create', 'read', 'update', 'delete']
+      const role = await Role.schema(schemaName).create({
+        idStore: idStoreDecoded,
+        name: '#SUPERADMIN',
+        description: 'SUPERADMIN',
+        state: 1,
+        permissions: {
+          users: allPermissions,
+          roles: allPermissions,
+          stores: allPermissions,
+          clients: allPermissions,
+          subscriptions: allPermissions,
+          products: allPermissions,
+          categories: allPermissions,
+          sales: allPermissions,
+          reports: allPermissions,
+          settings: allPermissions,
+          dashboard: allPermissions
+        }
+      })
+      await Users.schema(schemaName).update({ idRole: role.dataValues.idRole }, { where: { id: newUserStoreInSchema.id } })
     }
     return { message: 'Data migration completed successfully' }
   } catch (error) {

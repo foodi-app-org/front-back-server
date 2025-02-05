@@ -180,6 +180,7 @@ router.post('/auth', async (req, res) => {
       })
     }
     LogInfo(`Success: ${success}, Message: ${message}`)
+    console.log('🚀 ~ file: index.js ~ line 153 ~ req.body')
     return res.status(500).json({
       response: 'no ok',
       ok: false,

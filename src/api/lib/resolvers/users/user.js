@@ -2,6 +2,7 @@ import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
 import Store from '../../models/Store/Store'
+import Roles from '../../models/roles'
 import Users from '../../models/Users'
 import UserProfile from '../../models/users/UserProfileModel'
 import {
@@ -16,6 +17,7 @@ import {
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import recover from '../../templates/Recover'
 import { getDevice } from '../../router'
+import { LogDanger } from '../../utils/logs'
 
 /**
  * Registers a new user or verifies an existing user's password
@@ -285,6 +287,17 @@ export const getOneUserProfile = async (_root, { id }, context, info) => {
 
 export default {
   TYPES: {
+    User: {
+      role: async (parent, _args, context, _info) => {
+        try {
+          const role = await Roles.schema(getTenantName(context?.restaurant)).findOne({ where: { idRole: parent?.idRole ?? null } })
+          return role
+        } catch (error) {
+          LogDanger('Error', error)
+          return null
+        }
+      }
+    }
   },
   QUERIES: {
     getUser,

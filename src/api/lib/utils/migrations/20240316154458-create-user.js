@@ -27,6 +27,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING,
       require: true
     },
+    idRole: {
+      type: STRING(36),
+      allowNull: true
+    },
     username: {
       type: STRING,
       require: true,

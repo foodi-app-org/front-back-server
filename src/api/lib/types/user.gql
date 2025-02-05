@@ -20,7 +20,7 @@
     password: String
     createAt: DateTime
     associateStore: JSON
-    role: [Roles]
+    role: Roles
   }
   # Token
 type Token {

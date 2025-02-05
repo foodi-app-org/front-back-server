@@ -164,7 +164,6 @@ export default withIronSessionApiRoute(
           token
         })
       }
-
       return res.status(500).json({
         response: 'no ok',
         ok: false,
