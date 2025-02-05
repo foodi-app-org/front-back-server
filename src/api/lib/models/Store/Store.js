@@ -8,9 +8,6 @@ import {
 
 import connect from '../../db'
 import CatStore from '../information/CategorieStore'
-import CitiesModel from '../information/CitiesModel'
-import CountriesModel from '../information/CountriesModel'
-import DepartmentsModel from '../information/DepartmentsModel'
 import Users from '../Users'
 
 const sequelize = connect()
@@ -29,11 +26,7 @@ const Store = sequelize.define(STORE_MODEL, {
   cId: {
     type: STRING(36),
     onUpdate: null,
-    onDelete: null,
-    references: {
-      model: CountriesModel,
-      key: 'cId'
-    }
+    onDelete: null
   },
   id: {
     type: STRING(36),
@@ -48,20 +41,12 @@ const Store = sequelize.define(STORE_MODEL, {
   dId: {
     type: STRING(36),
     onUpdate: null,
-    onDelete: null,
-    references: {
-      model: DepartmentsModel,
-      key: 'dId'
-    }
+    onDelete: null
   },
   ctId: {
     type: STRING(36),
     onUpdate: null,
-    onDelete: null,
-    references: {
-      model: CitiesModel,
-      key: 'ctId'
-    }
+    onDelete: null
   },
   catStore: {
     type: STRING(36),

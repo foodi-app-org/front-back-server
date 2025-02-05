@@ -31,6 +31,10 @@ const SubModulesModel = sequelize.define(SUB_MODULES_MODEL, {
     type: STRING(100),
     allowNull: false
   },
+  view: {
+    type: STRING(50),
+    allowNull: false
+  },
   smPath: {
     type: STRING(50),
     allowNull: false

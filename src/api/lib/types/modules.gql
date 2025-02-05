@@ -2,6 +2,7 @@ type SubModule {
     smId: ID
     smName: String
     smPath: String
+    view: String
     smState: Int
 }
 
@@ -10,6 +11,7 @@ type Module {
     mPath: String
     mName: String
     mPriority: Int
+    view: String
     mIcon: Int
     subModules: [SubModule]
 }

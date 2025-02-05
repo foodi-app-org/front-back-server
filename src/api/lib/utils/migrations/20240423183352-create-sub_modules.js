@@ -32,6 +32,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING(100),
       allowNull: false
     },
+    view: {
+      type: STRING(50),
+      allowNull: false
+    },
     smPath: {
       type: STRING(50),
       allowNull: false

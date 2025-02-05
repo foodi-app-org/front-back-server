@@ -17,6 +17,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING,
       allowNull: false
     },
+    view: {
+      type: STRING(50),
+      allowNull: false
+    },
     mPath: {
       type: STRING,
       allowNull: false

@@ -21,14 +21,7 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING(36),
       onUpdate: null,
       onDelete: null,
-      field: 'cId',
-      references: {
-        model: {
-          tableName: MODEL_COUNTRIES_NAME,
-          schema: defaultSchema
-        },
-        key: 'cId'
-      }
+      field: 'cId'
     },
     id: {
       type: STRING(36),
@@ -48,27 +41,13 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING(36),
       onUpdate: null,
       onDelete: null,
-      field: 'dId',
-      references: {
-        model: {
-          tableName: MODEL_DEPARTMENTS_NAME,
-          schema: defaultSchema
-        },
-        key: 'dId'
-      }
+      field: 'dId'
     },
     ctId: {
       type: STRING(36),
       onUpdate: null,
       onDelete: null,
-      field: 'ctId',
-      references: {
-        model: {
-          tableName: MODEL_CITIES_NAME,
-          schema: defaultSchema
-        },
-        key: 'ctId'
-      }
+      field: 'ctId'
     },
     catStore: {
       type: STRING(36),

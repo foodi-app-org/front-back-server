@@ -171,7 +171,7 @@ export const countries = async (_root, _args, _context, info) => {
 }
 export const createCountry = async (_root, { input }) => {
   try {
-    const data = await CountriesModel.create({ ...input, cState: 1 })
+    const data = await CountriesModel.create({ ...input, cState: 1, code_ctId: Math.random().toString(36).substring(2, 15) })
     return data
   } catch (e) {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)

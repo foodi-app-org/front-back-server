@@ -22,6 +22,10 @@ const ModulesModel = sequelize.define(MODULES_MODEL, {
     type: STRING,
     allowNull: false
   },
+  view: {
+    type: STRING(50),
+    allowNull: false
+  },
   mPath: {
     type: STRING,
     allowNull: false
