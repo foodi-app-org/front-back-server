@@ -1,5 +1,7 @@
 'use strict'
 import path from 'path'
+import fs from 'fs'
+import os from 'os'
 
 import Sequelize from 'sequelize'
 import dotenv from 'dotenv'
@@ -11,14 +13,26 @@ dotenv.config()
 
 let sequelize = null
 
-// Detectar si se ejecuta en modo empaquetado (Electron)
+// Detectar si se ejecuta en modo empaquetado (pkg)
 export const useSQLITE = process.env.DIALECT_DB === 'sqlite'
+
+// Configuración de la ruta de la base de datos
+const userDataPath = process.env.NODE_ENV === 'production'
+  ? path.join(os.homedir(), 'app_data') // Cambia esto por la ruta que prefieras
+  : __dirname
+
+// Asegurarse de que el directorio de la base de datos exista
+if (!fs.existsSync(userDataPath)) {
+  fs.mkdirSync(userDataPath, { recursive: true })
+}
+
+const sqliteDatabasePath = path.join(userDataPath, 'database.sqlite')
 
 // Configuración de conexión
 const connectConfig = useSQLITE
   ? {
     dialect: 'sqlite',
-    storage: path.join(__dirname, './database.sqlite'),
+    storage: sqliteDatabasePath, // Usar la ruta fuera del paquete
     logging: false,
     schema: 'public'
   }
@@ -55,7 +69,7 @@ function connect () {
     }
 
     if (useSQLITE) {
-      sequelize.sync() // Solo sincronizar en SQLite
+      // sequelize.sync() // Solo sincronizar en SQLite si es necesario
     }
   } catch (error) {
     LogDanger(error.message)

@@ -1,5 +1,14 @@
 {
+  "name": "front-back-server",
+  "version": "1.0.3",
+  "description": "",
   "author": "",
+  "license": "ISC",
+  "main": "build/app.js",
+  "bin": {
+    "server": "build/app.js"
+  },
+  "type": "module",
   "dependencies": {
     "@babel/cli": "7.17.6",
     "@graphql-tools/load-files": "6.5.3",
@@ -36,7 +45,6 @@
     "subscriptions-transport-ws": "0.11.0",
     "umzug": "^3.2.1"
   },
-  "description": "",
   "devDependencies": {
     "@babel/core": "7.17.5",
     "@babel/node": "7.16.8",
@@ -52,9 +60,10 @@
     "eslint-plugin-n": "^16.1.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "esm": "3.2.25",
+    "esm": "^3.2.25",
     "husky": "^8.0.3",
     "nodemon": "2.0.15",
+    "pkg": "^5.8.1",
     "sequelize-cli": "^6.6.2"
   },
   "husky": {
@@ -62,9 +71,6 @@
       "commit-msg": "npm run commitlint"
     }
   },
-  "license": "ISC",
-  "main": "index.js",
-  "name": "front-back-server",
   "scripts": {
     "babel-node": "babel-node --presets=@babel/preset-env",
     "build": "babel src/ --out-dir build",
@@ -78,8 +84,19 @@
     "migrate": "npx sequelize-cli db:migrate",
     "lint:fix": "eslint --fix .",
     "prepare": "husky install",
-    "start": "node build/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/app.js",
+    "build:pkg": "pkg . --out-path dist"
   },
-  "version": "1.0.3"
+  "pkg": {
+    "scripts": "build/**/*.js",
+    "assets": [
+      "public/**/*",
+      "uploads/**/*",
+      "config/**/*",
+      ".env"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  }
 }
