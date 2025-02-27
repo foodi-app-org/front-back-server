@@ -119,7 +119,7 @@ export const updateStoreTable = async (_, { tableId, tableName, seats, section, 
       seats,
       section,
       tableState,
-      updatedAt: new Date() // Actualizamos la fecha de modificación
+      updatedAt: new Date()
     })
 
     return {

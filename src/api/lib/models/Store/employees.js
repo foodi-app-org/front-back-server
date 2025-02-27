@@ -45,7 +45,7 @@ export default conn.define(EMPLOYEE_MODEL_NAME, {
     type: INTEGER,
     primaryKey: process.env.DIALECT_DB !== 'sqlite',
     autoIncrement: process.env.DIALECT_DB !== 'sqlite',
-    allowNull: false
+    allowNull: true
   },
   eEmail: {
     type: STRING,

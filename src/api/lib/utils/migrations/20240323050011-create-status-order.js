@@ -24,6 +24,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING(36),
       allowNull: true
     },
+    tableId: {
+      type: STRING(36),
+      allowNull: true
+    },
     idStore: {
       type: STRING(36),
       allowNull: true,

@@ -105,11 +105,11 @@ type TypeInputSalesChannel {
 }
 
 type StorePedidosFromPSState {
-  ACEPTA: [StorePedidos]
+  ACCEPT: [StorePedidos]
   PROCESSING: [StorePedidos]
   READY: [StorePedidos]
   CONCLUDES: [StorePedidos]
-  RECHAZADOS: [StorePedidos]
+  REJECTED: [StorePedidos]
 }
 
 type Query {

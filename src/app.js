@@ -159,9 +159,10 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
         server.graphqlPath
     }
   )
-
+  setInterval(() => {}, 1000)
   httpServer.listen(GRAPHQL_PORT, () => {
     LogSuccess(`🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
     LogSuccess(`🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
   })
 })()
+

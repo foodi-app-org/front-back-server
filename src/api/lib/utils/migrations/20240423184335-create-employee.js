@@ -50,7 +50,7 @@ exports.up = async (queryInterface, schemaName) => {
       type: INTEGER,
       primaryKey: process.env.DIALECT_DB !== 'sqlite',
       autoIncrement: process.env.DIALECT_DB !== 'sqlite',
-      allowNull: false
+      allowNull: true
     },
     eEmail: {
       type: STRING,

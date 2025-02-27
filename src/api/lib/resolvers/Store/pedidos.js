@@ -249,20 +249,20 @@ const getPedidosByState = async ({
 // Objeto para almacenar la caché
 
 const ordersByState = {
-  ACEPTA: [],
+  ACEPT: [],
   PROCESSING: [],
   READY: [],
   CONCLUDES: [],
-  RECHAZADOS: []
+  REJECTED: []
 }
 
 const getStatusKey = (pSState) => {
   const statusKeys = {
-    1: 'ACEPTA',
+    1: 'ACCEPT',
     2: 'PROCESSING',
     3: 'READY',
     4: 'CONCLUDES',
-    5: 'RECHAZADOS'
+    5: 'REJECTED'
   }
   return statusKeys[pSState] || ''
 }
@@ -278,11 +278,11 @@ const getOrdersByState = async ({
 }) => {
   try {
     const ordersByState = {
-      ACEPTA: [],
+      ACCEPT: [],
       PROCESSING: [],
       READY: [],
       CONCLUDES: [],
-      RECHAZADOS: []
+      REJECTED: []
     }
 
     const attributes = [

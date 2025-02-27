@@ -115,6 +115,7 @@ type Mutation {
  registerSalesStore(
     input: [IShoppingCard],
     id: ID,
+    tableId: ID,
     discount: Int,
     idStore: ID,
     pCodeRef: String,

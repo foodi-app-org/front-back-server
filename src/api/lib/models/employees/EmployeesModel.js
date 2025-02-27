@@ -22,8 +22,8 @@ const EmployeesModel = sequelize.define(EMPLOYEE_MODEL_NAME, {
   },
   priority: {
     type: INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+    primaryKey: process.env.DIALECT_DB !== 'sqlite',
+    autoIncrement: process.env.DIALECT_DB !== 'sqlite',
     allowNull: false
   },
   eEmail: {

@@ -71,7 +71,8 @@ const getRoles = async (_root, args, context) => {
 
     // Definir los filtros y parámetros de pagination
     const where = {
-      state: { [Op.gt]: 0 }
+      state: { [Op.gt]: 0 },
+      name: { [Op.ne]: '#SUPERADMIN' }
     }
 
     const searchFields = ['name'] // Campos a buscar en la búsqueda

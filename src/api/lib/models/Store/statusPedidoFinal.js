@@ -3,18 +3,17 @@ import {
   INTEGER,
   literal,
   STRING,
-  DECIMAL
-  , UUIDV4
+  DECIMAL,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-
 
 import Store from './Store'
 
 const sequelize = connect()
 
-export const STATUS_ORDER_MODEL = 'statuspedidos'
+export const STATUS_ORDER_MODEL = 'orderStatuses'
 
 const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   stPId: {
@@ -25,6 +24,10 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     allowNull: false
   },
   id: {
+    type: STRING(36),
+    allowNull: true
+  },
+  tableId: {
     type: STRING(36),
     allowNull: true
   },

@@ -27,7 +27,13 @@ import { createTenant } from '../tenant/tenant.resolver'
 import Users from '../../models/Users'
 import { NotFountError } from '../../utils/handleError'
 import { createClients } from '../clients/clients'
-import { LogDanger, LogInfo, LogSuccess, LogWarning } from '../../utils/logs'
+import {
+  LogDanger,
+  LogInfo,
+  LogSuccess,
+  LogWarning
+} from '../../utils/logs'
+import DateRange from '../../utils/DateRange'
 
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
@@ -116,8 +122,6 @@ export const newRegisterStore = async (_, { input }, ctx) => {
         idStore: null
       }
     }
-    console.log('ENTRO AQUI')
-    
     // Crear la tienda
     const newStore = await Store.schema('public').create({
       ...input,
@@ -128,7 +132,6 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       ctId: '0855c115-c6ea-46a7-b58b-d2398e16867a',
       catStore: deCode(catStore)
     })
-    console.log('SALIO ACA', newStore)
     const idStore = newStore.idStore
 
     // Crear el tenant
@@ -269,6 +272,7 @@ export const registerSalesStore = async (
     change,
     pCodeRef,
     payMethodPState,
+    tableId,
     valueDelivery
   },
   context) => {
@@ -430,6 +434,7 @@ export const registerSalesStore = async (
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       locationUser: null,
       payMethodPState,
+      tableId,
       pCodeRef,
       pickUp,
       pSState: 4,
@@ -445,6 +450,7 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
+    console.log(e)
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
     if (e instanceof NotFountError) {
       message = e.message
@@ -458,47 +464,35 @@ export const registerSalesStore = async (
       message = 'Token expired'
     }
     LogDanger(`registerSalesStore: ${message}, ${e}`)
-
     return {
       Response: {
         success: false,
-        message
+        message: process.env.NODE_ENV === 'development' ? e.message : 'Lo sentimos, ha ocurrido un error inesperado'
       }
     }
   }
 }
+
 export const getTodaySales = async (_, args, ctx) => {
   try {
-    // Validar que el contexto contenga un restaurante válido
     if (!ctx.restaurant) {
       return { success: false, message: 'El contexto no contiene un restaurante válido' }
     }
-    const START = new Date()
-    START.setHours(0, 0, 0, 0)
-    const NOW = new Date()
 
-    // Crear fechas START y NOW dentro de la consulta para asegurarse de que reflejen el mismo día
-    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).findAll({
-      attributes: ['pSState', 'idStore', 'pDatCre'],
+    const todayRange = new DateRange()
+    const { start, end } = todayRange.getRange()
+
+    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).count({
       where: {
-        [Op.or]: [
-          {
-            // ID STORE
-            pSState: 4,
-            idStore: deCode(ctx.restaurant),
-            pDatCre: {
-              [Op.between]: [START.toISOString(), NOW.toISOString()]
-            }
-          }
-        ]
-      },
-      order: [['pDatCre', 'DESC']]
+        pSState: 4,
+        idStore: deCode(ctx.restaurant),
+        pDatCre: {
+          [Op.between]: [start.toISOString(), end.toISOString()]
+        }
+      }
     })
-    if (data?.length) {
-      return data?.length || 0
-    } else {
-      return 0
-    }
+
+    return data ?? 0
   } catch (error) {
     return 0
   }

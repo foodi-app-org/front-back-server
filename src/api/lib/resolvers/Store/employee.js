@@ -201,6 +201,7 @@ const createOneEmployeeStoreAndUser = async (_root, { input }, context) => {
         await employeesModel.schema(tenantName).create({
           idStore: deCode(idStore),
           idRole,
+          priority: new Date().getTime(),
           eEmail,
           idUser: userGuestTenant?.dataValues?.id
         })
