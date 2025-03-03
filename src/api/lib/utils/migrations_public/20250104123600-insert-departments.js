@@ -3,7 +3,11 @@ import { v4 as uuidv4 } from 'uuid'
 import { DEPARTMENTS } from '../places'
 
 const { MODEL_DEPARTMENTS_NAME } = require('../../models/information/DepartmentsModel')
-const { LogInfo, LogWarning, LogDanger } = require('../logs')
+const {
+  LogInfo,
+  LogWarning,
+  LogDanger
+} = require('../logs')
 
 exports.up = async (queryInterface, schemaName) => {
   try {

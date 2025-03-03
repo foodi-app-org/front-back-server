@@ -54,6 +54,14 @@ exports.up = async (queryInterface, schemaName) => {
     },
     {
       module: { mId: uuidv4(), view: 'settings', mName: 'Configuración', mPath: 'configuration', mPriority: 13, mIcon: 14, mState: 1 }
+    },
+    // inventario
+    {
+      module: { mId: uuidv4(), view: 'inventory', mName: 'Inventario', mPath: 'inventory', mPriority: 7.5, mIcon: 15, mState: 1 },
+      submodules: [
+        { smId: uuidv4(), view: 'inventory', smName: 'Inventario', smPath: 'inventory', smPriority: 1, smState: 1 },
+        { smId: uuidv4(), view: 'inventory', smName: 'Historial', smPath: 'inventory/history', smPriority: 2, smState: 1 }
+      ]
     }
   ]
 

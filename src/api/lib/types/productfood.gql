@@ -44,6 +44,7 @@ type ProductFood {
     department: Department
     # Marca
     mark: Trademark
+    stock: Int
     color: Color
     getStore: Store
     ExtProductFoodsAll: [ExtProductFood]
@@ -90,6 +91,7 @@ input InputProductFood {
     ProQuantity: Int
     ProOutstanding: Int
     ProDelivery: Int
+    stock: Int
     ProVoltaje: String
     vat: Float
     ProBarCode: String

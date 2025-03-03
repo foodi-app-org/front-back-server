@@ -1,5 +1,11 @@
-const { INTEGER, STRING, DATE, UUIDV4, UUID } = require('sequelize')
-const { JSON } = require('sequelize')
+const {
+  INTEGER,
+  STRING,
+  DATE,
+  UUIDV4,
+  JSON,
+  UUID
+} = require('sequelize')
 
 const { ROLE_MODEL } = require('../../models/roles')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')

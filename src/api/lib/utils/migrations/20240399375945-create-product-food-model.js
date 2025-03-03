@@ -3,6 +3,7 @@ const { INTEGER } = require('sequelize')
 const { TEXT } = require('sequelize')
 const { SMALLINT } = require('sequelize')
 const { UUIDV4 } = require('sequelize')
+const { BOOLEAN } = require('sequelize')
 
 const { SIZE_MODEL } = require('../../models/information/size')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
@@ -176,6 +177,27 @@ exports.up = async (queryInterface, schemaName) => {
       type: SMALLINT,
       allowNull: false,
       defaultValue: 1
+    },
+    stock: {
+      type: INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      validate: {
+        min: 0
+      }
+    },
+    manageStock: {
+      type: BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      validate: {
+        isBoolean (value) {
+          if (typeof value !== 'boolean') {
+            throw new Error('manageStock must be a boolean')
+          }
+        }
+      },
+      field: 'manageStock'
     },
     valueDelivery: {
       type: DECIMAL(1000, 2),

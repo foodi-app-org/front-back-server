@@ -352,6 +352,12 @@ const updateMultipleProducts = async (_root, { input }, context) => {
             message: `El código de barras ${ProBarCode} ya se encuentra registrado para otro producto`
           }
         }
+        const generateBarCode = () => {
+          const timestamp = Date.now().toString().slice(-6) // Get last 6 digits of current timestamp
+          const randomPart = crypto.randomBytes(3).toString('hex').toUpperCase() // Generate 6 random hex characters
+          return `${timestamp}${randomPart}`
+        }
+
         const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
           ValueDelivery,
           ...productInput,
@@ -365,7 +371,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: 0,
-          ProBarCode: productInput?.ProBarCode ?? crypto.randomBytes(6).toString('hex').toUpperCase()
+          ProBarCode: productInput?.ProBarCode ?? generateBarCode()
         })
 
         return {

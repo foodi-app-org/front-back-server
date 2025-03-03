@@ -11,6 +11,7 @@ import CategoryProductsModel from '../Categories/CategoryProducts'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
+import { BOOLEAN } from 'sequelize'
 
 const crypto = require('crypto')
 
@@ -147,6 +148,19 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
       key: 'caId'
     }
 
+  },
+  stock: {
+    type: INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  manageStock: {
+    type: BOOLEAN,
+    allowNull: false,
+    defaultValue: true
   },
   poPriority: {
     type: SMALLINT,
