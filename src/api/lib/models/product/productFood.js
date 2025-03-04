@@ -1,4 +1,13 @@
-import { INTEGER, STRING, TEXT, literal, SMALLINT, DECIMAL, UUIDV4 } from 'sequelize'
+import {
+  INTEGER,
+  STRING,
+  TEXT,
+  literal,
+  SMALLINT,
+  DECIMAL,
+  UUIDV4,
+  BOOLEAN
+} from 'sequelize'
 
 import connect from '../../db'
 import SizeModel from '../information/size'
@@ -11,7 +20,6 @@ import CategoryProductsModel from '../Categories/CategoryProducts'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
-import { BOOLEAN } from 'sequelize'
 
 const crypto = require('crypto')
 
@@ -160,7 +168,15 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   manageStock: {
     type: BOOLEAN,
     allowNull: false,
-    defaultValue: true
+    defaultValue: false,
+    validate: {
+      isBoolean (value) {
+        if (typeof value !== 'boolean') {
+          throw new Error('manageStock must be a boolean')
+        }
+      }
+    },
+    field: 'manageStock'
   },
   poPriority: {
     type: SMALLINT,
@@ -288,12 +304,12 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
 }, {
   timestamps: false,
   hooks: {
-    beforeCreate (product) {
+    beforeCreate(product) {
       if (!product.ProBarCode) {
         product.ProBarCode = crypto.randomBytes(6).toString('hex').toUpperCase()
       }
     },
-    beforeUpdate (product) {
+    beforeUpdate(product) {
       product.pDatMod = literal('CURRENT_TIMESTAMP')
     }
   }

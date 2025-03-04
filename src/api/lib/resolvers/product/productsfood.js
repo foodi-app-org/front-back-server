@@ -27,6 +27,7 @@ import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
 
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 import { productFoodSchema } from './schema'
+import { updateStock } from '../inventory/inventory'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -226,12 +227,13 @@ export const editProductFoods = async (_root, { input }, context) => {
   }
 }
 
-export const updateProductFoods = async (_root, { input }, context) => {
+const updateProductFoods = async (_root, { input }, context) => {
   const {
     sizeId,
     ValueDelivery,
     colorId,
     cId,
+    manageStock = false,
     dId,
     ctId,
     pId,
@@ -281,7 +283,8 @@ export const updateProductFoods = async (_root, { input }, context) => {
           cId: cId ? deCode(cId) : null,
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
-          poPriority: lengthProduct + 1
+          poPriority: lengthProduct + 1,
+          manageStock
         })
 
       return {
@@ -328,6 +331,7 @@ export const updateProductFoods = async (_root, { input }, context) => {
  * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
  */
 const updateMultipleProducts = async (_root, { input }, context) => {
+  console.log("🚀 ~ updateMultipleProducts ~ input:", input)
   try {
     const promises = input.map(async (productInput) => {
       const {
@@ -336,20 +340,24 @@ const updateMultipleProducts = async (_root, { input }, context) => {
         colorId,
         cId,
         dId,
+        stock,
         ctId,
         pId,
         carProId,
         ProBarCode
       } = productInput || {}
       if (!pId) {
-        const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant))
-          .findOne({ where: { ProBarCode, idStore: deCode(context.restaurant) } })
+        const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { ProBarCode, idStore: deCode(context.restaurant) } })
 
         if (existingProduct) {
+          // Si el producto existe, actualiza su stock
+          if (stock && stock > 0) {
+            await updateStock(null, { productId: existingProduct.dataValues.pId, quantity: stock, type: 'IN' }, context)
+          }
           return {
-            success: false,
+            success: true,
             data: productInput,
-            message: `El código de barras ${ProBarCode} ya se encuentra registrado para otro producto`
+            message: `El producto con código de barras ${ProBarCode} ya existe. Se ha actualizado su stock.`
           }
         }
         const generateBarCode = () => {

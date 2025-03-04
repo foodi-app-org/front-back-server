@@ -34,6 +34,7 @@ import {
   LogWarning
 } from '../../utils/logs'
 import DateRange from '../../utils/DateRange'
+import { updateStock } from '../inventory/inventory'
 
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
@@ -43,7 +44,7 @@ import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
 require('dotenv').config()
 
 // eslint-disable-next-line
-const createDeliveryTime = async (_, { minutes  }, ctx, __) => {
+const createDeliveryTime = async (_, { minutes }, ctx, __) => {
   if (!ctx.restaurant) {
     LogDanger('No se pudo crear el tiempo de entrega')
     return {
@@ -318,6 +319,23 @@ export const registerSalesStore = async (
         }
       }
     }
+    for (const element of input) {
+      const { pId, cantProducts, refCodePid } = element
+      if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
+
+      const decodePid = deCode(pId)
+      const originalProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(decodePid)
+
+      if (!originalProduct) {
+        LogDanger(`registerSalesStore: pCodeRef: ${pCodeRef} Product not found`)
+        throw new NotFountError('No se encontró el producto, puede haber sido eliminado')
+      }
+
+      if (originalProduct.manageStock && originalProduct.stock < cantProducts) {
+        LogDanger(`registerSalesStore: Stock insuficiente para ${originalProduct.dataValues.pName}`)
+        return { Response: { success: false, message: `No hay suficiente stock para el producto ${originalProduct.dataValues.pName}` } }
+      }
+    }
     await Promise.all(input.map(async (element) => {
       const {
         pId,
@@ -330,10 +348,7 @@ export const registerSalesStore = async (
       const decodePid = deCode(pId)
       if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
       const originalProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(decodePid)
-      if (!originalProduct) {
-        LogDanger(`registerSalesStore: pCodeRef: ${pCodeRef} Product not found`)
-        throw new NotFountError('No se encontró ningún producto proporcionado, parece que fue eliminado')
-      }
+      // Verificar stock disponible
       const resShoppingCard = await ShoppingCard.schema(getTenantName(context?.restaurant)).create({
         pId: deCode(pId),
         id: clientId ? deCode(clientId) : deCode(id),
@@ -344,6 +359,11 @@ export const registerSalesStore = async (
         cantProducts,
         idStore: deCode(context.restaurant)
       })
+      // Actualizar el stock del producto si el producto maneja stock
+      if (originalProduct.manageStock) {
+        await updateStock(null, { productId: decodePid, quantity: cantProducts, type: 'OUT' }, context)
+      }
+
       if (dataExtra?.length > 0) {
         SaleDataExtra.belongsTo(ShoppingCard, { foreignKey: 'shoppingCardId' })
         await SaleDataExtra.schema(getTenantName(context.restaurant)).bulkCreate(dataExtra.map(extra => ({
@@ -450,7 +470,16 @@ export const registerSalesStore = async (
       }
     }
   } catch (e) {
-    console.log(e)
+    // Manaje error stock
+    if (e instanceof ApolloError && e.message.includes('No hay suficiente stock para el producto')) {
+      LogDanger(`registerSalesStore: ${e.message}`)
+      return {
+        Response: {
+          success: false,
+          message: 'No hay suficiente stock para el producto seleccionado'
+        }
+      }
+    }
     let message = 'Lo sentimos, ha ocurrido un error inesperado'
     if (e instanceof NotFountError) {
       message = e.message

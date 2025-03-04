@@ -7,6 +7,7 @@ export const productFoodSchema = Joi.object({
   sizeId: Joi.string().optional(),
   colorId: Joi.string().optional(),
   carProId: Joi.string().allow(null, '').optional(),
+  manageStock: Joi.boolean().allow(null, '').optional(),
   cId: Joi.string().optional(),
   stock: Joi.number().allow(null, '').integer().optional(),
   dId: Joi.string().optional(),

@@ -45,6 +45,8 @@ type ProductFood {
     # Marca
     mark: Trademark
     stock: Int
+    manageStock: Boolean
+    vat: Float
     color: Color
     getStore: Store
     ExtProductFoodsAll: [ExtProductFood]
@@ -97,6 +99,7 @@ input InputProductFood {
     ProBarCode: String
     pState: Int
     sTateLogistic: Int
+    manageStock: Boolean
     pDatCre: DateTime
     pDatMod: DateTime
 }

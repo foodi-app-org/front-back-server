@@ -19,6 +19,42 @@ const getProductsInStock = async (parent, { limit = 10, offset = 0 }, context) =
   }
 }
 
+export const updateStock = async (_parent, { productId, quantity, type }, context) => {
+  try {
+    LogInfo('updateStock', 'updateStock', 'Se ejecuta  resolver')
+    const product = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(productId)
+    if (!product) {
+      throw new Error('Producto no encontrado')
+    }
+    if (type === 'IN') product.stock += quantity
+    else if (type === 'OUT') {
+      if (product.stock < quantity) throw new Error('Not enough stock')
+      product.stock -= quantity
+    }
+
+    await product.save()
+  } catch (error) {
+    LogInfo('updateStock', 'updateStock', 'Error', error)
+    return null
+  }
+}
+
+const updateManageStock = async (_parent, { input }, context) => {
+  const { pId, manageStock } = input
+  try {
+    LogInfo('updateManageStock', 'updateManageStock', 'Se ejecuta  resolver')
+    const product = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { pId } })
+    if (!product) {
+      return { success: false, message: 'Producto no encontrado', data: null }
+    }
+    const data = await product.update({ manageStock })
+    return { success: true, message: manageStock ? 'Manejo de stock habilitado' : 'Manejo de stock deshabilitado', data }
+  } catch (error) {
+    LogInfo('updateManageStock', 'updateManageStock', 'Error', error)
+    return { success: false, message: 'Error al actualizar el stock', data: null }
+  }
+}
+
 export default {
   TYPES: {
   },
@@ -26,6 +62,7 @@ export default {
     getProductsInStock
   },
   MUTATIONS: {
+    updateManageStock
   },
 
   SUBSCRIPTIONS: {
