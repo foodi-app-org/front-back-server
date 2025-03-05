@@ -1,16 +1,21 @@
 import inventoryResolver from './inventory'
+import stockmomentsResolver from './inventory.stockmoments'
 
 export default {
   TYPES: {
-    ...inventoryResolver.TYPES
+    ...inventoryResolver.TYPES,
+    ...stockmomentsResolver.TYPES
   },
   QUERIES: {
-    ...inventoryResolver.QUERIES
+    ...inventoryResolver.QUERIES,
+    ...stockmomentsResolver.QUERIES
   },
   MUTATIONS: {
-    ...inventoryResolver.MUTATIONS
+    ...inventoryResolver.MUTATIONS,
+    ...stockmomentsResolver.MUTATIONS
   },
   SUBSCRIPTIONS: {
-    ...inventoryResolver.SUBSCRIPTIONS
+    ...inventoryResolver.SUBSCRIPTIONS,
+    ...stockmomentsResolver.SUBSCRIPTIONS
   }
 }

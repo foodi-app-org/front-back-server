@@ -1,0 +1,41 @@
+type StockMovement {
+  idstockMoment: ID!
+  productId: ID!
+  movementType: MovementType!
+  quantity: Int!
+  previousStock: Int!
+  newStock: Int!
+  reference: String
+  createdAt: String
+  updatedAt: String
+}
+input StockMovementInput {
+  productId: ID!
+  movementType: MovementType!
+  quantity: Int!
+  previousStock: Int!
+  newStock: Int!
+  reference: String
+}
+
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+type Query {
+  getStockMovements: [StockMovement!]!
+  getStockMovementById(id: ID!): StockMovement
+}
+
+type responseStockMovement {
+    data: StockMovement
+    success: Boolean
+    message: String
+    errors: [errors]
+}
+
+type Mutation {
+  createStockMovement(input: StockMovementInput!): responseStockMovement
+}

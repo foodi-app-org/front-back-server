@@ -1,5 +1,8 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable camelcase */
+
+import { LogDanger } from './logs'
+
 /* eslint-disable n/no-deprecated-api */
 const crypto = require('crypto')
 
@@ -158,14 +161,20 @@ const filterKeyObject = (data, filters) => {
 }
 export const getTenantName = (tenantId) => `tenant_${tenantId}`
 
-export const removeTenantPrefix = (tenantName) => {
-  // Verificar si el nombre del tenant comienza con "tenant_"
-  if (tenantName.startsWith('tenant_')) {
-    // Eliminar el prefijo "tenant_"
-    return tenantName.slice(7)
-  } else {
-    // Si el nombre no tiene el prefijo, devolverlo sin cambios
-    return tenantName
+export const removeTenantPrefix = (tenantName = {}) => {
+  try {
+    const tenant = String(tenantName)
+    // Verificar si el nombre del tenant comienza con "tenant_"
+    if (tenant?.startsWith('tenant_')) {
+      // Eliminar el prefijo "tenant_"
+      return tenant.slice(7)
+    } else {
+      // Si el nombre no tiene el prefijo, devolverlo sin cambios
+      return tenant
+    }
+  } catch (error) {
+    LogDanger(`Error al intentar eliminar el prefijo del tenant: ${error}`)
+    return ''
   }
 }
 

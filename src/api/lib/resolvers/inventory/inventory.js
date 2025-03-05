@@ -42,18 +42,33 @@ export const updateStock = async (_parent, { productId, quantity, type }, contex
 const updateManageStock = async (_parent, { input }, context) => {
   const { pId, manageStock } = input
   try {
-    LogInfo('updateManageStock', 'updateManageStock', 'Se ejecuta  resolver')
+    LogInfo('updateManageStock', 'updateManageStock', 'Se ejecuta resolver')
+
     const product = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { pId } })
     if (!product) {
       return { success: false, message: 'Producto no encontrado', data: null }
     }
-    const data = await product.update({ manageStock })
-    return { success: true, message: manageStock ? 'Manejo de stock habilitado' : 'Manejo de stock deshabilitado', data }
+
+    // Guardar stock anterior solo si se está deshabilitando el manejo de stock
+    const newStock = manageStock ? product.stock || product.previousStock || 0 : 0
+
+    const data = await product.update({
+      manageStock,
+      stock: newStock,
+      ...(manageStock ? {} : { previousStock: product.stock }) // Guardar stock antes de deshabilitar
+    })
+
+    return {
+      success: true,
+      message: manageStock ? 'Manejo de stock habilitado' : 'Manejo de stock deshabilitado',
+      data
+    }
   } catch (error) {
     LogInfo('updateManageStock', 'updateManageStock', 'Error', error)
     return { success: false, message: 'Error al actualizar el stock', data: null }
   }
 }
+
 
 export default {
   TYPES: {

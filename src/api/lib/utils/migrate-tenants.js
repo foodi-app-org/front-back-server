@@ -8,8 +8,7 @@ const tenantMigrator = async () => {
   const schemas = await sequelizeInstance.showAllSchemas({ logging: false })
 
   for (const schema of schemas) {
-    const umzug = await UmzugMigrator(schema)
-
+    const umzug = await UmzugMigrator(schema?.name, 'migrations/*.js')
     try {
       await umzug.up() // Ejecuta todas las migraciones pendientes
       LogSuccess(`Migrated schema: ${schema}`)

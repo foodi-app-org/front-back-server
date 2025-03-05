@@ -178,6 +178,14 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     },
     field: 'manageStock'
   },
+  previousStock: {
+    type: INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
   poPriority: {
     type: SMALLINT,
     allowNull: false,

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 const { CATEGORY_PRODUCT_MODEL } = require('../../models/Store/cat')
 const { removeTenantPrefix, deCode } = require('../util')
 // Lista de elementos a insertar
-const categories = [
+export const categories = [
   { pName: 'Combos' },
   { pName: 'Desayunos' },
   { pName: 'Entradas' },
@@ -17,11 +17,6 @@ const categories = [
   { pName: 'Bebidas' },
   { pName: 'NINGUNO' }
 ]
-
-// const mappedCategories = categories.map(category => ({
-//   pName: category.pName,
-//   pState: 1
-// }))
 
 const mappedCategories = categories.map((category) => ({
   carProId: uuidv4(), // Genera un UUIDv4 para cada categoría

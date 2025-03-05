@@ -35,6 +35,7 @@ import {
 } from '../../utils/logs'
 import DateRange from '../../utils/DateRange'
 import { updateStock } from '../inventory/inventory'
+import { createStockMovement } from '../inventory/inventory.stockmoments'
 
 import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
@@ -359,9 +360,25 @@ export const registerSalesStore = async (
         cantProducts,
         idStore: deCode(context.restaurant)
       })
-      // Actualizar el stock del producto si el producto maneja stock
       if (originalProduct.manageStock) {
-        await updateStock(null, { productId: decodePid, quantity: cantProducts, type: 'OUT' }, context)
+        const movementType = 'OUT'
+        // Actualizar el stock del producto si el producto maneja stock
+        await updateStock(null, {
+          productId: decodePid,
+          quantity: cantProducts,
+          type: movementType
+        }, context)
+
+        // Crear un movimiento de stock
+        await createStockMovement(null, {
+          input: {
+            productId: decodePid,
+            movementType,
+            quantity: cantProducts,
+            previousStock: originalProduct.stock,
+            newStock: originalProduct.stock - cantProducts
+          }
+        }, context)
       }
 
       if (dataExtra?.length > 0) {
@@ -496,7 +513,7 @@ export const registerSalesStore = async (
     return {
       Response: {
         success: false,
-        message: process.env.NODE_ENV === 'development' ? e.message : 'Lo sentimos, ha ocurrido un error inesperado'
+        message
       }
     }
   }

@@ -24,10 +24,12 @@ import {
 import ExtProductFoodSubOptional from '../../models/Store/sales/saleExtProductFoodSubOptional'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
 import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
-
-import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
-import { productFoodSchema } from './schema'
 import { updateStock } from '../inventory/inventory'
+import catProducts from '../../models/Store/cat'
+import { categories } from '../../utils/migrations/20240330051906-bulk-insert-cat-products'
+
+import { productFoodSchema } from './schema'
+import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
 
 export const productsOne = async (root, { pId }, context, info) => {
   try {
@@ -262,13 +264,24 @@ const updateProductFoods = async (_root, { input }, context) => {
         }
       }
     }
-
+    const tenant = getTenantName(context?.restaurant)
     if (!pId) {
       const { count } = await productModelFood
-        .schema(getTenantName(context?.restaurant))
+        .schema(tenant)
         .findAndCountAll()
       const lengthProduct = Number(count)
-
+      const categorieName = categories.at(-1).pName
+      let dataCategoryProduct = {
+        carProId
+      }
+      if (!carProId) {
+        dataCategoryProduct = await catProducts.schema(tenant).findOne({
+          where: {
+            idStore: deCode(context.restaurant),
+            pName: categorieName
+          }
+        })
+      }
       const data = await productModelFood
         .schema(getTenantName(context?.restaurant))
         .create({
@@ -276,7 +289,7 @@ const updateProductFoods = async (_root, { input }, context) => {
           ...input,
           pState: 1,
           idStore: deCode(context.restaurant),
-          carProId: deCode(carProId),
+          carProId: deCode(carProId) || dataCategoryProduct?.carProId,
           id: deCode(context.User.id),
           sizeId: sizeId ? deCode(sizeId) : null,
           colorId: colorId ? deCode(colorId) : null,
@@ -284,7 +297,8 @@ const updateProductFoods = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: lengthProduct + 1,
-          manageStock
+          manageStock,
+          previousStock: Number(input.stock)
         })
 
       return {
@@ -331,7 +345,7 @@ const updateProductFoods = async (_root, { input }, context) => {
  * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
  */
 const updateMultipleProducts = async (_root, { input }, context) => {
-  console.log("🚀 ~ updateMultipleProducts ~ input:", input)
+  console.log('🚀 ~ updateMultipleProducts ~ input:', input)
   try {
     const promises = input.map(async (productInput) => {
       const {

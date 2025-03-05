@@ -199,6 +199,14 @@ exports.up = async (queryInterface, schemaName) => {
       },
       field: 'manageStock'
     },
+    previousStock: {
+      type: INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+      validate: {
+        min: 0
+      }
+    },
     valueDelivery: {
       type: DECIMAL(1000, 2),
       allowNull: true,
