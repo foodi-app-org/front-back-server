@@ -82,7 +82,11 @@ export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
           sales: allPermissions,
           reports: allPermissions,
           settings: allPermissions,
-          dashboard: allPermissions
+          dashboard: allPermissions,
+          inventory: allPermissions,
+          schedules: allPermissions,
+          orders: allPermissions,
+          shopping: allPermissions
         }
       })
       await Users.schema(schemaName).update({ idRole: role.dataValues.idRole }, { where: { id: newUserStoreInSchema.id } })

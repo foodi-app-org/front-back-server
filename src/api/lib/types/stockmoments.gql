@@ -24,9 +24,33 @@ enum MovementType {
   ADJUSTMENT
 }
 
+type StockMovementSummary {
+  date: String
+  total_in: Int
+  total_out: Int
+}
+
+type ProductMovement {
+  productName: String!
+  totalMovements: Int!
+  idProduct: ID
+}
+
+type MonthlySales {
+  month: String!
+  totalSold: Int!
+}
+
+
 type Query {
   getStockMovements: [StockMovement!]!
   getStockMovementById(id: ID!): StockMovement
+  getStockMovementsByDay: [StockMovementSummary!]!
+  getTopProductsMovements: [ProductMovement]
+  getMonthlySales: [MonthlySales!]!
+  getTotalProductsInStock: Int!
+  getTotalSalesSold: Int!
+
 }
 
 type responseStockMovement {

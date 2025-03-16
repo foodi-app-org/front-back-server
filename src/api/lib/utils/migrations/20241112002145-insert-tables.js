@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid')
 
 const { STORE_TABLES } = require('../../models/storeTables')
-const { RandomCode } = require('..')
+
 /**
  * Seed data for store tables
  */
@@ -22,10 +22,10 @@ exports.up = async (queryInterface, schemaName) => {
   // Obtener el idStore usando el esquema (teniendo en cuenta el prefijo)
 
   // Generar y preparar los datos para la inserción
-  const tablesDataWithIds = storeTablesData.map((data) => ({
+  const tablesDataWithIds = storeTablesData.map((data, index) => ({
     ...data,
     tableId: uuidv4(),
-    tableName: RandomCode(9),
+    tableName: `Mesa ${index + 1}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }))

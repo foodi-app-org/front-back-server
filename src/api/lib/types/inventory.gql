@@ -5,6 +5,7 @@ input InputManageStock {
 
 type Query {
   getProductsInStock(limit: Int, offset: Int): [ProductFood]
+  getTotalProductsSold: Int
 }
 
 type Mutation {

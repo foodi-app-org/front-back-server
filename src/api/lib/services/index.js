@@ -1,7 +1,7 @@
 import { Op } from 'sequelize'
 import { ApolloError } from 'apollo-server-express'
 
-import { deCode } from '../utils/util'
+import { deCode, getTenantName } from '../utils/util'
 import { LogDanger } from '../utils/logs'
 
 /**
@@ -15,7 +15,7 @@ class GenericService {
    */
   constructor (model, tenantNameGetter) {
     this.model = model
-    this.tenantNameGetter = tenantNameGetter
+    this.tenantNameGetter = tenantNameGetter || getTenantName
   }
 
   /**
@@ -92,7 +92,6 @@ class GenericService {
         offset,
         order
       })
-
       return {
         success: true,
         message: 'Data fetched successfully',

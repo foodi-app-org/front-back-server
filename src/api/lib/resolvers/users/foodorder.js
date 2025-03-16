@@ -1,8 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { Op } from 'sequelize'
 
-import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
+import StatusPedidosModel, { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
+import connect from '../../db'
 
 // store
 export const getAllPedidoStoreFinal = async (_, args, context, info) => {
@@ -76,70 +77,38 @@ export const getAllSalesStore = async (_, args, context, info) => {
   }
 }
 export const getAllSalesStoreTotal = async (_, args, ctx) => {
-  const {
-    idStore,
-    fromDate,
-    toDate
-  } = args || {}
+  const { idStore } = args || {}
   try {
-    const data = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
-      attributes: ['totalProductsPrice'],
-      where: {
-        [Op.or]: [
-          {
-            pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
-            // ID STORE
-            channel: 1,
-            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
-          }
-        ]
-      }
-    })
+    const tenant = getTenantName(ctx.restaurant)
+    const sequelize = connect()
+    const storeId = idStore ? deCode(idStore) : deCode(ctx.restaurant)
 
-    const dataDelivery = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
-      attributes: ['totalProductsPrice'],
-      where: {
-        [Op.or]: [
-          {
-            pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
-            // ID STORE
-            channel: 0,
-            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
-          }
-        ]
-      }
-    })
-    const dataTotal = await StatusPedidosModel.schema(getTenantName(ctx.restaurant)).findAll({
-      attributes: ['totalProductsPrice'],
-      where: {
-        [Op.or]: [
-          {
-            pSState: 4,
-            ...((fromDate && toDate) ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } } : {}),
-            // ID STORE
-            idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant)
-          }
-        ]
-      }
-    })
-    if (data) {
-      const TOTAL = dataTotal.reduce((a, b) => a + b.totalProductsPrice, 0)
-      const totalRestaurant = data.reduce((a, b) => a + b.totalProductsPrice, 0)
-      const totalDelivery = dataDelivery.reduce((a, b) => a + b.totalProductsPrice, 0)
-      return {
-        restaurant: totalRestaurant ?? 0,
-        delivery: totalDelivery ?? 0,
-        TOTAL
-      }
+    const getTotalSales = async (channel = null) => {
+      const whereChannel = channel !== null ? '"channel" = :channel AND' : ''
+      const query = `
+        SELECT SUM("totalProductsPrice") AS "total"
+        FROM "${tenant}.${STATUS_ORDER_MODEL}"
+        WHERE ${whereChannel} "pSState" = :pSState AND "idStore" = :idStore
+      `
+      const replacements = channel !== null
+        ? { channel, pSState: 4, idStore: storeId }
+        : { pSState: 4, idStore: storeId }
+
+      const [result] = await sequelize.query(query, {
+        type: sequelize.QueryTypes.SELECT,
+        replacements
+      })
+      return result.total ?? 0
     }
-    return {
-      restaurant: 0,
-      delivery: 0
-    }
+
+    const [restaurant, delivery, TOTAL] = await Promise.all([
+      getTotalSales(1),
+      getTotalSales(0),
+      getTotalSales()
+    ]).catch(() => [0, 0, 0])
+    return { restaurant, delivery, TOTAL }
   } catch (error) {
-    return error
+    return { restaurant: 0, delivery: 0, TOTAL: 0 }
   }
 }
 

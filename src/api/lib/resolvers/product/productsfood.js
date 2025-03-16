@@ -27,6 +27,8 @@ import { MAX_INTEGER_MYSQL, stringMessages } from '../../utils'
 import { updateStock } from '../inventory/inventory'
 import catProducts from '../../models/Store/cat'
 import { categories } from '../../utils/migrations/20240330051906-bulk-insert-cat-products'
+import GenericService from '../../services'
+import { movementTypes } from '../../models/inventory/stockMovement'
 
 import { productFoodSchema } from './schema'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
@@ -95,70 +97,138 @@ export const getMinPrice = async (root, { idStore }, context) => {
   }
 }
 export const productFoodsAll = async (root, args, context, info) => {
+  // try {
+  //   const { search, min, max, pId, gender, desc, categories, toDate, fromDate, pState } = args
+  //   let whereSearch = {}
+
+  //   if (search) {
+  //     const searchString = `%${search.replace(/\s+/g, ' ')}%`
+  //     whereSearch = {
+  //       [Op.or]: [
+  //         Sequelize.where(Sequelize.literal('"pName"::text'), { [Op.iLike]: searchString }),
+  //         Sequelize.where(Sequelize.literal('"ProPrice"::text'), { [Op.iLike]: searchString }),
+  //         Sequelize.where(Sequelize.literal('"ProDescuento"::text'), { [Op.iLike]: searchString }),
+  //         Sequelize.where(Sequelize.literal('"ProDelivery"::text'), { [Op.iLike]: searchString })
+  //       ]
+  //     }
+  //   }
+
+  //   if (gender?.length) {
+  //     whereSearch = {
+  //       ...whereSearch,
+  //       ProDelivery: { [Op.in]: gender }
+  //     }
+  //   }
+
+  //   if (desc?.length) {
+  //     whereSearch = {
+  //       ...whereSearch,
+  //       ProDescuento: { [Op.in]: desc }
+  //     }
+  //   }
+
+  //   if (categories?.length) {
+  //     whereSearch = {
+  //       ...whereSearch,
+  //       carProId: { [Op.in]: categories.map(x => deCode(x)) }
+  //     }
+  //   }
+
+  //   const attributes = getAttributes(productModelFood, info)
+
+  //   if (pId) {
+  //     whereSearch = {
+  //       ...whereSearch,
+  //       // eslint-disable-next-line no-unneeded-ternary
+  //       pId: pId ? pId : { [Op.gt]: 0 }
+  //     }
+  //   }
+  //   const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
+  //     attributes,
+  //     where: {
+  //       ...whereSearch,
+  //       idStore: context.restaurant,
+  //       id: context.User.id,
+  //       pState: pState || { [Op.gt]: 0 },
+  //       ...(fromDate && toDate ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {})
+  //     },
+  //     limit: max || 100,
+  //     offset: min || 0,
+  //     order: [['pName', 'DESC']]
+  //   })
+
+  //   return data
+  // } catch (e) {
+  //   const error = new Error(e.message || 'Lo sentimos, ha ocurrido un error interno')
+  //   return error
+  // }
+
   try {
-    const { search, min, max, pId, gender, desc, categories, toDate, fromDate, pState } = args
-    let whereSearch = {}
+    const products = new GenericService(productModelFood, getTenantName)
 
-    if (search) {
-      const searchString = `%${search.replace(/\s+/g, ' ')}%`
-      whereSearch = {
-        [Op.or]: [
-          Sequelize.where(Sequelize.literal('"pName"::text'), { [Op.iLike]: searchString }),
-          Sequelize.where(Sequelize.literal('"ProPrice"::text'), { [Op.iLike]: searchString }),
-          Sequelize.where(Sequelize.literal('"ProDescuento"::text'), { [Op.iLike]: searchString }),
-          Sequelize.where(Sequelize.literal('"ProDelivery"::text'), { [Op.iLike]: searchString })
-        ]
-      }
+    // Definir los filtros y parámetros de pagination
+    const where = {
+      pState: { [Op.gt]: 0 }
     }
 
-    if (gender?.length) {
-      whereSearch = {
-        ...whereSearch,
-        ProDelivery: { [Op.in]: gender }
-      }
+    const searchFields = ['pName'] // Campos a buscar en la búsqueda
+    const attributes = [
+      'pId',
+      'pName',
+      'ProPrice',
+      'ProDescuento',
+      'ProDescription',
+      'ProImage',
+      'ValueDelivery',
+      'ProUniDisponibles',
+      'ProProtegido',
+      'ProAssurance',
+      'ProWidth',
+      'ProHeight',
+      'carProId',
+      'ProLength',
+      'ProWeight',
+      'ProQuantity',
+      'ProOutstanding',
+      'ProDelivery',
+      'ProVoltaje',
+      'pState',
+      'pDatMod',
+      'pDatCre',
+      'sTateLogistic',
+      'manageStock',
+      'previousStock',
+      'ProBarCode'
+    ] // Campos a retornar
+    const pagination = {
+      max: args.max, // Máximo número de registros por página
+      page: args.page // Página actual
     }
 
-    if (desc?.length) {
-      whereSearch = {
-        ...whereSearch,
-        ProDescuento: { [Op.in]: desc }
+    // Obtener los roles usando el servicio genérico
+    if (!context?.User) {
+      return {
+        success: false,
+        message: 'Session expired',
+        data: [],
+        errors: null,
+        pagination: {}
       }
     }
-
-    if (categories?.length) {
-      whereSearch = {
-        ...whereSearch,
-        carProId: { [Op.in]: categories.map(x => deCode(x)) }
-      }
-    }
-
-    const attributes = getAttributes(productModelFood, info)
-
-    if (pId) {
-      whereSearch = {
-        ...whereSearch,
-        // eslint-disable-next-line no-unneeded-ternary
-        pId: pId ? pId : { [Op.gt]: 0 }
-      }
-    }
-    const data = await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
+    const idStore = context.User.restaurant.idStore
+    const response = await products.getAll({
+      where,
+      searchFields,
       attributes,
-      where: {
-        ...whereSearch,
-        idStore: context.restaurant,
-        id: context.User.id,
-        pState: pState || { [Op.gt]: 0 },
-        ...(fromDate && toDate ? { pDatCre: { [Op.between]: [fromDate, `${toDate} 23:59:59`] } } : {})
-      },
-      limit: max || 100,
-      offset: min || 0,
-      order: [['pName', 'DESC']]
+      idStore,
+      pagination,
+      orderFields: [
+        { field: 'pDatCre', direction: 'DESC' }
+      ]
     })
-
-    return data
-  } catch (e) {
-    const error = new Error(e.message || 'Lo sentimos, ha ocurrido un error interno')
-    return error
+    return response
+  } catch (error) {
+    throw new ApolloError('Error fetching roles', '500', { internalData: error })
   }
 }
 
@@ -345,7 +415,6 @@ const updateProductFoods = async (_root, { input }, context) => {
  * @returns {Promise<Array<Object>>} - The result of the operation with success status, data, and message.
  */
 const updateMultipleProducts = async (_root, { input }, context) => {
-  console.log('🚀 ~ updateMultipleProducts ~ input:', input)
   try {
     const promises = input.map(async (productInput) => {
       const {
@@ -358,15 +427,20 @@ const updateMultipleProducts = async (_root, { input }, context) => {
         ctId,
         pId,
         carProId,
+        manageStock,
         ProBarCode
       } = productInput || {}
       if (!pId) {
         const existingProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findOne({ where: { ProBarCode, idStore: deCode(context.restaurant) } })
-
         if (existingProduct) {
           // Si el producto existe, actualiza su stock
-          if (stock && stock > 0) {
-            await updateStock(null, { productId: existingProduct.dataValues.pId, quantity: stock, type: 'IN' }, context)
+          const validStock = stock && stock > 0 && Boolean(existingProduct?.dataValues?.manageStock)
+          if (validStock) {
+            await updateStock(null, {
+              productId: existingProduct.dataValues.pId,
+              quantity: stock,
+              type: movementTypes.IN
+            }, context)
           }
           return {
             success: true,
@@ -384,6 +458,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           ValueDelivery,
           ...productInput,
           pState: 1,
+          manageStock,
           idStore: deCode(context.restaurant),
           carProId: carProId ? deCode(carProId) : null,
           id: deCode(context.User.id),
@@ -413,6 +488,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
 
     return filteredResults
   } catch (error) {
+    console.log('🚀 ~ updateMultipleProducts ~ error:', error)
     return [{
       success: false,
       message: `Error al crear productos: ${error.message}`,

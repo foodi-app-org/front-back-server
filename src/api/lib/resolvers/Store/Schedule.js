@@ -128,11 +128,6 @@ export const getStoreSchedules = async (root, { schDay, idStore }, context, info
   try {
     const storeId = deCode(context.restaurant ?? idStore)
 
-    // Ensure storeId is a valid integer
-    if (!storeId || isNaN(storeId)) {
-      throw new Error('Invalid store ID.')
-    }
-
     const data = await ScheduleStore.schema(getTenantName(context?.restaurant ?? idStore)).findAll({
       attributes: [
         'idStore',

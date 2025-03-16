@@ -1,0 +1,9 @@
+type Query {
+  totalSales: TotalSalesResult!
+}
+
+type TotalSalesResult {
+  success: Boolean!
+  message: String!
+  totalSales: Float
+}

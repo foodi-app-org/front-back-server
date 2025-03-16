@@ -43,7 +43,7 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   },
   pSState: {
     type: STRING(36),
-    defaultValue: 0
+    defaultValue: 4
   },
   valueDelivery: {
     type: DECIMAL(1000, 2),

@@ -99,9 +99,9 @@ input InputSaleStore {
   totalProductsPrice: Float
 }
 type TypeInputSalesChannel {
-    restaurant: Int,
-    delivery: Int,
-    TOTAL: Int,
+    restaurant: Float,
+    delivery: Float,
+    TOTAL: Float,
 }
 
 type StorePedidosFromPSState {

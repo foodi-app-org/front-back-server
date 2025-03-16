@@ -12,6 +12,11 @@ import connect from '../../db'
 
 const conn = connect()
 
+export const movementTypes = Object.freeze({
+  IN: 'IN',
+  OUT: 'OUT',
+  ADJUSTMENT: 'ADJUSTMENT'
+})
 export const STOCK_MOVEMENT_NAME = 'stockMovements'
 
 export default conn.define(STOCK_MOVEMENT_NAME, {

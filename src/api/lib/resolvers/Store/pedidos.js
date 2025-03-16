@@ -1,14 +1,20 @@
+import crypto, { randomUUID } from 'crypto'
+
 import dotenv from 'dotenv'
 import { Op } from 'sequelize'
 
-import productModelFood from '../../models/product/productFood'
-import pedidosModel from '../../models/Store/pedidos'
-import ShoppingCard from '../../models/Store/ShoppingCard'
+import productModelFood, { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
+import pedidosModel, { ORDER_MODEL } from '../../models/Store/pedidos'
+import ShoppingCard, { SHOPPING_CARD_MODEL } from '../../models/Store/ShoppingCard'
 import StatusOrderModel from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
+import connect from '../../db'
+import { STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
 
 import { deleteOneItem, getOneStore } from './store'
+import { UUID } from 'sequelize'
+import { UUIDV4 } from 'sequelize'
 // Configura dotenv
 dotenv.config()
 
@@ -50,17 +56,100 @@ const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, context)
     }
   }
   const state = {
-    1: 'El pedido fue marcado como aprobado',
-    2: 'El pedido fue marcado como en proceso',
-    3: 'El pedido esta listo para salir',
-    4: 'Pedido fue pagado con éxito por el cliente (Concluido)',
-    5: 'Pedido rechazado'
+    1: 'La orden fue marcado como aprobado',
+    2: 'La orden fue marcado como en proceso',
+    3: 'La orden esta listo para salir',
+    4: 'La orden fue pagada con éxito por el cliente (Concluido)',
+    5: 'Orden rechazada'
   }
   try {
-    await StatusOrderModel.schema(getTenantName(context.restaurant)).update(
+    const tenant = getTenantName(context.restaurant)
+    const existingOrder = await StatusOrderModel.schema(tenant).findOne({
+      where: { pCodeRef },
+      attributes: ['pSState']
+    })
+
+    if (!existingOrder) {
+      return {
+        success: false,
+        message: 'La orden no existe.'
+      }
+    }
+
+    if (existingOrder.pSState === 5) {
+      return {
+        success: false,
+        message: 'No se puede cambiar el estado de una orden rechazada.'
+      }
+    }
+    await StatusOrderModel.schema(tenant).update(
       { pSState: pPStateP, pDatMod },
       { where: { pCodeRef } }
     )
+    if (pPStateP === 5) {
+      const sequelize = connect()
+      await sequelize.query(
+        `
+        UPDATE "${tenant}.${PRODUCT_FOOD_MODEL}"
+        SET "stock" = "stock" + (
+          SELECT SUM(sc."cantProducts")
+          FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
+          INNER JOIN "${tenant}.${ORDER_MODEL}" p
+          ON sc."ShoppingCard" = p."ShoppingCard"
+          WHERE p."pCodeRef" = :pCodeRef
+          AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
+        )
+        WHERE EXISTS (
+          SELECT 1 FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
+          INNER JOIN "${tenant}.${ORDER_MODEL}" p
+          ON sc."ShoppingCard" = p."ShoppingCard"
+          WHERE p."pCodeRef" = :pCodeRef
+          AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
+        );
+        `,
+        {
+          replacements: { pCodeRef },
+          type: sequelize.QueryTypes.UPDATE
+        }
+      )
+      const products = await sequelize.query(
+        `
+        SELECT DISTINCT pf.*, sc."cantProducts"
+        FROM "${tenant}.${PRODUCT_FOOD_MODEL}" pf
+        INNER JOIN "${tenant}.${SHOPPING_CARD_MODEL}" sc
+          ON pf."pId" = sc."pId"
+        INNER JOIN "${tenant}.${ORDER_MODEL}" p
+          ON sc."ShoppingCard" = p."ShoppingCard"
+        WHERE p."pCodeRef" = :pCodeRef
+        `,
+        {
+          replacements: { pCodeRef },
+          type: sequelize.QueryTypes.SELECT
+        }
+      )
+      for (const product of products) {
+        const reference = crypto.randomBytes(16).toString('hex');
+        await sequelize.query(
+          `
+          INSERT INTO "${tenant}.${STOCK_MOVEMENT_NAME}" 
+            ("productId", "movementType", "quantity", "previousStock", "newStock", "reference")
+          VALUES 
+            (:productId, 'ADJUSTMENT', :quantity, :previousStock, :newStock, :reference)
+          `,
+          {
+            replacements: {
+              idstockMoment: randomUUID(),
+              productId: product.pId,
+              quantity: product.cantProducts,
+              previousStock: product.stock - product.cantProducts,
+              newStock: product.stock,
+              reference
+            },
+            type: sequelize.QueryTypes.INSERT
+          }
+        )
+      }
+    }
     return {
       success: true,
       message: state[pPStateP]
