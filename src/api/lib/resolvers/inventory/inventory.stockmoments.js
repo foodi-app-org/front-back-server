@@ -8,7 +8,7 @@ import {
   getAttributes,
   getTenantName
 } from '../../utils/util'
-import { LogInfo } from '../../utils/logs'
+import { LogDanger, LogInfo } from '../../utils/logs'
 import connect from '../../db'
 import { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
 import { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
@@ -29,20 +29,22 @@ const getStockMovements = async (_root, _args, context, info) => {
     throw new Error('Error al obtener los movimientos de stock')
   }
 }
-const getStockMovementsByDay = async (_root, _args, context, info) => {
+const getStockMovementsByDay = async (_root, _args, context, _info) => {
   try {
     const data = await stockMovement.schema(getTenantName(context?.restaurant)).findAll({
       attributes: [
         [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
         [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'IN\' THEN quantity ELSE 0 END')), 'total_in'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'OUT\' THEN quantity ELSE 0 END')), 'total_out']
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'OUT\' THEN quantity ELSE 0 END')), 'total_out'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'ADJUSTMENT\' THEN quantity ELSE 0 END')), 'total_adjustment']
       ],
       group: ['date'],
-      order: [[sequelize.literal('date'), 'DESC']],
+      order: [[sequelize.literal('date'), 'ASC']],
       raw: true
     })
     return data
   } catch (e) {
+    LogDanger(`Error in getStockMovementsByDay: ${e}`)
     throw new Error('Error al obtener los movimientos de stock')
   }
 }
@@ -363,6 +365,50 @@ const getTotalProductsSold = async (_root, _args, context) => {
     return 0
   }
 }
+
+const getStockMovementWeeklyComparison = async (_root, _args, context) => {
+  try {
+    const tenant = getTenantName(context?.restaurant)
+    const sequelize = connect()
+
+    const query = `
+      WITH weekly_data AS (
+        SELECT 
+          DATE("createdAt", 'weekday 0', '-6 days') AS week_start,
+          SUM(CASE WHEN "movementType" = 'OUT' THEN quantity ELSE 0 END) AS total_out
+        FROM "${tenant}.${STOCK_MOVEMENT_NAME}"
+        GROUP BY week_start
+        ORDER BY week_start
+      )
+      SELECT 
+        week_start,
+        total_out,
+        LAG(total_out) OVER (ORDER BY week_start) AS prev_total_out,
+        CASE 
+          WHEN LAG(total_out) OVER (ORDER BY week_start) IS NULL THEN NULL
+          WHEN LAG(total_out) OVER (ORDER BY week_start) = 0 THEN 100
+          ELSE ROUND(
+            ((total_out - LAG(total_out) OVER (ORDER BY week_start)) / 
+            CAST(LAG(total_out) OVER (ORDER BY week_start) AS FLOAT)) * 100, 2
+          )
+        END AS percentage_change
+      FROM weekly_data;
+    `
+
+    const results = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
+
+    return results.map(row => ({
+      weekStart: row.week_start,
+      totalOut: row.total_out,
+      prevTotalOut: row.prev_total_out,
+      percentageChange: row.percentage_change
+    }))
+  } catch (e) {
+    LogDanger(`Error in getStockMovementWeeklyComparison: ${e}`)
+    throw new Error('Error al obtener la comparación semanal de movimientos de stock')
+  }
+}
+
 export default {
   TYPES: {
   },
@@ -373,6 +419,7 @@ export default {
     getMonthlySales,
     getTopProductsMovements,
     getStockMovementsByDay,
+    getStockMovementWeeklyComparison,
     getStockMovements,
     getTotalProductsInStock,
     getTotalSalesSold

@@ -1,10 +1,28 @@
 import { Op } from 'sequelize'
+import OpenAI from 'openai'
 
 import { getTenantName } from '../../utils/util'
 import productModelFood from '../../models/product/productFood'
 import { LogInfo } from '../../utils/logs'
 
 const getProductsInStock = async (parent, { limit = 10, offset = 0 }, context) => {
+  const client = new OpenAI({
+    baseURL: 'http://localhost:11434/v1',
+    apiKey: 'ollama'
+  })
+
+  const stream = await client.chat.completions.create({
+    messages: [{ role: 'user', content: 'como te llamas' }],
+    model: 'deepseek-r1:1.5b',
+    stream: true
+  })
+  for await (const chunk of stream) {
+    const content = chunk.choices[0].delta.content
+    if (content) {
+      console.log({ content })
+    }
+  }
+
   try {
     LogInfo('getProductsInStock', 'getProductsInStock', 'Se ejecuta  resolver')
     return await productModelFood.schema(getTenantName(context?.restaurant)).findAll({
@@ -68,7 +86,6 @@ const updateManageStock = async (_parent, { input }, context) => {
     return { success: false, message: 'Error al actualizar el stock', data: null }
   }
 }
-
 
 export default {
   TYPES: {

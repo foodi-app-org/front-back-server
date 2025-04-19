@@ -2,7 +2,7 @@ import os from 'os'
 
 import jwt, { decode } from 'jsonwebtoken'
 import { google } from 'googleapis'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import nodemailer from 'nodemailer'
 
 require('dotenv').config()

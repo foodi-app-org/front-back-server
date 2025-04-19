@@ -28,6 +28,7 @@ type StockMovementSummary {
   date: String
   total_in: Int
   total_out: Int
+  total_adjustment: Int
 }
 
 type ProductMovement {
@@ -42,10 +43,19 @@ type MonthlySales {
 }
 
 
+type WeeklyStockChange {
+  weekStart: String
+  totalOut: Int
+  prevTotalOut: Int
+  percentageChange: Float
+}
+
+
 type Query {
   getStockMovements: [StockMovement!]!
   getStockMovementById(id: ID!): StockMovement
   getStockMovementsByDay: [StockMovementSummary!]!
+  getStockMovementWeeklyComparison: [WeeklyStockChange]
   getTopProductsMovements: [ProductMovement]
   getMonthlySales: [MonthlySales!]!
   getTotalProductsInStock: Int!

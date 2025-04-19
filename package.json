@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "license": "ISC",
-  "main": "main.js",
+  "main": "build/app.js",
   "bin": {
     "server": "build/app.js"
   },
@@ -15,7 +15,7 @@
     "@graphql-tools/schema": "8.3.1",
     "apollo-server": "3.6.3",
     "apollo-server-express": "3.6.3",
-    "bcrypt": "5.1.1",
+    "bcryptjs": "^3.0.2",
     "body-parser": "1.19.2",
     "cookie-parser": "1.4.6",
     "cookie-session": "^2.0.0",
@@ -38,6 +38,8 @@
     "multer": "1.4.4",
     "mysql2": "2.3.3",
     "nodemailer": "6.9.5",
+    "ollama": "^0.5.14",
+    "openai": "4.90.0",
     "pg": "8.11.3",
     "pg-hstore": "2.3.4",
     "sequelize": "^6.37.1",
@@ -64,6 +66,7 @@
     "babel-node": "0.0.1-security",
     "concurrently": "^9.1.2",
     "electron": "34.1.0",
+    "electron-builder": "26.0.12",
     "eslint": "^8.50.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.28.1",
@@ -71,19 +74,13 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "esm": "^3.2.25",
-    "husky": "^8.0.3",
     "nodemon": "2.0.15",
     "pkg": "^5.8.1",
     "sequelize-cli": "^6.6.2"
   },
-  "husky": {
-    "hooks": {
-      "commit-msg": "npm run commitlint"
-    }
-  },
   "scripts": {
     "babel-node": "babel-node --presets=@babel/preset-env",
-    "build": "babel src/ --out-dir build",
+    "build": "babel src/ --out-dir build --copy-files",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
     "migration:run:public": "npm run babel-node src/api/lib/db/migrations/migrations.public.js up",
@@ -93,8 +90,7 @@
     "lint": "eslint .",
     "migrate": "npx sequelize-cli db:migrate",
     "lint:fix": "eslint --fix .",
-    "prepare": "husky install",
-    "start": "node src/app.js",
+    "start": "node build/app.js",
     "build:pkg": "pkg . --out-path dist",
     "build:all": "concurrently \"npm run build\" \"npm run build:pkg\"",
     "build:electron": "electron-builder",
@@ -115,16 +111,31 @@
       }
     ]
   },
-  "pkg": {
-    "scripts": "build/**/*.js",
-    "assets": [
-      "public/**/*",
-      "uploads/**/*",
-      "config/**/*",
-      ".env"
-    ],
-    "targets": [
-      "node18-win-x64"
-    ]
-  }
+"pkg": {
+  "scripts": "build/**/*.js",
+  "assets": [
+    "public/**/*",
+    "uploads/**/*",
+    "config/**/*",
+    ".env",
+    "src/api/lib/types/**/*",
+    "build/api/lib/types/**/*",
+
+    "node_modules/sequelize/lib/**/*.js",
+    "node_modules/sqlite3/**/*"
+  ],
+  "win": {
+    "gui": true
+  },
+  "files": [
+    "build/**/*",
+    "node_modules/**/*",
+    "**/*",
+    "!**/*.map"
+  ],
+  "targets": [
+    "node18-win-x64"
+  ]
+}
+
 }

@@ -4,8 +4,7 @@ import {
   ENUM,
   INTEGER,
   STRING,
-  DATE,
-  NOW
+  DATE
 } from 'sequelize'
 
 import connect from '../../db'
@@ -57,11 +56,11 @@ export default conn.define(STOCK_MOVEMENT_NAME, {
   },
   createdAt: {
     type: DATE,
-    defaultValue: NOW
+    defaultValue: Date.now()
   },
   updatedAt: {
     type: DATE,
-    defaultValue: NOW
+    defaultValue: Date.now()
   }
 }, {
   timestamps: false

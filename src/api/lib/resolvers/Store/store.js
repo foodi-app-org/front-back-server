@@ -533,7 +533,7 @@ export const getTodaySales = async (_, args, ctx) => {
         pSState: 4,
         idStore: deCode(ctx.restaurant),
         pDatCre: {
-          [Op.between]: [start.toISOString(), end.toISOString()]
+          [Op.between]: [start, end]
         }
       }
     })

@@ -49,11 +49,11 @@ exports.up = async (queryInterface, schemaName) => {
     },
     createdAt: {
       type: DATE,
-      defaultValue: NOW
+      defaultValue: Date.now()
     },
     updatedAt: {
       type: DATE,
-      defaultValue: NOW
+      defaultValue: Date.now()
     }
   }, { schema: schemaName })
 }

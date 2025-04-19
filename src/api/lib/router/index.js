@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
-import { updatePhoto } from '../controller/photos'
-import upload from '../multer'
+// import { updatePhoto } from '../controller/photos'
+// import upload from '../multer'
 import { newRegisterUser } from '../resolvers/users/user'
 import UserDeviceModel from '../models/users/userDevice'
 import { deCode } from '../utils/util'
@@ -107,9 +107,9 @@ export const getDevice = async ({ input }) => {
   }
 }
 
-router.route('/photos')
-  .get(updatePhoto)
-  .post(upload.single('image'), updatePhoto)
+// router.route('/photos')
+//   .get(updatePhoto)
+//   .post(upload.single('image'), updatePhoto)
 
 router.route('/photos/:id')
 

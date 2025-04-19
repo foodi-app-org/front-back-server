@@ -2,7 +2,7 @@
 import crypto from 'crypto'
 
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
-import { Op, Sequelize } from 'sequelize'
+import { Op } from 'sequelize'
 import Joi from 'joi'
 
 import AreasModel from '../../models/areas/AreasModel'
@@ -197,6 +197,7 @@ export const productFoodsAll = async (root, args, context, info) => {
       'pDatCre',
       'sTateLogistic',
       'manageStock',
+      'stock',
       'previousStock',
       'ProBarCode'
     ] // Campos a retornar
@@ -312,6 +313,7 @@ const updateProductFoods = async (_root, { input }, context) => {
     pState,
     carProId
   } = input || {}
+  console.log("🚀 ~ updateProductFoods ~ input:", input)
 
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {

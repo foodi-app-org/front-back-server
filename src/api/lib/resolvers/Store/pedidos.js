@@ -1,7 +1,7 @@
 import crypto, { randomUUID } from 'crypto'
 
 import dotenv from 'dotenv'
-import { Op } from 'sequelize'
+import { Op, UUID, UUIDV4 } from 'sequelize'
 
 import productModelFood, { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
 import pedidosModel, { ORDER_MODEL } from '../../models/Store/pedidos'
@@ -13,8 +13,8 @@ import connect from '../../db'
 import { STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
 
 import { deleteOneItem, getOneStore } from './store'
-import { UUID } from 'sequelize'
-import { UUIDV4 } from 'sequelize'
+import DateRange from '../../utils/DateRange'
+
 // Configura dotenv
 dotenv.config()
 
@@ -128,13 +128,13 @@ const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, context)
         }
       )
       for (const product of products) {
-        const reference = crypto.randomBytes(16).toString('hex');
+        const reference = crypto.randomBytes(16).toString('hex')
         await sequelize.query(
           `
           INSERT INTO "${tenant}.${STOCK_MOVEMENT_NAME}" 
-            ("productId", "movementType", "quantity", "previousStock", "newStock", "reference")
+            ("productId", "movementType", "quantity", "previousStock", "newStock", "reference", "createdAt", "updatedAt")
           VALUES 
-            (:productId, 'ADJUSTMENT', :quantity, :previousStock, :newStock, :reference)
+            (:productId, 'ADJUSTMENT', :quantity, :previousStock, :newStock, :reference, :createdAt, :updatedAt);
           `,
           {
             replacements: {
@@ -143,7 +143,9 @@ const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, context)
               quantity: product.cantProducts,
               previousStock: product.stock - product.cantProducts,
               newStock: product.stock,
-              reference
+              reference,
+              createdAt: new Date(),
+              updatedAt: new Date()
             },
             type: sequelize.QueryTypes.INSERT
           }
@@ -300,20 +302,18 @@ const getPedidosByState = async ({
   min,
   max
 }) => {
-  const START = new Date()
-  START.setHours(0, 0, 0, 0)
-  const NOW = new Date()
-
+  const todayRange = new DateRange()
+  const { start, end } = todayRange.getRange()
   const where = {
     [Op.and]: [
       {
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
         pSState,
         ...((fromDate && toDate)
-          ? { pDatCre: { [Op.between]: [fromDate, `${toDate}`] } }
+          ? { pDatCre: { [Op.between]: [fromDate, toDate] } }
           : {
             pDatCre: {
-              [Op.between]: [START.toISOString(), NOW.toISOString()]
+              [Op.between]: [start, end]
             }
           })
       }
@@ -422,6 +422,7 @@ const getOrdersByState = async ({
 
 export const getAllOrdersFromStore = async (_, args, ctx, info) => {
   const { idStore, statusOrder, fromDate, toDate, search, min, cId, dId, ctId, max } = args || {}
+  console.log('🚀 ~ getAllOrdersFromStore ~ fromDate, toDate:', fromDate, toDate)
   const attributes = [
     'stPId',
     'id',
@@ -444,7 +445,21 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
     'updatedAt']
 
   try {
-    const ordersByState = await getOrdersByState({ idStore, cId, dId, ctId, search, min, fromDate, toDate, max, statusOrder, ctx, info, attributes })
+    const ordersByState = await getOrdersByState({
+      idStore,
+      cId,
+      dId,
+      ctId,
+      search,
+      min,
+      fromDate,
+      toDate,
+      max,
+      statusOrder,
+      ctx,
+      info,
+      attributes
+    })
     return ordersByState
   } catch (error) {
     return new Error('Ocurrió un error')
