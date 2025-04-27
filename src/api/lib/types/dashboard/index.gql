@@ -1,0 +1,36 @@
+type DashboardComponent {
+  id: ID
+  idStore: ID
+  idUser: ID
+  coordinates: JSON
+  createAt: String
+  updateAt: String
+}
+
+input DashboardComponentInput {
+  idStore: ID
+  idUser: ID
+  coordinates: JSON!
+}
+
+input DashboardComponentUpdateInput {
+  id: ID!
+  coordinates: JSON
+}
+
+type Query {
+  dashboardComponents: [DashboardComponent!]!
+  dashboardComponent(id: ID!): DashboardComponent
+}
+
+type ResponseDashboardComponent {
+    success: Boolean!
+    message: String
+    data: DashboardComponent
+    errors: [errors]
+}
+type Mutation {
+  createDashboardComponent(input: DashboardComponentInput!): ResponseDashboardComponent!
+  updateDashboardComponent(input: DashboardComponentUpdateInput!): ResponseDashboardComponent!
+  deleteDashboardComponent(id: ID!): ResponseDashboardComponent!
+}

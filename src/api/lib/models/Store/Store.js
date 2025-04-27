@@ -4,6 +4,7 @@ import {
   STRING,
   DATE,
   UUIDV4
+  , DECIMAL
 } from 'sequelize'
 
 import connect from '../../db'
@@ -107,6 +108,14 @@ const Store = sequelize.define(STORE_MODEL, {
   },
   socialRaz: {
     type: STRING
+  },
+  dailyGoal: {
+    type: DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0.00, // define un valor por defecto
+    validate: {
+      min: 0
+    }
   },
   Image: {
     type: STRING,

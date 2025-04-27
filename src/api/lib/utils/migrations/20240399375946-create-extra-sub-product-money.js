@@ -4,12 +4,11 @@ const {
   INTEGER,
   DECIMAL
 } = require('sequelize')
-
+const { UUIDV4 } = require('sequelize')
 
 const { EXTRA_PRODUCT_MODEL } = require('../../models/product/productExtras')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { PRODUCT_FOOD_MODEL } = require('../../models/product/productFood')
-const { UUIDV4 } = require('sequelize')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(EXTRA_PRODUCT_MODEL, {

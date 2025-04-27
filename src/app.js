@@ -52,6 +52,7 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
       process.env.WEB_CLIENT,
       process.env.WEB_ADMIN_STORE,
       'http://localhost:3000',
+      'http://localhost:8080',
       'http://localhost:3001',
       'http://localhost:3002',
       'http://localhost:3003',
@@ -180,13 +181,9 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
       }
     )
 
-    // Evita que el proceso se cierre
-    setInterval(() => {}, 1000)
-
     httpServer.listen(GRAPHQL_PORT, () => {
       LogSuccess(`🚀 Query endpoint ready at http://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
       LogSuccess(`🚀 Subscription endpoint ready at ws://localhost:${GRAPHQL_PORT}${server.graphqlPath}`)
-      process.stdin.resume()
     })
     httpServer.on('error', (err) => {
       console.error('❌ Error al levantar el servidor HTTP:', err)

@@ -15,6 +15,8 @@ import emplooyeStore from './employee'
 import storesPendingToRegister from './storesPendingToRegister'
 import modules from './modules'
 import tables from './tables'
+import getLocalInfo from './getLocalInfo'
+import dashboard from './dashboard'
 
 export default {
   TYPES: {
@@ -33,7 +35,9 @@ export default {
     ...storyStore.TYPES,
     ...shoppingStore.TYPES,
     ...contactStore.TYPES,
-    ...createCatOfProductsResolver.TYPES
+    ...createCatOfProductsResolver.TYPES,
+    ...getLocalInfo.TYPES,
+    ...dashboard.TYPES
   },
   QUERIES: {
     ...modules.QUERIES,
@@ -52,7 +56,10 @@ export default {
     ...contactStore.QUERIES,
     ...createCatOfProductResolver.QUERIES,
     ...storyStore.QUERIES,
-    ...ContractResolver.QUERIES
+    ...ContractResolver.QUERIES,
+    ...getLocalInfo.QUERIES,
+    ...dashboard.QUERIES
+
   },
   MUTATIONS: {
     ...modules.MUTATIONS,
@@ -71,6 +78,8 @@ export default {
     ...pedidosResolver.MUTATIONS,
     ...createCatOfProductResolver.MUTATIONS,
     ...storyStore.MUTATIONS,
-    ...createCatOfProductsResolver.MUTATIONS
+    ...createCatOfProductsResolver.MUTATIONS,
+    ...getLocalInfo.MUTATIONS,
+    ...dashboard.MUTATIONS
   }
 }

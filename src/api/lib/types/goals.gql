@@ -1,0 +1,20 @@
+# typeDefs.js
+type Goal {
+  idStore: ID!
+  dailyGoal: Float
+}
+
+input CreateGoalInput {
+    dailyGoal: Float
+    idStore: ID
+}
+
+type ResponseGoal {
+    success: Boolean
+    message: String
+    data: Goal
+    errors: [errors]
+}
+type Mutation {
+  upsertGoal(input: CreateGoalInput!): ResponseGoal
+}

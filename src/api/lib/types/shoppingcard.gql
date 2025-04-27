@@ -103,11 +103,20 @@ input IShoppingCard {
     dataOptional: [ExtProductFoodOptionalInput]
 }
 
+type SalesAmountTodayResponse {
+  success: Boolean!
+  message: String!
+  total: Float!
+}
+
 # Query
 type Query {
   getAllShoppingCard: [ShoppingCard]
   getTodaySales: Int
+  getSalesAmountToday: SalesAmountTodayResponse!
 }
+
+
 # Mutations
 type Mutation {
   registerShoppingCard(input: IShoppingCard, idSubArray: IID_SUB_ITEMS): ShoppingCard

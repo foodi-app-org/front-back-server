@@ -128,6 +128,67 @@ export const subModules = async (parent, args, ctx, info) => {
   }
 }
 
+const updateModuleOrder = async (_, { input }, ctx) => {
+  try {
+    const schema = ModulesModel.schema(getTenantName(ctx?.restaurant))
+
+    // Verificar que los módulos existen en el restaurante
+    const modulesToUpdate = await schema.findAll({
+      where: {
+        mId: input.map(item => deCode(item.mId))
+      }
+    })
+
+    // Verificar si se encontraron todos los módulos
+    // if (modulesToUpdate.length !== input.length) {
+    //   return {
+    //     success: false,
+    //     message: 'Algunos módulos no fueron encontrados o no pertenecen a este restaurante',
+    //     modules: [],
+    //     errors: [{ message: 'Módulos no encontrados', code: 'MODULE_NOT_FOUND' }]
+    //   }
+    // }
+
+    // Actualizar el orden de los módulos
+    const updatedModules = []
+    for (let i = 0; i < input.length; i++) {
+      const { mId, mPriority } = input[i]
+      const [updatedModule] = await schema.update(
+        { mPriority }, // Nueva prioridad
+        {
+          where: {
+            mId: deCode(mId)
+          }
+        })
+
+      if (updatedModule) {
+        updatedModules.push(updatedModule)
+      } else {
+        return {
+          success: false,
+          message: `No se pudo actualizar el módulo con ID ${mId}`,
+          modules: [],
+          errors: [{ message: `Error al actualizar módulo con ID ${mId}`, code: 'UPDATE_FAILED' }]
+        }
+      }
+    }
+
+    // Respuesta exitosa con los módulos actualizados
+    return {
+      success: true,
+      message: 'El orden de los módulos ha sido actualizado correctamente.',
+      modules: updatedModules,
+      errors: [] // No hubo errores
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Error inesperado al actualizar el orden de los módulos.',
+      modules: [],
+      errors: [{ message: error.message, code: 'UNKNOWN_ERROR' }]
+    }
+  }
+}
 export const subModule = async (_, { id }, ctx, info) => {
   try {
     const attributes = getAttributes(SubModulesModel, info)
@@ -168,6 +229,7 @@ export default {
     subModule
   },
   MUTATIONS: {
+    updateModuleOrder,
     createModule,
     deleteModule,
     createSubModule,

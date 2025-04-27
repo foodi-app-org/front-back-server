@@ -113,6 +113,7 @@ type Store {
     deliveryTimeMinutes: Int
     city: City
     department: Department
+    dailyGoal: Float
     getStoreSchedules: [StoreSchedule]
     getAllRatingStar: [Star]
 }

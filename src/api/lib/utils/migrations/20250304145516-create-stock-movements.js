@@ -4,8 +4,7 @@ const {
   ENUM,
   INTEGER,
   STRING,
-  DATE,
-  NOW
+  DATE
 } = require('sequelize')
 
 const { STOCK_MOVEMENT_NAME } = require('../../models/inventory/stockMovement')

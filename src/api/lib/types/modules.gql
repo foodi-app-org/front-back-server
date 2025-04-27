@@ -50,8 +50,21 @@ type Query {
     subModules: [SubModule]
     subModule: SubModule
 }
+input UpdateModuleOrderInput {
+  mId: ID!               # ID del módulo que se va a actualizar
+  mPriority: Int         # Nueva prioridad del módulo
+}
+
+type UpdateModuleOrderPayload {
+    success: Boolean! # Indica si la actualización fue exitosa
+    message: String! # Mensaje de éxito o error
+    modules: [Module] # El módulo actualizado
+    errors: [errors]
+ # Lista de errores, si los hay
+}
 
 type Mutation {
+    updateModuleOrder(input: [UpdateModuleOrderInput]!): UpdateModuleOrderPayload
     registerModule(input: ModuleInput, inputLineItemsMod: ModuleInputLineItem): Module
     editModule(input: ModuleInput): Module
     deleteOneModule(mId: ID): Boolean

@@ -20,7 +20,7 @@ import RatingStore from '../../models/Store/ratingStore'
 import ratingStoreStart from '../../models/Store/ratingStoreStart'
 import ScheduleStore from '../../models/Store/scheduleStore'
 import ShoppingCard from '../../models/Store/ShoppingCard'
-import StatusOrderModel from '../../models/Store/statusPedidoFinal'
+import StatusOrderModel, { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
 import Store from '../../models/Store/Store'
 import clients from '../../models/Store/clients'
 import { createTenant } from '../tenant/tenant.resolver'
@@ -41,6 +41,8 @@ import { createOnePedidoStore } from './pedidos'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
+import connect from '../../db'
+import sequelize from 'sequelize'
 
 require('dotenv').config()
 
@@ -541,6 +543,52 @@ export const getTodaySales = async (_, args, ctx) => {
     return data ?? 0
   } catch (error) {
     return 0
+  }
+}
+
+const getSalesAmountToday = async (_, args, ctx) => {
+  try {
+    if (!ctx.restaurant) {
+      return {
+        success: false,
+        message: 'El contexto no contiene un restaurante válido',
+        total: 0
+      }
+    }
+
+    const { start, end } = new DateRange().getRange()
+    // console.log("🚀 ~ getTodaySales ~ start, end:", start, end)
+
+    const sequelize = connect()
+    const tenant = getTenantName(ctx?.restaurant)
+    const result = await sequelize.query(
+      `
+        SELECT ROUND(SUM("totalProductsPrice"), 2) AS "total"
+        FROM "${tenant}.${STATUS_ORDER_MODEL}"
+        WHERE "pSState" = 4 
+          AND "idStore" = :idStore 
+          AND "pDatCre" >= :start AND "pDatCre" <= :end;
+      `,
+      {
+        replacements: {
+          idStore: deCode(ctx.restaurant),
+          start,
+          end
+        },
+        type: sequelize.QueryTypes.SELECT
+      }
+    )
+    return {
+      success: true,
+      message: 'Monto total de ventas del día obtenido',
+      total: result[0]?.total ?? 0
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: 'Error interno al obtener las ventas de hoy',
+      total: 0
+    }
   }
 }
 
@@ -1209,6 +1257,56 @@ export const getAllMatchesStore = async (root, args, context, info) => {
   }
 }
 
+const upsertGoal = async (_, { input }, context) => {
+  const { User, restaurant: idStore } = context || {}
+  if (!User) {
+    throw new GraphQLError('Session expired', {
+      extensions: { code: 'SESSION_EXPIRED', http: { status: 401 } }
+    })
+  }
+
+  try {
+    LogInfo(`upsertGoal: ${JSON.stringify(input)}`)
+
+    const schema = Store.schema(getTenantName(idStore))
+    const { dailyGoal } = input || {}
+    if (!dailyGoal) {
+      return {
+        success: false,
+        message: 'La meta diaria no puede ser nula o indefinida',
+        data: null
+      }
+    }
+    const store = await schema.findOne({
+      attributes: ['dailyGoal', 'idStore'],
+      where: { idStore }
+    })
+
+    if (store) {
+      await schema.update({ dailyGoal }, { where: { idStore: deCode(idStore) } })
+
+      return {
+        success: true,
+        message: 'Meta actualizada con éxito',
+        data: store
+      }
+    }
+
+    return {
+      success: false,
+      message: 'No se encontró la tienda',
+      data: null
+    }
+  } catch (e) {
+    return {
+      success: false,
+      message: 'Lo sentimos, ha ocurrido un error interno',
+      errors: e,
+      data: null
+    }
+  }
+}
+
 export default {
   TYPES: {
     FavoriteStore: {
@@ -1367,6 +1465,7 @@ export default {
     }
   },
   QUERIES: {
+    getSalesAmountToday,
     getFavorite,
     getAllRatingStar,
     getOneRating,
@@ -1380,6 +1479,7 @@ export default {
   },
   MUTATIONS: {
     newRegisterStore,
+    upsertGoal,
     createDeliveryTime,
     setFavorites,
     setRatingStar,

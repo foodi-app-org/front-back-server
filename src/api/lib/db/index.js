@@ -43,7 +43,10 @@ const connectConfig = useSQLITE
     dialect: 'sqlite',
     storage: sqliteDatabasePath,
     logging: false,
-    schema: 'public'
+    schema: 'public',
+    dialectOptions: {
+      useUTC: true
+    }
   }
   : {
     host: process.env.HOST_DB,

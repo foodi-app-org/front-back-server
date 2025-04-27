@@ -124,9 +124,6 @@
     "node_modules/sequelize/lib/**/*.js",
     "node_modules/sqlite3/**/*"
   ],
-  "win": {
-    "gui": true
-  },
   "files": [
     "build/**/*",
     "node_modules/**/*",
@@ -134,7 +131,7 @@
     "!**/*.map"
   ],
   "targets": [
-    "node18-win-x64"
+    "node16-win-x64"
   ]
 }
 

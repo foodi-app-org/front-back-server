@@ -15,28 +15,28 @@ exports.up = async (queryInterface, schemaName) => {
       module: { mId: uuidv4(), view: 'dashboard', mName: 'Home', mPath: 'dashboard', mPriority: 1, mIcon: 1, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'orders', mName: 'Pedidos', mPath: 'pedidos', mPriority: 2, mIcon: 2, mState: 1 }
+      module: { mId: uuidv4(), view: 'orders', mName: 'Pedidos', mPath: 'orders', mPriority: 2, mIcon: 2, mState: 1 }
     },
     {
       module: { mId: uuidv4(), view: 'dashboard', mName: 'Perfil', mPath: `dashboard/${storeName}/${store?.dataValues?.idStore}`, mPriority: 3, mIcon: 3, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'schedules', mName: 'Horarios', mPath: 'horarios', mPriority: 4, mIcon: 4, mState: 1 }
+      module: { mId: uuidv4(), view: 'schedules', mName: 'Horarios', mPath: 'schedules', mPriority: 4, mIcon: 4, mState: 1 }
     },
     {
       module: { mId: uuidv4(), view: 'schedules', mName: 'Tiempo de entrega', mPath: '?time=true', mPriority: 5, mIcon: 5, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'reports', mName: 'Ventas', mPath: 'ventas', mPriority: 6, mIcon: 6, mState: 1 }
+      module: { mId: uuidv4(), view: 'reports', mName: 'Ventas', mPath: 'sales', mPriority: 6, mIcon: 6, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'reports', mName: 'Informes', mPath: 'informes', mPriority: 7, mIcon: 7, mState: 1 }
+      module: { mId: uuidv4(), view: 'reports', mName: 'Informes', mPath: 'analytics', mPriority: 7, mIcon: 7, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'clients', mName: 'Clientes', mPath: 'clientes', mPriority: 7, mIcon: 8, mState: 1 }
+      module: { mId: uuidv4(), view: 'clients', mName: 'Clientes', mPath: 'clients', mPriority: 7, mIcon: 8, mState: 1 }
     },
     {
-      module: { mId: uuidv4(), view: 'categories', mName: 'Categorías', mPath: 'categorias', mPriority: 8, mIcon: 9, mState: 1 }
+      module: { mId: uuidv4(), view: 'categories', mName: 'Categorías', mPath: 'categories', mPriority: 8, mIcon: 9, mState: 1 }
     },
     {
       module: { mId: uuidv4(), view: 'products', mName: 'Productos', mPath: 'products/products?all=true', mPriority: 10, mIcon: 1, mState: 1 },

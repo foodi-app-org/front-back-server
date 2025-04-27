@@ -1,11 +1,9 @@
 const { STRING, INTEGER, BOOLEAN, DATE, DataTypes, UUIDV4 } = require('sequelize')
 
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
-const { MODEL_COUNTRIES_NAME } = require('../../models/information/CountriesModel')
 const { USER_MODEL } = require('../../models/Users')
-const { MODEL_DEPARTMENTS_NAME } = require('../../models/information/DepartmentsModel')
-const { MODEL_CITIES_NAME } = require('../../models/information/CitiesModel')
 const { MODEL_CAT_STORE_NAME } = require('../../models/information/CategorieStore')
+const { DECIMAL } = require('sequelize')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(STORE_MODEL, {
@@ -112,6 +110,14 @@ exports.up = async (queryInterface, schemaName) => {
     },
     socialRaz: {
       type: STRING
+    },
+    dailyGoal: {
+      type: DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0.00, // define un valor por defecto
+      validate: {
+        min: 0
+      }
     },
     Image: {
       type: STRING,
