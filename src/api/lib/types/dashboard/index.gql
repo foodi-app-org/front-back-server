@@ -29,6 +29,7 @@ type ResponseDashboardComponent {
     data: DashboardComponent
     errors: [errors]
 }
+
 type Mutation {
   createDashboardComponent(input: DashboardComponentInput!): ResponseDashboardComponent!
   updateDashboardComponent(input: DashboardComponentUpdateInput!): ResponseDashboardComponent!

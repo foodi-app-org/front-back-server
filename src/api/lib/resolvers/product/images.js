@@ -6,7 +6,7 @@ import { getTenantName } from '../../utils/util'
 import productModelFood from '../../models/product/productFood'
 
 import { ImageProductschema } from './schema'
-const userDataPath = path.join(os.homedir(), 'app_data')
+export const userDataPath = path.join(os.homedir(), 'app_data')
 // Asegurar que la carpeta existe
 if (!fs.existsSync(userDataPath)) {
   fs.mkdirSync(userDataPath, { recursive: true })

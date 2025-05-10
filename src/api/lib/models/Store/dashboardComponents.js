@@ -1,7 +1,6 @@
 import Sequelize, { STRING, INTEGER } from 'sequelize'
 
 import connect from '../../db'
-import Users from '../Users'
 
 import Store from './Store'
 

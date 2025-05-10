@@ -1,0 +1,24 @@
+# Define el tipo de entrada (input type) para la mutación
+input IBanner {
+  bnImage: Upload  # Asumiendo que estás usando un tipo Upload para manejar archivos
+  idStore: String   # ID del comercio
+}
+
+# Define el tipo de respuesta (response type) para la mutación
+type RegisterBannerResponse {
+  success: Boolean!
+  message: String!
+}
+
+# Definir la mutación
+type Mutation {
+  registerBanner(input: IBanner): RegisterBannerResponse!
+  deleteOneBanner(
+    bnState: Int
+    idStore: ID
+    bnId: ID
+    bnImage: String
+    bnImageFileName: String
+  ): RegisterBannerResponse!
+}
+
