@@ -208,7 +208,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
   }
 }
 // store
-export const getAllPedidoStore = async (_, args, ctx, info) => {
+export const getStoreOrders = async (_, args, ctx, info) => {
   const { idStore } = args
   try {
     const attributes = getAttributes(pedidosModel, info)
@@ -257,7 +257,7 @@ const getAllIncomingToDayOrders = async (_, args, ctx, info) => {
   }
 }
 // store
-export const getAllPedidoStoreFinal = async (_, args, ctx, info) => {
+export const getStoreOrdersFinal = async (_, args, ctx, info) => {
   const { idStore, statusOrder, fromDate, toDate } = args || {}
   const START = new Date()
   START.setHours(0, 0, 0, 0)
@@ -497,7 +497,7 @@ const getAllPedidoUserFinal = async (_, args, ctx, info) => {
   }
 }
 
-export const getOnePedidoStore = async (_, { pCodeRef }, ctx, info) => {
+export const getStoreOrderById = async (_, { pCodeRef }, ctx, info) => {
   try {
     const attributes = getAttributes(StatusOrderModel, info)
     const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).findOne({
@@ -541,7 +541,7 @@ export default {
           return null
         }
       },
-      getAllPedidoStore: async (parent, _args, context, info) => {
+      getStoreOrders: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(pedidosModel, info)
           const data = await pedidosModel.schema(getTenantName(context.restaurant)).findAll({
@@ -568,11 +568,11 @@ export default {
     }
   },
   QUERIES: {
-    getAllPedidoStore,
-    getAllPedidoStoreFinal,
+    getStoreOrders,
+    getStoreOrdersFinal,
     getAllOrdersFromStore,
     getAllIncomingToDayOrders,
-    getOnePedidoStore,
+    getStoreOrderById,
     // User
     getAllPedidoUserFinal
   },

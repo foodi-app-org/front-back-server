@@ -27,6 +27,11 @@ export default conn.define(DASHBOARD_COMPONENTS, {
       key: 'idStore'
     }
   },
+  title: {
+    type: STRING(255),
+    allowNull: false,
+    defaultValue: ''
+  },
   coordinates: {
     type: Sequelize.JSONB,
     allowNull: false,

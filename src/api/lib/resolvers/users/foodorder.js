@@ -6,7 +6,7 @@ import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import connect from '../../db'
 
 // store
-export const getAllPedidoStoreFinal = async (_, args, context, info) => {
+export const getStoreOrdersFinal = async (_, args, context, info) => {
   const { idStore } = args || {}
   try {
     const attributes = getAttributes(StatusPedidosModel, info)

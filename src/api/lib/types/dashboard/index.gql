@@ -5,17 +5,20 @@ type DashboardComponent {
   coordinates: JSON
   createAt: String
   updateAt: String
+  title: String
 }
 
 input DashboardComponentInput {
   idStore: ID
   idUser: ID
   coordinates: JSON!
+  title: String
 }
 
 input DashboardComponentUpdateInput {
   id: ID!
   coordinates: JSON
+  title: String
 }
 
 type Query {

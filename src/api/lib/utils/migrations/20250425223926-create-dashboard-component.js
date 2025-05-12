@@ -24,6 +24,11 @@ exports.up = async (queryInterface, schemaName) => {
         key: 'idStore'
       }
     },
+    title: {
+      type: STRING(255),
+      allowNull: false,
+      defaultValue: ''
+    },
     coordinates: {
       type: JSONB,
       allowNull: false,

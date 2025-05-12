@@ -21,7 +21,7 @@ type StorePedidos {
   getUser: User
   ShoppingCard: ID
   productFoodsOne: ProductFood
-  getAllPedidoStore: [StorePedidos]
+  getStoreOrders: [StorePedidos]
   getAllShoppingCard: ShoppingCard
   salesExtProductFoodOptional: [saleExtProductFoodOptional]
   locationUser: String
@@ -115,9 +115,9 @@ type StorePedidosFromPSState {
 type Query {
 """Response for find one Store"""
   getAllIncomingToDayOrders(statusOrder: Int, idStore: ID): [StorePedidos]
-  getOnePedidoStore(pCodeRef: String, StoreName: String, idStore: ID): StorePedidos
-  getAllPedidoStore(StoreName: String, idStore: ID): [StorePedidos]
-  getAllPedidoStoreFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StorePedidos]
+  getStoreOrderById(pCodeRef: String, StoreName: String, idStore: ID): StorePedidos
+  getStoreOrders(StoreName: String, idStore: ID): [StorePedidos]
+  getStoreOrdersFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StorePedidos]
   getAllOrdersFromStore(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): StorePedidosFromPSState
   getAllSalesStore(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int channel: Int): [StorePedidos]
   getAllSalesStoreTotal(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int, channel: Int): TypeInputSalesChannel
