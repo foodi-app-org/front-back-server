@@ -41,12 +41,12 @@ import { updateStock } from '../inventory/inventory'
 import { createStockMovement } from '../inventory/inventory.stockmoments'
 import connect from '../../db'
 import { userDataPath } from '../product/images'
+import { ContextValidator } from '../../utils/context-validator'
 
 import { createOnePedidoStore } from './orders'
 import { getStoreSchedules } from './Schedule'
 import { setFavorites } from './setFavorites'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
-import { ContextValidator } from '../../utils/context-validator'
 
 require('dotenv').config()
 
@@ -83,9 +83,6 @@ const createDeliveryTime = async (_, { minutes }, ctx, __) => {
 }
 export const newRegisterStore = async (_, { input }, ctx) => {
   const {
-    cId = null,
-    dId = null,
-    ctId = null,
     id = null,
     catStore = null,
     emailStore
@@ -533,18 +530,44 @@ export const getTodaySales = async (_, args, ctx) => {
 
     const todayRange = new DateRange()
     const { start, end } = todayRange.getRange()
-
-    const data = await StatusOrderModel.schema(getTenantName(ctx.restaurant)).count({
-      where: {
-        pSState: 4,
-        idStore: deCode(ctx.restaurant),
-        pDatCre: {
-          [Op.between]: [start, end]
-        }
+    const sequelize = connect()
+    const result2 = await sequelize.query(
+      `
+        SELECT *
+        FROM "${getTenantName(ctx?.restaurant)}.${STATUS_ORDER_MODEL}"
+        WHERE "pSState" = 4
+          AND "idStore" = :idStore
+          AND "createdAt" >= :start AND "createdAt" <= :end;
+      `,
+      {
+        replacements: {
+          idStore: deCode(ctx.restaurant),
+          start,
+          end
+        },
+        type: sequelize.QueryTypes.SELECT
       }
-    })
-
-    return data ?? 0
+    )
+    console.log(result2)
+    const result = await sequelize.query(
+      `
+        SELECT COUNT(*) AS "total"
+        FROM "${getTenantName(ctx?.restaurant)}.${STATUS_ORDER_MODEL}"
+        WHERE "pSState" = 4
+          AND "idStore" = :idStore
+          AND "createdAt" >= :start AND "createdAt" <= :end;
+      `,
+      {
+        replacements: {
+          idStore: deCode(ctx.restaurant),
+          start,
+          end
+        },
+        type: sequelize.QueryTypes.SELECT
+      }
+    )
+    const data = result[0]?.total
+    return data
   } catch (error) {
     return 0
   }
@@ -561,17 +584,17 @@ const getSalesAmountToday = async (_, args, ctx) => {
     }
 
     const { start, end } = new DateRange().getRange()
-    // console.log("🚀 ~ getTodaySales ~ start, end:", start, end)
 
     const sequelize = connect()
     const tenant = getTenantName(ctx?.restaurant)
+    console.log('🚀 ~ getSalesAmountToday ~ tenant:', tenant)
     const result = await sequelize.query(
       `
-        SELECT ROUND(SUM("totalProductsPrice"), 2) AS "total"
-        FROM "${tenant}.${STATUS_ORDER_MODEL}"
-        WHERE "pSState" = 4 
-          AND "idStore" = :idStore 
-          AND "pDatCre" >= :start AND "pDatCre" <= :end;
+      SELECT ROUND(SUM("totalProductsPrice"), 2) AS "total"
+      FROM "${tenant}.${STATUS_ORDER_MODEL}"
+      WHERE "pSState" = 4 
+        AND "idStore" = :idStore 
+        AND "createdAt" BETWEEN :start AND :end;
       `,
       {
         replacements: {
@@ -588,6 +611,7 @@ const getSalesAmountToday = async (_, args, ctx) => {
       total: result[0]?.total ?? 0
     }
   } catch (error) {
+    console.log('🚀 ~ getSalesAmountToday ~ error:', error)
     return {
       success: false,
       message: 'Error interno al obtener las ventas de hoy',

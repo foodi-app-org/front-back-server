@@ -31,7 +31,8 @@ const DEFAULT_COMPONENTS = [
     noMove: true,
     noResize: true,
     noDrag: true,
-    title: 'Escanea el código QR para iniciar sesión'
+    title: 'Escanea el código QR para iniciar sesión',
+    description: 'Escanea el código QR para iniciar sesión desde la app móvil'
   },
   {
     x: 0,
@@ -44,13 +45,14 @@ const DEFAULT_COMPONENTS = [
     y: 2,
     w: 6,
     h: 4,
-    title: 'Tus ventas del año'
+    title: 'Tus ventas del año',
+    description: 'Conoce el rendimiento de tus ventas en el año'
   },
   {
     x: 0,
     y: 6,
     w: 2,
-    h: 4,
+    h: 3,
     title: 'Tu equipo',
     description: 'Conoce a tu equipo de trabajo'
   },
@@ -58,7 +60,7 @@ const DEFAULT_COMPONENTS = [
     x: 2,
     y: 6,
     w: 2,
-    h: 4,
+    h: 3,
     title: 'Tus clientes',
     description: 'Conoce a tus clientes'
   }

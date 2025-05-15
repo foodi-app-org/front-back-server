@@ -46,10 +46,10 @@ const createDashboardComponent = async (_root, { input }, context) => {
   }
 }
 
-const updateDashboardComponent = async (_root, { input }) => {
+const updateDashboardComponent = async (_root, { input }, context) => {
   try {
-    const { id, ...rest } = input
-    const component = await dashboardComponent.findByPk(id)
+    const tenant = getTenantName(context?.restaurant)
+    const component = await dashboardComponent.schema(tenant).findByPk(input.id)
     if (!component) {
       return {
         success: false,
@@ -57,12 +57,22 @@ const updateDashboardComponent = async (_root, { input }) => {
         errors: [{ path: 'id', message: 'Component does not exist' }]
       }
     }
-
-    await component.update(rest)
+    const updatedComponent = await component.update({
+      ...input,
+      idUser: deCode(context.User?.id),
+      idStore: deCode(context.restaurant)
+    })
+    if (!updatedComponent) {
+      return {
+        success: false,
+        message: 'Error updating component',
+        errors: [{ path: 'updateDashboardComponent', message: 'Error updating component' }]
+      }
+    }
     return {
       success: true,
       message: 'Dashboard component updated successfully',
-      data: component
+      data: updatedComponent
     }
   } catch (e) {
     return {

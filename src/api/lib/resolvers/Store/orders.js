@@ -310,9 +310,9 @@ const getPedidosByState = async ({
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
         pSState,
         ...((fromDate && toDate)
-          ? { pDatCre: { [Op.between]: [fromDate, toDate] } }
+          ? { createdAt: { [Op.between]: [fromDate, toDate] } }
           : {
-            pDatCre: {
+            createdAt: {
               [Op.between]: [start, end]
             }
           })
@@ -330,7 +330,7 @@ const getPedidosByState = async ({
   const orders = await model.schema(getTenantName(ctx.restaurant)).findAll({
     attributes,
     where,
-    order: [['pDatCre', 'DESC']]
+    order: [['createdAt', 'DESC']]
   })
   return orders
 }

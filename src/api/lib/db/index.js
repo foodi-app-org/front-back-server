@@ -45,7 +45,7 @@ const connectConfig = useSQLITE
     logging: false,
     schema: 'public',
     dialectOptions: {
-      useUTC: true
+      useUTC: false
     }
   }
   : {
