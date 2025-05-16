@@ -35,7 +35,7 @@ export default {
   ...categoriesResolver.TYPES,
   ...messagesResolver.TYPES,
   ...adminResolver.TYPES,
-  DateTime: dateTimeScalar,
+  DateTime: dateTimeScalar.dateTimeScalar,
   // Upload: GraphQLUpload,
   Query: {
     ...UserResolvers.QUERIES,

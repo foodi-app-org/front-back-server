@@ -118,7 +118,7 @@ type Query {
   getStoreOrderById(pCodeRef: String, StoreName: String, idStore: ID): StorePedidos
   getStoreOrders(StoreName: String, idStore: ID): [StorePedidos]
   getStoreOrdersFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StorePedidos]
-  getAllOrdersFromStore(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): StorePedidosFromPSState
+  getAllOrdersFromStore(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int, inCludeRange: Boolean): StorePedidosFromPSState
   getAllSalesStore(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int channel: Int): [StorePedidos]
   getAllSalesStoreTotal(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int, channel: Int): TypeInputSalesChannel
   getAllSalesStoreStatistic(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int): [StorePedidos]

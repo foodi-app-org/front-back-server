@@ -1,7 +1,7 @@
 import crypto, { randomUUID } from 'crypto'
 
 import dotenv from 'dotenv'
-import { Op, UUID, UUIDV4 } from 'sequelize'
+import { Op } from 'sequelize'
 
 import productModelFood, { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
 import pedidosModel, { ORDER_MODEL } from '../../models/Store/pedidos'
@@ -11,9 +11,9 @@ import Users from '../../models/Users'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import connect from '../../db'
 import { STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
+import DateRange from '../../utils/DateRange'
 
 import { deleteOneItem, getOneStore } from './store'
-import DateRange from '../../utils/DateRange'
 
 // Configura dotenv
 dotenv.config()
@@ -299,23 +299,27 @@ const getPedidosByState = async ({
   ctx,
   pSState,
   search,
+  inCludeRange = false,
   min,
   max
 }) => {
   const todayRange = new DateRange()
-  const { start, end } = todayRange.getRange()
+  const { start, end } = todayRange.getRange({
+    start: fromDate,
+    end: toDate
+  })
   const where = {
     [Op.and]: [
       {
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
         pSState,
-        ...((fromDate && toDate)
-          ? { createdAt: { [Op.between]: [fromDate, toDate] } }
-          : {
+        ...(inCludeRange
+          ? {
             createdAt: {
               [Op.between]: [start, end]
             }
-          })
+          }
+          : {})
       }
     ]
   }
@@ -363,6 +367,7 @@ const getOrdersByState = async ({
   fromDate,
   toDate,
   max,
+  inCludeRange,
   ctx
 }) => {
   try {
@@ -402,6 +407,7 @@ const getOrdersByState = async ({
         model: StatusOrderModel,
         attributes,
         max,
+        inCludeRange,
         fromDate,
         toDate,
         min,
@@ -421,7 +427,20 @@ const getOrdersByState = async ({
 }
 
 export const getAllOrdersFromStore = async (_, args, ctx, info) => {
-  const { idStore, statusOrder, fromDate, toDate, search, min, cId, dId, ctId, max } = args || {}
+  const {
+    idStore,
+    statusOrder,
+    fromDate,
+    toDate,
+    search,
+    min,
+    cId,
+    dId,
+    ctId,
+    max,
+    inCludeRange
+  } = args || {}
+
   const attributes = [
     'stPId',
     'id',
@@ -451,6 +470,7 @@ export const getAllOrdersFromStore = async (_, args, ctx, info) => {
       ctId,
       search,
       min,
+      inCludeRange,
       fromDate,
       toDate,
       max,

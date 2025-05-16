@@ -33,6 +33,7 @@
     "js-base64": "3.7.2",
     "jsonwebtoken": "8.5.1",
     "jwt-decode": "3.1.2",
+    "luxon": "3.6.1",
     "moment": "2.29.1",
     "morgan": "1.10.0",
     "multer": "1.4.4",
@@ -111,28 +112,26 @@
       }
     ]
   },
-"pkg": {
-  "scripts": "build/**/*.js",
-  "assets": [
-    "public/**/*",
-    "uploads/**/*",
-    "config/**/*",
-    ".env",
-    "src/api/lib/types/**/*",
-    "build/api/lib/types/**/*",
-
-    "node_modules/sequelize/lib/**/*.js",
-    "node_modules/sqlite3/**/*"
-  ],
-  "files": [
-    "build/**/*",
-    "node_modules/**/*",
-    "**/*",
-    "!**/*.map"
-  ],
-  "targets": [
-    "node16-win-x64"
-  ]
-}
-
+  "pkg": {
+    "scripts": "build/**/*.js",
+    "assets": [
+      "public/**/*",
+      "uploads/**/*",
+      "config/**/*",
+      ".env",
+      "src/api/lib/types/**/*",
+      "build/api/lib/types/**/*",
+      "node_modules/sequelize/lib/**/*.js",
+      "node_modules/sqlite3/**/*"
+    ],
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "**/*",
+      "!**/*.map"
+    ],
+    "targets": [
+      "node16-win-x64"
+    ]
+  }
 }

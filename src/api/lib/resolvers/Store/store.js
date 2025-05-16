@@ -584,10 +584,8 @@ const getSalesAmountToday = async (_, args, ctx) => {
     }
 
     const { start, end } = new DateRange().getRange()
-
     const sequelize = connect()
     const tenant = getTenantName(ctx?.restaurant)
-    console.log('🚀 ~ getSalesAmountToday ~ tenant:', tenant)
     const result = await sequelize.query(
       `
       SELECT ROUND(SUM("totalProductsPrice"), 2) AS "total"
@@ -611,7 +609,6 @@ const getSalesAmountToday = async (_, args, ctx) => {
       total: result[0]?.total ?? 0
     }
   } catch (error) {
-    console.log('🚀 ~ getSalesAmountToday ~ error:', error)
     return {
       success: false,
       message: 'Error interno al obtener las ventas de hoy',

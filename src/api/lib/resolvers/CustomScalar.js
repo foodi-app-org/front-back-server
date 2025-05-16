@@ -3,8 +3,13 @@ import { GraphQLScalarType, Kind } from 'graphql'
 const dateTimeScalar = new GraphQLScalarType({
   name: 'DateTime',
   description: 'Date custom scalar type',
-  serialize (value) {
-    return value.getTime() // Convert outgoing Date to integer for JSON
+  serialize(value) {
+    // Ensure the value is a Date instance
+    const date = value instanceof Date ? new Date(value.getTime()) : new Date(value);
+    // Adjust timezone by subtracting 5 hours (UTC-5)
+    date.setUTCHours(date.getUTCHours() - 5);
+    // Return the date in ISO 8601 format
+    return date.toISOString();
   },
   parseValue (value) {
     return new Date(value) // Convert incoming integer to Date
