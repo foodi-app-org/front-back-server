@@ -18,7 +18,7 @@ const router = Router()
 
 export const cookie = {
   password: process.env.SESSION_KEY,
-  cookieName: process.env.SESSION_NAME,
+  cookieName: process.env.NEXT_PUBLIC_SESSION_NAME,
   cookieOptions: {
     maxAge: 60 * 60 * 24, // 8 horas
     httpOnly: true,

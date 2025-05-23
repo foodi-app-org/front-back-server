@@ -7,7 +7,7 @@ import { getUserFromToken } from '.'
 export default withIronSessionApiRoute(async (req, res) => {
   try {
     const { token } = req.session.user || {}
-    if (!req.cookies[process.env.SESSION_NAME]) {
+    if (!req.cookies[process.env.NEXT_PUBLIC_SESSION_NAME]) {
       return res.status(200).json({
         isSession: false,
         storeUserId: null

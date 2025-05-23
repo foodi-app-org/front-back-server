@@ -33,10 +33,12 @@ export const getDeviceUsers = async (_root, _args, context, info) => {
  * @returns {Object} Respuesta de creación
  */
 const newRegisterDeviceUser = async (_root, { input }, context) => {
+  console.log('input', input)
+  console.log('context', context)
   try {
     const { deviceId } = input
     const useragent = context.userAgent
-    const userInfo = parseUserAgent(useragent)
+    const userInfo = parse  UserAgent(useragent)
     const result = {
       deviceId,
       userId: context.User.id,

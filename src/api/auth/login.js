@@ -140,7 +140,7 @@ export default withIronSessionApiRoute(
   },
   {
     password: process.env.SESSION_KEY,
-    cookieName: process.env.SESSION_NAME,
+    cookieName: process.env.NEXT_PUBLIC_SESSION_NAME,
     cookieOptions: {
       expires: new Date(Date.now() + MAX_AGE * 1000),
       maxAge: MAX_AGE, // 8 hours,

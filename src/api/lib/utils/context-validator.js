@@ -1,5 +1,7 @@
 import { GraphQLError } from 'graphql'
 
+export const SESSION_EXPIRED = 'Session expired'
+export const FORBIDDEN = 'FORBIDDEN'
 /**
  * Utility class to validate GraphQL context and session integrity.
  */
@@ -16,14 +18,14 @@ export class ContextValidator {
    * @throws {GraphQLError} If session is invalid or expired.
    * @returns {string} The store ID from session (context.restaurant).
    */
-  validateUserSession() {
+  validateUserSession () {
     const hasStore = this.context?.restaurant
     const hasUserStore = this.context?.User?.restaurant?.idStore
 
     if (!hasStore || !hasUserStore) {
-      throw new GraphQLError('Session expired', {
+      throw new GraphQLError(SESSION_EXPIRED, {
         extensions: {
-          code: 'FORBIDDEN',
+          code: FORBIDDEN,
           http: { status: 401 }
         }
       })

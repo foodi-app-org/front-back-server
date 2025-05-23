@@ -1,8 +1,10 @@
 import { Op } from 'sequelize'
+import { GraphQLError } from 'graphql'
 
 import productModel from '../../models/product/food'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import productModelFoodAvailable from '../../models/product/productFoodAvailable'
+import { ContextValidator, FORBIDDEN, SESSION_EXPIRED } from '../../utils/context-validator'
 
 export const newRegisterFoodProduct = async (_, { input }, ctx) => {
   const id = ctx.User.id || ''
@@ -79,9 +81,10 @@ export const getFoodAllProduct = async (root, args, context, info) => {
 
 export const registerAvailableProduct = async (root, { input }, context) => {
   try {
+    const validator = new ContextValidator(context)
+    const idStore = validator.validateUserSession()
     for (const iterator of input) {
       const {
-        idStore,
         dayAvailable,
         pId
       } = iterator
@@ -95,7 +98,10 @@ export const registerAvailableProduct = async (root, { input }, context) => {
       success: true,
       message: 'Exitoso'
     }
-  } catch (error) {
+  } catch (e) {
+    if (e instanceof GraphQLError && e.extensions?.code === FORBIDDEN) {
+      return { success: false, message: SESSION_EXPIRED }
+    }
     return {
       success: false,
       message: 'Ocurrió un error'
