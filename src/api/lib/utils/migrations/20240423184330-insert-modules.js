@@ -27,6 +27,9 @@ exports.up = async (queryInterface, schemaName) => {
       module: { mId: uuidv4(), view: 'schedules', mName: 'Tiempo de entrega', mPath: '?time=true', mPriority: 5, mIcon: 5, mState: 1 }
     },
     {
+      module: { mId: uuidv4(), view: 'orders', mName: 'Metas del día', mPath: '?goals=true', mPriority: 5, mIcon: 5, mState: 1 }
+    },
+    {
       module: { mId: uuidv4(), view: 'reports', mName: 'Ventas', mPath: 'sales', mPriority: 6, mIcon: 6, mState: 1 }
     },
     {

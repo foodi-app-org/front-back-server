@@ -17,7 +17,8 @@ export const getDeviceUsers = async (_root, _args, context, info) => {
       attributes,
       where: {
         id: deCode(context.User.id)
-      }
+      },
+      order: [['DatCre', 'DESC']]
     })
     return data
   } catch (e) {
@@ -26,94 +27,89 @@ export const getDeviceUsers = async (_root, _args, context, info) => {
   }
 }
 /**
- * Registrar un nuevo DeviceUser
- * @param {*} _root No usado
- * @param {Object} args Argumentos de la mutación
- * @param {*} context Contexto global
- * @returns {Object} Respuesta de creación
+ * Registrar un nuevo dispositivo del usuario evitando duplicados por fingerprint parcial.
+ * @param {*} _root - No usado.
+ * @param {Object} args - Argumentos de la mutación.
+ * @param {*} context - Contexto global con usuario y userAgent.
+ * @returns {Object} Respuesta de creación.
  */
 const newRegisterDeviceUser = async (_root, { input }, context) => {
-  console.log('input', input)
-  console.log('context', context)
+  const { deviceId } = input
+
   try {
-    const { deviceId } = input
-    const useragent = context.userAgent
-    const userInfo = parse  UserAgent(useragent)
-    const result = {
-      deviceId,
-      userId: context.User.id,
-      os: userInfo
-    }
-    const {
-      os = {
-        name: 'unknown',
-        version: 'unknown',
-        platform: 'unknown'
-
-      }
-    } = result || {}
-    // Validar autenticación del usuario
-    if (!context?.User?.id) {
+    const userId = context?.User?.id
+    if (!userId) {
       LogInfo('No estás autorizado para realizar esta acción.')
-      return {
-        success: false,
-        message: 'No estás autorizado para realizar esta acción.'
-      }
+      return errorResponse('No estás autorizado para realizar esta acción.')
     }
 
-    // Validar que `deviceId` sea único dentro del esquema del restaurante
     const tenantSchema = getTenantName(context.restaurant)
     if (!tenantSchema) {
       LogDanger('El esquema del restaurante no pudo ser determinado.')
-      return {
-        success: false,
-        message: 'El esquema del restaurante no pudo ser determinado.'
-      }
+      return errorResponse('El esquema del restaurante no pudo ser determinado.')
+    }
+
+    const useragent = context.userAgent
+    const userInfo = parseUserAgent(useragent)
+
+    const fingerprintCriteria = {
+      id: deCode(userId),
+      deviceId,
+      deviceName: userInfo.name,
+      platform: userInfo.platform,
+      short_name: userInfo.short_name,
+      family: userInfo.family
     }
 
     const existingDevice = await UserDeviceModel.schema(tenantSchema).findOne({
-      where: { deviceId, id: deCode(context.User.id) }
+      where: fingerprintCriteria
     })
 
     if (existingDevice) {
-      LogDanger(`Este dispositivo ya está registrado para este usuario: ${existingDevice.deviceId}, id: ${existingDevice.id}`)
+      LogInfo(`Dispositivo ya registrado: ${existingDevice.deviceId}, id: ${existingDevice.id}`)
       return {
         success: false,
-        message: 'Este dispositivo ya está registrado para este usuario',
+        message: 'Este dispositivo ya está registrado para este usuario.',
         deviceUser: existingDevice
       }
     }
-    console.log(context?.User?.id)
-    // Crear el nuevo registro de DeviceUser
+
     const newDevice = await UserDeviceModel.schema(tenantSchema).create({
-      id: context?.User?.id,
+      id: userId,
       deviceId,
-      deviceName: os.name || 'Dispositivo desconocido',
-      locationFormat: null || 'Formato desconocido',
-      type: os.platform || 'Tipo desconocido',
-      short_name: os.short_name || 'Nombre corto desconocido',
-      platform: os.platform || 'Plataforma desconocida',
-      version: os.version || 'Versión desconocida',
+      deviceName: userInfo.name || 'Desconocido',
+      locationFormat: 'Formato desconocido',
+      type: userInfo.device || 'Tipo desconocido',
+      short_name: userInfo.short_name || 'Desconocido',
+      platform: userInfo.platform || 'Desconocido',
+      version: userInfo.version || 'Desconocida',
+      family: userInfo.family || 'Desconocida',
       dState: 1,
       DatCre: new Date(),
       DatMod: new Date()
     })
 
-    // // Retornar respuesta exitosa
     LogSuccess(`Dispositivo registrado con éxito: ${newDevice.deviceId}, id: ${newDevice.id}`)
     return {
       success: true,
-      message: 'Dispositivo registrado con éxito'
-      // deviceUser: newDevice
+      message: 'Dispositivo registrado con éxito.',
+      deviceUser: newDevice
     }
   } catch (e) {
     LogDanger(`Error al registrar el dispositivo: ${e.message}`)
-    return {
-      success: false,
-      message: 'Ha ocurrido un error interno al registrar el dispositivo.'
-    }
+    return errorResponse('Ha ocurrido un error interno al registrar el dispositivo.')
   }
 }
+
+/**
+ * Devuelve una respuesta estándar de error
+ * @param {string} message - Mensaje de error
+ * @returns {Object} Respuesta con éxito falso y mensaje
+ */
+function errorResponse(message) {
+  return { success: false, message }
+}
+
 
 export default {
   TYPES: {
