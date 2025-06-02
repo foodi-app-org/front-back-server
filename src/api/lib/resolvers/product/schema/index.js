@@ -15,7 +15,7 @@ export const productFoodSchema = Joi.object({
   idStore: Joi.string().allow(null, '').optional(),
   caId: Joi.string().optional(),
   fId: Joi.string().optional(),
-  pName: Joi.string().required(),
+  pName: Joi.string().max(180).required().messages(stringMessages('Nombre del producto', 180)),
   pCode: Joi.string().allow(null, '').optional(),
   ProPrice: Joi.number().required().max(MAX_INTEGER_MYSQL).messages(stringMessages('Precio del domicilio', MAX_INTEGER_MYSQL)),
   ProDescuento: Joi.number().allow(null, '').optional(),

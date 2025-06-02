@@ -237,7 +237,10 @@ const editProductInputSchema = Joi.object({
   pName: Joi.string().required(),
   pId: Joi.string().required(),
   ProDescuento: Joi.number().allow(null, '').optional(),
-  ProPrice: Joi.number().required().max(MAX_INTEGER_MYSQL).messages(stringMessages('Precio del producto', MAX_INTEGER_MYSQL)),
+  ProPrice: Joi.number()
+    .required()
+    .max(MAX_INTEGER_MYSQL)
+    .messages(stringMessages('Precio del producto', MAX_INTEGER_MYSQL)),
   ProDescription: Joi.string().allow(null, '').optional(),
   ProImage: Joi.string().allow(null, '').optional(),
   ValueDelivery: Joi.number().allow(null, '').optional().max(MAX_INTEGER_MYSQL).messages(stringMessages('Precio del domicilio', MAX_INTEGER_MYSQL)),
@@ -313,7 +316,7 @@ const updateProductFoods = async (_root, { input }, context) => {
     pState,
     carProId
   } = input || {}
-  console.log("🚀 ~ updateProductFoods ~ input:", input)
+  console.log('🚀 ~ updateProductFoods ~ input:', input)
 
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {

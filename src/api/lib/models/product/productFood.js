@@ -206,7 +206,12 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   },
   ProPrice: {
     type: DECIMAL(1000, 2),
-    allowNull: true
+    allowNull: true,
+    defaultValue: 0.00,
+    validate: {
+      max: 999999999999.99,
+      isDecimal: true
+    }
   },
   ProDescuento: {
     type: DECIMAL(1000, 2),
@@ -312,12 +317,12 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
 }, {
   timestamps: false,
   hooks: {
-    beforeCreate(product) {
+    beforeCreate (product) {
       if (!product.ProBarCode) {
         product.ProBarCode = crypto.randomBytes(6).toString('hex').toUpperCase()
       }
     },
-    beforeUpdate(product) {
+    beforeUpdate (product) {
       product.pDatMod = literal('CURRENT_TIMESTAMP')
     }
   }

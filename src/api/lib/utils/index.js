@@ -1537,4 +1537,4 @@ export const stringMessages = (a, max, min) => {
   return object
 }
 
-export const MAX_INTEGER_MYSQL = 2147483647
+export const MAX_INTEGER_MYSQL = 999999999999.99

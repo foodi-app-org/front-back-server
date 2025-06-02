@@ -222,7 +222,12 @@ exports.up = async (queryInterface, schemaName) => {
     },
     ProPrice: {
       type: DECIMAL(1000, 2),
-      allowNull: true
+      allowNull: true,
+      defaultValue: 0.00,
+      validate: {
+        max: 999999999999.99,
+        isDecimal: true
+      }
     },
     vat: {
       type: DECIMAL(6, 2),
