@@ -316,7 +316,6 @@ const updateProductFoods = async (_root, { input }, context) => {
     pState,
     carProId
   } = input || {}
-  console.log('🚀 ~ updateProductFoods ~ input:', input)
 
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {

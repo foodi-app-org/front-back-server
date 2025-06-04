@@ -1519,22 +1519,47 @@ export function addDaysToCurrentDate () {
   return endDate.toISOString()
 }
 
-export const stringMessages = (a, max, min) => {
-  const object = {
-    'string.base': `${a} debería ser un tipo de 'texto'`,
-    'string.empty': `${a} no puede ser un campo vacío`,
-    'string.min': `"${a}" debe tener una longitud mínima de ${min}`,
-    'string.max': `"${a}" debe tener una longitud máxima de ${max}`,
-    'number.max': `"${a}" debe ser menor o igual a ${max}`,
-    'number.min': `"${a}" debe ser mayor o igual a ${max}`,
-    'any.required': `"${a}" es un campo requerido`,
-    'string.email': `"${a}" debe ser un email válido`,
-    'string.pattern.base': `"${a}" con el formato incorrecto`,
-    'string.uri': `"${a}" debe ser una URL válida`,
-    'string.uriCustom': `"${a}" debe ser una URL válida`
+/**
+ * Generates custom Joi error messages for validation.
+ *
+ * @param {string} label - Field label for user-friendly messages
+ * @param {number} [max] - Optional maximum length/number
+ * @param {number} [min] - Optional minimum length/number
+ * @returns {Object<string, string>} Joi error messages
+ */
+export const stringMessages = (label, max, min) => {
+  const messages = {
+    'string.base': `${label} debería ser un tipo de 'texto'`,
+    'string.empty': `${label} no puede ser un campo vacío`,
+    'string.unsafe': `${label} no puede contener caracteres especiales`,
+    'string.email': `${label} debe ser un email válido`,
+    'string.pattern.base': `${label} tiene un formato inválido`,
+    'string.uri': `${label} debe ser una URL válida`,
+    'string.uriCustom': `${label} debe ser una URL válida`,
+    'number.base': `${label} debe ser un número válido`,
+    'number.integer': `${label} debe ser un número entero`,
+    'number.unsafe': `${label} es demasiado grande, por favor verifica el valor ingresado`,
+    'boolean.base': `${label} debe ser un valor booleano (true o false)`,
+    'array.base': `${label} debe ser una lista válida`,
+    'date.base': `${label} debe ser una fecha válida`,
+    'any.required': `${label} es un campo requerido`
   }
 
-  return object
+  if (max !== undefined) {
+    messages['string.max'] = `${label} debe tener una longitud máxima de ${max}`
+    messages['number.max'] = `${label} debe ser menor o igual a ${max}`
+  }
+
+  if (min !== undefined) {
+    messages['string.min'] = `${label} debe tener una longitud mínima de ${min}`
+    messages['number.min'] = `${label} debe ser mayor o igual a ${min}`
+  }
+
+  if (max !== undefined && min !== undefined) {
+    messages['string.length'] = `${label} debe tener una longitud entre ${min} y ${max}`
+  }
+
+  return messages
 }
 
 export const MAX_INTEGER_MYSQL = 999999999999.99
