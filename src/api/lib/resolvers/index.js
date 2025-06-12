@@ -16,6 +16,7 @@ import clients from './clients'
 import subscriptions from './subscriptions/export'
 import roles from './roles'
 import inventory from './inventory'
+import reports from './reports/index'
 
 export default {
   ...UserResolvers.TYPES,
@@ -35,10 +36,12 @@ export default {
   ...categoriesResolver.TYPES,
   ...messagesResolver.TYPES,
   ...adminResolver.TYPES,
+  ...reports.TYPES,
   DateTime: dateTimeScalar.dateTimeScalar,
   // Upload: GraphQLUpload,
   Query: {
     ...UserResolvers.QUERIES,
+    ...reports.QUERIES,
     ...inventory.QUERIES,
     ...roles.QUERIES,
     ...clients.QUERIES,
@@ -57,6 +60,7 @@ export default {
   },
   Mutation: {
     ...inventory.MUTATIONS,
+    ...reports.MUTATIONS,
     ...UserResolvers.MUTATIONS,
     ...roles.MUTATIONS,
     ...clients.MUTATIONS,

@@ -1,44 +1,22 @@
-# Reports Type
-type Reports {
-    _id: ID!
-    idPro: ID!
-    idComp: ID!
-    dayDate: DateTime
-    totalSalesDay: Int
-    totalCost: Int
+type Report {
+    id: ID
+    name: String
+    description: String
+    url: String
+    createdAt: DateTime
 }
 
-
-
-type LineItems {
-    _id: ID
-    idPro: ID
-}
-type ReBillProducts {
-    _id: ID
-    lineItems: [LineItems]
+type IResponseReport {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: Report
 }
 
-# Reports Input
-input IReports {
-    _id: ID!
-    idPro: ID!
-    idComp: ID!
-    dayDate: DateTime
-    totalSalesDay: Int
-    totalCost: Int
-}
-
-# Query
 type Query {
-    "GET ALL Reports AND GET ONE Reports FROM MONGODB"
-    getReports(idComp: ID): [Reports]
-    getReports(_id: ID, idComp: ID): [Reports]
-    getAllBillsDemo(idComp: ID, idUser: ID): [ReBillProducts]
-}
-
-# Mutations
-type Mutation {
-    "ADD A NEW REPORTS"
-    newReports(input: IReports!): Reports!
+    getReports: [IResponseReport]
+    getReportById(id: ID!): IResponseReport
+    getReportBydateRange(startDate: DateTime!, endDate: DateTime!): IResponseReport
+    getReportDay(date: DateTime!): IResponseReport
+    getReportDayNumber(day: Int!): IResponseReport
 }

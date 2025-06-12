@@ -72,6 +72,7 @@ export const productFoodsOne = async (root, { pId }, context, info) => {
     })
     return data
   } catch (e) {
+    console.log('🚀 ~ productFoodsOne ~ e:', e)
     return new Error('Lo sentimos, ha ocurrido un error interno,  Vuelve a intentarlo mas tarde.')
   }
 }

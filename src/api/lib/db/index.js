@@ -8,6 +8,7 @@ import Sequelize from 'sequelize'
 import dotenv from 'dotenv'
 
 import { LogDanger, LogInfo } from '../utils/logs'
+import { PATH_EXTERNAL_OS } from '../utils'
 require('sequelize/lib/sequelize')
 
 // Configurar dotenv
@@ -25,7 +26,7 @@ export const useSQLITE = process.env.DIALECT_DB === 'sqlite'
  * Evita usar __dirname si la app está empaquetada
  */
 function getWritablePath () {
-  const basePath = path.join(os.homedir(), 'app_data')
+  const basePath = path.join(os.homedir(), PATH_EXTERNAL_OS)
 
   if (!fs.existsSync(basePath)) {
     fs.mkdirSync(basePath, { recursive: true })

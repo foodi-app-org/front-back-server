@@ -1563,3 +1563,5 @@ export const stringMessages = (label, max, min) => {
 }
 
 export const MAX_INTEGER_MYSQL = 999999999999.99
+
+export const PATH_EXTERNAL_OS = 'app_data'
