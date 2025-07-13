@@ -7,7 +7,9 @@ import productModelFood from '../../models/product/productFood'
 import { PATH_EXTERNAL_OS } from '../../utils'
 
 import { ImageProductschema } from './schema'
+
 export const userDataPath = path.join(os.homedir(), PATH_EXTERNAL_OS)
+
 // Asegurar que la carpeta existe
 if (!fs.existsSync(userDataPath)) {
   fs.mkdirSync(userDataPath, { recursive: true })

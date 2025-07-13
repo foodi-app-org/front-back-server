@@ -17,6 +17,8 @@ import modules from './modules'
 import tables from './tables'
 import getLocalInfo from './getLocalInfo'
 import dashboard from './dashboard'
+import logo from './store.logo'
+import banner from './store.banner'
 
 export default {
   TYPES: {
@@ -37,7 +39,10 @@ export default {
     ...contactStore.TYPES,
     ...createCatOfProductsResolver.TYPES,
     ...getLocalInfo.TYPES,
-    ...dashboard.TYPES
+    ...dashboard.TYPES,
+    ...ContractResolver.TYPES,
+    ...logo.TYPES,
+    ...banner.TYPES
   },
   QUERIES: {
     ...modules.QUERIES,
@@ -58,7 +63,9 @@ export default {
     ...storyStore.QUERIES,
     ...ContractResolver.QUERIES,
     ...getLocalInfo.QUERIES,
-    ...dashboard.QUERIES
+    ...dashboard.QUERIES,
+    ...logo.QUERIES,
+    ...banner.QUERIES
 
   },
   MUTATIONS: {
@@ -80,6 +87,8 @@ export default {
     ...storyStore.MUTATIONS,
     ...createCatOfProductsResolver.MUTATIONS,
     ...getLocalInfo.MUTATIONS,
-    ...dashboard.MUTATIONS
+    ...dashboard.MUTATIONS,
+    ...logo.MUTATIONS,
+    ...banner.MUTATIONS
   }
 }
