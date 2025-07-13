@@ -16,6 +16,7 @@ import {
 } from '../../utils/util'
 import connect from '../../db'
 import { LogDanger, LogSuccess, LogWarning } from '../../utils/logs'
+import { MigrationFolder } from '../../utils/migrate-models'
 
 // cities
 export const getCities = async (_root, _args, _context, info) => {
@@ -33,7 +34,7 @@ export const cities = async (_root, { dId }, _context, info) => {
   try {
     const attributes = getAttributes(CitiesModel, info)
     const data = await CitiesModel.findAll({ attributes, where: { dId: deCode(dId), cState: { [Op.gt]: 0 } }, order: [['cName', 'ASC']] })
-    console.log("🚀 ~ cities ~ data:", data)
+    console.log('🚀 ~ cities ~ data:', data)
     return data
   } catch (e) {
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
@@ -124,42 +125,6 @@ const categoriesData = [
     cPathImage: '/imagenes/restaurante_espanol.jpg'
   }
 ]
-// Variable para almacenar los nombres de categorías ya creadas
-const createdCategories = new Set()
-
-// Función para llenar la tabla de categorías
-async function fillCatStoreTable () {
-  try {
-    for (const category of categoriesData) {
-      // Verificar si la categoría ya existe en la base de datos o si ya ha sido creada
-      if (!createdCategories.has(category.cName)) {
-        const existingCategory = await CatStore.findOne({ where: { cName: category.cName } })
-
-        // Si no existe, procede a crearla
-        if (!existingCategory) {
-          await CatStore.create(category)
-          createdCategories.add(category.cName) // Agregar el nombre de la categoría a la lista de creadas
-          LogSuccess(`Categoría '${category.cName}' creada exitosamente.`)
-        } else {
-          LogWarning(`La categoría '${category.cName}' ya existe en la base de datos. No se creará.`)
-        }
-      } else {
-        LogWarning(`La categoría '${category.cName}' ya ha sido creada en esta ejecución. No se creará de nuevo.`)
-      }
-    }
-  } catch (error) {
-    LogDanger(`Error al crear categorías: ${error.message}`)
-  }
-}
-
-const conn = connect()
-// Hook afterSync para ejecutar la función fillCatStoreTable después de sincronizar las tablas
-conn.addHook('afterSync', 'fillCatStoreTable', (e) => {
-  if (e.name.plural === MODEL_CAT_STORE_NAME) {
-    fillCatStoreTable()
-  }
-})
-
 export const countries = async (_root, _args, _context, info) => {
   try {
     const attributes = getAttributes(CountriesModel, info)
@@ -177,16 +142,51 @@ export const createCountry = async (_root, { input }) => {
     throw new ApolloError('No ha sido posible procesar su solicitud.', 500, e)
   }
 }
-// departments
+/**
+ * Fetch departments by country ID
+ * @param {object} _root - GraphQL root
+ * @param {object} args - Arguments
+ * @param {string} args.cId - Encrypted country ID
+ * @param {object} _context - GraphQL context
+ * @param {object} info - GraphQL info (used for attribute selection)
+ * @returns {Promise<array>} Array of departments
+ * @throws {ApolloError} Internal server error if query fails
+ */
 export const departments = async (_root, { cId }, _context, info) => {
   try {
+    if (!cId) {
+      LogWarning('Missing required argument: cId.')
+      return []
+    }
+
     const attributes = getAttributes(DepartmentsModel, info)
-    const data = await DepartmentsModel.findAll({ attributes, where: { cId: deCode(cId), dState: { [Op.gt]: 0 } }, order: [['dName', 'ASC']] })
-    return data
-  } catch (e) {
-    throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
+    const decodedCountryId = deCode(cId)
+
+    const country = await CountriesModel.findOne({
+      attributes: ['cId', 'code_ctId'],
+      where: { cId: decodedCountryId }
+    })
+
+    if (!country) {
+      LogWarning(`Country not found for ID: ${decodedCountryId}`)
+      return []
+    }
+
+    const departments = await DepartmentsModel.findAll({
+      attributes,
+      where: {
+        cId: deCode(country.code_ctId),
+        dState: { [Op.gt]: 0 }
+      },
+      order: [['dName', 'ASC']]
+    })
+
+    return departments
+  } catch (error) {
+    throw new ApolloError('Sorry, an internal server error occurred.')
   }
 }
+
 export const department = async (_root, _context, info) => {
   try {
     const data = await DepartmentsModel.findAll({
@@ -321,12 +321,13 @@ export const desCategoryStore = async (_root, { catStore, cState }, _context, _i
 export const getAllCatStore = async (_root, { input }, _context, info) => {
   try {
     const attributes = getAttributes(CatStore, info)
-    const data = await CatStore.findAll({
+    const data = await CatStore.schema(MigrationFolder.public).findAll({
       attributes,
       where: { cState: { [Op.gt]: 0 } }
     })
     return data
   } catch (e) {
+    console.log('🚀 ~ getAllCatStore ~ e:', e)
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }

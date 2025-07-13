@@ -6,8 +6,6 @@ import {
 
 import connect from '../../db'
 
-import DepartmentsModel from './DepartmentsModel'
-
 const sequelize = connect()
 
 export const MODEL_CITIES_NAME = 'cities'
@@ -21,14 +19,7 @@ const CitiesModel = sequelize.define(MODEL_CITIES_NAME, {
   },
   dId: {
     type: STRING(36),
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: DepartmentsModel,
-      key: 'dId'
-    }
-
+    allowNull: false
   },
   cName: {
     type: STRING(100),

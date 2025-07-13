@@ -1,9 +1,9 @@
 const { STRING, INTEGER, BOOLEAN, DATE, DataTypes, UUIDV4 } = require('sequelize')
+const { DECIMAL } = require('sequelize')
 
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { USER_MODEL } = require('../../models/Users')
 const { MODEL_CAT_STORE_NAME } = require('../../models/information/CategorieStore')
-const { DECIMAL } = require('sequelize')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(STORE_MODEL, {

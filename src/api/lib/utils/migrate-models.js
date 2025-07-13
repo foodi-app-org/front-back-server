@@ -8,7 +8,8 @@ const sequelize = connect()
 export const MigrationFolder = {
   Tenanted: 'tenanted',
   public: 'public',
-  Private: 'private'
+  Private: 'private',
+  empty: ''
 }
 
 export const UmzugMigrator = async (schemaName, dir) => {

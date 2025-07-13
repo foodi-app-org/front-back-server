@@ -1,38 +1,30 @@
 const { DATE, UUIDV4 } = require('sequelize')
-const { STRING } = require('sequelize')
 const { SMALLINT } = require('sequelize')
+const { STRING } = require('sequelize')
 
-const { MODEL_CAT_STORE_NAME } = require('../../models/information/CategorieStore')
+const { MODEL_TYPEROAD_NAME } = require('../../models/information/TypeOfRoad')
 
 exports.up = async (queryInterface, schemaName) => {
-  await queryInterface.createTable(MODEL_CAT_STORE_NAME, {
-    catStore: {
+  await queryInterface.createTable(MODEL_TYPEROAD_NAME, {
+    rId: {
       type: STRING(36),
       primaryKey: true,
-      autoIncrement: false,
       defaultValue: UUIDV4,
       allowNull: false
     },
-    cName: {
+    rName: {
       type: STRING(100),
       allowNull: false
     },
-    csDescription: {
-      type: STRING,
-      allowNull: false
-    },
-    cState: {
+    rState: {
       type: SMALLINT,
       defaultValue: 1
     },
-    cPathImage: {
-      type: STRING
-    },
-    cDatCre: {
+    rDatCre: {
       type: DATE,
       default: Date.now()
     },
-    cDatMod: {
+    rDatMod: {
       type: DATE,
       default: Date.now()
     }
@@ -40,5 +32,5 @@ exports.up = async (queryInterface, schemaName) => {
 }
 
 exports.down = async (queryInterface, schemaName) => {
-  await queryInterface.dropTable(MODEL_CAT_STORE_NAME, { schema: schemaName })
+  await queryInterface.dropTable(MODEL_TYPEROAD_NAME, { schema: schemaName })
 }

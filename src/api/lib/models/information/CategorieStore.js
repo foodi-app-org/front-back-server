@@ -12,6 +12,7 @@ const sequelize = connect()
 export const MODEL_CAT_STORE_NAME = 'catstores'
 
 sequelize.sync()
+
 const CatStore = sequelize.define(MODEL_CAT_STORE_NAME, {
   catStore: {
     type: STRING(36),

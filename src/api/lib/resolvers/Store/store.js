@@ -42,6 +42,7 @@ import { createStockMovement } from '../inventory/inventory.stockmoments'
 import connect from '../../db'
 import { userDataPath } from '../product/images'
 import { ContextValidator } from '../../utils/context-validator'
+import { MigrationFolder } from '../../utils/migrate-models'
 
 import { createOnePedidoStore } from './orders'
 import { getStoreSchedules } from './Schedule'
@@ -128,7 +129,7 @@ export const newRegisterStore = async (_, { input }, ctx) => {
       }
     }
     // Crear la tienda
-    const newStore = await Store.schema('public').create({
+    const newStore = await Store.schema(MigrationFolder.public).create({
       ...input,
       uState: 2,
       cId: 'f0a59395-9ad2-426f-817c-eb034578fa80',

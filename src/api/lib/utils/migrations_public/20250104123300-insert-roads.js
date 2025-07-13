@@ -1,8 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 
-const { QueryTypes } = require('sequelize')
-
-const { LogSuccess, LogWarning, LogDanger } = require('../logs') // Ajusta las rutas de los logs si es necesario
+const { LogSuccess, LogDanger } = require('../logs')
 const { MODEL_TYPEROAD_NAME } = require('../../models/information/TypeOfRoad')
 
 const typeRoadData = [
@@ -12,41 +10,49 @@ const typeRoadData = [
   { rName: 'Carretera' },
   { rName: 'Plaza' },
   { rName: 'Camino' },
-  { rName: 'Avenida' },
-  { rName: 'Diagonal' }
+  { rName: 'Diagonal' },
+  { rName: 'Carrera' },
+  { rName: 'Transversal' },
+  { rName: 'Circular' },
+  { rName: 'Autopista' },
+  { rName: 'Vía' },
+  { rName: 'Trocha' }
 ]
 
-exports.up = async (queryInterface) => {
+/**
+ * Insert default type roads
+ * @param {import('sequelize').QueryInterface} queryInterface
+ * @param {string} schemaName
+ */
+exports.up = async (queryInterface, schemaName) => {
   try {
-    for (const typeRoad of typeRoadData) {
-      // Verificar si el tipo de carretera ya existe
-      const existingTypeRoad = await queryInterface.sequelize.query(
-        `SELECT * FROM ${MODEL_TYPEROAD_NAME} WHERE rName = :rName`, {
-          replacements: { rName: typeRoad.rName },
-          type: QueryTypes.SELECT
-        })
-
-      if (existingTypeRoad.length === 0) {
-        // Si no existe, insertamos el tipo de carretera
-        await queryInterface.bulkInsert(MODEL_TYPEROAD_NAME, [{
-          rName: typeRoad.rName,
-          rId: uuidv4(),
-          rState: 1,
-          rDatCre: new Date(),
-          rDatMod: new Date()
-        }])
-        LogSuccess(`Tipo de carretera '${typeRoad.rName}' creado exitosamente.`)
-      } else {
-        LogWarning(`El tipo de carretera '${typeRoad.rName}' ya existe. No se creará.`)
-      }
-    }
+    const data = typeRoadData.map(type => ({
+      rId: uuidv4(),
+      rName: type.rName,
+      rState: 1
+    }))
+    await queryInterface.bulkInsert(
+      { tableName: MODEL_TYPEROAD_NAME, schema: schemaName },
+      data
+    )
+    LogSuccess('Tipos de carretera insertados correctamente.')
   } catch (error) {
     LogDanger(`Error al crear tipos de carretera: ${error.message}`)
+    throw error
   }
 }
 
-exports.down = async (queryInterface) => {
-  // Eliminar los tipos de carretera insertados al revertir la migración
-  await queryInterface.bulkDelete(MODEL_TYPEROAD_NAME, null, {})
+/**
+ * Delete all inserted type roads
+ * @param {import('sequelize').QueryInterface} queryInterface
+ * @param {string} schemaName
+ */
+exports.down = async (queryInterface, schemaName) => {
+  await queryInterface.bulkDelete(
+    { tableName: MODEL_TYPEROAD_NAME, schema: schemaName },
+    {
+      rName: typeRoadData.map(t => t.rName)
+    }
+  )
   LogSuccess('Tipos de carretera eliminados correctamente.')
 }

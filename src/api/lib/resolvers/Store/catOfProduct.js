@@ -65,64 +65,77 @@ export const editOneCategoryProduct = async (_, { pName, ProDescription, carProI
   }
 }
 
+/**
+ * Fetches filtered and paginated product list, ordered by latest creation date.
+ *
+ * @param {Object} root - Root resolver (unused).
+ * @param {Object} args - Arguments containing filters.
+ * @param {string} [args.search] - Optional search term.
+ * @param {number} [args.min=0] - Pagination offset.
+ * @param {number} [args.max=100] - Pagination limit.
+ * @param {Array<string>} [args.gender] - Optional gender delivery filters.
+ * @param {Array<string>} [args.desc] - Optional discount filters.
+ * @param {Array<string>} [args.categories] - Optional category IDs (encoded).
+ * @param {Object} context - GraphQL context with tenant info.
+ * @param {Object} info - GraphQL query info (used for attribute selection).
+ * @returns {Promise<Array<Object>>} Filtered product list.
+ */
 export const catProductsAll = async (root, args, context, info) => {
-  const { search, min, max, gender, desc, categories } = args
-  let whereSearch = {}
-  if (search) {
-    whereSearch = {
+  const {
+    search = '',
+    min = 0,
+    max = 100,
+    gender = [],
+    desc = [],
+    categories = []
+  } = args
+
+  const whereSearch = {
+    ...(search && {
       [Op.or]: [
-        { pName: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-        { ProPrice: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-        { ProDescuento: { [Op.substring]: search.replace(/\s+/g, ' ') } },
-        { ProDelivery: { [Op.substring]: search.replace(/\s+/g, ' ') } }
+        { pName: { [Op.substring]: search.trim() } },
+        { ProPrice: { [Op.substring]: search.trim() } },
+        { ProDescuento: { [Op.substring]: search.trim() } },
+        { ProDelivery: { [Op.substring]: search.trim() } }
       ]
-    }
+    }),
+    ...(gender.length && {
+      ProDelivery: { [Op.in]: gender }
+    }),
+    ...(desc.length && {
+      ProDescuento: { [Op.in]: desc }
+    }),
+    ...(categories.length && {
+      caId: { [Op.in]: categories.map(deCode) }
+    }),
+    pState: { [Op.gt]: 0 } // Only active products
   }
-  if (gender?.length) {
-    whereSearch = {
-      ...whereSearch,
-      ProDelivery: {
-        [Op.in]: gender.map(x => x)
-      }
-    }
-  }
-  if (desc?.length) {
-    whereSearch = {
-      ...whereSearch,
-      ProDescuento: { [Op.in]: desc.map(x => x) }
-    }
-  }
-  if (categories?.length) {
-    whereSearch = {
-      ...whereSearch,
-      caId: { [Op.in]: categories.map(x => deCode(x)) }
-    }
-  }
+
   const attributes = getAttributes(catProducts, info)
-  const data = await catProducts.schema(getTenantName(context?.restaurant)).findAll({
-    attributes,
-    where: {
-      [Op.or]: [
-        {
-          ...whereSearch,
-          pState: { [Op.gt]: 0 }
-        }
-      ]
-    },
-    limit: max || 100,
-    offset: min || 0, // Usar min como offset si es necesario
-    order: [['pName', 'DESC']]
-  })
+
+  const data = await catProducts
+    .schema(getTenantName(context?.restaurant))
+    .findAll({
+      attributes,
+      where: whereSearch,
+      limit: max,
+      offset: min,
+      order: [['pDatCre', 'ASC']]
+    })
+
   return data
 }
+
 // eslint-disable-next-line consistent-return
 export const updateCatInProduct = async (_root, { input }) => {
   const { idProduct, idCat } = input || {}
   try {
     await productModelFood.update({ carProId: deCode(idCat) }, { where: { pId: deCode(idProduct) } })
   } catch (e) {
-    const error = new Error('Lo sentimos, ha ocurrido un error interno')
-    return error
+    return {
+      success: false,
+      message: e.message ?? 'Lo sentimos, ha ocurrido un error interno'
+    }
   }
 }
 export const updatedCatWithProducts = async (_, input, _ctx) => {

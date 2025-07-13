@@ -4,8 +4,7 @@ import connect from '../../db'
 
 const sequelize = connect()
 
-//
-export const MODEL_TYPEROAD_NAME = 'typeroad'
+export const MODEL_TYPEROAD_NAME = 'typeroads'
 
 const TypeRoad = sequelize.define(MODEL_TYPEROAD_NAME, {
   rId: {

@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 
+const { LogSuccess, LogDanger } = require('../logs')
 const { MODEL_COUNTRIES_NAME } = require('../../models/information/CountriesModel')
-const { LogInfo, LogWarning } = require('../logs')
 
 export const COUNTRIES = [
   {
@@ -12,37 +12,42 @@ export const COUNTRIES = [
   }
 ]
 
+/**
+ * Insert default countries
+ * @param {import('sequelize').QueryInterface} queryInterface
+ * @param {string} schemaName
+ */
 exports.up = async (queryInterface, schemaName) => {
   try {
+    const data = COUNTRIES.map(country => ({
+      cId: uuidv4(),
+      cName: country.name,
+      cCalCod: country.code,
+      cState: 1,
+      code_ctId: country.region
+    }))
     await queryInterface.bulkInsert(
-      {
-        schema: schemaName,
-        tableName: MODEL_COUNTRIES_NAME
-      },
-      COUNTRIES.map((country) => ({
-        cId: uuidv4(), // Aquí puedes colocar un UUID único o generarlo dinámicamente.
-        cName: country.name, // Cambia según la estructura de tus datos.
-        cCalCod: country.code, // Cambia según la estructura de tus datos.
-        cState: 1,
-        cDatCre: new Date(),
-        cDatMod: new Date()
-      })),
-      {}
+      { tableName: MODEL_COUNTRIES_NAME, schema: schemaName },
+      data
     )
-    LogInfo('Países insertados correctamente.')
+    LogSuccess('Países insertados correctamente.')
   } catch (error) {
-    LogWarning(error)
+    LogDanger(`Error al crear países: ${error.message}`)
+    throw error
   }
 }
 
+/**
+ * Delete all inserted type roads
+ * @param {import('sequelize').QueryInterface} queryInterface
+ * @param {string} schemaName
+ */
 exports.down = async (queryInterface, schemaName) => {
   await queryInterface.bulkDelete(
+    { tableName: MODEL_COUNTRIES_NAME, schema: schemaName },
     {
-      schema: schemaName,
-      tableName: MODEL_COUNTRIES_NAME
-    },
-    null,
-    {}
+      cId: COUNTRIES.map(t => t.cId)
+    }
   )
-  LogWarning('Países eliminados correctamente.')
+  LogSuccess('Países eliminados correctamente.')
 }

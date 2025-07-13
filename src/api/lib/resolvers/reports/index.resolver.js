@@ -94,7 +94,6 @@ const getReportBydateRange = async (parent, args, context) => {
       start: startDate,
       end: endDate
     })
-    console.log('🚀 ~ getReportBydateRange ~ start, end:', start, end)
 
     const getAllreports = await StatusPedidosModel.schema(getTenantName(schema)).findAll({
       where: {
