@@ -1333,58 +1333,6 @@ const upsertGoal = async (_, { input }, context) => {
   }
 }
 
-// export const DELETE_ONE_BANNER_STORE = gql`
-//   mutation deleteOneBanner(
-//     $bnState: Int
-//     $idStore: ID
-//     $bnId: ID
-//     $bnImage: String
-//     $bnImageFileName: String
-//   ) {
-//     deleteOneBanner(
-//       bnState: $bnState
-//       idStore: $idStore
-//       bnId: $bnId
-//       bnImage: $bnImage
-//       bnImageFileName: $bnImageFileName
-//     ) {
-//       success
-//       message
-//     }
-//   }
-// `
-
-const deleteOneBanner = async (parent, { input }, context) => {
-  try {
-    const validator = new ContextValidator(context)
-    const idStore = validator.validateUserSession()
-    const schema = Store.schema(getTenantName(idStore))
-    const { banner } = await schema.findOne({
-      where: { idStore: deCode(idStore) },
-      attributes: ['banner'],
-      raw: true
-    })
-    const filePath = path.join(userDataPath, banner)
-
-    // Eliminar el archivo del sistema de archivos
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath)
-    }
-
-    // Actualizar la base de datos para eliminar el banner
-    await schema.update(
-      { banner: null },
-      { where: { idStore: deCode(idStore) } }
-    )
-
-    return { success: true, message: 'El banner ha sido eliminado' }
-  } catch (e) {
-    if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
-      return { success: false, message: 'Token expired' }
-    }
-    return { success: false, message: 'El banner no pudo ser eliminado' }
-  }
-}
 export default {
   TYPES: {
     FavoriteStore: {
@@ -1562,7 +1510,6 @@ export default {
     setFavorites,
     setRatingStar,
     deleteOneItem,
-    deleteOneBanner,
     setEditNameStore,
     setRating,
     registerSalesStore,

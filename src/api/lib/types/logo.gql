@@ -3,4 +3,5 @@ type Mutation {
   Uploads a logo image for the specified store.
   """
   setALogoStore(logo: Upload, idStore: ID): Response!
+  deleteALogoStore(idStore: ID, Image: String): Response!
 }

@@ -64,10 +64,46 @@ const registerBanner = async (parent, { input }, context) => {
   }
 }
 
+const deleteOneBanner = async (parent, { input }, context) => {
+  try {
+    const validator = new ContextValidator(context)
+    const idStore = validator.validateUserSession()
+    const schema = Store.schema(getTenantName(idStore))
+    const { banner } = await schema.findOne({
+      where: { idStore: deCode(idStore) },
+      attributes: ['banner'],
+      raw: true
+    })
+    if (!banner) {
+      return { success: false, message: 'No existe el banner' }
+    }
+    const filePath = path.join(userDataPath, banner)
+
+    // Eliminar el archivo del sistema de archivos
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+
+    // Actualizar la base de datos para eliminar el banner
+    await schema.update(
+      { banner: null },
+      { where: { idStore: deCode(idStore) } }
+    )
+
+    return { success: true, message: 'El banner ha sido eliminado' }
+  } catch (e) {
+    if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
+      return { success: false, message: 'Token expired' }
+    }
+    return { success: false, message: 'El banner no pudo ser eliminado' }
+  }
+}
+
 export default {
   TYPES: {},
   QUERIES: {},
   MUTATIONS: {
-    registerBanner
+    registerBanner,
+    deleteOneBanner
   }
 }
