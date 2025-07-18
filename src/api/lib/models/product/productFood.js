@@ -200,6 +200,10 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
     type: STRING,
     allowNull: false
   },
+  tgId: {
+    type: STRING,
+    allowNull: true
+  },
   pCode: {
     type: STRING(100),
     allowNull: false

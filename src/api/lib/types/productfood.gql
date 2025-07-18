@@ -32,6 +32,7 @@ type ProductFood {
     ProDelivery: Int
     ProVoltaje: String
     pState: Int
+    tgId: ID
     sTateLogistic: Int
     ProBarCode: String
     pDatCre: DateTime

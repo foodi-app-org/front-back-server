@@ -72,7 +72,6 @@ export const productFoodsOne = async (root, { pId }, context, info) => {
     })
     return data
   } catch (e) {
-    console.log('🚀 ~ productFoodsOne ~ e:', e)
     return new Error('Lo sentimos, ha ocurrido un error interno,  Vuelve a intentarlo mas tarde.')
   }
 }
@@ -493,7 +492,6 @@ const updateMultipleProducts = async (_root, { input }, context) => {
 
     return filteredResults
   } catch (error) {
-    console.log('🚀 ~ updateMultipleProducts ~ error:', error)
     return [{
       success: false,
       message: `Error al crear productos: ${error.message}`,
@@ -580,10 +578,10 @@ export default {
       }
     },
     ProductFood: {
-      getOneTags: async (parent, _args, _context, info) => {
+      getOneTags: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(tagsProduct, info)
-          const data = await tagsProduct.findOne({ attributes, where: { pId: deCode(parent.pId) } })
+          const data = await tagsProduct.schema(getTenantName(context?.restaurant)).findOne({ attributes, where: { tgId: deCode(parent.tgId) } })
           return data
         } catch (e) {
           throw new ApolloError('Lo sentimos, ha ocurrido un error interno')

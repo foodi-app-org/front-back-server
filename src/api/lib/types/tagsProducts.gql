@@ -1,5 +1,5 @@
 type TagsProduct {
-  tPsId: ID
+  tgId: ID
   idUser: ID
   idStore: ID
   pId: ID
@@ -17,15 +17,41 @@ input ITag {
   aName: String
 }
 
+type IResponseTag {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: TagsProduct
+}
+
+type IResponseMultipleTag {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [TagsProduct]
+}
+
+"Respuesta de la petición de los clientes"
+type ResponseAllTags {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [TagsProduct]
+    pagination: Pagination 
+}
+
+
+
 # Query
 type Query {
-  getAllTags(idStore: ID): [TagsProduct]
+  getAllTags(idStore: ID): ResponseAllTags
   getOneTags(idStore: ID): TagsProduct
 }
 # Mutations
 type Mutation {
-  registerTag(input: ITag): TagsProduct
-  registerTagName(name: String): Response
+  registerTag(input: ITag): IResponseTag
+  registerTagName(name: String): IResponseTag
+  registerMultipleTags(input: [String]!): IResponseMultipleTag
   EditTags(input: ITag): TagsProduct
-  DeleteOneTags(tPsId: ID): Boolean,
+  DeleteOneTags(tgId: ID): Boolean,
 }

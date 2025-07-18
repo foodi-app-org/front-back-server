@@ -1,15 +1,13 @@
 import Sequelize, { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
-import Users from '../Users'
-
-import Store from './Store'
-import productModelFood from './../product/productFood'
 
 const conn = connect()
 
-export default conn.define('tagsproduct', {
-  tPsId: {
+export const TAGS_PRODUCT_MODEL_NAME = 'tagsproducts'
+
+export default conn.define(TAGS_PRODUCT_MODEL_NAME, {
+  tgId: {
     type: STRING(36),
     primaryKey: true,
     autoIncrement: false,
@@ -18,44 +16,23 @@ export default conn.define('tagsproduct', {
   },
   idStore: {
     type: STRING(36),
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: Store,
-      key: 'idStore'
-    }
+    allowNull: true
   },
   idUser: {
     type: STRING(36),
-    allowNull: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: Users,
-      key: 'id'
-    }
-  },
-  pId: {
-    type: STRING(36),
-    allowNull: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: productModelFood,
-      key: 'pId'
-    }
+    allowNull: true
   },
   nameTag: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
-  createAt: {
+  createdAt: {
     type: 'TIMESTAMP',
     allowNull: false,
     defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
   },
-  updateAt: {
+  updatedAt: {
     type: 'TIMESTAMP',
     allowNull: false,
     defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')

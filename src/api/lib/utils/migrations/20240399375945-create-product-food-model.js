@@ -216,6 +216,10 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING,
       allowNull: false
     },
+    tgId: {
+      type: STRING,
+      allowNull: true
+    },
     pCode: {
       type: STRING(100),
       allowNull: false
