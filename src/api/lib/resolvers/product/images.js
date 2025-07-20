@@ -81,7 +81,11 @@ export const setImageProducts = async (_parent, { input }, context) => {
     return {
       success: true,
       message: 'Imagen guardada correctamente',
-      ProImage: filePath
+      data: {
+        pId,
+        ProImage: nameImage
+      }
+
     }
   } catch (error) {
     return {

@@ -14,8 +14,7 @@ import {
   filterKeyObject,
   getAttributes
 } from '../../utils/util'
-import connect from '../../db'
-import { LogDanger, LogSuccess, LogWarning } from '../../utils/logs'
+import { LogWarning } from '../../utils/logs'
 import { MigrationFolder } from '../../utils/migrate-models'
 
 // cities
@@ -30,11 +29,9 @@ export const getCities = async (_root, _args, _context, info) => {
 }
 
 export const cities = async (_root, { dId }, _context, info) => {
-  console.log('🚀 ~ cities ~ dId:', dId)
   try {
     const attributes = getAttributes(CitiesModel, info)
     const data = await CitiesModel.findAll({ attributes, where: { dId: deCode(dId), cState: { [Op.gt]: 0 } }, order: [['cName', 'ASC']] })
-    console.log('🚀 ~ cities ~ data:', data)
     return data
   } catch (e) {
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
@@ -42,89 +39,6 @@ export const cities = async (_root, { dId }, _context, info) => {
 }
 // countries
 
-// Función para llenar la tabla de categorías
-const categoriesData = [
-  {
-    cName: 'Restaurante de Mariscos',
-    csDescription: 'Delicias del mar frescas y sabrosas',
-    cPathImage: '/imagenes/restaurante_mariscos.jpg'
-  },
-  {
-    cName: 'Restaurante de Carnes',
-    csDescription: 'Cortes de carne premium y parrilladas',
-    cPathImage: '/imagenes/restaurante_carnes.jpg'
-  },
-  {
-    cName: 'Restaurante de Vegetariano/Vegano',
-    csDescription: 'Platos saludables y creativos sin carne',
-    cPathImage: '/imagenes/restaurante_vegetariano.jpg'
-  },
-  {
-    cName: 'Cafetería',
-    csDescription: 'Café de calidad y bocadillos deliciosos',
-    cPathImage: '/imagenes/cafeteria.jpg'
-  },
-  {
-    cName: 'Pastelería',
-    csDescription: 'Pasteles, postres y dulces irresistibles',
-    cPathImage: '/imagenes/pasteleria.jpg'
-  },
-  {
-    cName: 'Bar de Tapas',
-    csDescription: 'Tapas variadas y bebidas refrescantes',
-    cPathImage: '/imagenes/bar_tapas.jpg'
-  },
-  {
-    cName: 'Sushi',
-    csDescription: 'Sushi fresco y rolls creativos',
-    cPathImage: '/imagenes/restaurante_sushi.jpg'
-  },
-  {
-    cName: 'Comida Fusion',
-    csDescription: 'Innovadoras combinaciones de sabores de todo el mundo',
-    cPathImage: '/imagenes/restaurante_fusion.jpg'
-  },
-  {
-    cName: 'Restaurante Chino',
-    csDescription: 'Comida china auténtica',
-    cPathImage: '/imagenes/restaurante_chino.jpg'
-  },
-  {
-    cName: 'Restaurante Mexicano',
-    csDescription: 'Deliciosa comida mexicana',
-    cPathImage: '/imagenes/restaurante_mexicano.jpg'
-  },
-  {
-    cName: 'Restaurante Italiano',
-    csDescription: 'Auténtica comida italiana',
-    cPathImage: '/imagenes/restaurante_italiano.jpg'
-  },
-  {
-    cName: 'Restaurante Japonés',
-    csDescription: 'Sushi y comida japonesa',
-    cPathImage: '/imagenes/restaurante_japones.jpg'
-  },
-  {
-    cName: 'Restaurante Coreano',
-    csDescription: 'Comida coreana tradicional',
-    cPathImage: '/imagenes/restaurante_coreano.jpg'
-  },
-  {
-    cName: 'Comida Rápida',
-    csDescription: 'Sabrosas opciones de comida rápida',
-    cPathImage: '/imagenes/comida_rapida.jpg'
-  },
-  {
-    cName: 'Pizzería',
-    csDescription: 'Auténtica pizza recién horneada',
-    cPathImage: '/imagenes/pizzeria.jpg'
-  },
-  {
-    cName: 'Restaurante Español',
-    csDescription: 'Tapas y platos españoles',
-    cPathImage: '/imagenes/restaurante_espanol.jpg'
-  }
-]
 export const countries = async (_root, _args, _context, info) => {
   try {
     const attributes = getAttributes(CountriesModel, info)

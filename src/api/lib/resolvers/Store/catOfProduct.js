@@ -303,26 +303,37 @@ export const getCatProductsWithProductClient = async (root, args, context, info)
 export default {
   TYPES: {
     catProductsWithProduct: {
+      /**
+ * Fetches the latest created product food for a given carProId and active state.
+ *
+ * @param {Object} parent - Parent resolver context.
+ * @param {Object} _args - GraphQL arguments (not used here).
+ * @param {Object} context - GraphQL context, contains tenant info.
+ * @param {Object} info - GraphQL info, used to get selected attributes.
+ * @returns {Promise<Array|Null>} Array of product food records or null on error.
+ */
       productFoodsAll: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
-          const data = await productModelFood.schema(getTenantName(parent.dataValues.idStore ?? context?.restaurant)).findAll({
-            attributes,
-            where: {
-              [Op.or]: [
-                {
-                  pState: { [Op.gt]: 0 },
-                  carProId: deCode(parent.carProId)
-                }
-              ]
 
-            }
-          })
+          const data = await productModelFood
+            .schema(getTenantName(parent.dataValues.idStore ?? context?.restaurant))
+            .findAll({
+              attributes,
+              where: {
+                pState: { [Op.gt]: 0 },
+                carProId: deCode(parent.carProId)
+              },
+              order: [['pDatCre', 'DESC']]
+            })
+
           return data
-        } catch {
+        } catch (error) {
+          console.error('Error fetching productFoodsAll:', error)
           return null
         }
       }
+
     }
   },
   QUERIES: {
