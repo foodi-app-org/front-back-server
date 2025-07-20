@@ -3,6 +3,7 @@ type TagsProduct {
   idUser: ID
   idStore: ID
   pId: ID
+  state: Int
   nameTag: String
   aName: String
 }
@@ -13,6 +14,7 @@ input ITag {
   idUser: ID
   idStore: ID
   pId: ID
+  state: Int
   nameTag: String
   aName: String
 }
@@ -53,5 +55,5 @@ type Mutation {
   registerTagName(name: String): IResponseTag
   registerMultipleTags(input: [String]!): IResponseMultipleTag
   EditTags(input: ITag): TagsProduct
-  DeleteOneTags(tgId: ID): Boolean,
+  deleteOneTag(tgId: ID, nameTag: String): IResponseTag,
 }

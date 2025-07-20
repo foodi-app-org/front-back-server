@@ -20,6 +20,7 @@ import CategoryProductsModel from '../Categories/CategoryProducts'
 import Users from '../Users'
 import Store from '../Store/Store'
 import catProducts from '../Store/cat'
+import { generateEAN13Barcode } from '../../utils/generateEAN13Barcode.js'
 
 const crypto = require('crypto')
 
@@ -323,7 +324,7 @@ const productModelFood = sequelize.define(PRODUCT_FOOD_MODEL, {
   hooks: {
     beforeCreate (product) {
       if (!product.ProBarCode) {
-        product.ProBarCode = crypto.randomBytes(6).toString('hex').toUpperCase()
+        product.ProBarCode = generateEAN13Barcode()
       }
     },
     beforeUpdate (product) {

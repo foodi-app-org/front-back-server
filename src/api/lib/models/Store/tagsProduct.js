@@ -1,6 +1,7 @@
-import Sequelize, { STRING, UUIDV4 } from 'sequelize'
+import Sequelize, { SMALLINT, STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
+import { states } from '../../utils/state_db'
 
 const conn = connect()
 
@@ -26,6 +27,11 @@ export default conn.define(TAGS_PRODUCT_MODEL_NAME, {
     type: Sequelize.STRING,
     allowNull: false,
     unique: true
+  },
+  state: {
+    type: SMALLINT,
+    allowNull: false,
+    defaultValue: states.ACTIVE
   },
   createdAt: {
     type: 'TIMESTAMP',

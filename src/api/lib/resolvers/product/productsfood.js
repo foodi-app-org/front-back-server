@@ -29,6 +29,7 @@ import catProducts from '../../models/Store/cat'
 import { categories } from '../../utils/migrations/20240330051906-bulk-insert-cat-products'
 import GenericService from '../../services'
 import { movementTypes } from '../../models/inventory/stockMovement'
+import { states } from '../../utils/state_db'
 
 import { productFoodSchema } from './schema'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
@@ -452,10 +453,14 @@ const updateMultipleProducts = async (_root, { input }, context) => {
             message: `El producto con código de barras ${ProBarCode} ya existe. Se ha actualizado su stock.`
           }
         }
-        const generateBarCode = () => {
-          const timestamp = Date.now().toString().slice(-6) // Get last 6 digits of current timestamp
-          const randomPart = crypto.randomBytes(3).toString('hex').toUpperCase() // Generate 6 random hex characters
-          return `${timestamp}${randomPart}`
+        /**
+         * Generates a scannable CODE128-compatible barcode
+         * @param {number} length - Length of the barcode
+         * @returns {string} - Valid CODE128 string
+         */
+        const generateCode128 = (length = 12) => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+          return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
         }
 
         const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
@@ -472,7 +477,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: 0,
-          ProBarCode: productInput?.ProBarCode ?? generateBarCode()
+          ProBarCode: productInput?.ProBarCode ?? generateCode128()
         })
 
         return {
@@ -581,7 +586,13 @@ export default {
       getOneTags: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(tagsProduct, info)
-          const data = await tagsProduct.schema(getTenantName(context?.restaurant)).findOne({ attributes, where: { tgId: deCode(parent.tgId) } })
+          const data = await tagsProduct.schema(getTenantName(context?.restaurant)).findOne({
+            attributes,
+            where: {
+              state: states.ACTIVE,
+              tgId: deCode(parent.tgId)
+            }
+          })
           return data
         } catch (e) {
           throw new ApolloError('Lo sentimos, ha ocurrido un error interno')

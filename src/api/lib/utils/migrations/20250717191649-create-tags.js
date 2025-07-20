@@ -1,10 +1,12 @@
 const {
   UUIDV4,
   STRING,
-  Sequelize
+  Sequelize,
+  SMALLINT
 } = require('sequelize')
 
 const { TAGS_PRODUCT_MODEL_NAME } = require('../../models/Store/tagsProduct')
+const { states } = require('../state_db')
 
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(TAGS_PRODUCT_MODEL_NAME, {
@@ -27,6 +29,11 @@ exports.up = async (queryInterface, schemaName) => {
       type: STRING,
       allowNull: false,
       unique: true
+    },
+    state: {
+      type: SMALLINT,
+      allowNull: false,
+      defaultValue: states.ACTIVE
     },
     createdAt: {
       type: 'TIMESTAMP',

@@ -1,5 +1,6 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+import Joi from 'joi'
 
 import productModel from '../../models/product/food'
 import tagsProductModel from '../../models/Store/tagsProduct'
@@ -7,8 +8,10 @@ import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import productModelFood from '../../models/product/productFood'
 import { filterKeyObject } from '../../utils'
 import GenericService from '../../services'
+import { ContextValidator } from '../../utils/context-validator'
+import { states } from '../../utils/state_db'
 
-import { tagCreateSchema, tagSchema } from './schema/schem.tagsProducts'
+import { InputTagSchema, tagCreateSchema, tagSchema } from './schema/schem.tagsProducts'
 
 /**
  * Register a new tag and assign it to a product
@@ -43,7 +46,9 @@ const registerTag = async (parent, { input }, ctx) => {
 
     // Crear o encontrar la tag
     const [tag, created] = await tagsProductModel.schema(tenant).findOrCreate({
-      where: { nameTag },
+      where: {
+        nameTag
+      },
       defaults: {
         ...filterKeyObject(input, ['pId']),
         idStore: idStore ? deCode(idStore) : deCode(ctx.restaurant),
@@ -71,10 +76,19 @@ const registerTag = async (parent, { input }, ctx) => {
       }
     }
 
-    product.tgId = tag.tgId ?? {
+    product.tgId = tag?.tgId ?? {
       tgId: null
     }
-    await product.save()
+    if (tag.state !== states.ACTIVE) {
+      return {
+        success: false,
+        data: null,
+        message: 'El tag ya a sido eliminado o deactivado antes'
+      }
+    }
+    if (tag.state === states.ACTIVE) {
+      await product.save()
+    }
 
     return {
       success: true,
@@ -83,8 +97,12 @@ const registerTag = async (parent, { input }, ctx) => {
         ? 'Tag created and assigned to product successfully.'
         : 'Tag already exists and was assigned to the product.'
     }
-  } catch (err) {
-    throw new Error('An error occurred while registering the tag.')
+  } catch (_err) {
+    return {
+      success: true,
+      data: null,
+      message: 'An error occurred while registering the tag.'
+    }
   }
 }
 
@@ -97,10 +115,11 @@ const registerTag = async (parent, { input }, ctx) => {
  * @returns {Promise<IResponseMultipleTag>} Result object with status, message, data, and possible errors
  */
 const registerMultipleTags = async (parent, { input }, ctx) => {
+  const validator = new ContextValidator(ctx)
+  const idStore = validator.validateUserSession()
   const userId = ctx?.User?.id
-  const storeId = ctx?.restaurant
 
-  const tenant = getTenantName(storeId)
+  const tenant = getTenantName(idStore)
   const createdTags = []
   const errors = []
 
@@ -108,7 +127,7 @@ const registerMultipleTags = async (parent, { input }, ctx) => {
     const tagInput = {
       nameTag,
       idUser: deCode(userId),
-      idStore: deCode(storeId)
+      idStore: deCode(idStore)
     }
 
     const { error } = tagCreateSchema.validate(tagInput)
@@ -167,7 +186,8 @@ const getAllTags = async (_, { pagination = { page: 1, max: 100 }, search = '' }
       idStore,
       pagination,
       where: {
-        idStore
+        idStore,
+        state: states.ACTIVE
       },
       searchFields: [{ field: 'createdAt', direction: 'DESC' }],
       attributes: ['tgId', 'idUser', 'idStore', 'nameTag']
@@ -182,13 +202,93 @@ const getAllTags = async (_, { pagination = { page: 1, max: 100 }, search = '' }
   }
 }
 
-export const getOneTags = async (parent, { idStore }, _context, info) => {
-  try {
-    const attributes = getAttributes(tagsProductModel, info)
-    const data = await tagsProductModel.findOne({ attributes, where: { idStore: deCode(parent.idStore ?? idStore) } })
-    return data
-  } catch (e) {
-    throw ApolloError('Lo sentimos, ha ocurrido un error interno')
+/**
+ * Delete a tag by ID or name using Sequelize
+ * @param {any} _ - Unused parent param
+ * @param {{ tgId?: string, nameTag?: string }} args - Tag identifiers
+ * @param {Object} ctx - GraphQL context containing models
+ * @param {Object} ctx.models - Sequelize models
+ * @returns {Promise<{
+ *  success: boolean,
+ *  message: string,
+ *  tag?: Object | null,
+ *  data?: null,
+ *  errors?: Array<Object>
+ * }>} Response object with success state and message
+ */
+const deleteOneTag = async (_, args, ctx) => {
+  const validator = new ContextValidator(ctx)
+  const idStore = validator.validateUserSession()
+  // Validate inputs
+  const { error, value } = InputTagSchema.validate(args)
+  if (error) {
+    return {
+      success: false,
+      data: null,
+      message: 'Validation error',
+      errors: error.details.map(e => ({
+        message: e.message,
+        path: e.path,
+        type: e.type,
+        context: e.context
+      }))
+    }
+  }
+
+  const { tgId, nameTag } = value
+  const tenant = getTenantName(idStore)
+  const model = tagsProductModel.schema(tenant)
+
+  // Find tag by ID or name
+  const tag = await model.findOne({
+    where: {
+      [Op.or]: [
+        tgId ? { tgId } : null,
+        nameTag ? { nameTag } : null
+      ].filter(Boolean)
+    }
+  })
+
+  if (!tag) {
+    return {
+      success: false,
+      data: null,
+      message: 'Tag not found',
+      errors: [
+        {
+          message: 'Tag not found by ID or name',
+          path: ['tgId', 'nameTag'],
+          type: 'not_found'
+        }
+      ]
+    }
+  }
+  // Tag already deleted
+  if (tag.state === states.DELETED) {
+    return {
+      success: false,
+      data: null,
+      message: `Tag '${tag.nameTag}' is already deleted.`,
+      errors: [{
+        message: 'The tag is already marked as deleted.',
+        path: ['state'],
+        type: 'already_deleted'
+      }]
+    }
+  }
+
+  await tagsProductModel.schema(tenant).update(
+    { state: states.DELETED },
+    { where: { tgId: tag.tgId } }
+  )
+  return {
+    success: true,
+    message: 'Tag successfully deleted.',
+    data: {
+      tgId: tag.tgId,
+      nameTag: tag.nameTag,
+      state: states.DELETED
+    }
   }
 }
 
@@ -254,6 +354,7 @@ export default {
   },
   MUTATIONS: {
     registerTag,
-    registerMultipleTags
+    registerMultipleTags,
+    deleteOneTag
   }
 }
