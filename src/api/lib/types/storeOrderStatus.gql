@@ -1,0 +1,58 @@
+"""Represents the status type of an order"""
+type OrderStatusType {
+  idStatus: ID
+  name: String
+  description: String
+  color: String
+  backgroundColor: String
+  priority: Int
+  state: Int
+  createdAt: String
+  updatedAt: String
+}
+
+"""Input used to create or update an order status type"""
+input OrderStatusTypeInput {
+  name: String!
+  description: String
+  color: String
+  backgroundColor: String
+  priority: Int!
+  state: Int!
+}
+
+"""Input used to update an existing order status type"""
+input UpdateOrderStatusTypeInput {
+  idStatus: ID!
+  name: String
+  description: String
+  color: String
+  backgroundColor: String
+  priority: Int
+  state: Int
+}
+
+type OrderStatusResponse {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: [OrderStatusType]
+}
+
+"""Input to update the priority of multiple status types"""
+input OrderStatusPriorityInput {
+  idStatus: ID!
+  priority: Int!
+}
+
+type Query {
+  getOrderStatusTypes: [OrderStatusType]
+  getOrderStatusTypeById(idStatus: ID!): OrderStatusType
+}
+
+type Mutation {
+  createOrderStatusType(data: OrderStatusTypeInput!): OrderStatusType!
+  updateOrderStatusType(data: UpdateOrderStatusTypeInput!): OrderStatusType!
+  deleteOrderStatusType(idStatus: ID!): Boolean!
+  updateOrderStatusPriorities(data: [OrderStatusPriorityInput!]!): OrderStatusResponse
+}

@@ -7,7 +7,7 @@ import ShoppingCard from './ShoppingCard'
 
 const sequelize = connect()
 
-export const ORDER_MODEL = 'storepedidos'
+export const ORDER_MODEL = 'store_orders'
 
 const pedidosModel = sequelize.define(ORDER_MODEL, {
   pdpId: {

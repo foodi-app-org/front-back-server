@@ -13,7 +13,7 @@ import Store from './Store'
 
 const sequelize = connect()
 
-export const STATUS_ORDER_MODEL = 'orderStatuses'
+export const STATUS_ORDER_MODEL = 'orders_statuses'
 
 const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   stPId: {
@@ -43,7 +43,8 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
   },
   pSState: {
     type: STRING(36),
-    defaultValue: 4
+    allowNull: false
+    // relation with: ORDER_STATUS_TYPE_MODEL,
   },
   valueDelivery: {
     type: DECIMAL(1000, 2),

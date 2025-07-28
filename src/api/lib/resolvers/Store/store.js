@@ -40,9 +40,8 @@ import DateRange from '../../utils/DateRange'
 import { updateStock } from '../inventory/inventory'
 import { createStockMovement } from '../inventory/inventory.stockmoments'
 import connect from '../../db'
-import { userDataPath } from '../product/images'
-import { ContextValidator } from '../../utils/context-validator'
 import { MigrationFolder } from '../../utils/migrate-models'
+import { ORDER_STATUS_TYPE_MODEL, OrderStatusTypeModel } from '../../models/Store/OrderStatusTypes'
 
 import { createOnePedidoStore } from './orders'
 import { getStoreSchedules } from './Schedule'
@@ -290,10 +289,10 @@ export const registerSalesStore = async (
         extensions: { code: 'FORBIDDEN', message: { message: 'Token expired' } }
       })
     }
-    const statusPedido = await StatusOrderModel.schema(getTenantName(context?.restaurant)).findOne({
+    const statusOrder = await StatusOrderModel.schema(getTenantName(context?.restaurant)).findOne({
       where: { pCodeRef }
     })
-    if (statusPedido) {
+    if (statusOrder) {
       LogDanger(`registerSalesStore: pCodeRef ${pCodeRef} already exists`)
       return {
         Response: {
@@ -467,6 +466,11 @@ export const registerSalesStore = async (
         throw new Error(message || 'Ocurrió un error al crear el pedido')
       }
     }))
+    const OrderStatus = await OrderStatusTypeModel.schema(getTenantName(context?.restaurant)).findOne({
+      where: {
+        state: 4
+      }
+    })
     await StatusOrderModel.schema(getTenantName(context?.restaurant)).create({
       change: !isNaN(parseFloat(change)) && isFinite(change) ? parseFloat(change) : 0,
       channel: 1,
@@ -478,7 +482,7 @@ export const registerSalesStore = async (
       tableId,
       pCodeRef,
       pickUp,
-      pSState: 4,
+      pSState: OrderStatus?.idStatus ?? null,
       totalProductsPrice,
       valueDelivery
     })
@@ -523,52 +527,40 @@ export const registerSalesStore = async (
   }
 }
 
-export const getTodaySales = async (_, args, ctx) => {
+export const getTodaySales = async (_, args, context) => {
   try {
-    if (!ctx.restaurant) {
+    if (!context.restaurant) {
       return { success: false, message: 'El contexto no contiene un restaurante válido' }
     }
 
     const todayRange = new DateRange()
     const { start, end } = todayRange.getRange()
     const sequelize = connect()
-    const result2 = await sequelize.query(
-      `
-        SELECT *
-        FROM "${getTenantName(ctx?.restaurant)}.${STATUS_ORDER_MODEL}"
-        WHERE "pSState" = 4
-          AND "idStore" = :idStore
-          AND "createdAt" >= :start AND "createdAt" <= :end;
-      `,
-      {
-        replacements: {
-          idStore: deCode(ctx.restaurant),
-          start,
-          end
-        },
-        type: sequelize.QueryTypes.SELECT
-      }
-    )
-    console.log(result2)
+    const tenant = getTenantName(context?.restaurant)
+
     const result = await sequelize.query(
       `
-        SELECT COUNT(*) AS "total"
-        FROM "${getTenantName(ctx?.restaurant)}.${STATUS_ORDER_MODEL}"
-        WHERE "pSState" = 4
-          AND "idStore" = :idStore
-          AND "createdAt" >= :start AND "createdAt" <= :end;
-      `,
+    SELECT COUNT(*) AS "total"
+    FROM "${tenant}.${STATUS_ORDER_MODEL}" so
+    INNER JOIN "${tenant}.${ORDER_STATUS_TYPE_MODEL}" ost
+      ON so."pSState" = ost."idStatus"
+    WHERE ost."priority" = 4
+      AND so."idStore" = :idStore
+      AND so."createdAt" BETWEEN :start AND :end
+  `,
       {
         replacements: {
-          idStore: deCode(ctx.restaurant),
+          idStore: deCode(context.restaurant),
           start,
           end
         },
         type: sequelize.QueryTypes.SELECT
       }
     )
-    const data = result[0]?.total
-    return data
+    /** @type {number} */
+    const total = result?.[0]?.total ? Number(result[0].total) : 0
+
+    return total
   } catch (error) {
     return 0
   }

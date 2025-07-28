@@ -42,8 +42,9 @@ exports.up = async (queryInterface, schemaName) => {
       }
     },
     pSState: {
-      type: INTEGER,
-      defaultValue: 0
+      type: STRING(36),
+      allowNull: false
+      // relation with: ORDER_STATUS_TYPE_MODEL,
     },
     valueDelivery: {
       type: INTEGER,

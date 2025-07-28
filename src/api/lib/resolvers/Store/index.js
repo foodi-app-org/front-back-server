@@ -19,10 +19,12 @@ import getLocalInfo from './getLocalInfo'
 import dashboard from './dashboard'
 import logo from './store.logo'
 import banner from './store.banner'
+import orderStatusTypes from './orderStatusTypes'
 
 export default {
   TYPES: {
     ...storeResolver.TYPES,
+    ...orderStatusTypes.TYPES,
     ...tables.TYPES,
     ...modules.TYPES,
     ...bannerDashboardStore.TYPES,
@@ -45,6 +47,7 @@ export default {
     ...banner.TYPES
   },
   QUERIES: {
+    ...orderStatusTypes.QUERIES,
     ...modules.QUERIES,
     ...tables.QUERIES,
     ...storeResolver.QUERIES,
@@ -69,6 +72,7 @@ export default {
 
   },
   MUTATIONS: {
+    ...orderStatusTypes.MUTATIONS,
     ...modules.MUTATIONS,
     ...tables.MUTATIONS,
     ...storeResolver.MUTATIONS,

@@ -1,6 +1,6 @@
 
 # Stores
-type StorePedidos {
+type StoreOrders {
   pdpId: ID
   id: ID
   idStore: ID
@@ -10,7 +10,7 @@ type StorePedidos {
   change: Int
   pCodeRef: String
   pPDate: DateTime
-  pSState: Int # 5 estados - confirmado - proceso - salida - cancelado
+  pSState: ID # 5 estados - confirmado - proceso - salida - cancelado
   pPStateP: Int
   payMethodPState: Int
   pPRecoger: Int
@@ -21,7 +21,8 @@ type StorePedidos {
   getUser: User
   ShoppingCard: ID
   productFoodsOne: ProductFood
-  getStoreOrders: [StorePedidos]
+  getStoreOrders: [StoreOrders]
+  getStatusOrderType: OrderStatusType
   getAllShoppingCard: ShoppingCard
   salesExtProductFoodOptional: [saleExtProductFoodOptional]
   locationUser: String
@@ -54,7 +55,7 @@ type saleExtProductFoodSubOptional {
     pDatMod: DateTime
 }
 
-input InputStorePedidos {
+input InputStoreOrders {
   pdpId: ID
   id: ID
   pId: ID
@@ -62,7 +63,7 @@ input InputStorePedidos {
   ppState: Int
   pCodeRef: String
   pPDate: DateTime
-  pSState: Int # 5 estados - confirmado - proceso - preparacion - salida - cancelado  
+  pSState: ID # 5 estados - confirmado - proceso - preparacion - salida - cancelado  
   pPStateP: Int
   payMethodPState: Int
   pPRecoger: Int
@@ -98,46 +99,62 @@ input InputSaleStore {
   pPRecoger: Int
   totalProductsPrice: Float
 }
+
 type TypeInputSalesChannel {
     restaurant: Float,
     delivery: Float,
     TOTAL: Float,
 }
 
-type StorePedidosFromPSState {
-  ACCEPT: [StorePedidos]
-  PROCESSING: [StorePedidos]
-  READY: [StorePedidos]
-  CONCLUDES: [StorePedidos]
-  REJECTED: [StorePedidos]
+type StoreOrdersFromPSState {
+  ACCEPT: [StoreOrders]
+  PROCESSING: [StoreOrders]
+  READY: [StoreOrders]
+  CONCLUDES: [StoreOrders]
+  REJECTED: [StoreOrders]
+}
+
+type StoreOrdersGroupByStatus {
+  statusKey: String
+  priority: Float
+  state: Int
+  getStatusOrderType: OrderStatusType
+  items: [StoreOrders]
+}
+
+type ResponseChangePPStateOrder {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: StoreOrders
 }
 
 type Query {
 """Response for find one Store"""
-  getAllIncomingToDayOrders(statusOrder: Int, idStore: ID): [StorePedidos]
-  getStoreOrderById(pCodeRef: String, StoreName: String, idStore: ID): StorePedidos
-  getStoreOrders(StoreName: String, idStore: ID): [StorePedidos]
-  getStoreOrdersFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StorePedidos]
-  getAllOrdersFromStore(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int, inCludeRange: Boolean): StorePedidosFromPSState
-  getAllSalesStore(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int channel: Int): [StorePedidos]
+  getAllIncomingToDayOrders(statusOrder: Int, idStore: ID): [StoreOrders]
+  getStoreOrderById(pCodeRef: String, StoreName: String, idStore: ID): StoreOrders
+  getStoreOrders(StoreName: String, idStore: ID): [StoreOrders]
+  getStoreOrdersFinal(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int): [StoreOrders]
+  getAllOrdersFromStore(idStore: ID, cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int, statusOrder: Int, inCludeRange: Boolean): [StoreOrdersGroupByStatus]
+  getAllSalesStore(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int channel: Int): [StoreOrders]
   getAllSalesStoreTotal(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: String toDate: String max: Int, channel: Int): TypeInputSalesChannel
-  getAllSalesStoreStatistic(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int): [StorePedidos]
-  getAllPedidoUserFinal(id: ID): [StorePedidos]
-  getOneSalesStore(pCodeRef: String): StorePedidos
+  getAllSalesStoreStatistic(idStore: ID, pId: ID cId: ID dId: ID ctId: ID search: String min: Int fromDate: DateTime toDate: DateTime max: Int): [StoreOrders]
+  getAllPedidoUserFinal(id: ID): [StoreOrders]
+  getOneSalesStore(pCodeRef: String): StoreOrders
 }
 
 type Mutation {
   """"Store data Order"""
-  createOnePedidoStore(input: InputStorePedidos): AuthPayload
+  createOnePedidoStore(input: InputStoreOrders): AuthPayload
   # create a sale in store web
   createMultipleOrderStore(input: SET_INPUT_SHOPPING_PRODUCTS_ITEMS): Response
   # create a sale in store
   createSalesStore(input: InputSaleStore): Response
   createShoppingCardStoreToUser(input: InputSaleStore): Response
 
-  changePPStatePPedido(pPStateP: Int, pCodeRef: String, pDatMod: String): Response
+  changePPStateOrder(idStatus: ID, pCodeRef: String, pDatMod: String): ResponseChangePPStateOrder
 }
 
 type Subscription {
-  newStorePedidos: StorePedidos
+  newStoreOrders: StoreOrders
 }

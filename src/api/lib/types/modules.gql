@@ -10,7 +10,7 @@ type Module {
     mId: ID
     mPath: String
     mName: String
-    mPriority: Int
+    mPriority: Float
     view: String
     mIcon: Int
     subModules: [SubModule]
@@ -27,7 +27,7 @@ input ModuleInput {
     mId: ID
     mPath: String
     mName: String
-    mPriority: Int
+    mPriority: Float
     mIcon: Int
     subModules: [SubModuleInput]
 }
@@ -52,7 +52,7 @@ type Query {
 }
 input UpdateModuleOrderInput {
   mId: ID!               # ID del módulo que se va a actualizar
-  mPriority: Int         # Nueva prioridad del módulo
+  mPriority: Float         # Nueva prioridad del módulo
 }
 
 type UpdateModuleOrderPayload {

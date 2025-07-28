@@ -2,18 +2,21 @@ import crypto, { randomUUID } from 'crypto'
 
 import dotenv from 'dotenv'
 import { Op } from 'sequelize'
+import { groupBy } from 'lodash'
 
 import productModelFood, { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
 import pedidosModel, { ORDER_MODEL } from '../../models/Store/pedidos'
 import ShoppingCard, { SHOPPING_CARD_MODEL } from '../../models/Store/ShoppingCard'
-import StatusOrderModel from '../../models/Store/statusPedidoFinal'
+import StatusOrderModel, { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
 import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import connect from '../../db'
 import { STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
 import DateRange from '../../utils/DateRange'
+import { ORDER_STATUS_TYPE_MODEL, OrderStatusTypeModel } from '../../models/Store/OrderStatusTypes'
 
 import { deleteOneItem, getOneStore } from './store'
+import { getOrderStatusTypeById } from './orderStatusTypes'
 
 // Configura dotenv
 dotenv.config()
@@ -47,114 +50,105 @@ export const createOnePedidoStore = async (_, { input }, context) => {
     return { success: false, message: development ? error.message : 'Se ha producido un error al crear la orden' }
   }
 }
-// eslint-disable-next-line
-const changePPStatePPedido = async (_, { pPStateP, pCodeRef, pDatMod }, context) => {
-  if (![0, 1, 2, 3, 4, 5].includes(pPStateP)) {
-    return {
-      success: false,
-      message: 'Ocurrió un error, vuelve a intentarlo.'
-    }
-  }
-  const state = {
-    1: 'La orden fue marcado como aprobado',
-    2: 'La orden fue marcado como en proceso',
-    3: 'La orden esta listo para salir',
-    4: 'La orden fue pagada con éxito por el cliente (Concluido)',
-    5: 'Orden rechazada'
-  }
+
+const changePPStateOrder = async (_, { idStatus, pCodeRef, pDatMod }, context) => {
   try {
     const tenant = getTenantName(context.restaurant)
     const existingOrder = await StatusOrderModel.schema(tenant).findOne({
       where: { pCodeRef },
       attributes: ['pSState']
     })
-
     if (!existingOrder) {
       return {
         success: false,
         message: 'La orden no existe.'
       }
     }
-
-    if (existingOrder.pSState === 5) {
-      return {
-        success: false,
-        message: 'No se puede cambiar el estado de una orden rechazada.'
-      }
-    }
+    const statusOrderType = await getOrderStatusTypeById(null, { idStatus }, context)
+    // if (existingOrder.pSState === statusOrderType.idStatus || existingOrder.pSState === idStatus) {
+    //   return {
+    //     success: false,
+    //     message: 'No se puede cambiar el estado de una orden rechazada.'
+    //   }
+    // }
     await StatusOrderModel.schema(tenant).update(
-      { pSState: pPStateP, pDatMod },
+      { pSState: statusOrderType.idStatus, pDatMod },
       { where: { pCodeRef } }
     )
-    if (pPStateP === 5) {
-      const sequelize = connect()
-      await sequelize.query(
-        `
-        UPDATE "${tenant}.${PRODUCT_FOOD_MODEL}"
-        SET "stock" = "stock" + (
-          SELECT SUM(sc."cantProducts")
-          FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
-          INNER JOIN "${tenant}.${ORDER_MODEL}" p
-          ON sc."ShoppingCard" = p."ShoppingCard"
-          WHERE p."pCodeRef" = :pCodeRef
-          AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
-        )
-        WHERE EXISTS (
-          SELECT 1 FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
-          INNER JOIN "${tenant}.${ORDER_MODEL}" p
-          ON sc."ShoppingCard" = p."ShoppingCard"
-          WHERE p."pCodeRef" = :pCodeRef
-          AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
-        );
-        `,
-        {
-          replacements: { pCodeRef },
-          type: sequelize.QueryTypes.UPDATE
-        }
-      )
-      const products = await sequelize.query(
-        `
-        SELECT DISTINCT pf.*, sc."cantProducts"
-        FROM "${tenant}.${PRODUCT_FOOD_MODEL}" pf
-        INNER JOIN "${tenant}.${SHOPPING_CARD_MODEL}" sc
-          ON pf."pId" = sc."pId"
-        INNER JOIN "${tenant}.${ORDER_MODEL}" p
-          ON sc."ShoppingCard" = p."ShoppingCard"
-        WHERE p."pCodeRef" = :pCodeRef
-        `,
-        {
-          replacements: { pCodeRef },
-          type: sequelize.QueryTypes.SELECT
-        }
-      )
-      for (const product of products) {
-        const reference = crypto.randomBytes(16).toString('hex')
-        await sequelize.query(
-          `
-          INSERT INTO "${tenant}.${STOCK_MOVEMENT_NAME}" 
-            ("productId", "movementType", "quantity", "previousStock", "newStock", "reference", "createdAt", "updatedAt")
-          VALUES 
-            (:productId, 'ADJUSTMENT', :quantity, :previousStock, :newStock, :reference, :createdAt, :updatedAt);
-          `,
-          {
-            replacements: {
-              idstockMoment: randomUUID(),
-              productId: product.pId,
-              quantity: product.cantProducts,
-              previousStock: product.stock - product.cantProducts,
-              newStock: product.stock,
-              reference,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            },
-            type: sequelize.QueryTypes.INSERT
-          }
-        )
-      }
-    }
+    const findOrderbyCodeRef = await StatusOrderModel.schema(tenant).findOne(
+      { where: { pCodeRef } }
+    )
+    // if (pPStateP === 5) {
+    //   const sequelize = connect()
+    //   await sequelize.query(
+    //     `
+    //     UPDATE "${tenant}.${PRODUCT_FOOD_MODEL}"
+    //     SET "stock" = "stock" + (
+    //       SELECT SUM(sc."cantProducts")
+    //       FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
+    //       INNER JOIN "${tenant}.${ORDER_MODEL}" p
+    //       ON sc."ShoppingCard" = p."ShoppingCard"
+    //       WHERE p."pCodeRef" = :pCodeRef
+    //       AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
+    //     )
+    //     WHERE EXISTS (
+    //       SELECT 1 FROM "${tenant}.${SHOPPING_CARD_MODEL}" sc
+    //       INNER JOIN "${tenant}.${ORDER_MODEL}" p
+    //       ON sc."ShoppingCard" = p."ShoppingCard"
+    //       WHERE p."pCodeRef" = :pCodeRef
+    //       AND "${tenant}.${PRODUCT_FOOD_MODEL}"."pId" = sc."pId"
+    //     );
+    //     `,
+    //     {
+    //       replacements: { pCodeRef },
+    //       type: sequelize.QueryTypes.UPDATE
+    //     }
+    //   )
+    //   const products = await sequelize.query(
+    //     `
+    //     SELECT DISTINCT pf.*, sc."cantProducts"
+    //     FROM "${tenant}.${PRODUCT_FOOD_MODEL}" pf
+    //     INNER JOIN "${tenant}.${SHOPPING_CARD_MODEL}" sc
+    //       ON pf."pId" = sc."pId"
+    //     INNER JOIN "${tenant}.${ORDER_MODEL}" p
+    //       ON sc."ShoppingCard" = p."ShoppingCard"
+    //     WHERE p."pCodeRef" = :pCodeRef
+    //     `,
+    //     {
+    //       replacements: { pCodeRef },
+    //       type: sequelize.QueryTypes.SELECT
+    //     }
+    //   )
+    //   for (const product of products) {
+    //     const reference = crypto.randomBytes(16).toString('hex')
+    //     await sequelize.query(
+    //       `
+    //       INSERT INTO "${tenant}.${STOCK_MOVEMENT_NAME}"
+    //         ("productId", "movementType", "quantity", "previousStock", "newStock", "reference", "createdAt", "updatedAt")
+    //       VALUES
+    //         (:productId, 'ADJUSTMENT', :quantity, :previousStock, :newStock, :reference, :createdAt, :updatedAt);
+    //       `,
+    //       {
+    //         replacements: {
+    //           idstockMoment: randomUUID(),
+    //           productId: product.pId,
+    //           quantity: product.cantProducts,
+    //           previousStock: product.stock - product.cantProducts,
+    //           newStock: product.stock,
+    //           reference,
+    //           createdAt: new Date(),
+    //           updatedAt: new Date()
+    //         },
+    //         type: sequelize.QueryTypes.INSERT
+    //       }
+    //     )
+    //   }
+    // }
     return {
       success: true,
-      message: state[pPStateP]
+      message: statusOrderType.description ?? '',
+      data: findOrderbyCodeRef,
+      errors: null
     }
   } catch (error) {
     return {
@@ -349,139 +343,62 @@ const ordersByState = {
   REJECTED: []
 }
 
-const getStatusKey = (pSState) => {
-  const statusKeys = {
-    1: 'ACCEPT',
-    2: 'PROCESSING',
-    3: 'READY',
-    4: 'CONCLUDES',
-    5: 'REJECTED'
-  }
-  return statusKeys[pSState] || ''
-}
-
-const getOrdersByState = async ({
-  idStore,
-  search = '',
-  min,
-  fromDate,
-  toDate,
-  max,
-  inCludeRange,
-  ctx
-}) => {
-  try {
-    const ordersByState = {
-      ACCEPT: [],
-      PROCESSING: [],
-      READY: [],
-      CONCLUDES: [],
-      REJECTED: []
-    }
-
-    const attributes = [
-      'stPId',
-      'id',
-      'idStore',
-      'pSState',
-      'valueDelivery',
-      'locationUser',
-      'discount',
-      'tip',
-      'change',
-      'pCodeRef',
-      'totalProductsPrice',
-      'payMethodPState',
-      'pickUp',
-      'channel',
-      'pPDate',
-      'pDatCre',
-      'pDatMod',
-      'createdAt',
-      'updatedAt'
-    ]
-
-    const addOrdersByState = async (pSState) => {
-      const orders = await getPedidosByState({
-        search,
-        model: StatusOrderModel,
-        attributes,
-        max,
-        inCludeRange,
-        fromDate,
-        toDate,
-        min,
-        idStore,
-        ctx,
-        pSState
-      })
-      ordersByState[getStatusKey(pSState)] = orders || []
-    }
-    for (let pSState = 1; pSState <= 5; pSState++) {
-      await addOrdersByState(pSState)
-    }
-    return ordersByState
-  } catch (error) {
-    return ordersByState
-  }
-}
-
-export const getAllOrdersFromStore = async (_, args, ctx, info) => {
+/**
+ * Get all orders grouped by status key for a given store and optional date filters
+ *
+ * @param {object} _ - Unused
+ * @param {object} args - Arguments for filtering
+ * @param {string} args.idStore - Store ID
+ * @param {string[]} [args.statusOrder] - Optional list of status keys
+ * @param {string} [args.fromDate] - Optional start date (ISO format)
+ * @param {string} [args.toDate] - Optional end date (ISO format)
+ * @param {object} context - GraphQL context with restaurant info
+ * @returns {Promise<object[]>} List of status groups with orders
+ */
+export const getAllOrdersFromStore = async (_, args, context) => {
   const {
     idStore,
     statusOrder,
     fromDate,
-    toDate,
-    search,
-    min,
-    cId,
-    dId,
-    ctId,
-    max,
-    inCludeRange
-  } = args || {}
-
-  const attributes = [
-    'stPId',
-    'id',
-    'idStore',
-    'pSState',
-    'valueDelivery',
-    'locationUser',
-    'discount',
-    'tip',
-    'change',
-    'pCodeRef',
-    'totalProductsPrice',
-    'payMethodPState',
-    'pickUp',
-    'channel',
-    'pPDate',
-    'pDatCre',
-    'pDatMod',
-    'createdAt',
-    'updatedAt']
+    toDate
+  } = args ?? {}
 
   try {
-    const ordersByState = await getOrdersByState({
-      idStore,
-      cId,
-      dId,
-      ctId,
-      search,
-      min,
-      inCludeRange,
-      fromDate,
-      toDate,
-      max,
-      statusOrder,
-      ctx,
-      info,
-      attributes
+    const tenant = getTenantName(context?.restaurant)
+    const sequelize = connect()
+
+    const query = `
+      SELECT 
+        st."name" AS "statusKey",
+        os."id",
+        os."idStore",
+        os."pCodeRef" AS "pdpId",
+        os.*
+      FROM "${tenant}.${ORDER_STATUS_TYPE_MODEL}" AS st
+      LEFT JOIN "${tenant}.${STATUS_ORDER_MODEL}" AS os 
+        ON os."pSState" = st."idStatus"
+      ORDER BY st."priority" ASC, os."createdAt" DESC
+    `
+    const results = await sequelize.query(query, {
+      replacements: {
+        ...(idStore ? { idStore } : {}),
+        ...(fromDate && toDate ? { fromDate, toDate } : {})
+      },
+      type: sequelize.QueryTypes.SELECT
     })
-    return ordersByState
+
+    const grouped = groupBy(results, 'statusKey')
+
+    const response = Object.entries(grouped).map(([statusKey, entries]) => ({
+      statusKey,
+      items: entries
+        .filter(e => e.id)
+    }))
+
+    return response
   } catch (error) {
-    return new Error('Ocurrió un error')
+    console.error('🔥 getAllOrdersFromStore error:', error)
+    throw new Error('Failed to fetch orders from the database')
   }
 }
 
@@ -532,10 +449,92 @@ export const getStoreOrderById = async (_, { pCodeRef }, ctx, info) => {
   }
 }
 
+/**
+ * Resolver to update the priority of multiple order status types
+ *
+ * @param {Object} _ - Parent resolver (unused)
+ * @param {{ data: OrderStatusPriorityInput[] }} args - List of statuses with updated priorities
+ * @param {Object} context - GraphQL context (DB connection, auth, tenant info, etc.)
+ * @returns {Promise<OrderStatusResponse>}
+ */
+const updateOrderStatusPriorities = async (_, { data }, context) => {
+  const tenant = getTenantName(context.restaurant)
+
+  const sequelize = connect()
+
+  const transaction = await sequelize.transaction()
+
+  try {
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        success: false,
+        message: 'Input list cannot be empty',
+        errors: [{ field: 'data', message: 'You must provide at least one item' }],
+        data: []
+      }
+    }
+
+    const invalidItems = data.filter(
+      ({ idStatus, priority }) =>
+        !idStatus || typeof idStatus !== 'string' || typeof priority !== 'number'
+    )
+
+    if (invalidItems.length > 0) {
+      return {
+        success: false,
+        message: 'Validation failed for some items',
+        errors: invalidItems.map(({ idStatus }, i) => ({
+          field: 'data',
+          message: `Invalid or missing data at index ${i} for idStatus: ${idStatus || 'undefined'}`
+        })),
+        data: []
+      }
+    }
+
+    const updated = []
+
+    for (const { idStatus, priority } of data) {
+      const status = await OrderStatusTypeModel.schema(tenant).findByPk(idStatus, { transaction })
+
+      if (!status) {
+        await transaction.rollback()
+        return {
+          success: false,
+          message: `Status with id ${idStatus} not found`,
+          errors: [{ field: 'idStatus', message: `No status found with id ${idStatus}` }],
+          data: []
+        }
+      }
+
+      status.priority = priority
+      await status.save({ transaction })
+      updated.push(status)
+    }
+
+    await transaction.commit()
+
+    return {
+      success: true,
+      message: 'Priorities updated successfully',
+      errors: [],
+      data: updated
+    }
+  } catch (error) {
+    await transaction.rollback()
+    console.error('Error updating priorities:', error)
+
+    return {
+      success: false,
+      message: 'Unexpected error occurred while updating priorities',
+      errors: [{ field: 'server', message: error.message }],
+      data: []
+    }
+  }
+}
+
 export default {
   TYPES: {
-    StorePedidos: {
-      // getOneStore,
+    StoreOrders: {
       productFoodsOne: async (parent, _args, context, info) => {
         try {
           const attributes = getAttributes(productModelFood, info)
@@ -585,20 +584,38 @@ export default {
           return null
         }
       }
+    },
+
+    // 👉 Nuevo TYPE agregado
+    StoreOrdersGroupByStatus: {
+      getStatusOrderType: async (parent, _args, context, info) => {
+        try {
+          const { pSState } = parent?.items?.[0] ?? {}
+          if (!pSState) return null
+
+          return await OrderStatusTypeModel
+            .schema(getTenantName(context.restaurant))
+            .findOne({ where: { idStatus: deCode(pSState) } })
+        } catch (error) {
+          return null
+        }
+      }
     }
   },
+
   QUERIES: {
     getStoreOrders,
     getStoreOrdersFinal,
     getAllOrdersFromStore,
     getAllIncomingToDayOrders,
     getStoreOrderById,
-    // User
     getAllPedidoUserFinal
   },
+
   MUTATIONS: {
     createOnePedidoStore,
     createMultipleOrderStore,
-    changePPStatePPedido
+    updateOrderStatusPriorities,
+    changePPStateOrder
   }
 }

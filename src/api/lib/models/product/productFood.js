@@ -22,8 +22,6 @@ import Store from '../Store/Store'
 import catProducts from '../Store/cat'
 import { generateEAN13Barcode } from '../../utils/generateEAN13Barcode.js'
 
-const crypto = require('crypto')
-
 const sequelize = connect()
 
 export const PRODUCT_FOOD_MODEL = 'productmodelfoods'
