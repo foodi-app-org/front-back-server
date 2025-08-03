@@ -1,0 +1,77 @@
+type Store {
+  idStore: ID
+  cId: ID
+  id: ID
+  dId: ID
+  open: Int
+  ctId: ID
+  catStore: ID
+  scheduleOpenAll: Boolean
+  neighborhoodStore: String
+  Viaprincipal: String
+  storeOwner: String
+  storeName: String
+  emailStore: String
+  storePhone: String
+  socialRaz: String
+  Image: String
+  ImageName: String
+  banner: String
+  documentIdentifier: String
+  uPhoNum: String
+  ULocation: String
+  upLat: String
+  upLon: String
+  uState: String
+  siteWeb: String
+  description: String
+  NitStore: String
+  typeRegiments: String
+  typeContribute: String
+  secVia: String
+  addressStore: String
+  createdAt: DateTime
+  # cateStore: CatStore
+  # pais: Country
+
+  deliveryTimeMinutes: Int
+  # city: City
+  # department: Department
+  dailyGoal: Float
+  # getStoreSchedules: [StoreSchedule]
+  # getAllRatingStar: [Star]
+}
+
+input IStore {
+    idStore: ID
+    cId: ID
+    id: ID
+    dId: ID
+    ctId: ID
+    catStore: ID
+    neighborhoodStore: String
+    Viaprincipal: String
+    storeOwner: String
+    storeName: String
+    emailStore: String
+    storePhone: String
+    socialRaz: String
+    Image: String
+    ImageName: String
+    banner: String
+    documentIdentifier: String
+    uPhoNum: String
+    ULocation: String
+    upLat: String
+    upLon: String
+    uState: String
+    siteWeb: String
+    description: String
+    NitStore: String
+    typeRegiments: String
+    typeContribute: String
+    secVia: String
+    addressStore: String
+    createdAt: DateTime
+    createAt: DateTime
+}

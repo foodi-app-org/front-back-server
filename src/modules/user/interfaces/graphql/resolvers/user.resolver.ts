@@ -22,7 +22,7 @@ export const userResolvers = {
   },
   Mutation: {
     createUser: async (_: GraphQLResolveInfo, args: { input: CreateUserInput }) => {
-      const { 
+      const {
         name,
         email,
         password,

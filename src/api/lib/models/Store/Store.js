@@ -1,11 +1,11 @@
 import {
   BOOLEAN,
+  DATE,
+  DECIMAL,
   INTEGER,
   STRING,
-  DATE,
   UUIDV4
-  , DECIMAL
-} from 'sequelize'
+  } from 'sequelize'
 
 import connect from '../../db'
 import CatStore from '../information/CategorieStore'

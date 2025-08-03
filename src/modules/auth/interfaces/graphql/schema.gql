@@ -1,20 +1,3 @@
-"""
-Response for user login
-"""
-type AuthPayload {
-  user: User
-  token: String
-  idStore: String
-  admin: Boolean
-  success: Boolean
-  isVerifyEmail: Boolean
-  message: String
-  storeUserId: ID
-  userId: ID
-  refreshToken: String
-  newRefreshToken: String
-}
-
 type Mutation {
   registerUser(name: String!, email: String!, password: String!): AuthPayload
   loginUser(uEmail: String!, uPassword: String!, idBrowser: String): AuthPayload

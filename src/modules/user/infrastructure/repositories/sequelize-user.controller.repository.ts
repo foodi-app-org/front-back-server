@@ -22,6 +22,6 @@ export class SequelizeUserRepository implements UserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const user = await SequelizeUserModel.findOne({ where: { email } })
     if (!user) return null
-    return new User(user.id, user.name, user.email, user.password, user.updatedAt)
+    return new User(user.id, user.name, user.email, user.password, user.createdAt, user.updatedAt)
   }
 }

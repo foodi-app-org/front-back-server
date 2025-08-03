@@ -1,0 +1,16 @@
+"""
+Response for user login
+"""
+type AuthPayload {
+  user: User
+  token: String
+  idStore: String
+  admin: Boolean
+  success: Boolean
+  isVerifyEmail: Boolean
+  message: String
+  storeUserId: ID
+  userId: ID
+  refreshToken: String
+  newRefreshToken: String
+}
