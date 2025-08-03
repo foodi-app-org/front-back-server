@@ -366,6 +366,8 @@ export const getAllOrdersFromStore = async (_, args, context) => {
   try {
     const tenant = getTenantName(context?.restaurant)
     const sequelize = connect()
+    const todayRange = new DateRange()
+    const { start, end } = todayRange.getRange({ start: fromDate, end: toDate })
 
     const query = `
       SELECT 
@@ -377,25 +379,25 @@ export const getAllOrdersFromStore = async (_, args, context) => {
       FROM "${tenant}.${ORDER_STATUS_TYPE_MODEL}" AS st
       LEFT JOIN "${tenant}.${STATUS_ORDER_MODEL}" AS os 
         ON os."pSState" = st."idStatus"
+        ${fromDate && toDate ? 'AND os."createdAt" BETWEEN :start AND :end' : ''}
       ORDER BY st."priority" ASC, os."createdAt" DESC
     `
+
     const results = await sequelize.query(query, {
       replacements: {
-        ...(idStore ? { idStore } : {}),
-        ...(fromDate && toDate ? { fromDate, toDate } : {})
+        ...(fromDate && toDate
+          ? { start, end }
+          : { start: null, end: null })
       },
       type: sequelize.QueryTypes.SELECT
     })
 
     const grouped = groupBy(results, 'statusKey')
 
-    const response = Object.entries(grouped).map(([statusKey, entries]) => ({
+    return Object.entries(grouped).map(([statusKey, entries]) => ({
       statusKey,
-      items: entries
-        .filter(e => e.id)
+      items: entries.filter(e => e.id)
     }))
-
-    return response
   } catch (error) {
     console.error('🔥 getAllOrdersFromStore error:', error)
     throw new Error('Failed to fetch orders from the database')
