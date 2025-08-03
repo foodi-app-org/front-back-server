@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
 // src/infrastructure/db/index.ts
 
-import path from 'path'
+import dotenv from 'dotenv'
 import fs from 'fs'
 import os from 'os'
-import { Sequelize, Options } from 'sequelize'
-import dotenv from 'dotenv'
+import path from 'path'
+import { Options, Sequelize } from 'sequelize'
 
 dotenv.config({
   path: path.join(__dirname, '../../../../.env')
@@ -42,29 +44,29 @@ const sqliteDatabasePath: string = path.join(userDataPath, 'database.sqlite')
  */
 const connectConfig: Options = useSQLITE
   ? {
-      dialect: 'sqlite',
-      storage: sqliteDatabasePath,
-      logging: false,
-      schema: 'public',
-      dialectOptions: {
-        useUTC: false
-      }
+    dialect: 'sqlite',
+    storage: sqliteDatabasePath,
+    logging: false,
+    schema: 'public',
+    dialectOptions: {
+      useUTC: false
     }
+  }
   : {
-      host: process.env.HOST_DB,
-      port: Number(process.env.PORT_DB),
-      dialect: process.env.DIALECT_DB as any || 'postgres',
-      logging: false,
-      dialectOptions:
-        process.env.USE_SSL_CONNECTION === 'true'
-          ? {
-              ssl: {
-                require: true,
-                rejectUnauthorized: false
-              }
-            }
-          : {}
-    }
+    host: process.env.HOST_DB,
+    port: Number(process.env.PORT_DB),
+    dialect: process.env.DIALECT_DB as any || 'postgres',
+    logging: false,
+    dialectOptions:
+      process.env.USE_SSL_CONNECTION === 'true'
+        ? {
+          ssl: {
+            require: true,
+            rejectUnauthorized: false
+          }
+        }
+        : {}
+  }
 
 /**
  * Inicializa y retorna la instancia de Sequelize

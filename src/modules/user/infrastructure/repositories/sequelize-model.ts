@@ -3,6 +3,7 @@ import {
   Model,
   Optional
 } from 'sequelize'
+
 import connect from '../../../../infrastructure/db/sequelize/sequelize.connect'
 
 const sequelize = connect()

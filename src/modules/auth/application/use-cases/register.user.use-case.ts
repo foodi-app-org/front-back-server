@@ -1,7 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
+
 import { User, UserRepository } from '../../../user'
-import { EncrypterService } from '../../infrastructure/services/encrypter.service'
-import { TokenService } from '../../infrastructure/services/token.service'
+import { Encrypter } from '../../domain/interfaces/encrypter.interface'
+import { TokenGenerator } from '../../domain/interfaces/token-generator.interface'
+// import { TokenService } from '../../infrastructure/services/jwt-token.service'
 
 /**
  * Use case for registering a new user.
@@ -9,8 +11,8 @@ import { TokenService } from '../../infrastructure/services/token.service'
 export class RegisterUserUseCase {
     constructor(
         private readonly userRepository: UserRepository,
-        private readonly encrypterService: EncrypterService,
-        private readonly tokenService: TokenService
+        private readonly encrypter: Encrypter,
+        private readonly tokenService: TokenGenerator
     ) { }
 
     /**
@@ -31,7 +33,7 @@ export class RegisterUserUseCase {
         const exists = await this.userRepository.findByEmail(email)
         if (exists) throw new Error('User already exists')
 
-        const hashedPassword = await this.encrypterService.hash(password)
+        const hashedPassword = await this.encrypter.hash(password)
 
         const user = new User(
             uuidv4(),
@@ -50,6 +52,6 @@ export class RegisterUserUseCase {
             name: name
         })
 
-        return { user, accessToken }
+        return { user, accessToken: accessToken }
     }
 }

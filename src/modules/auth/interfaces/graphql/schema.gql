@@ -16,5 +16,6 @@ type AuthPayload {
 }
 
 type Mutation {
-  registerUser(name: String!, email: String!, password: String!): AuthPayload!
+  registerUser(name: String!, email: String!, password: String!): AuthPayload
+  loginUser(uEmail: String!, uPassword: String!, idBrowser: String): AuthPayload
 }

@@ -1,5 +1,5 @@
-import { userResolvers } from '../../modules/user/interfaces/graphql/resolvers/user.resolver'
 import { authResolvers } from '../../modules/auth/interfaces/graphql/resolvers/auth.resolver'
+import { userResolvers } from '../../modules/user/interfaces/graphql/resolvers/user.resolver'
 
 export default {
     Query: {

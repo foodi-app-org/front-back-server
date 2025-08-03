@@ -1,5 +1,5 @@
-import { UserRepository } from '../../domain/repositories/user.repository'
 import { User } from '../../domain/entities/user.entity'
+import { UserRepository } from '../../domain/repositories/user.repository'
 
 /**
  * Use case for finding a user by email.

@@ -1,8 +1,10 @@
-import express from 'express'
-import { ApolloServer } from 'apollo-server-express'
-import { typeDefs } from './infrastructure/graphql/typeDefs'
-import resolvers from './infrastructure/graphql/resolvers'
+/* eslint-disable no-console */
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
+import { ApolloServer } from 'apollo-server-express'
+import express from 'express'
+
+import resolvers from './infrastructure/graphql/resolvers'
+import { typeDefs } from './infrastructure/graphql/typeDefs'
 
 const startServer = async () => {
   const app = express()
