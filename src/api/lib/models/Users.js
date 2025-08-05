@@ -1,8 +1,8 @@
 import {
-  INTEGER,
-  STRING,
   DATE,
+  INTEGER,
   JSONB,
+  STRING,
   UUIDV4
 } from 'sequelize'
 

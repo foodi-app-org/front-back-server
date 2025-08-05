@@ -1,5 +1,7 @@
 
 import { SequelizeMigrationService } from '../../../../infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
+import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { User } from '../../../user/domain/entities/user.entity'
 import { UserRepository } from '../../../user/domain/repositories/user.repository'
 import { AuthPayload } from '../../domain/entities/store.entity'
@@ -22,6 +24,7 @@ export class CreateStoreUseCase {
     private readonly storeRepository: StoreRepository,
     private readonly userRepository: UserRepository,
     private readonly migrationService: SequelizeMigrationService,
+    private readonly i18n: I18nAdapter
   ) { }
 
   /**
@@ -39,6 +42,7 @@ export class CreateStoreUseCase {
     const existing = await this.storeRepository.findByEmail(emailStore)
     const user = await this.userRepository.findByEmail(emailStore)
     if (existing) {
+      console.log(this.i18n)
       const response: AuthPayload = {
         user: user as User,
         token: '',
@@ -46,7 +50,7 @@ export class CreateStoreUseCase {
         admin: false,
         success: true,
         isVerifyEmail: false,
-        message: 'Usuario ya existe',
+        message: this.i18n.t('store.already.exists', { storeName }),
         storeUserId: '',
         userId: '',
         refreshToken: '',
@@ -67,8 +71,8 @@ export class CreateStoreUseCase {
     const created = await this.storeRepository.create(store)
 
     if (created?.idStore) {
-      await this.migrationService.runMigrationsForSchema(created.idStore)
-    } 
+      await this.migrationService.execute(getTenantName(created.idStore))
+    }
     const response: AuthPayload = {
       user: user as User,
       token: '',

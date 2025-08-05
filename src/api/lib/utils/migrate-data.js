@@ -1,14 +1,12 @@
 import boom from '@hapi/boom'
 
-import Store from '../models/Store/Store'
 import Role from '../models/roles'
-import Users from '../models/Users'
 import clients from '../models/Store/clients'
+import Store from '../models/Store/Store'
 import subscriptions from '../models/subscriptions/subscriptions'
-
-import { deCode } from './util'
-
+import Users from '../models/Users'
 import { addDaysToCurrentDate } from '.'
+import { deCode } from './util'
 
 export const migrateStoreDataToTenant = async (schemaName, idStore, idUser) => {
   try {

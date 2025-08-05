@@ -35,8 +35,7 @@ export type ICategoryStoreCreationAttributes = Optional<ICategoryStoreAttributes
  */
 export class SequelizeCategoryStoreModel
   extends Model<ICategoryStoreAttributes, ICategoryStoreCreationAttributes>
-  implements ICategoryStoreAttributes
-{
+  implements ICategoryStoreAttributes {
   declare catStore: string
   declare cName: string
   declare csDescription: string
@@ -46,39 +45,41 @@ export class SequelizeCategoryStoreModel
   declare updatedAt?: Date
 }
 
-SequelizeCategoryStoreModel.init(
-  {
-    catStore: {
-      type: DataTypes.STRING(36),
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false
-    },
-    cName: {
-      type: DataTypes.STRING(100),
-      allowNull: false
-    },
-    csDescription: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    cState: {
-      type: DataTypes.SMALLINT,
-      defaultValue: 1
-    },
-    cPathImage: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    }
+export const CategoryStoreColumns = {
+  catStore: {
+    type: DataTypes.STRING(36),
+    primaryKey: true,
+    allowNull: false,
+    defaultValue: DataTypes.UUIDV4
   },
+  cName: {
+    type: DataTypes.STRING(100),
+    allowNull: false
+  },
+  csDescription: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  cState: {
+    type: DataTypes.SMALLINT,
+    defaultValue: 1
+  },
+  cPathImage: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
+}
+
+SequelizeCategoryStoreModel.init(
+    CategoryStoreColumns,
   {
     sequelize,
     modelName: MODEL_CAT_STORE_NAME,

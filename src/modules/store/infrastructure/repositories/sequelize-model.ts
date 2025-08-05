@@ -94,92 +94,92 @@ export class SequelizeStoreModel extends Model<IStoreAttributes, IStoreCreationA
   declare createdAt?: Date
   declare updatedAt?: Date
 }
-
-SequelizeStoreModel.init(
-  {
-    idStore: {
-      type: DataTypes.STRING(36),
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false
-    },
-    cId: DataTypes.STRING(36),
-    id: {
-      type: DataTypes.STRING(36),
-      unique: true,
-      references: {
-        model: USER_MODEL,
-        key: 'id'
-      }
-    },
-    dId: DataTypes.STRING(36),
-    ctId: DataTypes.STRING(36),
-    // catStore: {
-    //   type: DataTypes.STRING(36),
-    //   references: {
-    //     model: CatStore,
-    //     key: 'catStore'
-    //   }
-    // },
-    deliveryTimeMinutes: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-      validate: {
-        min: 0,
-        max: 60
-      }
-    },
-    neighborhoodStore: DataTypes.STRING,
-    Viaprincipal: DataTypes.STRING,
-    scheduleOpenAll: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    secVia: DataTypes.STRING,
-    storeOwner: DataTypes.STRING,
-    storeName: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    emailStore: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: false
-    },
-    storePhone: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    socialRaz: DataTypes.STRING,
-    dailyGoal: {
-      type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0.0,
-      validate: { min: 0 }
-    },
-    Image: DataTypes.STRING,
-    ImageName: DataTypes.STRING,
-    banner: DataTypes.STRING,
-    documentIdentifier: DataTypes.STRING,
-    uPhoNum: DataTypes.STRING(50),
-    ULocation: DataTypes.STRING(100),
-    upLat: DataTypes.STRING(30),
-    upLon: DataTypes.STRING(30),
-    uState: {
-      type: DataTypes.INTEGER,
-      validate: { min: 0, max: 30 }
-    },
-    siteWeb: DataTypes.STRING,
-    description: DataTypes.STRING,
-    NitStore: DataTypes.STRING,
-    typeRegiments: DataTypes.STRING,
-    typeContribute: DataTypes.STRING,
-    addressStore: DataTypes.STRING,
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
+export const StoreColumns = {
+  idStore: {
+    type: DataTypes.STRING(36),
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    allowNull: false
+  },
+  cId: DataTypes.STRING(36),
+  id: {
+    type: DataTypes.STRING(36),
+    unique: true,
+    references: {
+      model: USER_MODEL,
+      key: 'id'
     }
   },
+  dId: DataTypes.STRING(36),
+  ctId: DataTypes.STRING(36),
+  // catStore: {
+  //   type: DataTypes.STRING(36),
+  //   references: {
+  //     model: CatStore,
+  //     key: 'catStore'
+  //   }
+  // },
+  deliveryTimeMinutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: {
+      min: 0,
+      max: 60
+    }
+  },
+  neighborhoodStore: DataTypes.STRING,
+  Viaprincipal: DataTypes.STRING,
+  scheduleOpenAll: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  secVia: DataTypes.STRING,
+  storeOwner: DataTypes.STRING,
+  storeName: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  emailStore: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false
+  },
+  storePhone: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  socialRaz: DataTypes.STRING,
+  dailyGoal: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.0,
+    validate: { min: 0 }
+  },
+  Image: DataTypes.STRING,
+  ImageName: DataTypes.STRING,
+  banner: DataTypes.STRING,
+  documentIdentifier: DataTypes.STRING,
+  uPhoNum: DataTypes.STRING(50),
+  ULocation: DataTypes.STRING(100),
+  upLat: DataTypes.STRING(30),
+  upLon: DataTypes.STRING(30),
+  uState: {
+    type: DataTypes.INTEGER,
+    validate: { min: 0, max: 30 }
+  },
+  siteWeb: DataTypes.STRING,
+  description: DataTypes.STRING,
+  NitStore: DataTypes.STRING,
+  typeRegiments: DataTypes.STRING,
+  typeContribute: DataTypes.STRING,
+  addressStore: DataTypes.STRING,
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
+}
+SequelizeStoreModel.init(
+  StoreColumns,
   {
     sequelize,
     modelName: STORE_MODEL,

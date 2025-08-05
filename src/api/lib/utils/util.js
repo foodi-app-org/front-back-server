@@ -5,7 +5,6 @@ import { LogDanger } from './logs'
 
 /* eslint-disable n/no-deprecated-api */
 const crypto = require('crypto')
-
 const { Base64 } = require('js-base64')
 
 const SECRET_KEY = 'f128635fca2edc7bb4e47a577cfe0d1a013dcdceffacad1abb128e640f9e571c'

@@ -1,10 +1,9 @@
 import boom from '@hapi/boom'
 
 import connect from '../db'
-
-import { getTenantName } from './util'
-import { UmzugMigrator } from './migrate-models'
 import { migrateStoreDataToTenant } from './migrate-data'
+import { UmzugMigrator } from './migrate-models'
+import { getTenantName } from './util'
 
 async function createTenantSchema (
   { domainSchema = '', idStore = null, idUser = null }

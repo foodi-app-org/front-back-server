@@ -1,4 +1,5 @@
 import { SequelizeMigrationService } from '../../../../infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
+import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeUserRepository } from '../../../user/infrastructure/repositories/sequelize-user.controller.repository'
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'
 import { SequelizeStoreRepository } from '../repositories/sequelize-store.controller.repository'
@@ -6,11 +7,13 @@ import { SequelizeStoreRepository } from '../repositories/sequelize-store.contro
 const userRepository = new SequelizeUserRepository()
 const storeRepository = new SequelizeStoreRepository()
 const migrationService = new SequelizeMigrationService()
+const i18n = new I18nAdapter('es', 'store')
 
 const createStoreUseCase = new CreateStoreUseCase(
     storeRepository, 
     userRepository,
-    migrationService
+    migrationService,
+    i18n
 )
 
 export const StoreServices = {
