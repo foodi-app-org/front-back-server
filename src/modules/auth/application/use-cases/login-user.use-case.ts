@@ -52,8 +52,8 @@ export class LoginUserUseCase {
       }
     }
     catch (e) {
-      const message = e instanceof Error ? e.message : 'Unexpected error';
-      throw new Error(`[UserModule] ${message}`);
+      const message = e instanceof Error ? e.message : 'Unexpected error'
+      throw new Error(`[UserModule] ${message}`)
     }
   }
 }

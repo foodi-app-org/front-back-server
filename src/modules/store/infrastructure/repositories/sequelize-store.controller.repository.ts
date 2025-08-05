@@ -14,9 +14,9 @@ export class SequelizeStoreRepository implements StoreRepository {
       return created
     } catch (e) {
       if (e instanceof Error) {
-        throw new Error(e.message);
+        throw new Error(e.message)
       }
-      throw new Error(String(e));
+      throw new Error(String(e))
     }
   }
   /**

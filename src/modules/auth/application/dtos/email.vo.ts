@@ -2,13 +2,13 @@
  * Value Object representing a valid email.
  */
 export class Email {
-    private readonly value: string;
+    private readonly value: string
 
     constructor(email: string) {
         if (!Email.isValid(email)) {
-            throw new Error('Invalid email format');
+            throw new Error('Invalid email format')
         }
-        this.value = email;
+        this.value = email
     }
 
     /**
@@ -17,7 +17,7 @@ export class Email {
      * @returns true if valid, false otherwise
      */
     static isValid(email: string): boolean {
-        return /^[\w.-]+@[\w-]+\.[\w]{2,}$/.test(email);
+        return /^[\w.-]+@[\w-]+\.[\w]{2,}$/.test(email)
     }
 
     /**
@@ -25,6 +25,6 @@ export class Email {
      * @returns Email string
      */
     getValue(): string {
-        return this.value;
+        return this.value
     }
 }

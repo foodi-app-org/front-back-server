@@ -11,4 +11,4 @@ export default {
     '/__tests__/',
     '.d.ts'
   ]
-};
+}

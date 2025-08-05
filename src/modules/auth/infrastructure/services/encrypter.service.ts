@@ -3,15 +3,15 @@
  * @description Service to hash and compare passwords using bcrypt.
  */
 
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs'
 
-import { Encrypter } from '../../domain/interfaces/encrypter.interface';
+import { Encrypter } from '../../domain/interfaces/encrypter.interface'
 
 /**
  * Service for password encryption and validation.
  */
 export class BcryptEncrypterService implements Encrypter {
-  private readonly saltRounds = 10;
+  private readonly saltRounds = 10
 
   /**
    * Hash a plain text password.
@@ -20,10 +20,10 @@ export class BcryptEncrypterService implements Encrypter {
    */
   async hash(plainPassword: string): Promise<string> {
     if (!plainPassword) {
-      throw new Error('Password must be provided for hashing.');
+      throw new Error('Password must be provided for hashing.')
     }
 
-    return bcrypt.hash(plainPassword, this.saltRounds);
+    return bcrypt.hash(plainPassword, this.saltRounds)
   }
 
   /**
@@ -34,9 +34,9 @@ export class BcryptEncrypterService implements Encrypter {
    */
   async compare(plainPassword: string, hashedPassword: string): Promise<boolean> {
     if (!plainPassword || !hashedPassword) {
-      throw new Error('Both passwords must be provided for comparison.');
+      throw new Error('Both passwords must be provided for comparison.')
     }
 
-    return bcrypt.compare(plainPassword, hashedPassword);
+    return bcrypt.compare(plainPassword, hashedPassword)
   }
 }

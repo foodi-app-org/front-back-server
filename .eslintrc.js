@@ -5,7 +5,8 @@ module.exports = {
     '@typescript-eslint',
     'import',
     'simple-import-sort',
-    'unused-imports'
+    'unused-imports',
+    'boundaries'
   ],
   extends: [
     'eslint:recommended',
@@ -23,21 +24,41 @@ module.exports = {
     // 💣 Limpieza
     'no-console': 'warn',
     'no-debugger': 'error',
+    semi: ['error', 'never'],
 
     // 🚀 TypeScript
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
 
+    // 🔥 No dejar basura
+    'no-unused-vars': 'off', // 🔕 Desactiva la nativa de JS
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        vars: 'all',
+        args: 'after-used',
+        caughtErrors: 'all',
+        ignoreRestSiblings: false,
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_'
+      }
+    ],
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'error',
+      {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        argsIgnorePattern: '^_'
+      }
+    ],
+
     // 🧹 Imports organizados
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',
 
-    // 🔥 No dejar basura
-    'unused-imports/no-unused-imports': 'error',
-    'unused-imports/no-unused-vars': [
-      'warn',
-      { vars: 'all', varsIgnorePattern: '^_', argsIgnorePattern: '^_' }
-    ],
+    // 🔐 Comillas simples siempre
+    quotes: ['error', 'single', { avoidEscape: true }],
 
     // 📦 Importaciones ordenadas
     'import/order': [
@@ -47,8 +68,8 @@ module.exports = {
         'newlines-between': 'always'
       }
     ],
+
     // 🧠 Hexagonal: evitar imports cruzados (si quieres ir a fuego)
-    // Desactiva esto si no quieres ser tan estricto
     'no-restricted-imports': [
       'error',
       {
@@ -58,6 +79,20 @@ module.exports = {
             group: ['../../infrastructure/*', '../../interface/*'],
             message: 'Application layer should not import from infrastructure/interface'
           }
+        ]
+      }
+    ],
+
+    // 🧠 Hexagonal boundaries
+    'boundaries/element-types': [
+      'error',
+      {
+        default: 'disallow',
+        rules: [
+          { from: 'domain', allow: [] },
+          { from: 'application', allow: ['domain'] },
+          { from: 'infrastructure', allow: ['domain', 'application'] },
+          { from: 'interface', allow: ['domain', 'application', 'infrastructure'] }
         ]
       }
     ]
@@ -70,7 +105,12 @@ module.exports = {
       typescript: {
         project: './tsconfig.json'
       }
-    }
+    },
+    'boundaries/elements': [
+      { type: 'domain', pattern: 'src/*/domain' },
+      { type: 'application', pattern: 'src/*/application' },
+      { type: 'infrastructure', pattern: 'src/*/infrastructure' },
+      { type: 'interface', pattern: 'src/*/interface' }
+    ]
   }
-
 }

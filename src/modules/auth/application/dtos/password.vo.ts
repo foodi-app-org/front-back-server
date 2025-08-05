@@ -4,10 +4,10 @@ import bcrypt from 'bcryptjs'
  * Value Object for handling passwords securely.
  */
 export class Password {
-  private readonly hashedValue: string;
+  private readonly hashedValue: string
 
   private constructor(hashedValue: string) {
-    this.hashedValue = hashedValue;
+    this.hashedValue = hashedValue
   }
 
   /**
@@ -17,10 +17,10 @@ export class Password {
    */
   static async create(rawPassword: string): Promise<Password> {
     if (!Password.isValid(rawPassword)) {
-      throw new Error('Password must be at least 8 characters with letters and numbers');
+      throw new Error('Password must be at least 8 characters with letters and numbers')
     }
-    const hash = await bcrypt.hash(rawPassword, 10);
-    return new Password(hash);
+    const hash = await bcrypt.hash(rawPassword, 10)
+    return new Password(hash)
   }
 
   /**
@@ -29,7 +29,7 @@ export class Password {
    * @returns true if valid
    */
   static isValid(password: string): boolean {
-    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/.test(password)
   }
 
   /**
@@ -38,7 +38,7 @@ export class Password {
    * @returns true if match
    */
   async compare(plain: string): Promise<boolean> {
-    return bcrypt.compare(plain, this.hashedValue);
+    return bcrypt.compare(plain, this.hashedValue)
   }
 
   /**
@@ -46,6 +46,6 @@ export class Password {
    * @returns Hashed password string
    */
   getHashedValue(): string {
-    return this.hashedValue;
+    return this.hashedValue
   }
 }

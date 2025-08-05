@@ -1,4 +1,4 @@
-import { CategoryStoreStatus } from "../../interfaces/enums/category_store_enum";
+import { CategoryStoreStatus } from '../../interfaces/enums/category_store_enum'
 
 export class CategoryStore {
   constructor(

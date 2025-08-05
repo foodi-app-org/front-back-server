@@ -2,13 +2,13 @@
  * Value Object representing a valid user name.
  */
 export class Name {
-  private readonly value: string;
+  private readonly value: string
 
   constructor(name: string) {
     if (!Name.isValid(name)) {
-      throw new Error('Invalid name: must be 2–50 alphabetic characters');
+      throw new Error('Invalid name: must be 2–50 alphabetic characters')
     }
-    this.value = name;
+    this.value = name
   }
 
   /**
@@ -17,7 +17,7 @@ export class Name {
    * @returns true if valid
    */
   static isValid(name: string): boolean {
-    return /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]{2,50}$/.test(name);
+    return /^[A-Za-zÁÉÍÓÚÑáéíóúñ ]{2,50}$/.test(name)
   }
 
   /**
@@ -25,6 +25,6 @@ export class Name {
    * @returns Name string
    */
   getValue(): string {
-    return this.value;
+    return this.value
   }
 }

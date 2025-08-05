@@ -1,5 +1,5 @@
-import { Umzug, SequelizeStorage } from 'umzug'
 import { STRING } from 'sequelize'
+import { SequelizeStorage,Umzug } from 'umzug'
 
 import connect from '../db'
 

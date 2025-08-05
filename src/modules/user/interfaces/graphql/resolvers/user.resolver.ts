@@ -8,7 +8,7 @@ import { JwtTokenService } from '../../../infrastructure/services/jwt-token.serv
 import { CreateUserInput } from '../inputs'
 
 const userRepository = new SequelizeUserRepository()
-const encrypter = new BcryptEncrypterService();
+const encrypter = new BcryptEncrypterService()
 const tokenService = new JwtTokenService()
 
 const createUserUseCase = new CreateUserUseCase(userRepository, tokenService, encrypter)

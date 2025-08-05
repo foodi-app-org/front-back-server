@@ -1,4 +1,5 @@
 
+import { SequelizeMigrationService } from '../../../../infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { User } from '../../../user/domain/entities/user.entity'
 import { UserRepository } from '../../../user/domain/repositories/user.repository'
 import { AuthPayload } from '../../domain/entities/store.entity'
@@ -19,7 +20,8 @@ export interface CreateStoreDTO {
 export class CreateStoreUseCase {
   constructor(
     private readonly storeRepository: StoreRepository,
-       private readonly userRepository: UserRepository,
+    private readonly userRepository: UserRepository,
+    private readonly migrationService: SequelizeMigrationService,
   ) { }
 
   /**
@@ -63,6 +65,10 @@ export class CreateStoreUseCase {
     }
 
     const created = await this.storeRepository.create(store)
+
+    if (created?.idStore) {
+      await this.migrationService.runMigrationsForSchema(created.idStore)
+    } 
     const response: AuthPayload = {
       user: user as User,
       token: '',

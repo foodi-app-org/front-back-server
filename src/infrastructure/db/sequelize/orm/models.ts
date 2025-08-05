@@ -1,5 +1,5 @@
-import { SequelizeStoreModel, STORE_MODEL } from "../../../../modules/store/infrastructure/repositories/sequelize-model"
-import { SequelizeUserModel, USER_MODEL } from "../../../../modules/user/infrastructure/repositories/sequelize-model"
+import { SequelizeStoreModel, STORE_MODEL } from '../../../../modules/store/infrastructure/repositories/sequelize-model'
+import { SequelizeUserModel, USER_MODEL } from '../../../../modules/user/infrastructure/repositories/sequelize-model'
 
 export const models = {
   User: SequelizeUserModel,

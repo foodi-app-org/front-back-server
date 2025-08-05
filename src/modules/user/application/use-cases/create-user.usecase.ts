@@ -1,10 +1,10 @@
 import { v4 as uuidv4 } from 'uuid'
 
-import { CreateUserResponse, User } from "../../domain/entities/user.entity"
+import { CreateUserResponse, User } from '../../domain/entities/user.entity'
 import { Encrypter } from '../../domain/interfaces/encrypter.interface'
 import { TokenGenerator } from '../../domain/interfaces/token-generator.interface'
-import { UserRepository } from "../../domain/repositories/user.repository"
-import { CreateUserDto } from "../dtos/create-user.dto"
+import { UserRepository } from '../../domain/repositories/user.repository'
+import { CreateUserDto } from '../dtos/create-user.dto'
 
 
 export class CreateUserUseCase {
@@ -53,7 +53,7 @@ export class CreateUserUseCase {
       sub: user.id,
       email: user.email,
       name: user.name
-    });
+    })
     return {
       user,
       token,

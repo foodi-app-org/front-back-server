@@ -1,4 +1,4 @@
-import { User } from '../../../user';
+import { User } from '../../../user'
 import { UserToRegisterEntity } from '../entities/register.entity'
 
 export interface UserRegisterRepository {
