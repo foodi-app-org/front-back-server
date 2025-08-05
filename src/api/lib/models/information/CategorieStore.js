@@ -1,7 +1,7 @@
 import {
-  STRING,
-  SMALLINT,
   DATE,
+  SMALLINT,
+  STRING,
   UUIDV4
 } from 'sequelize'
 
@@ -9,7 +9,7 @@ import connect from '../../db'
 
 const sequelize = connect()
 
-export const MODEL_CAT_STORE_NAME = 'catstores'
+export const MODEL_CAT_STORE_NAME = 'category_stores'
 
 sequelize.sync()
 

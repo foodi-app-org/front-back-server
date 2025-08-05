@@ -1,8 +1,8 @@
-import { Op } from 'sequelize'
 import { ApolloError } from 'apollo-server-express'
+import { Op } from 'sequelize'
 
-import { deCode, getTenantName } from '../utils/util'
 import { LogDanger } from '../utils/logs'
+import { deCode, getTenantName } from '../utils/util'
 
 /**
  * @class GenericService

@@ -1,5 +1,6 @@
 
 import { User } from '../../../user/domain/entities/user.entity'
+import { UserRepository } from '../../../user/domain/repositories/user.repository'
 import { AuthPayload } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
@@ -16,7 +17,10 @@ export interface CreateStoreDTO {
  * Use case responsible for creating a new store
  */
 export class CreateStoreUseCase {
-  constructor(private readonly storeRepository: StoreRepository) { }
+  constructor(
+    private readonly storeRepository: StoreRepository,
+       private readonly userRepository: UserRepository,
+  ) { }
 
   /**
    * Executes the use case to create a new Store
@@ -31,15 +35,10 @@ export class CreateStoreUseCase {
     } = input
 
     const existing = await this.storeRepository.findByEmail(emailStore)
-
+    const user = await this.userRepository.findByEmail(emailStore)
     if (existing) {
       const response: AuthPayload = {
-        user: {
-          id: '', // Completa según tu tipo User
-          name: '',
-          email: '',
-          // ...otros campos requeridos
-        } as User,
+        user: user as User,
         token: '',
         idStore: existing.idStore,
         admin: false,
@@ -65,12 +64,7 @@ export class CreateStoreUseCase {
 
     const created = await this.storeRepository.create(store)
     const response: AuthPayload = {
-      user: {
-        id: '', // Completa según tu tipo User
-        name: '',
-        email: '',
-        // ...otros campos requeridos
-      } as User,
+      user: user as User,
       token: '',
       idStore: created?.idStore,
       admin: false,
