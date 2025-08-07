@@ -12,8 +12,8 @@ type errors {
     message: String
     type: String
     context: contextError
-
 }
+
 """Response global"""
 type Response {
     success: Boolean

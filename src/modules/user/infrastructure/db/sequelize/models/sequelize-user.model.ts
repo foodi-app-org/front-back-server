@@ -4,7 +4,7 @@ import {
   Optional
 } from 'sequelize'
 
-import connect from '../../../../infrastructure/db/sequelize/sequelize.connect'
+import connect from '../../../../../../infrastructure/db/sequelize/sequelize.connect'
 
 const sequelize = connect()
 
@@ -67,9 +67,8 @@ export class SequelizeUserModel extends Model<IUserAttributes, IUserCreationAttr
   declare readonly updatedAt: Date
 }
 
-SequelizeUserModel.init(
-  {
-    id: {
+export const columnsUser = {
+   id: {
       type: DataTypes.STRING(36),
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
@@ -97,8 +96,18 @@ SequelizeUserModel.init(
     upIdeDoc: { type: DataTypes.STRING(50) },
     siteWeb: { type: DataTypes.STRING },
     description: { type: DataTypes.STRING },
-    password: { type: DataTypes.STRING }
-  },
+    password: { type: DataTypes.STRING },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
+}
+SequelizeUserModel.init(
+  columnsUser,
   {
     sequelize,
     modelName: USER_MODEL,

@@ -1,13 +1,12 @@
 import { ApolloError } from 'apollo-server-express'
-import { Op } from 'sequelize'
 import Joi from 'joi'
+import { Op } from 'sequelize'
 
+import Role from '../../models/roles'
 import employeesModel from '../../models/Store/employees'
-import {
-  deCode,
-  getAttributes,
-  getTenantName
-} from '../../utils/util'
+import Store from '../../models/Store/Store'
+import Users from '../../models/Users'
+import GenericService from '../../services'
 import { LoginEmail } from '../../templates/LoginEmail'
 import {
   generateCode,
@@ -15,11 +14,12 @@ import {
   hashPassword,
   sendEmail
 } from '../../utils'
-import Users from '../../models/Users'
-import GenericService from '../../services'
-import Store from '../../models/Store/Store'
-import Role from '../../models/roles'
 import { LogInfo } from '../../utils/logs'
+import {
+  deCode,
+  getAttributes,
+  getTenantName
+} from '../../utils/util'
 
 // eslint-disable-next-line
 export const employees = async (_, args, ctx) => {

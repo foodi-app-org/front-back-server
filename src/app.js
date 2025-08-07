@@ -1,30 +1,29 @@
 /* eslint-disable no-console */
-import { createServer } from 'http'
-import path from 'path'
-
+import { makeExecutableSchema } from '@graphql-tools/schema'
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
+import { ApolloServer } from 'apollo-server-express'
+import cors from 'cors'
 import dotenv from 'dotenv'
+import express from 'express'
 import {
   execute,
-  subscribe,
-  GraphQLError
+  GraphQLError,
+  subscribe
 } from 'graphql'
-import { ApolloServer } from 'apollo-server-express'
 import { PubSub } from 'graphql-subscriptions'
-import { SubscriptionServer } from 'subscriptions-transport-ws'
-import { makeExecutableSchema } from '@graphql-tools/schema'
 import { graphqlUploadExpress } from 'graphql-upload'
-import jwt from 'jsonwebtoken'
-import express from 'express'
-import morgan from 'morgan'
-import cors from 'cors'
+import { createServer } from 'http'
 import { ironSession } from 'iron-session/express'
+import jwt from 'jsonwebtoken'
+import morgan from 'morgan'
+import path from 'path'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
 
-import indexRoutes, { cookie } from './api/lib/router'
+import { auth } from './api/lib/middlewares/auth'
 import resolvers from './api/lib/resolvers'
+import indexRoutes, { cookie } from './api/lib/router'
 import typeDefs from './api/lib/typeDefs'
 import { getUserFromToken, parseCookies } from './api/lib/utils'
-import { auth } from './api/lib/middlewares/auth'
 import { LogInfo, LogSuccess } from './api/lib/utils/logs'
 
 // Manejo global de errores

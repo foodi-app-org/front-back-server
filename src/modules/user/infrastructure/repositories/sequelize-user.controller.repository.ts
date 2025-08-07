@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid'
 
 import { User } from '../../domain/entities/user.entity'
 import { UserRepository } from '../../domain/repositories/user.repository'
-import { SequelizeUserModel } from './sequelize-model'
+import { SequelizeUserModel } from '../db/sequelize/models/sequelize-user.model'
 
 export class SequelizeUserRepository implements UserRepository {
   async create(user: User): Promise<User> {

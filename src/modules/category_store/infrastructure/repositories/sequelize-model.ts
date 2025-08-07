@@ -16,11 +16,11 @@ export const MODEL_CAT_STORE_NAME = 'category_stores'
  * Interface that defines the attributes stored in DB
  */
 export interface ICategoryStoreAttributes {
-  catStore: string
-  cName: string
-  csDescription: string
-  cState?: number
-  cPathImage?: string
+  catStore?: string
+  pName: string
+  ProDescription: string
+  pState?: number
+  ProImage?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -28,7 +28,7 @@ export interface ICategoryStoreAttributes {
 /**
  * Fields allowed during CategoryStore creation
  */
-export type ICategoryStoreCreationAttributes = Optional<ICategoryStoreAttributes, 'catStore' | 'cState' | 'cPathImage' | 'createdAt' | 'updatedAt'>
+export type ICategoryStoreCreationAttributes = Optional<ICategoryStoreAttributes, 'createdAt' | 'updatedAt'>
 
 /**
  * Sequelize Model definition
@@ -37,10 +37,10 @@ export class SequelizeCategoryStoreModel
   extends Model<ICategoryStoreAttributes, ICategoryStoreCreationAttributes>
   implements ICategoryStoreAttributes {
   declare catStore: string
-  declare cName: string
-  declare csDescription: string
-  declare cState?: number
-  declare cPathImage?: string
+  declare pName: string
+  declare ProDescription: string
+  declare pState?: number
+  declare ProImage?: string
   declare createdAt?: Date
   declare updatedAt?: Date
 }
@@ -52,19 +52,19 @@ export const CategoryStoreColumns = {
     allowNull: false,
     defaultValue: DataTypes.UUIDV4
   },
-  cName: {
+  pName: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
-  csDescription: {
+  ProDescription: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  cState: {
+  pState: {
     type: DataTypes.SMALLINT,
     defaultValue: 1
   },
-  cPathImage: {
+  ProImage: {
     type: DataTypes.STRING,
     allowNull: true
   },

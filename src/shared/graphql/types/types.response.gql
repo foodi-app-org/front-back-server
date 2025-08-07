@@ -1,0 +1,6 @@
+"""Response global"""
+type Response {
+    success: Boolean
+    message: String
+    errors: [errors]
+}

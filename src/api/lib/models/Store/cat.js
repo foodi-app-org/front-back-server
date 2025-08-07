@@ -6,8 +6,8 @@ import {
 } from 'sequelize'
 
 import connect from '../../db'
-import Users from '../Users'
 import Store from '../Store/Store'
+import Users from '../Users'
 
 const sequelize = connect()
 

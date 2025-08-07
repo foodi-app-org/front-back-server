@@ -7,7 +7,6 @@ import {
   getAttributes,
   getTenantName
 } from '../../utils/util'
-
 import { clientSchema } from './schema'
 
 export const createClients = async (_root, { input }, context) => {

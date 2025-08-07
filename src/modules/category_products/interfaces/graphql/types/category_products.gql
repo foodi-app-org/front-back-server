@@ -1,0 +1,109 @@
+# types
+type catProducts {
+  carProId: ID
+  idStore: ID #Store
+  pName: String
+  ProDescription: String
+  ProImage: String
+  pState: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+# get all cat with products
+type catProductsWithProduct {
+  carProId: ID
+  idStore: ID #Store
+  pName: String
+  totalCount: Int
+  ProDescription: String
+  ProImage: String
+  pState: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+  # productFoodsAll: [ProductFood]
+}
+type customTotalAndCatProductsWithProduct {
+  totalCount: Int
+  catProductsWithProduct: [catProductsWithProduct]
+}
+
+# Inputs
+input InputCatProducts {
+  carProId: ID
+  idStore: ID #Store
+  pName: String
+  ProDescription: String
+  ProImage: String
+  pState: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input ILineItemsIds {
+  idProduct: ID
+}
+input LineItemsIdPro {
+  setData: [ILineItemsIds]
+  idCat: ID
+}
+
+type ResponseCategoryProduct {
+  success: Boolean
+  message: String
+  errors: [errors]
+}
+
+# Queries
+type Query {
+  "Consulta todos los catProductsos"
+  getcatProducts: [catProducts]
+  catProducts: [catProducts]
+  catProductsOne(carProId: ID, cId: ID, dId: ID, ctId: ID): catProducts
+  catProductsAll(
+    carProId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    max: Int
+    gender: [String]
+    desc: [String]
+    categories: [ID]
+  ): [catProducts]
+  getCatProductsWithProduct(
+    carProId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    productName: String
+    search: String
+    min: Int
+    max: Int
+    gender: [String]
+    desc: [String]
+    categories: [ID]
+  ): customTotalAndCatProductsWithProduct
+  getCatProductsWithProductClient(
+    carProId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    max: Int
+    gender: [String]
+    desc: [String]
+    categories: [ID]
+    idStore: ID
+  ): [catProductsWithProduct]
+  catProductsLogis(
+    carProId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    max: Int
+  ): [catProducts]
+}

@@ -1,17 +1,19 @@
-import { ApolloError, ForbiddenError } from 'apollo-server-express'
+import { ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
-import Joi from 'joi'
 
 import productModel from '../../models/product/food'
-import tagsProductModel from '../../models/Store/tagsProduct'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
 import productModelFood from '../../models/product/productFood'
-import { filterKeyObject } from '../../utils'
+import tagsProductModel from '../../models/Store/tagsProduct'
 import GenericService from '../../services'
+import { filterKeyObject } from '../../utils'
 import { ContextValidator } from '../../utils/context-validator'
 import { states } from '../../utils/state_db'
-
-import { InputTagSchema, tagCreateSchema, tagSchema } from './schema/schem.tagsProducts'
+import {
+ deCode, getAttributes, getTenantName 
+} from '../../utils/util'
+import {
+ InputTagSchema, tagCreateSchema, tagSchema 
+} from './schema/schem.tagsProducts'
 
 /**
  * Register a new tag and assign it to a product

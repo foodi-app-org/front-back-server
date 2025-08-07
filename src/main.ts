@@ -3,6 +3,7 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-co
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 
+import { context } from './infrastructure/graphql/context'
 import resolvers from './infrastructure/graphql/resolvers'
 import { typeDefs } from './infrastructure/graphql/typeDefs'
 
@@ -14,6 +15,7 @@ const startServer = async () => {
     resolvers,
     introspection: true,
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()], // Habilita el Playground
+    context
   })
 
   await server.start()

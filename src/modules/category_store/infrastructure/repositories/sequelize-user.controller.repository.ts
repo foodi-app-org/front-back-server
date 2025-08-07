@@ -19,20 +19,20 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
   async create(categoryStore: CategoryStore): Promise<CategoryStore | null> {
     const created = await SequelizeCategoryStoreModel.create({
       catStore: uuid(),
-      cName: categoryStore.cName,
-      csDescription: categoryStore.csDescription,
-      cState: categoryStore.cState,
-      cPathImage: categoryStore.cPathImage,
+      pName: categoryStore.pName,
+      ProDescription: categoryStore.ProDescription,
+      pState: categoryStore.pState,
+      ProImage: categoryStore.ProImage,
       createdAt: categoryStore.createdAt,
       updatedAt: categoryStore.updatedAt ?? new Date(),
     })
 
     return new CategoryStore(
       created.catStore,
-      created.cName,
-      created.csDescription,
-      created.cState ?? CategoryStoreStatus.ACTIVE,
-      created.cPathImage,
+      created.pName,
+      created.ProDescription,
+      created.pState ?? CategoryStoreStatus.ACTIVE,
+      created.ProImage,
       created.createdAt,
       created.updatedAt,
     )
@@ -49,10 +49,10 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
 
     return new CategoryStore(
       result.catStore,
-      result.cName,
-      result.csDescription,
-      result.cState ?? CategoryStoreStatus.ACTIVE,
-      result.cPathImage,
+      result.pName,
+      result.ProDescription,
+      result.pState ?? CategoryStoreStatus.ACTIVE,
+      result.ProImage,
       result.createdAt,
       result.updatedAt,
     )
@@ -67,10 +67,10 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
 
     return records.map(store => new CategoryStore(
       store.catStore,
-      store.cName,
-      store.csDescription,
-      store.cState ?? 1,
-      store.cPathImage,
+      store.pName,
+      store.ProDescription,
+      store.pState ?? 1,
+      store.ProImage,
       store.createdAt,
       store.updatedAt,
     ))

@@ -5,7 +5,7 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../infrastructure/db/sequelize/sequelize.connect'
-import { USER_MODEL } from '../../../../modules/user/infrastructure/repositories/sequelize-model'
+import { USER_MODEL } from '../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 const sequelize = connect()
 export const STORE_MODEL = 'stores'
@@ -174,6 +174,10 @@ export const StoreColumns = {
   typeContribute: DataTypes.STRING,
   addressStore: DataTypes.STRING,
   createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }

@@ -66,7 +66,7 @@ export const createUmzugMigrator = async (
       down: async ({ context }) =>
         (await import(file)).down(context, schemaName)
     })),
-    context: sequelize.getQueryInterface() as unknown as object,
+    context: sequelize.getQueryInterface() as object,
     storage: new SequelizeStorage({ model }),
     logger: console
   })

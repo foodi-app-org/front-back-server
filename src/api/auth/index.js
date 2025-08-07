@@ -1,5 +1,7 @@
 import { withIronSessionApiRoute } from 'iron-session/next'
 
+import Users from '../lib/models/Users'
+import UserDeviceModel from '../lib/models/users/userDevice'
 import { newRegisterUser } from '../lib/resolvers/users/user'
 import { LoginEmail } from '../lib/templates/LoginEmail'
 import {
@@ -8,8 +10,6 @@ import {
   sendEmail
 } from '../lib/utils'
 import { deCode } from '../lib/utils/util'
-import UserDeviceModel from '../lib/models/users/userDevice'
-import Users from '../lib/models/Users'
 
 export const MAX_AGE = 60 * 60 * 24
 
@@ -82,7 +82,7 @@ export const getDevice = async ({ input }) => {
     }).catch(() => ({ error: false, message: 'No se pudo enviar el correo' }))
     return { res, error: false, data: res }
   } catch (error) {
-    console.log("🚀 ~ getDevice ~ error:", error)
+    console.log('🚀 ~ getDevice ~ error:', error)
     return { error: { message: error.message }, data: {} }
   }
 }

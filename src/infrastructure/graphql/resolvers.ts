@@ -1,4 +1,5 @@
 import { authResolvers } from '../../modules/auth/interfaces/graphql/resolvers/auth.resolver'
+import { categoryProductResolvers } from '../../modules/category_products/interfaces/graphql/resolvers/category_products.resolver'
 import { categoryStoreResolvers } from '../../modules/category_store/interfaces/graphql/resolvers/category_store.resolver'
 import { storeResolvers } from '../../modules/store/interfaces/graphql/resolvers/store.resolver'
 import { userResolvers } from '../../modules/user/interfaces/graphql/resolvers/user.resolver'
@@ -9,13 +10,15 @@ export default {
         ...userResolvers.Query,
         ...authResolvers.Query,
         ...storeResolvers.Query,
-        ...categoryStoreResolvers.Query
+        ...categoryStoreResolvers.Query,
+        ...categoryProductResolvers.Query,
     },
     Mutation: {
         ...userResolvers.Mutation,
         ...authResolvers.Mutation,
         ...storeResolvers.Mutation,
-        ...categoryStoreResolvers.Mutation
+        ...categoryStoreResolvers.Mutation,
+        ...categoryProductResolvers.Mutation,
     },
     Subscription: {
     },

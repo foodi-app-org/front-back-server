@@ -1,0 +1,9 @@
+# Mutations
+type Mutation {
+    "Registra un catProductso"
+     updatedProducts(input: InputCatProducts): ResponseCategoryProduct
+     editOneCategoryProduct(pName: String!, ProDescription: String, carProId: ID!): Response
+     updatedCatWithProducts(input: LineItemsIdPro): AuthPayload
+     deleteCatOfProducts(idPc: ID!, pState: Int): AuthPayload
+     deleteCatFinalOfProducts(idPc: ID, withProduct: Boolean): AuthPayload
+}

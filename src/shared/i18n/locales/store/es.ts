@@ -1,7 +1,7 @@
 export default {
   'store.login.success': 'Welcome, {{name}}',
   'store.login.failed': 'Invalid credentials',
-  'store.register.success': 'Registration successful, welcome {{name}}',
+  'store.register.success': 'Registro exitoso, bienvenido {{name}}',
   'store.register.failed': 'Registration failed, please try again',
   'store.update.success': 'Store updated successfully',
   'store.update.failed': 'Failed to update store, please try again',

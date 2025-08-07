@@ -6,4 +6,6 @@ export interface MigrationService {
    * @param schemaName Schema where the migrations will be applied
    */
   execute(schemaName: string): Promise<void>
+
+  migrate(schemaName: string): Promise<void>
 }

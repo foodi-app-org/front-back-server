@@ -1,6 +1,8 @@
+import { CategoryStoreStatus } from '../enums/category_store_enum'
+
 export interface CreateCategoryStoreInput {
-  cName: string;
-  csDescription: string;
-  cState?: number;
-  cPathImage?: string;
+  pName: string
+  ProDescription: string
+  pState?: CategoryStoreStatus
+  ProImage?: string
 }

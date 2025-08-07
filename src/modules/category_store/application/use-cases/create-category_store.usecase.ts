@@ -7,10 +7,10 @@ import { CategoryStoreStatus } from '../../interfaces/enums/category_store_enum'
  * Input DTO to create a new Store
  */
 export interface CreateStoreDTO {
-  cName: string
-  csDescription: string
-  cState?: CategoryStoreStatus
-  cPathImage?: string
+  pName: string
+  ProDescription: string
+  pState?: CategoryStoreStatus
+  ProImage?: string
 }
 
 /**
@@ -28,18 +28,18 @@ export class CreateCategoryStoreUseCase {
    */
   async execute(input: CreateStoreDTO): Promise<CategoryStore | null> {
     const {
-      cName,
-      csDescription,
-      cState,
-      cPathImage
+      pName,
+      ProDescription,
+      pState,
+      ProImage
     } = input
    
     const categoryStore = {
       catStore: '',
-      cName,
-      csDescription,
-      cState: cState ?? 1,
-      cPathImage,
+      pName,
+      ProDescription,
+      pState: pState ?? 1,
+      ProImage,
       createdAt: new Date(),
       updatedAt: new Date(),
     }

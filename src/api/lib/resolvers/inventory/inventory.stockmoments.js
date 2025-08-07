@@ -1,18 +1,16 @@
 import crypto from 'crypto'
-
 import sequelize from 'sequelize'
 
+import connect from '../../db'
 import stockMovement, { movementTypes, STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
+import { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
+import { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
+import { LogDanger, LogInfo } from '../../utils/logs'
 import {
   deCode,
   getAttributes,
   getTenantName
 } from '../../utils/util'
-import { LogDanger, LogInfo } from '../../utils/logs'
-import connect from '../../db'
-import { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
-import { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
-
 import { StockMovementInputSchema } from './schema'
 
 /**

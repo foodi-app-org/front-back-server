@@ -1,11 +1,10 @@
-import path from 'path'
 import fs from 'fs'
 import os from 'os'
+import path from 'path'
 
-import { getTenantName } from '../../utils/util'
 import productModelFood from '../../models/product/productFood'
 import { PATH_EXTERNAL_OS } from '../../utils'
-
+import { getTenantName } from '../../utils/util'
 import { ImageProductschema } from './schema'
 
 export const userDataPath = path.join(os.homedir(), PATH_EXTERNAL_OS)

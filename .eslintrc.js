@@ -68,7 +68,13 @@ module.exports = {
         'newlines-between': 'always'
       }
     ],
-
+    // Requiere salto de línea si hay más de 2 imports en una sola línea
+    'object-curly-newline': [
+      'error',
+      {
+        ImportDeclaration: { minProperties: 3, multiline: true, consistent: true },
+      },
+    ],
     // 🧠 Hexagonal: evitar imports cruzados (si quieres ir a fuego)
     'no-restricted-imports': [
       'error',

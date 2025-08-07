@@ -8,7 +8,13 @@ export const categoryStoreResolvers = {
   },
   Mutation: {
     registerCategoryStore: async (_: GraphQLResolveInfo, args: { input: CreateCategoryStoreInput }) => {
-      return await Services.create.execute(args.input)
+      const { pName, ProDescription, pState, ProImage } = args.input
+      return await Services.create.execute({
+        pName,
+        ProDescription,
+        pState,
+        ProImage
+      })
     }
   }
 }

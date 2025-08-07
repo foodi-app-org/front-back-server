@@ -42,7 +42,6 @@ export class CreateStoreUseCase {
     const existing = await this.storeRepository.findByEmail(emailStore)
     const user = await this.userRepository.findByEmail(emailStore)
     if (existing) {
-      console.log(this.i18n)
       const response: AuthPayload = {
         user: user as User,
         token: '',
@@ -80,7 +79,7 @@ export class CreateStoreUseCase {
       admin: false,
       success: true,
       isVerifyEmail: false,
-      message: 'Store creado correctamente',
+      message: this.i18n.t('store.register.success', { name: storeName }),
       storeUserId: '',
       userId: '',
       refreshToken: '',

@@ -3,7 +3,7 @@
 import { v4 as uuid } from 'uuid'
 
 import { User } from '../../../user'
-import { SequelizeUserModel } from '../../../user/infrastructure/repositories/sequelize-model'
+import { SequelizeUserModel } from '../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 import { UserRegisterRepository } from '../../domain/repositories/auth.repository'
 
 export class SequelizeUserRepository implements UserRegisterRepository {

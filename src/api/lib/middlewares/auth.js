@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/order
-import boom from '@hapi/boom'
-
 import 'dotenv/config'
+
+import boom from '@hapi/boom'
 import { GraphQLError } from 'graphql'
 
 import { getUserFromToken } from '../utils'
