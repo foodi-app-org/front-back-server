@@ -1,4 +1,6 @@
-import { Model,ModelStatic, Sequelize } from 'sequelize'
+import {
+ Model,ModelStatic, Sequelize 
+} from 'sequelize'
 
 import { models } from '../../orm/models'
 

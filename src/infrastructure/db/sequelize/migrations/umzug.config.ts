@@ -21,8 +21,8 @@ export enum MigrationFolder {
  */
 const getMigrationPaths = async (): Promise<string[]> => {
   const entries = await glob([
-    'src/modules/**/infrastructure/migrations/*.ts',
-    'src/modules/**/infrastructure/migrations/*.js'
+    'src/modules/**/infrastructure/db/sequelize/migrations/*.ts',
+    'src/modules/**/infrastructure/db/sequelize/migrations/*.js'
   ])
   return entries.map(file => path.resolve(file))
 }

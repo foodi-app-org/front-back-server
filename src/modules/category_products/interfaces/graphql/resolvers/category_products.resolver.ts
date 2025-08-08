@@ -1,9 +1,9 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { CategoryProductSchema } from '../../../application/use-cases/validators/create-product-category.validator'
 import { ProductCategoryProps } from '../../../domain/entities/category_products.entity'
 import { CategoryProductRepositoryServices } from '../../../infrastructure/services'
+import { CategoryProductSchema } from '../../../infrastructure/validators/create-product-category.validator'
 
 
 interface NewRegisterCategoryProductStoreArgs {

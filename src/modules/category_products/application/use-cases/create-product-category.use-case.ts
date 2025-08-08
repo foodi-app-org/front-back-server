@@ -1,3 +1,4 @@
+import { Logger } from '../../../../shared/domain/logger'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { ProductCategory, ProductCategoryProps } from '../../domain/entities/category_products.entity'
 import { CategoryProductRepository } from '../../domain/repositories/category_products.repository'
@@ -17,8 +18,10 @@ export interface CreateProductCategoryResponse {
  */
 export class CreateProductCategoryUseCase {
     constructor(
+        private readonly name = 'CreateProductCategoryUseCase',
         private readonly categoryProductRepository: CategoryProductRepository,
-        private readonly i18n: I18nAdapter
+        private readonly i18n: I18nAdapter,
+        private readonly logger: Logger
     ) { }
 
     /**
@@ -43,13 +46,13 @@ export class CreateProductCategoryUseCase {
         })
         try {
            await this.categoryProductRepository.create(category)
+           this.logger.success(`${this.name} ✅ Category created: ${pName}`)
             return {
                 success: true,
                 message: 'Categoría creada exitosamente',
-                // message: this.i18n.t('category.create.success', { pName }),
             }
         } catch (error) {
-            console.error('❌ Error creating product category:', error)
+            this.logger.error(`'❌ Error creating product category:', ${error}`)
             return {
                 success: false,
                 message: 'Error al crear la categoría',

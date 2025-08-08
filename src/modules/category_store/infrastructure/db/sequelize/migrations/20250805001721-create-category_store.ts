@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import { CategoryStoreColumns, MODEL_CAT_STORE_NAME } from '../repositories/sequelize-model'
+import { CategoryStoreColumns, MODEL_CAT_STORE_NAME } from '../../../repositories/sequelize-model'
 
 
 /**

@@ -61,12 +61,12 @@ exports.up = async (queryInterface, schemaName) => {
       type: INTEGER,
       allowNull: false
     },
-    createAt: {
+    createdAt: {
       type: 'TIMESTAMP',
       defaultValue: new Date(),
       allowNull: false
     },
-    updateAt: {
+    updatedAt: {
       type: 'TIMESTAMP',
       defaultValue: new Date(),
       allowNull: false
