@@ -1,6 +1,6 @@
 // infrastructure/repositories/sequelize-store.repository.ts
 
-import { models } from '../../../../infrastructure/db/sequelize/orm/models'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
 

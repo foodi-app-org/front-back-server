@@ -1,6 +1,6 @@
 import { UniqueConstraintError } from 'sequelize'
 
-import { models } from '../../../../infrastructure/db/sequelize/orm/models'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ProductCategory } from '../../domain/entities/category_products.entity'
 import { CategoryProductRepository } from '../../domain/repositories/category_products.repository'
 export class SequelizeCategoryProductRepository implements CategoryProductRepository {

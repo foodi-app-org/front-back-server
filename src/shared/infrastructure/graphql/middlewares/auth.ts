@@ -4,7 +4,7 @@ import 'dotenv/config'
 import boom from '@hapi/boom'
 import { GraphQLError } from 'graphql'
 
-import { getUserFromToken } from '../../../shared/utils/jwt.utils'
+import { getUserFromToken } from '../../../utils/jwt.utils'
 
 export const auth = async (token: string) => {
   try {

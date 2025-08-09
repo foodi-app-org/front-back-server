@@ -46,6 +46,6 @@ input OrderStatusPriorityInput {
 }
 
 type Query {
-  getOrderStatusTypes: [OrderStatusType]
+  getAllOrderStatusTypes: [OrderStatusType]
   getOrderStatusTypeById(idStatus: ID!): OrderStatusType
 }

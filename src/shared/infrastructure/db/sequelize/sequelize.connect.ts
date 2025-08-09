@@ -9,7 +9,7 @@ import path from 'path'
 import { Options, Sequelize } from 'sequelize'
 
 dotenv.config({
-  path: path.join(__dirname, '../../../../.env')
+  path: path.join(__dirname, '../../../../../.env')
 })
 
 /**

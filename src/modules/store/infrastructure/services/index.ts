@@ -1,4 +1,4 @@
-import { SequelizeMigrationService } from '../../../../infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
+import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeUserRepository } from '../../../user/infrastructure/repositories/sequelize-user.controller.repository'
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'

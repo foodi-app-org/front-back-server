@@ -1,10 +1,8 @@
-// infrastructure/repositories/sequelize-store.repository.ts
-
-import { models } from '../../../../infrastructure/db/sequelize/orm/models'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { StatusOrderTypes } from '../../domain/entities/status_order_types.entity'
-import { CategoryOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
+import { StatusTypesOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
 
-export class SequelizeStatusOrderTypesRepository implements CategoryOrderTypesRepository {
+export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderTypesRepository {
   async create(typeOrder: StatusOrderTypes): Promise<StatusOrderTypes | null> {
     try {
       const created = await models.StatusOrderTypes.create({
@@ -25,6 +23,18 @@ export class SequelizeStatusOrderTypesRepository implements CategoryOrderTypesRe
         where: { name: String(name) },
       })
       return scheduleStore
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async getAll(): Promise<StatusOrderTypes[] | null> {
+    try {
+      const items = await models.StatusOrderTypes.findAll()
+      return items
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

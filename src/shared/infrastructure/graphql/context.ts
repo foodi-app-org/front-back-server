@@ -4,8 +4,8 @@ import { Request, Response } from 'express'
 import { GraphQLError } from 'graphql'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 
-import { GraphQLContext } from '../../shared/types/context'
-import { getUserFromToken } from '../../shared/utils/jwt.utils'
+import { GraphQLContext } from '../../types/context'
+import { getUserFromToken } from '../../utils/jwt.utils'
 
 interface IContextParams {
   req: Request

@@ -1,4 +1,3 @@
-import { where } from 'sequelize'
 
 import { OrderStatusTypeModel } from '../../models/Store/OrderStatusTypes'
 import { getTenantName } from '../../utils/util'

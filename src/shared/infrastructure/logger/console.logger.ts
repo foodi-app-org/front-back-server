@@ -1,7 +1,7 @@
 // src/shared/infrastructure/logger/console.logger.ts
-import * as enum_ from '../../shared/constants/core-enum'
-import { Logger } from '../../shared/domain/logger'
-import { logMessage } from '../../shared/utils/logger.utils'
+import * as enum_ from '../../constants/core-enum'
+import { Logger } from '../../domain/logger'
+import { logMessage } from '../../utils/logger.utils'
 
 export class ConsoleLogger implements Logger {
   info(message: unknown): void {

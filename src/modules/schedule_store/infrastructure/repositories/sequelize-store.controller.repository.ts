@@ -1,6 +1,6 @@
 // infrastructure/repositories/sequelize-store.repository.ts
 
-import { models } from '../../../../infrastructure/db/sequelize/orm/models'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ScheduleStore } from '../../domain/entities/schedule_store.entity'
 import { ScheduleStoreRepository } from '../../domain/repositories/schedule_store.repository'
 

@@ -4,7 +4,7 @@ import {
   Optional
 } from 'sequelize'
 
-import connect from '../../../../infrastructure/db/sequelize/sequelize.connect'
+import connect from '../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { USER_MODEL } from '../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 const sequelize = connect()

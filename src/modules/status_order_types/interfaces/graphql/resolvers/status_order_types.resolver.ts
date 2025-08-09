@@ -6,6 +6,9 @@ import { CreateStatusTypeOrderInput } from '../inputs'
 
 export const statusOrderTypesResolvers = {
   Query: {
+    getAllOrderStatusTypes: async () => {
+      return await StatusOrderTypesServices.getAll.execute()
+    }
   },
   Mutation: {
     createOrderStatusType: async (_: GraphQLResolveInfo, args: { data: CreateStatusTypeOrderInput }) => {

@@ -1,7 +1,7 @@
 // src/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService.ts
 
 
-import { MigrationService } from '../../../../../shared/domain/ports/migrationService'
+import { MigrationService } from '../../../../../domain/ports/migrationService'
 import connect from '../../sequelize.connect'
 import { createUmzugMigrator, MigrationFolder } from '../umzug.config'
 import { run } from './migrate-data'

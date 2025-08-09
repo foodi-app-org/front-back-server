@@ -3,9 +3,9 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-co
 import { ApolloServer } from 'apollo-server-express'
 import express from 'express'
 
-import { context } from './infrastructure/graphql/context'
-import resolvers from './infrastructure/graphql/resolvers'
-import { typeDefs } from './infrastructure/graphql/typeDefs'
+import { context } from './shared/infrastructure/graphql/context'
+import resolvers from './shared/infrastructure/graphql/resolvers'
+import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 
 const startServer = async () => {
   const app = express()

@@ -8,7 +8,7 @@ import {
   UUIDV4
 } from 'sequelize'
 
-import connect from '../../../../../../infrastructure/db/sequelize/sequelize.connect'
+import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 
 const sequelize = connect()
 

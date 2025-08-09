@@ -1,6 +1,6 @@
 
 import { StateOderTypes, StatusOrderTypes } from '../../domain/entities/status_order_types.entity'
-import { CategoryOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
+import { StatusTypesOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
 
 /**
  * Input DTO to create a new Store
@@ -28,7 +28,7 @@ interface ResponseOrderStatusType {
  */
 export class CreateStatusOrderTypeUseCase {
   constructor(
-    private readonly categoryStatusOrderRepository: CategoryOrderTypesRepository,
+    private readonly categoryStatusOrderRepository: StatusTypesOrderTypesRepository,
   ) { }
 
   /**
