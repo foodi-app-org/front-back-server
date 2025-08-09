@@ -1,4 +1,4 @@
 type Mutation {
   setStoreScheduleReserve(input: IsStoreSchedule!): [StoreSchedule]
-  setStoreSchedule(input: ITstoreSchedule!): Response
+  setStoreSchedule(input: ITstoreSchedule!): ResponseScheduleStore
 }

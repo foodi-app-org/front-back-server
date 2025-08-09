@@ -1,6 +1,5 @@
-import path from 'path'
-
 import multer from 'multer'
+import path from 'path'
 // import uuid from 'uuid/v4';
 const storage = multer.diskStorage({
   destination: 'uploads',

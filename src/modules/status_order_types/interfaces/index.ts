@@ -1,0 +1,1 @@
+export * from './graphql/resolvers/status_order_types.resolver'

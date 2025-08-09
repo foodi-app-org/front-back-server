@@ -18,6 +18,15 @@ export interface CreateScheduleStoreDTO {
 }
 
 /**
+ * Output DTO after creating a schedule store
+ */
+export interface CreateScheduleStoreResponse {
+  success: boolean
+  message: string
+  data?: ScheduleStore
+}
+
+/**
  * Use case to create a new ScheduleStore
  */
 export class CreateScheduleStoreUseCase {
@@ -31,7 +40,7 @@ export class CreateScheduleStoreUseCase {
    * @returns The created ScheduleStore entity
    * @throws Error if mandatory fields are missing or invalid
    */
-  async execute(schedule: CreateScheduleStoreDTO): Promise<ScheduleStore | null> {
+  async execute(schedule: CreateScheduleStoreDTO): Promise<CreateScheduleStoreResponse> {
     const existing = await this.scheduleRepository.findByDay(schedule.schDay)
 
     if (existing) {
@@ -42,11 +51,22 @@ export class CreateScheduleStoreUseCase {
         schState: schedule.schState,
         updatedAt: new Date()
       })
-      return updated
+      if (!updated) {
+        return {
+          success: false,
+          message: 'Error al actualizar el horario',
+          data: undefined
+        }
+      }
+      return {
+        success: true,
+        message: 'Horario actualizado correctamente',
+        data: updated ?? undefined
+      }
     }
 
     const scheduleData = new ScheduleStore(
-      schedule.schId ?? '',
+      schedule.schId,
       schedule.idStore,
       schedule.id ?? '',
       schedule.schDay,
@@ -59,6 +79,10 @@ export class CreateScheduleStoreUseCase {
 
     // ✅ Persist in repository
     const created = await this.scheduleRepository.create(scheduleData)
-    return created
+    return {
+      success: true,
+      message: 'Horario creado correctamente',
+      data: created ?? undefined
+    }
   }
 }

@@ -44,6 +44,7 @@ export class CreateProductCategoryUseCase {
             pName,
             ProDescription,
         })
+
         try {
            await this.categoryProductRepository.create(category)
            this.logger.success(`${this.name} ✅ Category created: ${pName}`)

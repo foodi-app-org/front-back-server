@@ -7,8 +7,8 @@ type StoreSchedule {
   schHoEnd: String
   schState: Int
   store: Store
-
 }
+
 input ITstoreSchedule {
   schId: ID
   id: ID
@@ -21,6 +21,13 @@ input ITstoreSchedule {
 
 input IsStoreSchedule {
   schData: [ITstoreSchedule]
+}
+
+type ResponseScheduleStore {
+  success: Boolean
+  message: String
+  data: StoreSchedule
+  errors: [errors]
 }
 
 type Query {

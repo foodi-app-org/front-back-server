@@ -1,0 +1,13 @@
+type ResponseOrderStatusType {
+  success: Boolean
+  message: String
+  data: OrderStatusType
+  errors: [errors]
+}
+
+type Mutation {
+  createOrderStatusType(data: OrderStatusTypeInput!): ResponseOrderStatusType!
+  updateOrderStatusType(data: UpdateOrderStatusTypeInput!): OrderStatusType!
+  deleteOrderStatusType(idStatus: ID!): Boolean!
+  updateOrderStatusPriorities(data: [OrderStatusPriorityInput!]!): OrderStatusResponse
+}

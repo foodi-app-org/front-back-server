@@ -38,19 +38,18 @@ export class SequelizeScheduleStoreRepository implements ScheduleStoreRepository
     updateData: Partial<ScheduleStore>
   ): Promise<ScheduleStore | null> {
     try {
-      const [_, updatedScheduleStore] = await models.ScheduleStore.update(
+      const updated = await models.ScheduleStore.update(
         updateData,
         {
           where: { schId },
-          returning: true,
+          returning: true
         }
       )
-      return updatedScheduleStore[0] || null
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
+      if (updated[0] === 0) return null
+      return (await models.ScheduleStore.findOne({ where: { schId } }))
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error))
     }
   }
+
 }
