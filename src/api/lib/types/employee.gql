@@ -83,6 +83,7 @@ type ResponseEmployee {
     data: [EmployeeStore]
     pagination: Pagination 
 }
+
 type ResponseLoginEmployee {
     token: String
     idStore: String

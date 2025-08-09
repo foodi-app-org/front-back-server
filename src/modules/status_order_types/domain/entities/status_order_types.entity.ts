@@ -68,3 +68,38 @@ export class StatusOrderTypes {
   }
   
 }
+
+export class PaginationMeta {
+  public totalRecords: number
+  public totalPages: number
+  public currentPage: number
+
+  constructor(totalRecords: number, pageSize: number, currentPage: number) {
+    this.totalRecords = totalRecords
+    this.totalPages = Math.ceil(totalRecords / pageSize)
+    this.currentPage = currentPage
+  }
+}
+
+/**
+ * Paginated response for StatusOrderTypes
+ */
+export class StatusOrderTypesPagination {
+  public success: boolean
+  public message: string
+  public data: StatusOrderTypes[]
+  public pagination: PaginationMeta
+
+  constructor(
+    data: StatusOrderTypes[],
+    totalRecords: number,
+    pageSize: number,
+    currentPage: number,
+    message = 'Data fetched successfully'
+  ) {
+    this.success = true
+    this.message = message
+    this.data = data
+    this.pagination = new PaginationMeta(totalRecords, pageSize, currentPage)
+  }
+}

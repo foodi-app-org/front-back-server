@@ -45,7 +45,16 @@ input OrderStatusPriorityInput {
   priority: Int!
 }
 
+type ResponseAllOrderStatusTypes {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [OrderStatusType]
+    pagination: Pagination 
+}
+
+
 type Query {
-  getAllOrderStatusTypes: [OrderStatusType]
+  getAllOrderStatusTypes: ResponseAllOrderStatusTypes
   getOrderStatusTypeById(idStatus: ID!): OrderStatusType
 }
