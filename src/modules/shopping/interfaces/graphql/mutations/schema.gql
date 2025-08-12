@@ -1,0 +1,7 @@
+# Mutations
+type Mutation {
+  registerShoppingCart(
+    input: IShoppingCart
+    idSubArray: IID_SUB_ITEMS
+  ): ResponseShoppingCart
+}

@@ -105,7 +105,7 @@ export class GenericService<T extends Model> {
             const order: OrderItem[] = orderFields.map(({ field, direction }) => [field, direction])
             // Fetch data
             const data = await tenantSchema.findAll({
-                attributes: attributes ? attributes : null,
+                attributes: attributes ?? null,
                 where: {
                     [Op.and]: [
                       whereSearch,

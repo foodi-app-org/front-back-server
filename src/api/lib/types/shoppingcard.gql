@@ -1,31 +1,30 @@
-
-
 type ShoppingCard {
-    ShoppingCard: ID
-    # start
-    id: ID
-    pId: ID
-    subProductsId: ID
-    ShoppingCardRefCode: String
-    priceProduct: Float
-    uuid: String
-    discountCardProduct: String
-    comments: String
-    cantProducts: Int
-    refCodePid: String
-    # end
-    idUser: ID
-    idStore: ID
-    cName: String
-    cState: Int
-    cDatCre: DateTime
-    cDatMod: DateTime
-    csDescription: String
-    getStore: Store
-    productFood: ProductFood
-    salesExtProductFoodOptional: [saleExtProductFoodOptional]
-    ExtProductFoodsAll: [ExtProductFood]
+  ShoppingCard: ID
+  # start
+  id: ID
+  pId: ID
+  subProductsId: ID
+  ShoppingCardRefCode: String
+  priceProduct: Float
+  uuid: String
+  discountCardProduct: String
+  comments: String
+  cantProducts: Int
+  refCodePid: String
+  # end
+  idUser: ID
+  idStore: ID
+  cName: String
+  cState: Int
+  cDatCre: DateTime
+  cDatMod: DateTime
+  csDescription: String
+  getStore: Store
+  productFood: ProductFood
+  salesExtProductFoodOptional: [saleExtProductFoodOptional]
+  ExtProductFoodsAll: [ExtProductFood]
 }
+
 type ResponseSalesStore {
   ShoppingCard: ShoppingCard
   Response: Response
@@ -78,29 +77,28 @@ input ExtProductFoodOptionalInput {
   ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptionalInput]
 }
 
-
 input IShoppingCard {
-    ShoppingCard: ID
-    id: ID
-    pId: ID
-    subProductsId: ID
-    ShoppingCardRefCode: String
-    uuid: String
-    discountCardProduct: String
-    idUser: ID
-    idStore: ID
-    cName: String
-    comments: String
-    cantProducts: Int
-    ProPrice: Float
-    refCodePid: String
-    totalExtra: Int
-    cState: Int
-    cDatCre: DateTime
-    cDatMod: DateTime
-    csDescription: String,
-    dataExtra: [ExtProductFoodInput]
-    dataOptional: [ExtProductFoodOptionalInput]
+  ShoppingCard: ID
+  id: ID
+  pId: ID
+  subProductsId: ID
+  ShoppingCardRefCode: String
+  uuid: String
+  discountCardProduct: String
+  idUser: ID
+  idStore: ID
+  cName: String
+  comments: String
+  cantProducts: Int
+  ProPrice: Float
+  refCodePid: String
+  totalExtra: Int
+  cState: Int
+  cDatCre: DateTime
+  cDatMod: DateTime
+  csDescription: String
+  dataExtra: [ExtProductFoodInput]
+  dataOptional: [ExtProductFoodOptionalInput]
 }
 
 type SalesAmountTodayResponse {
@@ -116,24 +114,27 @@ type Query {
   getSalesAmountToday: SalesAmountTodayResponse!
 }
 
-
 # Mutations
 type Mutation {
-  registerShoppingCard(input: IShoppingCard, idSubArray: IID_SUB_ITEMS): ShoppingCard
+  registerShoppingCard(
+    input: IShoppingCard
+    idSubArray: IID_SUB_ITEMS
+  ): ShoppingCard
   # sales store
- registerSalesStore(
-    input: [IShoppingCard],
-    id: ID,
-    tableId: ID,
-    discount: Int,
-    idStore: ID,
-    pCodeRef: String,
-    change: Float,  # Asegúrate de que change sea de tipo Float aquí
-    payMethodPState: Int,
-    pickUp: Int,
-    totalProductsPrice: Float,
-    valueDelivery: Float,
+  registerSalesStore(
+    input: [IShoppingCard]
+    id: ID
+    tableId: ID
+    discount: Int
+    idStore: ID
+    pCodeRef: String
+    change: Float # Asegúrate de que change sea de tipo Float aquí
+    payMethodPState: Int
+    pickUp: Int
+    totalProductsPrice: Float
+    valueDelivery: Float
     idSubArray: IID_SUB_ITEMS
   ): ResponseSalesStore
-  deleteOneItem(cState: Int,ShoppingCard: ID): Response
+
+  deleteOneItem(cState: Int, ShoppingCard: ID): Response
 }

@@ -1,0 +1,159 @@
+# types
+type ProductFood {
+  pId: ID
+  carProId: ID #Categorías de productFoodos
+  sizeId: ID #Talla
+  colorId: ID #Color
+  idStore: ID #Store
+  cId: ID #Country
+  caId: ID
+  dId: ID #Department
+  ctId: ID #Cuidad
+  tpId: ID #Características
+  fId: ID #Características principales
+  pName: String
+  pCode: String
+  ProPrice: Float
+  free: Int
+  ProDescuento: Float
+  ProUniDisponibles: String
+  ProDescription: String
+  ValueDelivery: Float
+  ProProtegido: Int
+  ProAssurance: String
+  ProImage: String
+  ProStar: Int
+  ProWidth: Int
+  ProHeight: Float
+  ProLength: String
+  ProWeight: String
+  ProQuantity: Int
+  ProOutstanding: Int
+  ProDelivery: Int
+  ProVoltaje: String
+  pState: Int
+  tgId: ID
+  sTateLogistic: Int
+  ProBarCode: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  # thirdParties: ThirdParties
+  # area: [Area]
+  # feat: [Feature]
+  # pais: Country
+  # city: City
+  # department: Department
+  # Marca
+  # mark: Trademark
+  stock: Int
+  manageStock: Boolean
+  vat: Float
+  # color: Color
+  getStore: Store
+  # ExtProductFoodsAll: [ExtProductFood]
+  # getAllAvailableProduct: [AvailableProduct]
+  # ExtProductFoodOptional: [ExtProductFoodOptional]
+  # salesExtProductFoodOptional: [saleExtProductFoodOptional]
+  # getOneTags: TagsProduct
+}
+# Inputs
+input ICategories {
+  caId: ID
+  cpName: String
+  cpImage: String
+  cpState: Int
+}
+
+# Inputs
+input InputProductFood {
+  pId: ID
+  sizeId: ID
+  colorId: ID
+  carProId: ID
+  cId: ID #Country
+  dId: ID #Department
+  ctId: ID #Cuidad
+  idStore: ID #Store
+  caId: ID #Categorías de productFood
+  fId: ID #Características principales
+  pName: String
+  pCode: String
+  ProPrice: Float
+  ProDescuento: Float
+  ProUniDisponibles: String
+  ProDescription: String
+  ProProtegido: Int
+  ProAssurance: String
+  ProImage: String
+  ProStar: Int
+  ProWidth: Int
+  ProHeight: Float
+  ValueDelivery: Float
+  ProLength: String
+  ProWeight: String
+  ProQuantity: Int
+  ProOutstanding: Int
+  ProDelivery: Int
+  stock: Int
+  ProVoltaje: String
+  vat: Float
+  ProBarCode: String
+  pState: Int
+  sTateLogistic: Int
+  manageStock: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+# Input delete productFoods
+input IDeleteProductFood {
+  pId: ID
+}
+
+# Response
+type ResponseProduct {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: ProductFood
+}
+
+type ProductFoodsResultAll {
+  success: Boolean!
+  message: String!
+  data: [ProductFood]
+  pagination: Pagination!
+}
+
+# Queries
+type Query {
+  "Consulta todos los productFood"
+  getProductFoods: [ProductFood]
+  productFoods: [ProductFood]
+  productFoodsOne(pId: ID, cId: ID, dId: ID, ctId: ID): ProductFood
+  productFoodsAll(
+    page: Int
+    pId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    pState: Int
+    max: Int
+    gender: [String]
+    desc: [String]
+    categories: [ID]
+    fromDate: DateTime
+    toDate: DateTime
+  ): ProductFoodsResultAll
+  productFoodsLogis(
+    pId: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    max: Int
+  ): [ProductFood]
+  getMinPrice(idStore: ID): Float
+}

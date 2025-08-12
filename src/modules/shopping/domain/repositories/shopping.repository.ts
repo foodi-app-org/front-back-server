@@ -1,0 +1,10 @@
+import { ShoppingCart } from '../entities/shopping.entity'
+
+/**
+ * Repository contract for StatusTypesOrderTypesRepository operations
+ */
+export interface ShoppingCartRepository {
+  create(data: ShoppingCart): Promise<ShoppingCart | null>
+  findCodeRef(pCodeRef: string): Promise<ShoppingCart | null>
+  findById(id: string): Promise<ShoppingCart | null>
+}

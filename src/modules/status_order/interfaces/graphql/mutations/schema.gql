@@ -1,0 +1,20 @@
+# Mutations
+type Mutation {
+  # sales store
+  registerSalesStore(
+    input: [IShoppingCart]
+    id: ID
+    tableId: ID
+    discount: Int
+    idStore: ID
+    pCodeRef: String
+    change: Float
+    payMethodPState: Int
+    pickUp: Int
+    totalProductsPrice: Float
+    valueDelivery: Float
+    idSubArray: IID_SUB_ITEMS
+  ): ResponseSalesStore
+
+  deleteOneItem(cState: Int, ShoppingCart: ID): Response
+}

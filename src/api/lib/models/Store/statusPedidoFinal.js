@@ -1,14 +1,13 @@
 import {
   DATE,
+  DECIMAL,
   INTEGER,
   literal,
   STRING,
-  DECIMAL,
   UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'
-
 import Store from './Store'
 
 const sequelize = connect()

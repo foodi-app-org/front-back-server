@@ -1,11 +1,12 @@
-const { STRING } = require('sequelize')
-const { INTEGER } = require('sequelize')
-const { DATE } = require('sequelize')
-const { SMALLINT } = require('sequelize')
-const { DECIMAL } = require('sequelize')
-const { UUID } = require('sequelize')
-const { UUIDV4 } = require('sequelize')
-
+const { 
+  STRING,
+  INTEGER,
+  DATE,
+  SMALLINT,
+  DECIMAL,
+  UUID,
+  UUIDV4
+} = require('sequelize')
 
 const { SHOPPING_CARD_MODEL } = require('../../models/Store/ShoppingCard')
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
