@@ -21,3 +21,72 @@ export interface CreateStatusTypeOrderInput {
   cantProducts?: number
   sState?: StateShoppingCart // default in service layer
 }
+
+/**
+ * @typedef {Object} SubItem
+ * @property {string} _id - Unique identifier of the sub-item
+ */
+interface SubItem {
+  _id: string
+}
+
+/**
+ * @typedef {Object} IdSubArray
+ * @property {SubItem[]} setID - Array of sub-items
+ */
+interface IdSubArray {
+  setID: SubItem[]
+}
+
+/**
+ * @typedef {Object} ShoppingCartItem
+ * @property {string} pId - Product UUID
+ * @property {string} shoppingCartRefCode - Reference code for shopping cart
+ * @property {number} priceProduct - Price per product
+ * @property {number} cantProducts - Quantity of products
+ * @property {string} idUser - User UUID
+ * @property {string} idStore - Store UUID
+ * @property {string} [comments] - Optional comments for the item
+ */
+interface ShoppingCartItem {
+  pId: string
+  shoppingCartRefCode: string
+  priceProduct: number
+  cantProducts: number
+  idUser: string
+  idStore: string
+  comments?: string
+}
+
+/**
+ * @typedef {Object} RegisterSalesStoreInput
+ * @property {ShoppingCartItem[]} input - List of shopping cart items
+ * @property {string} id - Sale UUID
+ * @property {string} tableId - Table UUID
+ * @property {number} discount - Discount amount (integer)
+ * @property {string} idStore - Store UUID
+ * @property {string} pCodeRef - Promotion code reference
+ * @property {number} change - Change amount
+ * @property {number} payMethodPState - Payment method state
+ * @property {number} pickUp - Pick-up status (0 or 1)
+ * @property {number} totalProductsPrice - Total price of products
+ * @property {number} valueDelivery - Delivery cost
+ * @property {IdSubArray} idSubArray - Object containing sub-items
+ */
+export interface RegisterSalesStoreInput {
+  input: ShoppingCartItem[]
+  id: string
+  tableId: string
+  shoppingCartRefCode: string
+  discount: number
+  tip: number
+  idStore: string
+  pCodeRef: string
+  change: number
+  payMethodPState: number
+  pickUp: number
+  totalProductsPrice: number
+  valueDelivery: number
+  idSubArray: IdSubArray
+}
+

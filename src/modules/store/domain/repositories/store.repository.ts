@@ -18,12 +18,12 @@ export interface StoreRepository {
    */
   findByEmail(email: string): Promise<Store | null>;
 
-  // /**
-  //  * Finds a store by its unique identifier.
-  //  * @param idStore - UUID of the store.
-  //  * @returns Store if found, otherwise null.
-  //  */
-  // findById(idStore: string): Promise<Store | null>;
+  /**
+   * Finds a store by its unique identifier.
+   * @param id - id of the store.
+   * @returns Store if found, otherwise null.
+   */
+  findById(id: string): Promise<Store | null>;
 
   // /**
   //  * Retrieves all stores.

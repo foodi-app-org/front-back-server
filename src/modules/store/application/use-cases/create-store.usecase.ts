@@ -1,6 +1,6 @@
 
-import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
+import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { User } from '../../../user/domain/entities/user.entity'
 import { UserRepository } from '../../../user/domain/repositories/user.repository'

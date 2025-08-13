@@ -32,4 +32,17 @@ export class SequelizeStoreRepository implements StoreRepository {
 
     return store ? store.toJSON() as Store : null
   }
+    /**
+   * Finds a store by its email.
+   *
+   * @param {string} id - The store id to search for.
+   * @returns {Promise<Store | null>} The store if found, or null.
+   */
+  async findById(id: string): Promise<Store | null> {
+    const store = await models.Store.findOne({
+      where: { idStore: id }
+    })
+
+    return store ? store as Store : null
+  }
 }

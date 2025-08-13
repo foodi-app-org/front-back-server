@@ -1,23 +1,121 @@
 import { GraphQLResolveInfo } from 'graphql'
 
+import { Channel } from '../../../../../shared/constants/channel'
+import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
+import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import { GraphQLContext } from '../../../../../shared/types/context'
+import { ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
+import { StoreServices } from '../../../../store/infrastructure/services'
 import { StatusOrderTypesServices } from '../../../infrastructure/services'
-import { statusOrderSchema } from '../../../infrastructure/validators'
-import { CreateStatusTypeOrderInput } from '../inputs'
+import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
+import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 
 export const orderResolvers = {
   Query: {
 
   },
   Mutation: {
-    registerSalesStore: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput[] }) => {
-      for (const item of args.input) {
-        const { error } = statusOrderSchema.validate(item)
+    registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
+      const idStore = context.restaurant ?? args.idStore
+      const sequelize = connect()
+      const t = await sequelize.transaction()
+
+      try {
+        const storeExists = await StoreServices.findById.execute(idStore)
+        if (!storeExists) {
+          await t.rollback()
+          return {
+            success: false,
+            message: 'Store not found',
+            errors: []
+          }
+        }
+
+        for (const item of args.input) {
+          const { error } = shoppingCartItemSchema.validate(item, { abortEarly: false })
+          if (error) {
+            await t.rollback()
+            return {
+              success: false,
+              data: null,
+              message: 'Validation error',
+              errors: error.details.map(e => ({
+                message: e.message,
+                path: e.path,
+                type: e.type,
+                context: e.context
+              }))
+            }
+          }
+
+          const generatedCode = (Math.random() + 1).toString(36).substring(2, 15)
+          const response = await ShoppingTypesServices.create.execute({
+            idStore,
+            pId: item.pId,
+            shoppingCartRefCode: args.shoppingCartRefCode,
+            priceProduct: item.priceProduct,
+            cantProducts: item.cantProducts,
+            idUser: item.idUser,
+            comments: item.comments,
+            id: args.id,
+            refCodePid: generatedCode,
+            sState: StateShoppingCart.ACTIVE,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }) // PASAMOS transacción
+          if (response?.success === false) {
+            await t.rollback()
+            return {
+              success: false,
+              message: response.message,
+              data: null,
+              errors: []
+            }
+          }
+        }
+
+        const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode) // PASAMOS transacción
+
+        const {
+          id,
+          tableId,
+          change,
+          discount,
+          valueDelivery,
+          payMethodPState,
+          shoppingCartRefCode,
+          pCodeRef,
+          tip = 0,
+        } = args
+
+        const mockSalesStore = {
+          id,
+          tableId,
+          idStore,
+          pSState: StateShoppingCart.ACTIVE,
+          valueDelivery,
+          shoppingCartRefCode,
+          locationUser: '',
+          discount,
+          tip,
+          change,
+          pCodeRef,
+          totalProductsPrice: response?.data,
+          payMethodPState,
+          pickUp: PickUpMethod.inStorePickup,
+          channel: Channel.store,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+
+        const { error, value } = statusOrderSchema.validate(mockSalesStore, { abortEarly: false })
         if (error) {
+          await t.rollback()
           return {
             success: false,
             data: null,
-            message: 'Error de validación',
-            errors: error?.details.map(e => ({
+            message: 'Validation error',
+            errors: error.details.map(e => ({
               message: e.message,
               path: e.path,
               type: e.type,
@@ -25,29 +123,31 @@ export const orderResolvers = {
             }))
           }
         }
-      }
-      const mockSalesStore = {
-        stPId: 'stp-123456',
-        id: 'order-78910',
-        tableId: 'table-12',
-        idStore: 'store-456',
-        pSState: 1, // ejemplo: 1 = activo
-        valueDelivery: 5000,
-        locationUser: 'Av. Principal #123, Pereira',
-        discount: 2000,
-        tip: 3000,
-        change: 1500,
-        pCodeRef: 'REF-98765',
-        totalProductsPrice: 45000,
-        payMethodPState: 2, // ejemplo: 2 = tarjeta
-        pickUp: 0, // 0 = entrega a domicilio
-        channel: 1, // ejemplo: 1 = app, 2 = físico
-        pPDate: new Date('2025-08-12T14:30:00Z'),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
 
-      return await StatusOrderTypesServices.create.execute(mockSalesStore)
+        const createResponse = await StatusOrderTypesServices.create.execute(value) // PASAMOS transacción
+
+        if (createResponse?.success === false) {
+          await t.rollback()
+          return {
+            success: false,
+            message: createResponse.message,
+            data: null,
+            errors: []
+          }
+        }
+
+        await t.commit()
+
+        return createResponse
+
+      } catch (e) {
+        await t.rollback()
+        return {
+          success: false,
+          message: e instanceof Error ? e.message : String(e),
+          errors: []
+        }
+      }
     }
   }
 }

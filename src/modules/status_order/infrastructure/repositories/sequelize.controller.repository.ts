@@ -18,7 +18,6 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       })
       return created
     } catch (e) {
-      console.log('🚀 ~ SequelizeStatusOrderRepository ~ create ~ e:', e)
       if (e instanceof Error) {
         throw new Error(e.message)
       }
@@ -31,7 +30,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       const scheduleStore = models.StatusOrder.findOne({
         where: { pCodeRef: String(pCodeRef) },
       })
-      return scheduleStore
+      return scheduleStore  
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

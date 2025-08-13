@@ -36,6 +36,17 @@ export class CreateStatusOrderTypeUseCase {
     //     data: statusOrderExist
     //   }
     // }
+    // find findCodeRef exists
+    const statusOrderExist = await this.statusOrderRepository.findCodeRef(input.pCodeRef)
+
+    if (statusOrderExist) {
+      return {
+        success: false,
+        message: 'Order status type with this code reference already exists',
+        data: statusOrderExist
+      }
+    }
+
     const newStatusOrder = new StatusOrder(input)
     const created = await this.statusOrderRepository.create(newStatusOrder)
 

@@ -1,3 +1,4 @@
+// import connect from '@shared/infrastructure/db/sequelize/sequelize.connect'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
@@ -39,6 +40,26 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
         return null
       }
       return statusOrder
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+  async sumPrice(shoppingCartRefCode: string): Promise<number> {
+    try {
+      const result = await models.ShoppingCart.findOne({
+        attributes: [
+          [models.ShoppingCart.sequelize!.fn('SUM', models.ShoppingCart.sequelize!.col('priceProduct')), 'priceProduct']
+        ],
+        where: { shoppingCartRefCode },
+        raw: true
+      })
+
+      if (!result) return 0
+      const { priceProduct } = result
+      return priceProduct ?? 0
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

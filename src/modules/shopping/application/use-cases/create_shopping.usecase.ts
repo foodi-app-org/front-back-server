@@ -32,10 +32,11 @@ export class CreateIShoppingCartTypeUseCase {
     if (!product) {
       return {
         success: false,
-        message: 'Product not found',
+        message: `Product with id ${input.pId} not found`,
         data: null,
       }
     }
+
     // sum price of product by cantProducts
     const newIShoppingCart = new ShoppingCart({
       ...input,

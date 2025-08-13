@@ -26,7 +26,6 @@ export interface IStatusOrder {
   payMethodPState?: number
   pickUp?: number
   channel?: number
-  pPDate?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -40,7 +39,7 @@ export class StatusOrder {
   public id?: string
   public tableId?: string
   public idStore?: string
-  public pSState: number = StateOderTypes.ACTIVE
+  public pSState!: number
   public valueDelivery?: number
   public locationUser?: string
   public discount?: number
@@ -51,7 +50,6 @@ export class StatusOrder {
   public payMethodPState?: number
   public pickUp?: number
   public channel?: number
-  public pPDate?: Date
   public createdAt: Date = new Date()
   public updatedAt: Date = new Date()
 
@@ -60,6 +58,7 @@ export class StatusOrder {
    * @param props - Object containing the status order type properties.
    */
   constructor(props: IStatusOrder) {
+    props.pSState = props?.pSState ?? StateOderTypes.ACTIVE
     Object.assign(this, props)
   }
 }
