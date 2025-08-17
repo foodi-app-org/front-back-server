@@ -5,6 +5,7 @@ import { SequelizeDeviceModel, USER_DEVICE_MODEL } from '../../../../../modules/
 import { MODULES_MODEL,SequelizeModuleModel } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-modules.model'
 import { SequelizeSubmoduleModel,SUB_MODULES_MODEL } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-sub-modules.model'
 import { PRODUCT_MODEL,SequelizeProductModel } from '../../../../../modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+import { ROLE_MODEL,SequelizeRoleModel } from '../../../../../modules/roles/infrastructure/db/sequelize/models/sequelize-roles.model'
 import { SCHEDULE_MODEL,SequelizeScheduleStoreModel } from '../../../../../modules/schedule_store/infrastructure/db/sequelize/models/sequelize-schedule-store.model'
 import { SequelizeShoppingOrderModel, SHOPPING_CART_MODEL } from '../../../../../modules/shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
 import { SequelizeStatusOrderModel, STATUS_ORDER_MODEL } from '../../../../../modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
@@ -24,7 +25,8 @@ export const models = {
   Product: SequelizeProductModel,
   Device: SequelizeDeviceModel,
   Module: SequelizeModuleModel,
-  Submodule: SequelizeSubmoduleModel
+  Submodule: SequelizeSubmoduleModel,
+  Role: SequelizeRoleModel
   
 }
 
@@ -40,5 +42,6 @@ export const models_names = {
   Product: PRODUCT_MODEL,
   Device: USER_DEVICE_MODEL,
   Module: MODULES_MODEL,
-  Submodule: SUB_MODULES_MODEL
+  Submodule: SUB_MODULES_MODEL,
+  Role: ROLE_MODEL
 }
