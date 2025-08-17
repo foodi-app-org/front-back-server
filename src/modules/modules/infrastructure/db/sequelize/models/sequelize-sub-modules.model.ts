@@ -5,7 +5,6 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { MODULES_MODEL } from '../../../../../modules/infrastructure/db/sequelize/models/sequelize-modules.model'
 
 const sequelize = connect()
 
@@ -60,13 +59,7 @@ export const SubmoduleColumns = {
   },
   mId: {
     type: DataTypes.STRING(36),
-    allowNull: false,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: MODULES_MODEL,
-      key: 'mId'
-    }
+    allowNull: false
   },
   smName: {
     type: DataTypes.STRING(100),
