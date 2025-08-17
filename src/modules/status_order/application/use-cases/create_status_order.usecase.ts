@@ -1,4 +1,6 @@
 
+import { Transaction } from 'sequelize'
+
 import { IStatusOrder, StatusOrder } from '../../domain/entities/status_order.entity'
 import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 
@@ -25,7 +27,7 @@ export class CreateStatusOrderTypeUseCase {
    * @param input - store data
    * @returns The newly created Store or null if it already exists
    */
-  async execute(input: CreateStatusOrderDTO): Promise<ResponseOrderStatusType | null> {
+  async execute(input: CreateStatusOrderDTO, transaction?: Transaction): Promise<ResponseOrderStatusType | null> {
     
     // const statusOrderExist = await this.statusOrderRepository.findByName(input.name)
 
@@ -48,7 +50,7 @@ export class CreateStatusOrderTypeUseCase {
     }
 
     const newStatusOrder = new StatusOrder(input)
-    const created = await this.statusOrderRepository.create(newStatusOrder)
+    const created = await this.statusOrderRepository.create(newStatusOrder, transaction)
 
     if (!created) {
       return {

@@ -1,2 +1,2 @@
-export * from './entities/status_order.entity'
-export * from './repositories/status_order.repository'
+export * from './entities/shopping.entity'
+export * from './repositories/shopping.repository'

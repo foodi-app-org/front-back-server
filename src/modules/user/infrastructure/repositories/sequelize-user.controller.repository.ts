@@ -24,4 +24,10 @@ export class SequelizeUserRepository implements UserRepository {
     if (!user) return null
     return new User(user.id, user.name, user.email, user.password, user.createdAt, user.updatedAt)
   }
+
+  async findById(id: string): Promise<User | null> {
+    const user = await SequelizeUserModel.findByPk(id)
+    if (!user) return null
+    return user
+  }
 }

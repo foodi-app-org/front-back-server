@@ -1,22 +1,20 @@
-import crypto, { randomUUID } from 'crypto'
-
 import dotenv from 'dotenv'
-import { Op } from 'sequelize'
 import { groupBy } from 'lodash'
+import { Op } from 'sequelize'
 
-import productModelFood, { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
-import pedidosModel, { ORDER_MODEL } from '../../models/Store/pedidos'
-import ShoppingCard, { SHOPPING_CARD_MODEL } from '../../models/Store/ShoppingCard'
+import connect from '../../db'
+import productModelFood from '../../models/product/productFood'
+import { ORDER_STATUS_TYPE_MODEL, OrderStatusTypeModel } from '../../models/Store/OrderStatusTypes'
+import pedidosModel from '../../models/Store/pedidos'
+import ShoppingCard from '../../models/Store/ShoppingCard'
 import StatusOrderModel, { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
 import Users from '../../models/Users'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
-import connect from '../../db'
-import { STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
 import DateRange from '../../utils/DateRange'
-import { ORDER_STATUS_TYPE_MODEL, OrderStatusTypeModel } from '../../models/Store/OrderStatusTypes'
-
-import { deleteOneItem, getOneStore } from './store'
+import {
+ deCode, getAttributes, getTenantName 
+} from '../../utils/util'
 import { getOrderStatusTypeById } from './orderStatusTypes'
+import { deleteOneItem, getOneStore } from './store'
 
 // Configura dotenv
 dotenv.config()

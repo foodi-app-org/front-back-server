@@ -20,69 +20,6 @@ type ShoppingCart {
   # ExtProductFoodsAll: [ExtProductFood]
 }
 
-type ResponseSalesStore {
-  success: Boolean
-  message: String
-  errors: [errors]
-  data: ShoppingCart
-}
-
-type ResponseShoppingCart {
-  success: Boolean
-  message: String
-  errors: [errors]
-  data: ShoppingCart
-}
-
-
-# ShoppingCart Input
-input IID_SUB {
-  _id: ID
-}
-
-input IID_SUB_ITEMS {
-  setID: [IID_SUB]
-}
-
-input ExtProductFoodInput {
-  pId: String
-  exPid: String
-  exState: Int
-  extraName: String
-  extraPrice: Float
-  state: Int
-  createdAt: String
-  updatedAt: String
-  quantity: Int
-  newExtraPrice: Float
-}
-
-input ExtProductFoodSubOptionalInput {
-  pId: String
-  opExPid: String
-  idStore: String
-  opSubExPid: String
-  OptionalSubProName: String
-  exCodeOptionExtra: String
-  exCode: String
-  state: Int
-  createdAt: String
-  updatedAt: String
-  check: Boolean
-}
-
-input ExtProductFoodOptionalInput {
-  pId: String
-  opExPid: String
-  OptionalProName: String
-  state: Int
-  code: String
-  numbersOptionalOnly: Int
-  createdAt: String
-  required: Int
-  updatedAt: String
-  # ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptionalInput]
-}
 
 input IShoppingCart {
   shoppingCartId: ID
@@ -102,15 +39,25 @@ input IShoppingCart {
   # dataOptional: [ExtProductFoodOptionalInput]
 }
 
-type SalesAmountTodayResponse {
-  success: Boolean!
-  message: String!
-  total: Float!
+type ResponseShoppingCart {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: ShoppingCart
 }
+
+
+# ShoppingCart Input
+input IID_SUB {
+  _id: ID
+}
+
+input IID_SUB_ITEMS {
+  setID: [IID_SUB]
+}
+
 
 # Query
 type Query {
   getAllShoppingCart: [ShoppingCart]
-  getTodaySales: Int
-  getSalesAmountToday: SalesAmountTodayResponse!
 }

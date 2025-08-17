@@ -6,14 +6,26 @@ import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
 import { StoreServices } from '../../../../store/infrastructure/services'
+import { UserServices } from '../../../../user/infrastructure/services'
 import { StatusOrderTypesServices } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 
 export const orderResolvers = {
-  Query: {
-
+  Type: {
+    StoreOrders: {
+      getUser: async (parent: { dataValues: { id: string } }, _args: Record<string, unknown>, context: GraphQLContext) => {
+        const idUser = parent?.dataValues?.id ?? context?.User?.id
+        if (!idUser) return null
+        return await UserServices.findById.execute(idUser)
+      },
+      getOneStore: async (parent: { dataValues: { idStore: string } }, _args: Record<string, unknown>, _context: GraphQLContext) => {
+         if (!parent?.dataValues?.idStore) return null
+         return await StoreServices.findById.execute(parent.dataValues.idStore)
+        }
+    }
   },
+  Query: {},
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
       const idStore = context.restaurant ?? args.idStore
@@ -24,11 +36,7 @@ export const orderResolvers = {
         const storeExists = await StoreServices.findById.execute(idStore)
         if (!storeExists) {
           await t.rollback()
-          return {
-            success: false,
-            message: 'Store not found',
-            errors: []
-          }
+          return { success: false, message: 'Store not found', errors: [] }
         }
 
         for (const item of args.input) {
@@ -62,7 +70,9 @@ export const orderResolvers = {
             sState: StateShoppingCart.ACTIVE,
             createdAt: new Date(),
             updatedAt: new Date(),
-          }) // PASAMOS transacción
+          }, t)
+
+
           if (response?.success === false) {
             await t.rollback()
             return {
@@ -74,8 +84,8 @@ export const orderResolvers = {
           }
         }
 
-        const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode) // PASAMOS transacción
-
+        // Resto del flujo (sumPrice, statusOrder, etc.)
+        const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode)
         const {
           id,
           tableId,
@@ -124,20 +134,18 @@ export const orderResolvers = {
           }
         }
 
-        const createResponse = await StatusOrderTypesServices.create.execute(value) // PASAMOS transacción
-
+        const createResponse = await StatusOrderTypesServices.create.execute(value, t)
         if (createResponse?.success === false) {
           await t.rollback()
           return {
             success: false,
             message: createResponse.message,
-            data: null,
+            data: createResponse.data ?? null,
             errors: []
           }
         }
 
         await t.commit()
-
         return createResponse
 
       } catch (e) {
@@ -151,3 +159,4 @@ export const orderResolvers = {
     }
   }
 }
+

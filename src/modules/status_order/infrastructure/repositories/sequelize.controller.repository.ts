@@ -1,3 +1,5 @@
+import { Transaction } from 'sequelize'
+
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
@@ -11,11 +13,11 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
     this.genericService = new GenericService(models.StatusOrder)
   }
 
-  async create(data: StatusOrder): Promise<StatusOrder | null> {
+  async create(data: StatusOrder, transaction?: Transaction): Promise<StatusOrder | null> {
     try {
       const created = await models.StatusOrder.create({
         ...data,
-      })
+      }, { transaction })
       return created
     } catch (e) {
       if (e instanceof Error) {
@@ -27,7 +29,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
 
   async findCodeRef(pCodeRef: string): Promise<StatusOrder | null> {
     try {
-      const scheduleStore = models.StatusOrder.findOne({
+      const scheduleStore = await models.StatusOrder.findOne({
         where: { pCodeRef: String(pCodeRef) },
       })
       return scheduleStore  

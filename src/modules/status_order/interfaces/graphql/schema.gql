@@ -1,116 +1,32 @@
-type ShoppingCart {
-  shoppingCartId: ID
-  # start
+# Stores
+type StoreOrders {
+  pdpId: ID
   id: ID
-  pId: ID
-  shoppingCartRefCode: String
-  priceProduct: Float
-  comments: String
-  cantProducts: Int
-  refCodePid: String
-  # end
-  idUser: ID
   idStore: ID
-  sState: Int
+  ppState: Int
+  channel: Int
+  change: Int
+  pCodeRef: String
+  pSState: ID
+  payMethodPState: Int
+  totalProductsPrice: Float
+  unidProducts: Int
   createdAt: DateTime
   updatedAt: DateTime
-  getStore: Store
-  # productFood: ProductFood
+  getUser: User
+  shoppingCartId: ID
+  locationUser: String
+  # productFoodsOne: ProductFood
+  # getStoreOrders: [StoreOrders]
+  # getStatusOrderType: OrderStatusType
+  # getAllShoppingCard: ShoppingCard
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
-  # ExtProductFoodsAll: [ExtProductFood]
+  getOneStore: Store
 }
 
 type ResponseSalesStore {
   success: Boolean
   message: String
   errors: [errors]
-  data: ShoppingCart
-}
-
-type ResponseShoppingCart {
-  success: Boolean
-  message: String
-  errors: [errors]
-  data: ShoppingCart
-}
-
-
-# ShoppingCart Input
-input IID_SUB {
-  _id: ID
-}
-
-input IID_SUB_ITEMS {
-  setID: [IID_SUB]
-}
-
-input ExtProductFoodInput {
-  pId: String
-  exPid: String
-  exState: Int
-  extraName: String
-  extraPrice: Float
-  state: Int
-  createdAt: String
-  updatedAt: String
-  quantity: Int
-  newExtraPrice: Float
-}
-
-input ExtProductFoodSubOptionalInput {
-  pId: String
-  opExPid: String
-  idStore: String
-  opSubExPid: String
-  OptionalSubProName: String
-  exCodeOptionExtra: String
-  exCode: String
-  state: Int
-  createdAt: String
-  updatedAt: String
-  check: Boolean
-}
-
-input ExtProductFoodOptionalInput {
-  pId: String
-  opExPid: String
-  OptionalProName: String
-  state: Int
-  code: String
-  numbersOptionalOnly: Int
-  createdAt: String
-  required: Int
-  updatedAt: String
-  # ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptionalInput]
-}
-
-input IShoppingCart {
-  shoppingCartId: ID
-  id: ID
-  pId: ID
-  shoppingCartRefCode: String
-  idUser: ID
-  idStore: ID
-  comments: String
-  cantProducts: Int
-  priceProduct: Float
-  refCodePid: String
-  sState: Int
-  createdAt: DateTime
-  updatedAt: DateTime
-  # dataExtra: [ExtProductFoodInput]
-  # dataOptional: [ExtProductFoodOptionalInput]
-}
-
-type SalesAmountTodayResponse {
-  success: Boolean!
-  message: String!
-  total: Float!
-}
-
-# Query
-type Query {
-  getAllShoppingCart: [ShoppingCart]
-  getTodaySales: Int
-  getSalesAmountToday: SalesAmountTodayResponse!
+  data: StoreOrders
 }

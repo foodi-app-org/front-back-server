@@ -11,6 +11,7 @@ import { userResolvers } from '../../../modules/user/interfaces/graphql/resolver
 import { dateTimeScalar } from './scalars/date-time.scalar'
 
 export default {
+    ...orderResolvers.Type,
     Query: {
         ...userResolvers.Query,
         ...authResolvers.Query,

@@ -1,15 +1,16 @@
-// import connect from '@shared/infrastructure/db/sequelize/sequelize.connect'
+import { Transaction } from 'sequelize'
+
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
 
 export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
 
-  async create(data: ShoppingCart): Promise<ShoppingCart | null> {
+  async create(data: ShoppingCart, transaction?: Transaction): Promise<ShoppingCart | null> {
     try {
       const created = await models.ShoppingCart.create({
         ...data,
-      })
+      }, { transaction })
       return created
     } catch (e) {
       if (e instanceof Error) {
