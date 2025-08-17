@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import { STORE_MODEL, StoreColumns } from '../../../repositories/sequelize-model'
+import { CATEGORY_PRODUCT_MODEL, CategoryProductColumns } from '../../models/sequelize-model'
 
 
 /**
@@ -16,10 +16,10 @@ export const up = async (
 ): Promise<void> => {
     await queryInterface.createTable(
         {
-            tableName: STORE_MODEL,
+            tableName: CATEGORY_PRODUCT_MODEL,
             schema: schemaName
         },
-            StoreColumns
+            CategoryProductColumns
     )
 }
 
@@ -34,5 +34,5 @@ export const down = async (
     schemaName: string,
     queryInterface: QueryInterface
 ): Promise<void> => {
-    await queryInterface.dropTable({ tableName: STORE_MODEL, schema: schemaName })
+    await queryInterface.dropTable({ tableName: CATEGORY_PRODUCT_MODEL, schema: schemaName })
 }

@@ -1,8 +1,8 @@
 import {
   INTEGER,
-  STRING,
   literal
-  , UUIDV4
+  ,   STRING,
+UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'

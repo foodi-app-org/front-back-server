@@ -46,7 +46,7 @@ const connectConfig: Options = useSQLITE
   ? {
     dialect: 'sqlite',
     storage: sqliteDatabasePath,
-    logging: true,
+    logging: false,
     schema: 'public',
     dialectOptions: {
       useUTC: false

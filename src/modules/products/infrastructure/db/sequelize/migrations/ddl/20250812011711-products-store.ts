@@ -1,10 +1,10 @@
 import { QueryInterface } from 'sequelize'
 
-import { CATEGORY_PRODUCT_MODEL, CategoryProductColumns } from '../../../db/sequelize/models/sequelize-model'
+import { columnsProduct, PRODUCT_MODEL } from '../../models/sequelize-product.model'
 
 
 /**
- * Creates the `category_store` table in the provided schema.
+ * Creates the `status_order_stores` table in the provided schema.
  *
  * @param {string} schemaName - The schema where the table will be created.
  * @param {QueryInterface} queryInterface - Sequelize query interface for executing SQL operations.
@@ -16,15 +16,15 @@ export const up = async (
 ): Promise<void> => {
     await queryInterface.createTable(
         {
-            tableName: CATEGORY_PRODUCT_MODEL,
+            tableName: PRODUCT_MODEL,
             schema: schemaName
         },
-            CategoryProductColumns
+        columnsProduct
     )
 }
 
 /**
- * Drops the `category_store` table from the provided schema.
+ * Drops the `status_order_stores` table from the provided schema.
  *
  * @param {string} schemaName - The schema where the table will be dropped from.
  * @param {QueryInterface} queryInterface - Sequelize query interface for executing SQL operations.
@@ -34,5 +34,5 @@ export const down = async (
     schemaName: string,
     queryInterface: QueryInterface
 ): Promise<void> => {
-    await queryInterface.dropTable({ tableName: CATEGORY_PRODUCT_MODEL, schema: schemaName })
+    await queryInterface.dropTable({ tableName: PRODUCT_MODEL, schema: schemaName })
 }

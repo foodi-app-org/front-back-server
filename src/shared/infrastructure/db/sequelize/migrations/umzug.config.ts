@@ -14,33 +14,62 @@ export enum MigrationFolder {
   Empty = ''
 }
 
+type MigrationType = 'all' | 'ddl' | 'dml'
 /**
- * Find and return all absolute migration file paths from modules.
+ * Obtiene las rutas de las migraciones DDL y DML en orden correcto.
  *
- * @returns {Promise<string[]>}
+ * @returns {Promise<string[]>} Lista de rutas absolutas a los archivos de migración.
  */
-const getMigrationPaths = async (): Promise<string[]> => {
-  const entries = await glob([
-    'src/modules/**/infrastructure/db/sequelize/migrations/*.ts',
-    'src/modules/**/infrastructure/db/sequelize/migrations/*.js'
+export const getMigrationPaths = async (
+  type: MigrationType = 'all'
+): Promise<string[]> => {
+  if (type === 'ddl') {
+    const ddlEntries = await glob([
+      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
+      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js',
+    ])
+    return ddlEntries.map(file => path.resolve(file))
+  }
+
+  if (type === 'dml') {
+    const dmlEntries = await glob([
+      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
+      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js',
+    ])
+    return dmlEntries.map(file => path.resolve(file))
+  }
+
+  // 'all': primero las DDL, luego las DML
+  const ddlEntries = await glob([
+    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
+    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js',
   ])
-  return entries.map(file => path.resolve(file))
+  const dmlEntries = await glob([
+    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
+    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js',
+  ])
+  return [
+    ...ddlEntries.map(file => path.resolve(file)),
+    ...dmlEntries.map(file => path.resolve(file)),
+  ]
 }
 
 /**
- * Builds a configured Umzug migrator for a given schema and all module migration files.
+ * Builds a configured Umzug migrator for a given schema and migration type (DDL or DML).
  *
  * @param {string} schemaName - The DB schema to apply migrations on.
+ * @param {MigrationType} type - Migration type: ddl | dml.
  * @returns {Promise<Umzug>} - Configured Umzug instance.
  */
 export const createUmzugMigrator = async (
-  schemaName: MigrationFolder = MigrationFolder.Public
+  schemaName: MigrationFolder = MigrationFolder.Public,
+  type: MigrationType = 'all'
 ): Promise<Umzug> => {
-  const migrationFiles = await getMigrationPaths()
+  const migrationFiles = await getMigrationPaths(type)
 
-  // Define a tracking model per schema
+  // Define a tracking model per schema + type
   const model = sequelize.define(
-    'MigrationsMeta',
+    `MigrationsMeta_${type}`,
     {
       name: {
         type: STRING,
@@ -51,7 +80,7 @@ export const createUmzugMigrator = async (
     },
     {
       schema: schemaName,
-      modelName: 'migrations_meta',
+      modelName: `migrations_meta_${type}`,
       underscored: true,
       charset: 'utf8',
       collate: 'utf8_unicode_ci'
@@ -59,7 +88,7 @@ export const createUmzugMigrator = async (
   )
 
   return new Umzug({
-    migrations: migrationFiles.map(file => ({
+    migrations: migrationFiles.map((file) => ({
       name: path.basename(file),
       up: async ({ context }) =>
         (await import(file)).up(context, schemaName),
@@ -70,4 +99,23 @@ export const createUmzugMigrator = async (
     storage: new SequelizeStorage({ model }),
     logger: console
   })
+}
+
+/**
+ * Runs DDL migrations first, then DML migrations.
+ *
+ * @param {MigrationFolder} schemaName - The schema where migrations are applied.
+ */
+export const runMigrations = async (
+  schemaName: MigrationFolder = MigrationFolder.Public
+): Promise<void> => {
+  console.log('🚀 Running DDL migrations...')
+  const ddlMigrator = await createUmzugMigrator(schemaName, 'ddl')
+  await ddlMigrator.up()
+
+  console.log('🚀 Running DML migrations...')
+  const dmlMigrator = await createUmzugMigrator(schemaName, 'dml')
+  await dmlMigrator.up()
+
+  console.log('✅ All migrations completed successfully!')
 }

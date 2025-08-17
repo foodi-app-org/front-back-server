@@ -1,7 +1,7 @@
 import { Op,QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
-import { ORDER_STATUS_TYPE_MODEL } from '../models/sequelize-status_orders_types.model'
+import { ORDER_STATUS_TYPE_MODEL } from '../../models/sequelize-status_orders_types.model'
 
 /**
  * Default order status states for the system.

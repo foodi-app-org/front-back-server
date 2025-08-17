@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import { columnsShoppingCart, SHOPPING_CART_MODEL } from '../models/sequelize-shopping-cart.model'
+import { columnsShoppingCart, SHOPPING_CART_MODEL } from '../../models/sequelize-shopping-cart.model'
 
 
 /**

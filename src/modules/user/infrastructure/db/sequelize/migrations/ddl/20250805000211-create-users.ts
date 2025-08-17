@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import { columnsUser, USER_MODEL } from '../models/sequelize-user.model'
+import { columnsUser, USER_MODEL } from '../../models/sequelize-user.model'
 
 /**
  * Up migration to create users table and insert a test user.

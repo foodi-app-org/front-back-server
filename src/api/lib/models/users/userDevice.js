@@ -1,8 +1,7 @@
 import {
-  INTEGER,
-  STRING,
-  SMALLINT,
   literal,
+  SMALLINT,
+  STRING,
   UUIDV4
 } from 'sequelize'
 
@@ -11,7 +10,7 @@ import Users from '../Users'
 
 const sequelize = connect()
 
-export const USER_DEVICE_MODEL = 'userdevices'
+export const USER_DEVICE_MODEL = 'user_devices'
 
 const UserDeviceModel = sequelize.define(USER_DEVICE_MODEL, {
   dId: {

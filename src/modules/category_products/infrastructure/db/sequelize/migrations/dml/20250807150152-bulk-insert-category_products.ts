@@ -1,8 +1,8 @@
 import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
-import { removeTenantPrefix } from '../../../../../../shared/utils/tenant.utils'
-import { CATEGORY_PRODUCT_MODEL } from '../../../db/sequelize/models/sequelize-model'
+import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
+import { CATEGORY_PRODUCT_MODEL } from '../../models/sequelize-model'
 
 export const categories = [
     { pName: 'Combos' },

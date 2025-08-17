@@ -20,14 +20,15 @@ export const orderResolvers = {
         return await UserServices.findById.execute(idUser)
       },
       getOneStore: async (parent: { dataValues: { idStore: string } }, _args: Record<string, unknown>, _context: GraphQLContext) => {
-         if (!parent?.dataValues?.idStore) return null
-         return await StoreServices.findById.execute(parent.dataValues.idStore)
-        }
+        if (!parent?.dataValues?.idStore) return null
+        return await StoreServices.findById.execute(parent.dataValues.idStore)
+      }
     }
   },
   Query: {},
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
+      const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()
       const t = await sequelize.transaction()
@@ -136,6 +137,10 @@ export const orderResolvers = {
 
         const createResponse = await StatusOrderTypesServices.create.execute(value, t)
         if (createResponse?.success === false) {
+          const end = Date.now()
+          const durationMs = end - start
+          const time = (durationMs / 1000).toFixed(2)
+          console.log('🚀 ~ time:', time)
           await t.rollback()
           return {
             success: false,
@@ -146,6 +151,10 @@ export const orderResolvers = {
         }
 
         await t.commit()
+        const end = Date.now()
+        const durationMs = end - start
+        const time = (durationMs / 1000).toFixed(2)
+        console.log('🚀 ~ time:', time)
         return createResponse
 
       } catch (e) {
