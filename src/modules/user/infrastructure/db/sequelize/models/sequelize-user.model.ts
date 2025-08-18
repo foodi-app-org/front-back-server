@@ -51,7 +51,7 @@ export class SequelizeUserModel extends Model<IUserAttributes, IUserCreationAttr
   declare idRole?: string
   declare username?: string
   declare lastName?: string
-  declare email: string 
+  declare email: string
   declare avatar?: string
   declare uToken?: string
   declare uPhoNum?: string
@@ -68,43 +68,43 @@ export class SequelizeUserModel extends Model<IUserAttributes, IUserCreationAttr
 }
 
 export const columnsUser = {
-   id: {
-      type: DataTypes.STRING(36),
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4,
-      allowNull: false
-    },
-    associateStore: {
-      type: DataTypes.JSONB,
-      allowNull: true
-    },
-    name: { type: DataTypes.STRING },
-    idRole: { type: DataTypes.STRING(36), allowNull: true },
-    username: { type: DataTypes.STRING },
-    lastName: { type: DataTypes.STRING },
-    email: { type: DataTypes.STRING, unique: true },
-    avatar: { type: DataTypes.STRING },
-    uToken: { type: DataTypes.STRING(100) },
-    uPhoNum: { type: DataTypes.STRING(50) },
-    ULocation: { type: DataTypes.STRING(100) },
-    upLat: { type: DataTypes.STRING(30) },
-    uState: {
-      type: DataTypes.INTEGER,
-      validate: { min: 0, max: 30 }
-    },
-    upLon: { type: DataTypes.STRING(30) },
-    upIdeDoc: { type: DataTypes.STRING(50) },
-    siteWeb: { type: DataTypes.STRING },
-    description: { type: DataTypes.STRING },
-    password: { type: DataTypes.STRING },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    }
+  id: {
+    type: DataTypes.STRING(36),
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+    allowNull: false
+  },
+  associateStore: {
+    type: DataTypes.JSONB,
+    allowNull: true
+  },
+  name: { type: DataTypes.STRING },
+  idRole: { type: DataTypes.STRING(36), allowNull: true },
+  username: { type: DataTypes.STRING },
+  lastName: { type: DataTypes.STRING },
+  email: { type: DataTypes.STRING, unique: true },
+  avatar: { type: DataTypes.STRING },
+  uToken: { type: DataTypes.STRING(100) },
+  uPhoNum: { type: DataTypes.STRING(50) },
+  ULocation: { type: DataTypes.STRING(100) },
+  upLat: { type: DataTypes.STRING(30) },
+  uState: {
+    type: DataTypes.INTEGER,
+    validate: { min: 0, max: 30 }
+  },
+  upLon: { type: DataTypes.STRING(30) },
+  upIdeDoc: { type: DataTypes.STRING(50) },
+  siteWeb: { type: DataTypes.STRING },
+  description: { type: DataTypes.STRING },
+  password: { type: DataTypes.STRING },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  }
 }
 SequelizeUserModel.init(
   columnsUser,

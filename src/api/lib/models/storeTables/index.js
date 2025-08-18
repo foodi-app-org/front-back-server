@@ -1,4 +1,10 @@
-import { UUID, UUIDV4, STRING, SMALLINT, literal } from 'sequelize'
+import {
+ literal, 
+ SMALLINT, 
+ STRING, 
+ UUID, 
+ UUIDV4 
+} from 'sequelize'
 
 import connect from '../../db'
 

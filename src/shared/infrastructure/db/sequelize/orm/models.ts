@@ -10,7 +10,9 @@ import { SCHEDULE_MODEL,SequelizeScheduleStoreModel } from '../../../../../modul
 import { SequelizeShoppingOrderModel, SHOPPING_CART_MODEL } from '../../../../../modules/shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
 import { SequelizeStatusOrderModel, STATUS_ORDER_MODEL } from '../../../../../modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL,SequelizeStatusOrderTypesModel } from '../../../../../modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
+import { SequelizeStockMovementModel, STOCK_MOVEMENT_NAME } from '../../../../../modules/stock/infrastructure/db/sequelize/models/sequelize-stock.model'
 import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/infrastructure/repositories/sequelize-model'
+import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables/infrastructure/db/sequelize/models/sequelize-table.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 export const models = {
@@ -26,7 +28,9 @@ export const models = {
   Device: SequelizeDeviceModel,
   Module: SequelizeModuleModel,
   Submodule: SequelizeSubmoduleModel,
-  Role: SequelizeRoleModel
+  Role: SequelizeRoleModel,
+  Table: SequelizeTableModel,
+  StockMovement: SequelizeStockMovementModel
   
 }
 
@@ -43,5 +47,7 @@ export const models_names = {
   Device: USER_DEVICE_MODEL,
   Module: MODULES_MODEL,
   Submodule: SUB_MODULES_MODEL,
-  Role: ROLE_MODEL
+  Role: ROLE_MODEL,
+  Table: STORE_TABLES,
+  StockMovement: STOCK_MOVEMENT_NAME
 }
