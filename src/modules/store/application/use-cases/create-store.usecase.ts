@@ -70,7 +70,7 @@ export class CreateStoreUseCase {
     const created = await this.storeRepository.create(store)
 
     if (created?.idStore) {
-      await this.migrationService.execute(getTenantName(created.idStore))
+      await this.migrationService.execute(getTenantName(created.idStore), 'all')
     }
     const response: AuthPayload = {
       user: user as User,

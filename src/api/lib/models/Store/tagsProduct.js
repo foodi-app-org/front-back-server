@@ -1,11 +1,13 @@
-import Sequelize, { SMALLINT, STRING, UUIDV4 } from 'sequelize'
+import Sequelize, {
+ SMALLINT, STRING, UUIDV4 
+} from 'sequelize'
 
 import connect from '../../db'
 import { states } from '../../utils/state_db'
 
 const conn = connect()
 
-export const TAGS_PRODUCT_MODEL_NAME = 'tagsproducts'
+export const TAGS_PRODUCT_MODEL_NAME = 'tags_products'
 
 export default conn.define(TAGS_PRODUCT_MODEL_NAME, {
   tgId: {

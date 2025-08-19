@@ -14,7 +14,7 @@ export enum MigrationFolder {
   Empty = ''
 }
 
-type MigrationType = 'all' | 'ddl' | 'dml'
+export type MigrationType = 'all' | 'ddl' | 'dml'
 /**
  * Obtiene las rutas de las migraciones DDL y DML en orden correcto.
  *
@@ -63,9 +63,13 @@ export const getMigrationPaths = async (
  */
 export const createUmzugMigrator = async (
   schemaName: MigrationFolder = MigrationFolder.Public,
-  type: MigrationType = 'all'
+  type: MigrationType = 'all',
+  customMigrationFiles: string[] = []
 ): Promise<Umzug> => {
-  const migrationFiles = await getMigrationPaths(type)
+  const migrationFiles = customMigrationFiles.length
+    ? customMigrationFiles
+    : await getMigrationPaths(type)
+  // const migrationFiles = await getMigrationPaths(type)
 
   // Define a tracking model per schema + type
   const model = sequelize.define(

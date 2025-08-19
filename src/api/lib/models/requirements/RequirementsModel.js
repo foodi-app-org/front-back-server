@@ -1,4 +1,10 @@
-import { INTEGER, SMALLINT, STRING, literal, UUIDV4 } from 'sequelize'
+import {
+ INTEGER, 
+ literal, 
+ SMALLINT, 
+ STRING, 
+ UUIDV4 
+} from 'sequelize'
 
 import connect from '../../db'
 import AreasModel from '../areas/AreasModel'

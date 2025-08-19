@@ -1,4 +1,3 @@
-// src/shared/infrastructure/logger/console.logger.ts
 import * as enum_ from '../../constants/core-enum'
 import { Logger } from '../../domain/logger'
 import { logMessage } from '../../utils/logger.utils'

@@ -13,6 +13,7 @@ import { ORDER_STATUS_TYPE_MODEL,SequelizeStatusOrderTypesModel } from '../../..
 import { SequelizeStockMovementModel, STOCK_MOVEMENT_NAME } from '../../../../../modules/stock/infrastructure/db/sequelize/models/sequelize-stock.model'
 import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/infrastructure/repositories/sequelize-model'
 import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables/infrastructure/db/sequelize/models/sequelize-table.model'
+import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 export const models = {
@@ -30,7 +31,8 @@ export const models = {
   Submodule: SequelizeSubmoduleModel,
   Role: SequelizeRoleModel,
   Table: SequelizeTableModel,
-  StockMovement: SequelizeStockMovementModel
+  StockMovement: SequelizeStockMovementModel,
+  TagProduct: SequelizeTagProductModel
   
 }
 
@@ -49,5 +51,6 @@ export const models_names = {
   Submodule: SUB_MODULES_MODEL,
   Role: ROLE_MODEL,
   Table: STORE_TABLES,
-  StockMovement: STOCK_MOVEMENT_NAME
+  StockMovement: STOCK_MOVEMENT_NAME,
+  TagProduct: TAGS_PRODUCT_MODEL_NAME
 }
