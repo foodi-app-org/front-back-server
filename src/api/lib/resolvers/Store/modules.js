@@ -1,6 +1,8 @@
 import ModulesModel from '../../models/modules/ModulesModel'
 import SubModulesModel from '../../models/subModules/SubModulesModel'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
+import {
+ deCode, getAttributes, getTenantName 
+} from '../../utils/util'
 
 export const createModule = async (_, { input }, ctx) => {
   try {

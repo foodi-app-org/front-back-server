@@ -22,6 +22,7 @@ export const CLIENTS_TABLE = 'clients'
 export enum ClientsStateEnum {
   UNAVAILABLE = 0,
   ACTIVE = 1,
+  OCCUPIED = 2,
   DELETED = -1
 }
 

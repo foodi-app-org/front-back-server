@@ -16,6 +16,7 @@ export class AuthController {
       const data = {
         user: result.user,
         token: result.token,
+        refreshToken: result.refreshToken,
         store: store
       }
 

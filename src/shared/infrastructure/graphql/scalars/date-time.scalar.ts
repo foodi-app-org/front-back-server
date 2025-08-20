@@ -8,7 +8,7 @@ import { DateTime } from 'luxon'
  * Uses Luxon for parsing and formatting.
  */
 export const dateTimeScalar = new GraphQLScalarType({
-  name: 'DateTimeUTCMinus5',
+  name: 'DateTime',
   description:
     'Custom scalar for UTC-5 dates in format "YYYY-MM-DD HH:mm:ss.SSS ±HH:MM"',
 

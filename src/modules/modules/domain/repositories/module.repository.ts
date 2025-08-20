@@ -11,4 +11,6 @@ export interface ModuleRepository {
    * @returns The created Module or null if failed.
    */
   create(module: Module): Promise<Module | null>;
+
+  getAll(): Promise<Module[]>;
 }

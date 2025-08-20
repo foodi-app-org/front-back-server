@@ -1,10 +1,16 @@
 import { Transaction } from 'sequelize'
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { Submodule } from '../../domain/entities/sub-modules.entity'
 import { SubmoduleRepository } from '../../domain/repositories/sub-module.repository'
 
 export class SequelizeSubModuleOrderRepository implements SubmoduleRepository {
+  private readonly tenant: string = MigrationFolder.Public
+
+  constructor(tenant: string) {
+    this.tenant = tenant ?? MigrationFolder.Public
+  }
 
   async create(data: Submodule, transaction?: Transaction): Promise<Submodule | null> {
     try {

@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
+import { GraphQLContext } from '../../../../../shared/types/context'
 import { UserServices } from '../../../infrastructure/services/index'
 import { CreateUserInput } from '../inputs'
 
@@ -9,12 +10,9 @@ export const userResolvers = {
     getUserByEmail: async (_: GraphQLResolveInfo, args: { email: string }) => {
       return await UserServices.findByEmail.execute(args.email)
     },
-    getUser: async (_: GraphQLResolveInfo, args: { id?: string, userName?: string, email?: string }) => {
+    getUser: async (_: GraphQLResolveInfo, args: { id?: string, userName?: string, email?: string }, context: GraphQLContext ) => {
       const { email } = args
-      if (!email) {
-        throw new Error('Email is required to find a user.')
-      }
-      const user = await UserServices.findByEmail.execute(email)
+      const user = await UserServices.findByEmail.execute(email ?? '')
       return user
     }
   },

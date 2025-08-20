@@ -1,0 +1,82 @@
+type SubModule {
+  smId: ID
+  smName: String
+  smPath: String
+  view: String
+  smState: Int
+}
+
+type Module {
+  mId: ID
+  mPath: String
+  mName: String
+  mPriority: Float
+  view: String
+  mIcon: Int
+  subModules: [SubModule]
+}
+
+input SubModuleInput {
+  smId: ID
+  smName: String
+  smPath: String
+  smState: Int
+}
+
+input ModuleInput {
+  mId: ID
+  mPath: String
+  mName: String
+  mPriority: Float
+  mIcon: Int
+  subModules: [SubModuleInput]
+}
+
+input SubModuleInputLineItem {
+  smId: ID
+  smName: String
+  smPath: String
+  smState: Int
+}
+
+input ModuleInputLineItem {
+  setDataModule: [SubModuleInputLineItem]
+}
+
+input UpdateModuleOrderInput {
+  mId: ID! # ID del módulo que se va a actualizar
+  mPriority: Float # Nueva prioridad del módulo
+}
+
+type UpdateModuleOrderPayload {
+  success: Boolean! # Indica si la actualización fue exitosa
+  message: String! # Mensaje de éxito o error
+  modules: [Module] # El módulo actualizado
+  errors: [errors]
+  # Lista de errores, si los hay
+}
+
+type Query {
+  getAllModules: [Module]
+  modules: [Module]
+  module: Module
+  subModules: [SubModule]
+  subModule: SubModule
+}
+
+type Mutation {
+  updateModuleOrder(input: [UpdateModuleOrderInput]!): UpdateModuleOrderPayload
+  registerModule(
+    input: ModuleInput
+    inputLineItemsMod: ModuleInputLineItem
+  ): Module
+  editModule(input: ModuleInput): Module
+  deleteOneModule(mId: ID): Boolean
+  createModule(
+    input: ModuleInput
+    inputLineItemsMod: ModuleInputLineItem
+  ): Response
+  deleteModule(mId: ID): Response
+  createSubModule(input: SubModuleInputLineItem): Response
+  deleteSubModule(smId: ID): Response
+}
