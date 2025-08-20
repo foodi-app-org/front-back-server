@@ -20,6 +20,7 @@ const startServer = async () => {
     process.env.WEB_CLIENT,
     process.env.WEB_ADMIN_STORE,
     'http://localhost:3000',
+    'http://localhost:4000',
     'http://localhost:8080',
     'http://localhost:3001',
     'http://localhost:3002',
@@ -48,7 +49,6 @@ const startServer = async () => {
 
 
   app.use('/api', routes)
-
   const server = new ApolloServer({
     typeDefs,
     resolvers,

@@ -33,4 +33,14 @@ export class JwtTokenService implements TokenGenerator {
       throw new Error('Invalid or expired token.')
     }
   }
+  
+  generateRefreshToken(payload: TokenPayload): string {
+    try {
+      const options: SignOptions = { expiresIn: '7d' } // Refresh tokens typically have a longer expiration time
+      return jwt.sign(payload, this.secret, options)
+    } catch (error) {
+      throw new Error('Refresh token generation failed: ' + (error as Error).message)
+    }
+  }
+
 }

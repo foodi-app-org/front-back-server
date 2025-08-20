@@ -2,8 +2,8 @@
 
 import { Request, Response } from 'express'
 import { GraphQLError } from 'graphql'
-import jwt, { JwtPayload } from 'jsonwebtoken'
 
+import { JwtTokenService } from '../../../modules/user/infrastructure/services/jwt-token.service'
 import { GraphQLContext } from '../../types/context'
 import { getUserFromToken } from '../../utils/jwt.utils'
 
@@ -12,13 +12,10 @@ interface IContextParams {
   res?: Response
 }
 
-// Define un tipo para lo que esperas dentro del token
-interface JwtUserPayload extends JwtPayload {
-  id: string
-}
-
 export const context = async ({ req, res }: IContextParams): Promise<GraphQLContext> => {
   try {
+    const tokenService = new JwtTokenService()
+
     const setCookies: string[] = []
     const setHeaders: string[] = []
 
@@ -35,27 +32,40 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
         },
       })
     }
-
-    const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY as string
-
-    let User = null
-    if (token) {
-      const decoded = jwt.verify(token, AUTHO_USER_KEY) as JwtUserPayload
-      if (!decoded?.id) {
-        throw new GraphQLError('Invalid token payload', {
-          extensions: {
-            code: 'FORBIDDEN',
-            http: { status: 403 },
-          },
-        })
+    if (!token) {
+      return {
+        req,
+        res,
+        setCookies,
+        setHeaders,
+        userAgent: req.headers['user-agent'],
+        User: null,
+        restaurant: restaurant as string
       }
+    }
+    const decoded = tokenService.verify(token)
 
-      User = { id: decoded.id }
+    if (!decoded?.sub) {
+      throw new GraphQLError('Invalid token payload', {
+        extensions: {
+          code: 'FORBIDDEN',
+          http: { status: 403 },
+        },
+      })
     }
 
     const userAgent = req.headers['user-agent']
-
-    return { req, res, userAgent, setCookies, setHeaders, User, restaurant: restaurant as string }
+    return {
+      req,
+      res,
+      userAgent,
+      setCookies,
+      setHeaders,
+      User: {
+        id: decoded.sub
+      },
+      restaurant: restaurant as string
+    }
   } catch (err: any) {
     if (err.message === 'jwt expired') {
       throw new GraphQLError('Token expired', {

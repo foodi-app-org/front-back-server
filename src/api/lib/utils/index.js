@@ -9,7 +9,7 @@ require('dotenv').config()
 
 export const generateToken = dataUser => {
   const expiresIn = '1d'
-  const AccessToken = jwt.sign(dataUser, process.env.AUTHO_USER_KEY, { expiresIn })
+  const AccessToken = jwt.sign(dataUser, process.env.JWT_SECRET, { expiresIn })
   return AccessToken
 }
 

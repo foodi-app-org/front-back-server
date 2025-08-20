@@ -8,6 +8,14 @@ export const userResolvers = {
   Query: {
     getUserByEmail: async (_: GraphQLResolveInfo, args: { email: string }) => {
       return await UserServices.findByEmail.execute(args.email)
+    },
+    getUser: async (_: GraphQLResolveInfo, args: { id?: string, userName?: string, email?: string }) => {
+      const { email } = args
+      if (!email) {
+        throw new Error('Email is required to find a user.')
+      }
+      const user = await UserServices.findByEmail.execute(email)
+      return user
     }
   },
   Mutation: {

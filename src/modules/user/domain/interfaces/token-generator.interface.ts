@@ -24,4 +24,11 @@ export interface TokenGenerator {
    * @returns Decoded payload.
    */
   verify<T = TokenPayload>(token: string): T
+
+  /**
+   * Generates a refresh token.
+   * @param payload - Payload to encode.
+   * @returns Refresh token string.
+   */
+  generateRefreshToken(payload: TokenPayload): string
 }

@@ -141,8 +141,8 @@ const GRAPHQL_PORT = process.env.NODE_ENV === 'production' ? process.env.PORT : 
             })
           }
 
-          const AUTHO_USER_KEY = process.env.AUTHO_USER_KEY
-          const User = jwt.verify(token, AUTHO_USER_KEY)
+          const JWT_SECRET = process.env.JWT_SECRET
+          const User = jwt.verify(token, JWT_SECRET)
           const userAgent = req.headers['user-agent']
 
           return { req, userAgent, setCookies, setHeaders, User: User || {}, restaurant: restaurant ?? null }

@@ -45,10 +45,10 @@ describe('CreateUserUseCase', () => {
     const result = await useCase.execute(name, email, password)
 
     expect(result.success).toBe(false)
-    expect(result.message).toBe('usuario ya existe')
+    expect(result.message).toBe(`Bienvenido ${result?.user?.name ?? result?.user?.email}`)
     expect(mockUserRepo.findByEmail).toHaveBeenCalledWith(email)
     expect(mockUserRepo.create).not.toHaveBeenCalled()
-    expect(mockTokenService.generate).not.toHaveBeenCalled()
+    expect(mockTokenService.generate).toHaveBeenCalled()
   })
 
   it('should create user, hash password and return success response', async () => {

@@ -21,19 +21,30 @@ export class CreateUserUseCase {
   ): Promise<CreateUserResponse> {
 
     const existing = await this.userRepository.findByEmail(email)
-
-    if (existing) return {
-      token: '',
-      message: 'usuario ya existe',
-      user: null,
-      success: false,
-      admin: false,
-      idStore: '',
-      storeUserId: '',
-      newRefreshToken: '',
-      isVerifyEmail: false,
-      userId: '',
-      refreshToken: ''
+    if (existing) {
+      const token = this.tokenService.generate({
+        sub: String(existing?.id),
+        email: String(existing?.email),
+        name: String(existing?.name)
+      })
+      // generate refreshToken 
+      const refreshToken = this.tokenService.generateRefreshToken({
+        sub: String(existing?.id),
+        email: String(existing?.email),
+        name: String(existing?.name)
+      })
+      return {
+        token,
+        message: `Bienvenido ${existing.name ?? existing.email}`,
+        user: {
+          ...existing,
+          password: ''
+        },
+        success: false,
+        admin: false,
+        isVerifyEmail: false,
+        refreshToken
+      }
     }
 
     // const encrypterService = new EncrypterService()
@@ -49,23 +60,30 @@ export class CreateUserUseCase {
     )
 
     await this.userRepository.create(user)
+  
     const token = this.tokenService.generate({
       sub: user.id,
       email: user.email,
       name: user.name
     })
+
+    const refreshToken = this.tokenService.generateRefreshToken({
+      sub: String(user?.id),
+      email: String(user?.email),
+      name: String(user?.name)
+    })
+
     return {
-      user,
+      user: {
+        ...user,
+        password: ''
+      },
       token,
       success: true,
       message: `Bienvenido ${user.name ?? user.email}`,
       admin: false,
-      idStore: '',
-      storeUserId: '',
-      newRefreshToken: '',
       isVerifyEmail: false,
-      userId: '',
-      refreshToken: ''
+      refreshToken
     }
   }
 }

@@ -13,15 +13,11 @@ export class User {
 }
 
 export interface CreateUserResponse {
-  user: User | null,
-  token: string,
-  success: boolean,
-  message: string,
-  idStore: string,
-  admin: boolean,
-  isVerifyEmail: false,
-  storeUserId: string,
-  userId: string,
-  refreshToken: string,
-  newRefreshToken: string
+  user: User | null
+  token: string
+  success: boolean
+  message: string
+  admin: boolean
+  isVerifyEmail: false
+  refreshToken: string
 }

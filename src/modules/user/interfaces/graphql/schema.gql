@@ -2,8 +2,24 @@ type User {
   id: ID!
   name: String!
   email: String!
-  createdAt: String!
-  updatedAt: String!
+  username: String
+  lastName: String
+  idRole: ID
+  avatar: String
+  uToken: String
+  uPhoNum: String
+  ULocation: String
+  upLat: String
+  uState: String
+  upLon: String
+  upIdeDoc: String
+  siteWeb: String
+  description: String
+  password: String
+  associateStore: JSON
+  role: Roles
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 input CreateUserInput {
@@ -13,6 +29,7 @@ input CreateUserInput {
 
 type Query {
   getUserByEmail(email: String!): User
+  getUser(id: ID, userName: String, email: String): User
 }
 
 type Mutation {

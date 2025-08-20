@@ -1,10 +1,10 @@
 import {
-  INTEGER,
-  STRING,
   DATE,
-  UUIDV4,
+  INTEGER,
+  JSON,
+  STRING,
   UUID,
-  JSON
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../db'

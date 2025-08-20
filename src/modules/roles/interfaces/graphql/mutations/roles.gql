@@ -1,0 +1,8 @@
+type Mutation {
+  """
+  Response for user login
+  """
+  createRoleMutation(input: IRole): CreateRoleResponse
+  updateRolesPriority(roles: [IParamsPriority]!): UpdateRoleResponse
+  removeRoles(roleIds: [ID!]!): UpdateRoleResponse
+}

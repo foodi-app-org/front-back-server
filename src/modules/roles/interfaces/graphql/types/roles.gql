@@ -1,0 +1,64 @@
+type Roles {
+  idRole: ID
+  name: String!
+  priority: Int
+  description: String
+  permissions: JSON!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input IRole {
+  idRole: ID
+  name: String!
+  priority: Int
+  permissions: JSON!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+input IParamsPriority {
+  idRole: ID
+  priority: Int
+}
+
+type ResponseRoles {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: [Roles]
+  pagination: Pagination
+}
+
+type CreateRoleResponse {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: Roles
+}
+
+type UpdateRoleResponse {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: Roles
+}
+
+type Query {
+  """
+  Response for Role
+  """
+  getRole(idRole: ID, name: String): Roles!
+  getRoles(
+    idStore: ID
+    cId: ID
+    dId: ID
+    ctId: ID
+    search: String
+    min: Int
+    fromDate: DateTime
+    toDate: DateTime
+    max: Int
+    page: Int
+  ): ResponseRoles
+}

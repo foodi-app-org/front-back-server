@@ -10,29 +10,21 @@ export class AuthController {
   login = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body
-
-      if (!email || !password) {
-        res.status(400).json({
-          success: false,
-          error: 'Email and password are required'
-        })
-        return
-      }
-
-      const result = await AuthServices.loginUser.execute(email, password)
-
-      const store = result.user.id ? await StoreServices.findByUserId.execute(String(result.user.id)) : null
+      const result = await AuthServices.createUser.execute(email, email, password)
+      const store = result.user?.id ? await StoreServices.findByUserId.execute(String(result.user.id)) : null
 
       const data = {
         user: result.user,
         token: result.token,
         store: store
       }
+
       res.status(200).json({
         success: true,
         message: 'Login successful',
         data: data
       })
+
     } catch (error) {
       res.status(400).json({
         success: false,
