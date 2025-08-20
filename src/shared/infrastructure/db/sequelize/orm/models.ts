@@ -1,6 +1,7 @@
 
 import { CATEGORY_PRODUCT_MODEL, SequelizeCategoryProductModel  } from '../../../../../modules/category_products/infrastructure/db/sequelize/models/sequelize-model'
 import { MODEL_CAT_STORE_NAME,SequelizeCategoryStoreModel  } from '../../../../../modules/category_store/infrastructure/repositories/sequelize-model'
+import { CLIENTS_TABLE,SequelizeClientModel } from '../../../../../modules/clients/infrastructure/db/sequelize/models/sequelize-table.model'
 import { SequelizeDeviceModel, USER_DEVICE_MODEL } from '../../../../../modules/devices/infrastructure/db/sequelize/models/sequelize-model'
 import { MODULES_MODEL,SequelizeModuleModel } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-modules.model'
 import { SequelizeSubmoduleModel,SUB_MODULES_MODEL } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-sub-modules.model'
@@ -11,7 +12,7 @@ import { SequelizeShoppingOrderModel, SHOPPING_CART_MODEL } from '../../../../..
 import { SequelizeStatusOrderModel, STATUS_ORDER_MODEL } from '../../../../../modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL,SequelizeStatusOrderTypesModel } from '../../../../../modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
 import { SequelizeStockMovementModel, STOCK_MOVEMENT_NAME } from '../../../../../modules/stock/infrastructure/db/sequelize/models/sequelize-stock.model'
-import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/infrastructure/repositories/sequelize-model'
+import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/infrastructure/db/sequelize/models/sequelize-model'
 import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables/infrastructure/db/sequelize/models/sequelize-table.model'
 import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
@@ -32,7 +33,8 @@ export const models = {
   Role: SequelizeRoleModel,
   Table: SequelizeTableModel,
   StockMovement: SequelizeStockMovementModel,
-  TagProduct: SequelizeTagProductModel
+  TagProduct: SequelizeTagProductModel,
+  Client: SequelizeClientModel
   
 }
 
@@ -52,5 +54,6 @@ export const models_names = {
   Role: ROLE_MODEL,
   Table: STORE_TABLES,
   StockMovement: STOCK_MOVEMENT_NAME,
-  TagProduct: TAGS_PRODUCT_MODEL_NAME
+  TagProduct: TAGS_PRODUCT_MODEL_NAME,
+  Client: CLIENTS_TABLE
 }

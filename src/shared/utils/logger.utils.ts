@@ -52,17 +52,19 @@ export const LogDanger = (msg: unknown): void =>
  * @param data - The response data.
  * @returns The response object.
  */
-export const ResponseService = async (
+export const responseService = async (
   status: string,
-  code: number,
+  success: boolean,
   message: string,
-  data: unknown
-): Promise<{ status: string; response: { code: number; message: string; data: unknown } }> => {
+  data: {
+    [key: string]: unknown
+  }
+): Promise<{ status: string; message: string; success: boolean, data: { data: unknown } }> => {
   return {
     status,
-    response: {
-      code,
-      message,
+    success,
+    message,
+    data: {
       data,
     },
   }

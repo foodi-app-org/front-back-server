@@ -25,6 +25,13 @@ export interface StoreRepository {
    */
   findById(id: string): Promise<Store | null>;
 
+  /**
+   * Finds a store by its user id.
+   * @param id - User id of the store.
+   * @returns Store if found, otherwise null.
+   */
+  findByUserId(id: string): Promise<Store | null>;
+
   // /**
   //  * Retrieves all stores.
   //  * @returns Array of Store entities.

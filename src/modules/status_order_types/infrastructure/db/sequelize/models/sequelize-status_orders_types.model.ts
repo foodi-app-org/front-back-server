@@ -81,6 +81,11 @@ export const columnsStatusOrdersTypesStore = {
     type: INTEGER,
     allowNull: false
   },
+  editable: {
+    type: BOOLEAN,
+    allowNull: true,
+    defaultValue: true
+  },
   active: {
     type: BOOLEAN,
     allowNull: false,

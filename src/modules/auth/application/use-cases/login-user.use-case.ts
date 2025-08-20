@@ -45,10 +45,11 @@ export class LoginUserUseCase {
         email: user.email,
         name: user.name
       })
-
+      // Exclude password from user object
+      const { password: _, ...userWithoutPassword } = user
       return {
         token,
-        user
+        user: userWithoutPassword
       }
     }
     catch (e) {

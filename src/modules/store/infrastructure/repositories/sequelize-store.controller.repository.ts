@@ -45,4 +45,17 @@ export class SequelizeStoreRepository implements StoreRepository {
 
     return store ? store as Store : null
   }
+
+  /**
+   * Finds a store by its user id.
+   *
+   * @param {string} id - The user id to search for.
+   * @returns {Promise<Store | null>} The store if found, or null.
+   */
+  async findByUserId(id: string): Promise<Store | null> {
+    const store = await models.Store.findOne({
+      where: { id }
+    })
+    return store ? store as Store : null
+  }
 }

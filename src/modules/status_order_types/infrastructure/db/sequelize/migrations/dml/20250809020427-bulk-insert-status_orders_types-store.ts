@@ -9,6 +9,7 @@ import { ORDER_STATUS_TYPE_MODEL } from '../../models/sequelize-status_orders_ty
 const DEFAULT_ORDER_STATES = [
   {
     active: true,
+    editable: false,
     state: 1,
     name: 'ACCEPT',
     color: '#ffffff',
@@ -18,6 +19,7 @@ const DEFAULT_ORDER_STATES = [
   },
   {
     active: true,
+    editable: false,
     state: 2,
     name: 'PROCESSING',
     color: '#ffffff',
@@ -27,6 +29,7 @@ const DEFAULT_ORDER_STATES = [
   },
   {
     active: true,
+    editable: false,
     state: 3,
     name: 'READY',
     color: '#ffffff',
@@ -36,6 +39,7 @@ const DEFAULT_ORDER_STATES = [
   },
   {
     active: true,
+    editable: false,
     state: 4,
     name: 'CONCLUDES',
     color: '#63ba3c',
@@ -45,6 +49,7 @@ const DEFAULT_ORDER_STATES = [
   },
   {
     active: true,
+    editable: false,
     state: 4,
     name: 'REJECTED',
     color: '#ffffff',

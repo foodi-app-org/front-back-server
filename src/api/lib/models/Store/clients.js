@@ -2,7 +2,6 @@ import Sequelize, { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../db'
 import Users from '../Users'
-
 import Store from './Store'
 
 const conn = connect()

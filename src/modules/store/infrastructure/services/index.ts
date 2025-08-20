@@ -1,8 +1,10 @@
+// import {  } from '@modules/store/application/use-cases/find-by-user-id-store.usecase'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { SequelizeUserRepository } from '../../../user/infrastructure/repositories/sequelize-user.controller.repository'
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'
 import { FindStoreUseCase } from '../../application/use-cases/find-by-id-store.usecase'
+import { FindStoreByUserIdUseCase } from '../../application/use-cases/find-by-user-id-store.usecase'
 import { SequelizeStoreRepository } from '../repositories/sequelize-store.controller.repository'
 
 const userRepository = new SequelizeUserRepository()
@@ -18,8 +20,10 @@ const createStoreUseCase = new CreateStoreUseCase(
 )
 
 const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)
+const findByUserIdStoreUseCase = new FindStoreByUserIdUseCase(storeRepository)
 
 export const StoreServices = {
     create: createStoreUseCase,
-    findById: findByIdStoreUseCase
+    findById: findByIdStoreUseCase,
+    findByUserId: findByUserIdStoreUseCase,
 }

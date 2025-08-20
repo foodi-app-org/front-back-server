@@ -4,10 +4,11 @@ import {
   Optional
 } from 'sequelize'
 
-import connect from '../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { USER_MODEL } from '../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
+import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import { USER_MODEL } from '../../../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 const sequelize = connect()
+
 export const STORE_MODEL = 'stores'
 
 /**

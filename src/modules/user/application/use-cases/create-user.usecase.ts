@@ -12,8 +12,6 @@ export class CreateUserUseCase {
     private readonly userRepository: UserRepository,
     private readonly tokenService: TokenGenerator,
     private readonly encrypter: Encrypter,
-
-
   ) { }
 
   async execute(
@@ -21,7 +19,9 @@ export class CreateUserUseCase {
     email: CreateUserDto['email'],
     password: CreateUserDto['password']
   ): Promise<CreateUserResponse> {
+
     const existing = await this.userRepository.findByEmail(email)
+
     if (existing) return {
       token: '',
       message: 'usuario ya existe',

@@ -13,6 +13,7 @@ describe('CreateUserUseCase', () => {
   const mockUserRepo: jest.Mocked<UserRepository> = {
     findByEmail: jest.fn(),
     create: jest.fn(),
+    findById: jest.fn(),
     // si tienes más métodos declarados en la interfaz los agregas como mocks vacíos
   }
 
