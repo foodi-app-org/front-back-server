@@ -1,13 +1,22 @@
 
-import { SequelizeProductRepository } from '../../../products/infrastructure/repositories/sequelize.controller.repository'
-import { CreateIShoppingCartTypeUseCase } from '../../application/use-cases/create_shopping.usecase'
-import { SumPriceShoppingCartUseCase } from '../../application/use-cases/sum-price-shopping.usecase'
-import { SequelizeStatusOrderRepository } from '../repositories/sequelize.controller.repository'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
+import { CreateTableUseCase } from '../../application/use-cases/create_tables.usecase'
+import { GetAllTableUseCase } from '../../application/use-cases/get-all-tables.usecase'
+import { SequelizeTableRepository } from '../repositories/sequelize.controller.repository'
 
-const shoppingRepository = new SequelizeStatusOrderRepository()
-const productRepository = new SequelizeProductRepository()
+const tableRepository = new SequelizeTableRepository(MigrationFolder.Public)
 
-export const ShoppingTypesServices = {
-    create: new CreateIShoppingCartTypeUseCase(shoppingRepository, productRepository),
-    sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository),
+export const TableServicesPublic = {
+    create: new CreateTableUseCase(tableRepository),
+    getAll: new GetAllTableUseCase(tableRepository)
+}
+
+export const TableServicesFactory = (tenant: string) => {
+  const tableRepository = new SequelizeTableRepository(getTenantName(tenant))
+
+  return {
+    create: new CreateTableUseCase(tableRepository),
+    getAll: new GetAllTableUseCase(tableRepository)
+  }
 }

@@ -27,4 +27,20 @@ export class SequelizeSubModuleOrderRepository implements SubmoduleRepository {
       throw new Error(String(e))
     }
   }
+
+  async getAll(mId: string): Promise<Submodule[] | null> {
+    try {
+      const submodules = await models.Submodule.schema(this.tenant).findAll({
+        where: {
+          mId
+        }
+      })
+      return submodules
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
 }

@@ -4,6 +4,7 @@ import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateModuleUseCase } from '../../application/use-cases/create-modules.usecase'
 import { CreateSubmoduleUseCase } from '../../application/use-cases/create-sub-modules.usecase'
 import { GetAllModulesUseCase } from '../../application/use-cases/get-all-modules.usecase'
+import { GetAllSubmodulesUseCase } from '../../application/use-cases/get-all-sub-modules.usecase'
 import { SequelizeModuleOrderRepository } from '../repositories/sequelize.controller.repository'
 import { SequelizeSubModuleOrderRepository } from '../repositories/sequelize.sub-module.controller.repository'
 
@@ -26,5 +27,13 @@ export const ModuleServicesFactory = (tenant: string) => {
   return {
     create: new CreateModuleUseCase(moduleRepository),
     getAll: new GetAllModulesUseCase(moduleRepository),
+  }
+}
+
+export const SubmoduleServicesFactory = (tenant: string) => {
+  const submoduleRepository = new SequelizeSubModuleOrderRepository(getTenantName(tenant))
+
+  return {
+    getAll: new GetAllSubmodulesUseCase(submoduleRepository),
   }
 }

@@ -1,14 +1,13 @@
 import fs from 'fs'
-import { join } from 'path'
 import os from 'os'
-
-import xlsx from 'xlsx'
+import { join } from 'path'
 import { Op } from 'sequelize'
+import xlsx from 'xlsx'
 
 import StatusPedidosModel from '../../models/Store/statusPedidoFinal'
-import { getTenantName } from '../../utils/util'
 import { PATH_EXTERNAL_OS } from '../../utils'
 import DateRange from '../../utils/DateRange'
+import { getTenantName } from '../../utils/util'
 
 const getReportDayNumber = async (parent, args, context) => {
   try {

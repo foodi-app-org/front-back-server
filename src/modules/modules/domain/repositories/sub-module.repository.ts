@@ -11,4 +11,7 @@ export interface SubmoduleRepository {
    * @returns The created Module or null if failed.
    */
   create(module: Submodule): Promise<Submodule | null>;
+
+
+  getAll(mId: string): Promise<Submodule[] | null>;
 }

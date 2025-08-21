@@ -5,8 +5,8 @@ type StoreTable {
   seats: Int
   section: String
   tableState: Int
-  createdAt: String!
-  updatedAt: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 # Tipo para las respuestas de creación y actualización

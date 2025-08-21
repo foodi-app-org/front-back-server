@@ -13,7 +13,7 @@ export class JwtTokenService implements TokenGenerator {
 
   constructor() {
     this.secret = process.env.JWT_SECRET ?? 'default_secret'
-    this.expiresIn = '1h'
+    this.expiresIn = '1d'
   }
 
   /**

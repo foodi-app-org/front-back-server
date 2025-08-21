@@ -18,11 +18,11 @@ export interface TableRepository {
   //  */
   // findById(id: string): Promise<Table | null>
 
-  // /**
-  //  * Lists all Tables for a Store.
-  //  * @returns Array of Tables.
-  //  */
-  // findAll(): Promise<Table[]>
+  /**
+   * Lists all Tables for a Store.
+   * @returns Array of Tables.
+   */
+  getAll(): Promise<Table[]>
 
   // /**
   //  * Updates a Table.

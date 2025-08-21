@@ -1,0 +1,1 @@
+export * from './graphql/resolvers/tables.resolver'
