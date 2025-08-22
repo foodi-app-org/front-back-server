@@ -2,6 +2,7 @@
 import { CATEGORY_PRODUCT_MODEL, SequelizeCategoryProductModel  } from '../../../../../modules/category_products/infrastructure/db/sequelize/models/sequelize-model'
 import { MODEL_CAT_STORE_NAME,SequelizeCategoryStoreModel  } from '../../../../../modules/category_store/infrastructure/repositories/sequelize-model'
 import { CLIENTS_TABLE,SequelizeClientModel } from '../../../../../modules/clients/infrastructure/db/sequelize/models/sequelize-table.model'
+import { DASHBOARD_COMPONENTS,SequelizeDashboardComponentsModel } from '../../../../../modules/dashboard/infrastructure/db/sequelize/models/sequelize-dashboard-components.model'
 import { SequelizeDeviceModel, USER_DEVICE_MODEL } from '../../../../../modules/devices/infrastructure/db/sequelize/models/sequelize-model'
 import { MODULES_MODEL,SequelizeModuleModel } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-modules.model'
 import { SequelizeSubmoduleModel,SUB_MODULES_MODEL } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-sub-modules.model'
@@ -34,8 +35,8 @@ export const models = {
   Table: SequelizeTableModel,
   StockMovement: SequelizeStockMovementModel,
   TagProduct: SequelizeTagProductModel,
-  Client: SequelizeClientModel
-  
+  Client: SequelizeClientModel,
+  DashboardComponents: SequelizeDashboardComponentsModel
 }
 
 export const models_names = {
@@ -55,5 +56,6 @@ export const models_names = {
   Table: STORE_TABLES,
   StockMovement: STOCK_MOVEMENT_NAME,
   TagProduct: TAGS_PRODUCT_MODEL_NAME,
-  Client: CLIENTS_TABLE
+  Client: CLIENTS_TABLE,
+  DashboardComponents: DASHBOARD_COMPONENTS
 }

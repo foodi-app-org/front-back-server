@@ -1,4 +1,4 @@
-const { INTEGER, STRING, DATE, JSONB, Sequelize } = require('sequelize')
+const { STRING, DATE, JSONB, Sequelize } = require('sequelize')
 
 const { STORE_MODEL, defaultSchema } = require('../../models/Store/Store')
 const { DASHBOARD_COMPONENTS } = require('../../models/Store/dashboardComponents')
@@ -6,10 +6,9 @@ const { DASHBOARD_COMPONENTS } = require('../../models/Store/dashboardComponents
 exports.up = async (queryInterface, schemaName) => {
   await queryInterface.createTable(DASHBOARD_COMPONENTS, {
     id: {
-      type: INTEGER,
-      primaryKey: true,
+      type: STRING(36),
       allowNull: false,
-      autoIncrement: true
+      unique: true
     },
     idStore: {
       type: STRING(36),
@@ -34,12 +33,12 @@ exports.up = async (queryInterface, schemaName) => {
       allowNull: false,
       defaultValue: {}
     },
-    createAt: {
+    createdAt: {
       type: DATE,
       allowNull: false,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
     },
-    updateAt: {
+    updatedAt: {
       type: DATE,
       allowNull: false,
       defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
