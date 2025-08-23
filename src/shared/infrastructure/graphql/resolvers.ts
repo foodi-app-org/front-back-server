@@ -1,6 +1,7 @@
 import { authResolvers } from '../../../modules/auth/interfaces/graphql/resolvers/auth.resolver'
 import { categoryProductResolvers } from '../../../modules/category_products/interfaces/graphql/resolvers/category_products.resolver'
 import { categoryStoreResolvers } from '../../../modules/category_store/interfaces/graphql/resolvers/category_store.resolver'
+import { dashboardResolvers } from '../../../modules/dashboard/interfaces/graphql/resolvers/dashboard.resolver'
 import { modulesResolvers } from '../../../modules/modules/interfaces/graphql/resolvers/modules.resolver'
 import { productResolvers } from '../../../modules/products/interfaces/graphql/resolvers/products.resolver'
 import { salesResolvers } from '../../../modules/sales/interfaces/graphql/resolvers/sales.resolver'
@@ -31,6 +32,7 @@ export default {
         ...modulesResolvers.Query,
         ...tableResolvers.Query,
         ...salesResolvers.Query,
+        ...dashboardResolvers.Query
 
     },
     Mutation: {
@@ -47,6 +49,7 @@ export default {
         ...modulesResolvers.Mutation,
         ...tableResolvers.Mutation,
         ...salesResolvers.Mutation,
+        ...dashboardResolvers.Mutation
     },
     Subscription: {
     },

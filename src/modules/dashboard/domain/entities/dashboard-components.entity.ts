@@ -1,3 +1,15 @@
+export interface DashboardComponentUpdateInput {
+  id: string
+  name?: string
+  title?: string
+  coordinates: {
+    x: number
+    y: number
+    w: number
+    h: number
+  }
+}
+
 export enum StateDashboardComponents {
   ACTIVE = 1,
   INACTIVE = 0,
@@ -14,6 +26,7 @@ export interface IDashboardComponents {
     y: number
     w: number
     h: number,
+    name: string,
     moved: boolean,
     static: boolean,
     title: string,

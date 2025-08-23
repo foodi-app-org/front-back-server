@@ -44,6 +44,7 @@ export interface IStatusOrderStoreAttributes {
   id?: string
   idStore: string
   title: string
+  name: string
   state: StateDashboardComponents
   coordinates: {
     x: number
@@ -74,6 +75,7 @@ export class SequelizeDashboardComponentsModel
   declare readonly id: string
   declare readonly idStore: string
   declare readonly title: string
+  declare readonly name: string
   declare readonly state: StateDashboardComponents
   declare readonly coordinates: {
     x: number
@@ -102,6 +104,11 @@ export const columnsDashboardComponents = {
     allowNull: false,
   },
   title: {
+    type: STRING(255),
+    allowNull: false,
+    defaultValue: ''
+  },
+  name: {
     type: STRING(255),
     allowNull: false,
     defaultValue: ''

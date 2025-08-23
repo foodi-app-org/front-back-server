@@ -2,8 +2,20 @@ import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { DashboardComponentsServicesFactory } from '../../../infrastructure/services'
+export interface DashboardComponentUpdateInput {
+  id: string
+  name?: string
+  title?: string
+  coordinates: {
+    x: number
+    y: number
+    w: number
+    h: number
+  }
+}
 
-export const modulesResolvers = {
+//  updateDashboardComponent(input: [DashboardComponentUpdateInput]): ResponseDashboardComponent!
+export const dashboardResolvers = {
   Query: {
     dashboardComponents: async (_: GraphQLResolveInfo, _args: { id: string }, context: GraphQLContext) => {
       const services = DashboardComponentsServicesFactory(context?.restaurant ?? '')
@@ -11,5 +23,9 @@ export const modulesResolvers = {
     }
   },
   Mutation: {
+    updateDashboardComponent: async (_: GraphQLResolveInfo, { input }: { input: [DashboardComponentUpdateInput] }, context: GraphQLContext) => {
+      const services = DashboardComponentsServicesFactory(context?.restaurant ?? '')
+      return await services.update.execute(input)
+    }
   }
 }

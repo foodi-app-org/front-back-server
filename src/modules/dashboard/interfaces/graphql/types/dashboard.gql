@@ -22,12 +22,12 @@ input DashboardComponentUpdateInput {
 }
 
 type Query {
-  dashboardComponents: [DashboardComponent!]!
+  dashboardComponents: [DashboardComponent]
   dashboardComponent(id: ID!): DashboardComponent
 }
 
 type ResponseDashboardComponent {
-    success: Boolean!
+    success: Boolean
     message: String
     data: DashboardComponent
     errors: [errors]
@@ -35,6 +35,6 @@ type ResponseDashboardComponent {
 
 type Mutation {
   createDashboardComponent(input: DashboardComponentInput!): ResponseDashboardComponent!
-  updateDashboardComponent(input: DashboardComponentUpdateInput!): ResponseDashboardComponent!
+  updateDashboardComponent(input: [DashboardComponentUpdateInput]): ResponseDashboardComponent
   deleteDashboardComponent(id: ID!): ResponseDashboardComponent!
 }
