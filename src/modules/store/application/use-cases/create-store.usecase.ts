@@ -41,9 +41,22 @@ export class CreateStoreUseCase {
 
     const existing = await this.storeRepository.findByEmail(emailStore)
     const user = await this.userRepository.findByEmail(emailStore)
+    if (!user) return {
+      user: null as unknown as User,
+      token: '',
+      idStore: '',
+      admin: false,
+      success: false,
+      isVerifyEmail: false,
+      message: 'Usuario no encontrado',
+      storeUserId: '',
+      userId: '',
+      refreshToken: '',
+      newRefreshToken: ''
+    }
     if (existing) {
       const response: AuthPayload = {
-        user: user as User,
+        user: user,
         token: '',
         idStore: existing.idStore,
         admin: false,
@@ -64,6 +77,7 @@ export class CreateStoreUseCase {
       storeName,
       deliveryTimeMinutes: 0,
       storePhone,
+      id: user.id,
       description: storeName
     }
 
@@ -73,7 +87,7 @@ export class CreateStoreUseCase {
       await this.migrationService.execute(getTenantName(created.idStore), 'all')
     }
     const response: AuthPayload = {
-      user: user as User,
+      user: user,
       token: '',
       idStore: created?.idStore,
       admin: false,

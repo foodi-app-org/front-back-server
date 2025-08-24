@@ -4,7 +4,7 @@ import { models } from '../../../../shared/infrastructure/db/sequelize/orm/model
 import { Device } from '../../domain/entities/devices.entity'
 import { DeviceRepository } from '../../domain/repositories/devices.repository'
 
-export class SequelizeStoreRepository implements DeviceRepository {
+export class SequelizeDeviceStoreRepository implements DeviceRepository {
   async create(device: Device): Promise<Device | null> {
     try {
       const created = await models.Device.create({

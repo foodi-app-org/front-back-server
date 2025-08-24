@@ -7,4 +7,5 @@ import { DashboardComponents, DashboardComponentUpdateInput } from '../entities/
 export interface DashboardComponentsRepository {
   getAll(): Promise<DashboardComponents[] | null>
   update(input: DashboardComponentUpdateInput[]): Promise<DashboardComponents[] | null>
+  getLocalBackendIp(): Promise<string | null>
 }

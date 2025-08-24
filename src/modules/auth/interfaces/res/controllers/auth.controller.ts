@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 
-import { StoreServices } from '../../../../store/infrastructure/services'
+import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { AuthServices } from '../../../infrastructure/services'
 
 export class AuthController {
@@ -11,7 +11,7 @@ export class AuthController {
     try {
       const { email, password } = req.body
       const result = await AuthServices.createUser.execute(email, email, password)
-      const store = result.user?.id ? await StoreServices.findByUserId.execute(String(result.user.id)) : null
+      const store = result.user?.id ? await StoreServicesPublic.findByUserId.execute(String(result.user.id)) : null
 
       const data = {
         user: result.user,

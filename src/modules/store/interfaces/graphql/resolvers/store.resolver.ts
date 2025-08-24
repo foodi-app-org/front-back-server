@@ -2,7 +2,7 @@ import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
-import { StoreServices } from '../../../infrastructure/services'
+import { StoreServicesPublic } from '../../../infrastructure/services'
 
 
 interface NewRegisterStoreArgs {
@@ -15,12 +15,12 @@ export const storeResolvers = {
    */
   Query: {
     getStore: async (_: GraphQLResolveInfo, args: { id: string }, context: GraphQLContext) => {
-      return await StoreServices.findById.execute(args.id ??  context.restaurant ?? '')
+      return await StoreServicesPublic.findById.execute(args.id ??  context.restaurant ?? '')
     }
   },
   Mutation: {
     newRegisterStore: async (_: GraphQLResolveInfo, args: NewRegisterStoreArgs) => {
-      return await StoreServices.create.execute(args.input)
+      return await StoreServicesPublic.create.execute(args.input)
     }
   }
 }

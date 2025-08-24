@@ -5,7 +5,7 @@ import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
-import { StoreServices } from '../../../../store/infrastructure/services'
+import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/infrastructure/services'
 import { StatusOrderTypesServices } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
@@ -21,7 +21,7 @@ export const orderResolvers = {
       },
       getOneStore: async (parent: { dataValues: { idStore: string } }, _args: Record<string, unknown>, _context: GraphQLContext) => {
         if (!parent?.dataValues?.idStore) return null
-        return await StoreServices.findById.execute(parent.dataValues.idStore)
+        return await StoreServicesPublic.findById.execute(parent.dataValues.idStore)
       }
     }
   },
@@ -34,7 +34,7 @@ export const orderResolvers = {
       const t = await sequelize.transaction()
 
       try {
-        const storeExists = await StoreServices.findById.execute(idStore)
+        const storeExists = await StoreServicesPublic.findById.execute(idStore)
         if (!storeExists) {
           await t.rollback()
           return { success: false, message: 'Store not found', errors: [] }

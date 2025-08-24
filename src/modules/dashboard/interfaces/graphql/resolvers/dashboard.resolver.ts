@@ -20,6 +20,10 @@ export const dashboardResolvers = {
     dashboardComponents: async (_: GraphQLResolveInfo, _args: { id: string }, context: GraphQLContext) => {
       const services = DashboardComponentsServicesFactory(context?.restaurant ?? '')
       return await services.getAll.execute()
+    },
+    getLocalBackendIp: async (_: GraphQLResolveInfo, _args: { id: string }, context: GraphQLContext) => {
+      const services = DashboardComponentsServicesFactory(context?.restaurant ?? '')
+      return await services.getLocalBackendIp.execute()
     }
   },
   Mutation: {

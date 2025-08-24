@@ -1,3 +1,11 @@
+type SalesAmountTodayResponse {
+  success: Boolean!
+  message: String!
+  total: Float!
+}
+
+
 type Query {
   getTodaySales: Int
+  getSalesAmountToday: SalesAmountTodayResponse!
 }

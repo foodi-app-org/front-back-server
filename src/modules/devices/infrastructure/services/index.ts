@@ -1,11 +1,11 @@
 import { CreateDeviceUseCase } from '../../application/use-cases/create-devices-store.usecase'
-import { SequelizeStoreRepository } from '../repositories/sequelize-device-store.controller.repository'
+import { SequelizeDeviceStoreRepository } from '../repositories/sequelize-device-store.controller.repository'
 
-const storeRepository = new SequelizeStoreRepository()
+const deviceStoreRepository = new SequelizeDeviceStoreRepository()
 
-const createStoreUseCase = new CreateDeviceUseCase(
-    storeRepository, 
+const createDeviceUseCase = new CreateDeviceUseCase(
+    deviceStoreRepository, 
 )
-export const StoreServices = {
-    create: createStoreUseCase
+export const DeviceStoreServicesPublic = {
+    create: createDeviceUseCase
 }

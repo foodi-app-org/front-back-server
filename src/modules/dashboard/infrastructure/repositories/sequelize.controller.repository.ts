@@ -1,10 +1,11 @@
 
+import os from 'os'
 import { Op } from 'sequelize'
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import {
- DashboardComponents, DashboardComponentUpdateInput 
+  DashboardComponents, DashboardComponentUpdateInput
 } from '../../domain/entities/dashboard-components.entity'
 import { DashboardComponentsRepository } from '../../domain/repositories/dashboard-components.repository'
 
@@ -15,7 +16,6 @@ export class SequelizeDashboardComponentsRepository implements DashboardComponen
   constructor(tenant: string) {
     this.tenant = tenant ?? MigrationFolder.Public
   }
-
   async getAll(): Promise<DashboardComponents[] | null> {
     try {
       const dashboardComponents = await models.DashboardComponents.schema(this.tenant).findAll()
@@ -79,5 +79,19 @@ export class SequelizeDashboardComponentsRepository implements DashboardComponen
       throw new Error(String(e))
     }
   }
-
+  async getLocalBackendIp(): Promise<string | null> {
+    function getLocalIp() {
+      const interfaces = os.networkInterfaces()
+      for (const iface of Object.values(interfaces)) {
+        if (!iface) continue
+        for (const config of iface) {
+          if (config.family === 'IPv4' && !config.internal) {
+            return config.address
+          }
+        }
+      }
+      return 'localhost'
+    }
+    return getLocalIp()
+  }
 }

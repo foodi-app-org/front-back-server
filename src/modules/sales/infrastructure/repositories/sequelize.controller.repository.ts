@@ -17,7 +17,7 @@ export class SequelizeSalesRepository implements SalesRepository {
   async countSales(start: Date, end: Date): Promise<number> {
     // use dateRange to get start/end of day
     const { start: startOfDay, end: endOfDay } = this.dateRange.getRange({ start, end })
-    
+
     try {
       const result = await models.StatusOrder.schema(this.tenant).count({
         where: {
@@ -35,4 +35,25 @@ export class SequelizeSalesRepository implements SalesRepository {
       throw new Error(String(e))
     }
   }
+  async countSalesAmountToday(start: Date, end: Date): Promise<number> {
+    const { start: startOfDay, end: endOfDay } = this.dateRange.getRange({ start, end })
+
+    try {
+      const result = await models.StatusOrder.schema(this.tenant).sum('totalProductsPrice', {
+        where: {
+          createdAt: {
+            [Op.gte]: new Date(startOfDay),
+            [Op.lte]: new Date(endOfDay)
+          }
+        }
+      })
+      return result ?? 0
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
 }

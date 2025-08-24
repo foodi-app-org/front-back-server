@@ -11,14 +11,9 @@ export interface SalesRepository {
    */
   countSales(start: Date, end: Date): Promise<number>
 
-  // /**
-  //  * Persists a new sale.
-  //  * @param sale Sale entity to save.
-  //  * @returns The persisted Sale entity.
-  //  */
-  // save(sale: Sale): Promise<Sale>
 
-  // /**
+  countSalesAmountToday(start: Date, end: Date): Promise<number>
+  /**
   //  * Finds a sale by its unique identifier.
   //  * @param id Sale ID.
   //  * @returns The found Sale or null if not found.
