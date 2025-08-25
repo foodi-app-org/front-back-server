@@ -10,4 +10,6 @@ export interface DeviceRepository {
    * @returns The created Store or null if failed.
    */
   create(store: Device): Promise<Device | null>;
+
+  getAll(): Promise<Device[] | null>;
 }

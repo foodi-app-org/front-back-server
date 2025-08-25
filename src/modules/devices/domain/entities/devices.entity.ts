@@ -1,5 +1,3 @@
-// domain/device/Device.ts
-
 import { v4 as uuidv4 } from 'uuid'
 
 /**
@@ -16,6 +14,10 @@ export class Device {
   readonly platform?: string | null
   readonly version?: string | null
   readonly family?: string | null
+  readonly os?: string | null
+  readonly model?: string | null
+  readonly ip?: string | null
+  readonly isBot?: boolean | null
   dState: number
   readonly createdAt?: Date
   updatedAt?: Date
@@ -35,22 +37,14 @@ export class Device {
     platform?: string | null
     version?: string | null
     family?: string | null
+    os?: string | null
+    model?: string | null
+    ip?: string | null
+    isBot?: boolean | null
     dState: number
     createdAt?: Date
     updatedAt?: Date
   }) {
-    if (!props.deviceId || props.deviceId.trim().length === 0) {
-      throw new Error('DeviceId is required')
-    }
-
-    if (!props.deviceName || props.deviceName.trim().length === 0) {
-      throw new Error('DeviceName is required')
-    }
-
-    if (props.dState === null || props.dState === undefined) {
-      throw new Error('Device state (dState) is required')
-    }
-
     this.dId = props.dId ?? uuidv4()
     this.userId = props.userId ?? null
     this.deviceId = props.deviceId
@@ -61,6 +55,10 @@ export class Device {
     this.platform = props.platform ?? null
     this.version = props.version ?? null
     this.family = props.family ?? null
+    this.os = props.os ?? null
+    this.model = props.model ?? null
+    this.ip = props.ip ?? null
+    this.isBot = props.isBot ?? null
     this.dState = props.dState
     this.createdAt = props.createdAt ?? new Date()
     this.updatedAt = props.updatedAt ?? new Date()

@@ -14,6 +14,10 @@ export interface CreateDeviceDTO {
   platform?: string | null
   version?: string | null
   family?: string | null
+  os?: string | null
+  model?: string | null
+  ip?: string | null
+  isBot?: boolean | null
   dState: number
 }
 
@@ -42,12 +46,15 @@ export class CreateDeviceUseCase {
       platform: input.platform,
       version: input.version,
       family: input.family,
+      os: input.os,
+      model: input.model,
+      ip: input.ip,
+      isBot: input.isBot,
       dState: input.dState,
     })
 
     // Persist device
     const created = await this.deviceRepository.create(device)
-
     return created
   }
 }

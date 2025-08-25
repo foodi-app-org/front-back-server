@@ -2,8 +2,7 @@ import { withIronSessionApiRoute } from 'iron-session/next'
 
 import { LoginEmailConfirmation } from '../lib/resolvers/users/user'
 import { parseUserAgent } from '../lib/utils'
-
-import { MAX_AGE, getDevice } from '.'
+import { getDevice,MAX_AGE } from '.'
 
 export default withIronSessionApiRoute(
   async (req, res) => {

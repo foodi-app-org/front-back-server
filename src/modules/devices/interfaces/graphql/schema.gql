@@ -1,0 +1,59 @@
+# DeviceUsers
+type DeviceUser {
+  dId: ID
+  id: ID
+  deviceId: String
+  deviceName: String
+  locationFormat: String
+  type: String
+  shortName: String
+  platform: String
+  version: String
+  family: String
+  os: String          # NEW
+  model: String       # NEW
+  ip: String          # NEW
+  isBot: Boolean      # NEW
+  dState: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Inputs
+input DeviceUserInput {
+  dId: ID
+  id: ID
+  deviceId: String!
+  deviceName: String
+  locationFormat: String
+  type: String
+  shortName: String
+  platform: String
+  version: String
+  family: String
+  os: String          # NEW
+  model: String       # NEW
+  ip: String          # NEW
+  isBot: Boolean      # NEW
+  dState: Int
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type DeviceUserResponse {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: DeviceUser
+}
+
+type Query {
+  """Response for find one DeviceUser"""
+  getDeviceUser(id: ID, DeviceUserName: String): DeviceUser
+  getDeviceUsers: [DeviceUser]
+}
+
+type Mutation {
+  """Register DeviceUser data"""
+  newRegisterDeviceUser(input: DeviceUserInput): DeviceUserResponse
+}

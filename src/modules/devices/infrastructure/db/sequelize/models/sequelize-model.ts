@@ -5,7 +5,6 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { USER_MODEL } from '../../../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 const sequelize = connect()
 
@@ -17,7 +16,7 @@ export const USER_DEVICE_MODEL = 'user_devices'
 export interface IDeviceAttributes {
   dId: string
   userId?: string | null
-  deviceId: string
+  deviceId: string   // fingerprint único
   deviceName: string
   type?: string | null
   shortName?: string | null
@@ -25,6 +24,10 @@ export interface IDeviceAttributes {
   platform?: string | null
   version?: string | null
   family?: string | null
+  os?: string | null            // NUEVO: OS detectado
+  model?: string | null         // NUEVO: modelo detectado
+  ip?: string | null            // NUEVO: ip
+  isBot?: boolean | null        // NUEVO: bot detection
   dState: number
   createdAt?: Date
   updatedAt?: Date
@@ -43,8 +46,7 @@ export type IDeviceCreationAttributes = Optional<
  */
 export class SequelizeDeviceModel
   extends Model<IDeviceAttributes, IDeviceCreationAttributes>
-  implements IDeviceAttributes
-{
+  implements IDeviceAttributes {
   declare dId: string
   declare userId?: string | null
   declare deviceId: string
@@ -69,13 +71,7 @@ export const DeviceColumns = {
   },
   userId: {
     type: DataTypes.STRING(36),
-    allowNull: true,
-    onUpdate: 'CASCADE',
-    onDelete: 'CASCADE',
-    references: {
-      model: USER_MODEL,
-      key: 'id'
-    }
+    allowNull: true
   },
   deviceId: {
     type: DataTypes.STRING(200),
@@ -91,6 +87,10 @@ export const DeviceColumns = {
   platform: DataTypes.STRING(100),
   version: DataTypes.STRING(100),
   family: DataTypes.STRING(100),
+  os: DataTypes.STRING(100),      // NUEVO
+  model: DataTypes.STRING(100),   // NUEVO
+  ip: DataTypes.STRING(100),      // NUEVO
+  isBot: DataTypes.BOOLEAN,       // NUEVO
   dState: {
     type: DataTypes.SMALLINT,
     allowNull: false
@@ -106,7 +106,6 @@ export const DeviceColumns = {
     allowNull: false
   }
 }
-
 SequelizeDeviceModel.init(DeviceColumns, {
   sequelize,
   modelName: USER_DEVICE_MODEL,

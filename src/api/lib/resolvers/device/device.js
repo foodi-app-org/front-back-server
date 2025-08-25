@@ -1,7 +1,11 @@
 import UserDeviceModel from '../../models/users/userDevice'
 import { parseUserAgent } from '../../utils'
-import { LogDanger, LogInfo, LogSuccess } from '../../utils/logs'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
+import {
+ LogDanger, LogInfo, LogSuccess 
+} from '../../utils/logs'
+import {
+ deCode, getAttributes, getTenantName 
+} from '../../utils/util'
 
 /**
  *
