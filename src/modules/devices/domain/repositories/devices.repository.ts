@@ -12,4 +12,9 @@ export interface DeviceRepository {
   create(store: Device): Promise<Device | null>;
 
   getAll(): Promise<Device[] | null>;
+
+  findByDeviceId(deviceId: string): Promise<Device | null>;
+
+
+  findByUniqueCriteria(criteria: Partial<Device>): Promise<Device | null>;
 }

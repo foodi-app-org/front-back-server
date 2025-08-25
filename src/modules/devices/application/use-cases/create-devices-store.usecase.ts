@@ -27,7 +27,7 @@ export interface CreateDeviceDTO {
 export class CreateDeviceUseCase {
   constructor(
     private readonly deviceRepository: DeviceRepository
-  ) {}
+  ) { }
 
   /**
    * Executes the use case to create a new Device
@@ -35,6 +35,17 @@ export class CreateDeviceUseCase {
    * @returns The newly created Device or null if already exists
    */
   async execute(input: CreateDeviceDTO): Promise<Device | null> {
+
+    const existingCriteria = await this.deviceRepository.findByUniqueCriteria({
+      userId: input.userId,
+      platform: input.platform,
+      os: input.os,
+      model: input.model,
+      family: input.family,
+    })
+    if (existingCriteria) {
+      return existingCriteria
+    }
     // Create a new Device entity
     const device = new Device({
       userId: input.userId,
@@ -52,6 +63,12 @@ export class CreateDeviceUseCase {
       isBot: input.isBot,
       dState: input.dState,
     })
+
+    // Check if device already exists
+    const existing = await this.deviceRepository.findByDeviceId(input.deviceId)
+    if (existing) {
+      return existing
+    }
 
     // Persist device
     const created = await this.deviceRepository.create(device)
