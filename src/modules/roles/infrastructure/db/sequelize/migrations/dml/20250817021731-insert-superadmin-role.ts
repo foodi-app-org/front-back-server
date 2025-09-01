@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { models_names } from '../../../../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ROLE_MODEL } from '../../models/sequelize-roles.model'
+import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
 
 const TAG = 'SUPERADMIN'
 
@@ -39,7 +40,7 @@ export const up = async (
             [
                 {
                     idRole: uuidv4(),
-                    idStore: null, // puedes pasar el idStore si lo necesitas
+                    idStore: removeTenantPrefix(schemaName), // puedes pasar el idStore si lo necesitas
                     priority: 1,
                     name: TAG,
                     description: TAG,

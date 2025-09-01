@@ -1,10 +1,12 @@
 import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
-import Store from '../../models/Store/Store'
 import Roles from '../../models/roles'
+import Store from '../../models/Store/Store'
 import Users from '../../models/Users'
 import UserProfile from '../../models/users/UserProfileModel'
+import { getDevice } from '../../router'
+import recover from '../../templates/Recover'
 import {
   comparePasswords,
   filterKeyObject,
@@ -14,10 +16,10 @@ import {
   parseUserAgent,
   sendEmail
 } from '../../utils'
-import { deCode, getAttributes, getTenantName } from '../../utils/util'
-import recover from '../../templates/Recover'
-import { getDevice } from '../../router'
 import { LogDanger } from '../../utils/logs'
+import {
+ deCode, getAttributes, getTenantName 
+} from '../../utils/util'
 
 /**
  * Registers a new user or verifies an existing user's password

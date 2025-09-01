@@ -58,6 +58,7 @@ export class SequelizeUserModel extends Model<IUserAttributes, IUserCreationAttr
   declare ULocation?: string
   declare upLat?: string
   declare uState?: number
+  declare idStore?: string
   declare upLon?: string
   declare upIdeDoc?: string
   declare siteWeb?: string
@@ -79,6 +80,7 @@ export const columnsUser = {
     allowNull: true
   },
   name: { type: DataTypes.STRING },
+  idStore: { type: DataTypes.STRING },
   idRole: { type: DataTypes.STRING(36), allowNull: true },
   username: { type: DataTypes.STRING },
   lastName: { type: DataTypes.STRING },

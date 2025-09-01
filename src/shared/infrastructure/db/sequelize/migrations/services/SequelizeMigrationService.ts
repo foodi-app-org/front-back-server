@@ -7,6 +7,7 @@ import {
   MigrationType
 } from '../umzug.config'
 import { run } from './migrate-data'
+
 export class SequelizeMigrationService implements MigrationService {
   private readonly logger = new ConsoleLogger()
 
@@ -23,9 +24,15 @@ export class SequelizeMigrationService implements MigrationService {
       throw error
     }
   }
+
+
+
   async migrate(schemaName: string): Promise<void> {
     const sequelize = connect()
+
     this.logger.info(`Running data migration for schema: ${schemaName}`)
     await run(schemaName, sequelize)
   }
+
+
 }

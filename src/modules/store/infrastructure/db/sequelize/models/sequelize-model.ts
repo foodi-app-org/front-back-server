@@ -5,7 +5,6 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { USER_MODEL } from '../../../../../user/infrastructure/db/sequelize/models/sequelize-user.model'
 
 const sequelize = connect()
 
@@ -105,11 +104,7 @@ export const StoreColumns = {
   cId: DataTypes.STRING(36),
   id: {
     type: DataTypes.STRING(36),
-    unique: true,
-    references: {
-      model: USER_MODEL,
-      key: 'id'
-    }
+    unique: true
   },
   dId: DataTypes.STRING(36),
   ctId: DataTypes.STRING(36),

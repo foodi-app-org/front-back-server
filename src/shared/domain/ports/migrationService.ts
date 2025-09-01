@@ -12,4 +12,5 @@ export interface MigrationService {
   execute(schemaName: string, type?: MigrationType, customMigrationFiles?: string[]): Promise<void>
 
   migrate(schemaName: string): Promise<void>
+
 }

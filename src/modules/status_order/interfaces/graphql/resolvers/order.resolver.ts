@@ -6,7 +6,7 @@ import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
-import { UserServices } from '../../../../user/infrastructure/services'
+import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderTypesServices } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'

@@ -1,7 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { UserServices } from '../../../infrastructure/services/index'
+import { UserServices } from '../../../main/factories/user-services.factory'
 import { CreateUserInput } from '../inputs'
 
 
@@ -12,6 +12,9 @@ export const userResolvers = {
     },
     getUser: async (_: GraphQLResolveInfo, args: { id?: string, userName?: string, email?: string }, context: GraphQLContext ) => {
       const { email } = args
+      if (context.User?.id) {
+        return await UserServices.findById.execute(context.User.id ?? '')
+      }
       const user = await UserServices.findByEmail.execute(email ?? '')
       return user
     }

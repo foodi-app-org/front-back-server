@@ -79,10 +79,13 @@ module.exports = {
     'no-restricted-imports': [
       'error',
       {
-        paths: [],
         patterns: [
           {
-            group: ['../../infrastructure/*', '../../interface/*'],
+            group: [
+              // bloquea infra e interface excepto si vienen de main
+              '**/!(main)/**/infrastructure/**',
+              '**/!(main)/**/interface/**'
+            ],
             message: 'Application layer should not import from infrastructure/interface'
           }
         ]
@@ -103,6 +106,66 @@ module.exports = {
       }
     ]
   },
+  overrides: [
+    // DOMAIN
+    {
+      files: ['src/modules/**/domain/**/*.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              '**/application/**',
+              '**/infrastructure/**',
+              '**/main/**',
+              '**/interfaces/**', // si interfaces son adaptadores
+            ],
+            message: 'Domain layer must be pure. No imports from application, infrastructure, main or interfaces',
+          },
+        ],
+      },
+    },
+    // APPLICATION
+    {
+      files: ['src/modules/**/application/**/*.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              '**/infrastructure/**',
+              '**/main/**',
+            ],
+            message: 'Application layer should only depend on domain (entities, repos, interfaces, value-objects)',
+          },
+        ],
+      },
+    },
+    // INFRASTRUCTURE
+    {
+      files: ['src/modules/**/infrastructure/**/*.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              '**/application/**',
+              '**/main/**',
+            ],
+            message: 'Infrastructure should not import application or main',
+          },
+        ],
+      },
+    },
+    // MAIN (factories, composition root)
+    {
+      files: ['src/modules/**/main/**/*.ts'],
+      rules: {
+        // Main puede importar todo (composition root)
+        'no-restricted-imports': 'off',
+      },
+    },
+  ],
   settings: {
     'import/resolver': {
       node: {

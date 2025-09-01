@@ -32,6 +32,8 @@ export interface StoreRepository {
    */
   findByUserId(id: string): Promise<Store | null>;
 
+
+  update(id: string, updateData: Partial<Store>): Promise<Store | null>;
   // /**
   //  * Retrieves all stores.
   //  * @returns Array of Store entities.
