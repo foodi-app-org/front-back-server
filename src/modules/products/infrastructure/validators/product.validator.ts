@@ -7,7 +7,7 @@ export const productSchema = Joi.object({
   pId: Joi.string().allow(null),
   idStore: Joi.string().allow(null),
   id: Joi.string().allow(null),
-  carProId: Joi.string().allow(null),
+  carProId: Joi.string().allow(null).optional(),
   sizeId: Joi.string().allow(null),
   colorId: Joi.string().allow(null),
   cId: Joi.string().allow(null),
@@ -28,7 +28,7 @@ export const productSchema = Joi.object({
   vat: Joi.number().precision(2).min(0).max(100).default(0.00),
   ProDescuento: Joi.number().precision(2).allow(null),
   ProUniDisponibles: Joi.number().integer().allow(null),
-  ProDescription: Joi.string().allow(null),
+  ProDescription: Joi.string().allow(null).optional(),
   pState: Joi.number().valid(1, 0, -1).required(), // StateProduct enum
   sTateLogistic: Joi.number().required(),
   ProProtegido: Joi.number().integer().allow(null),

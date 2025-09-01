@@ -20,7 +20,7 @@ export interface ICategoryProduct {
   carProId?: string
   idStore: string
   id?: string
-  pName?: string
+  pName: string
   ProDescription?: string
   pState?: number
   createdAt?: Date
@@ -39,7 +39,7 @@ export class SequelizeCategoryProductModel extends Model<ICategoryProduct, IStor
   public carProId!: string
   public idStore!: string
   public id?: string
-  public pName?: string
+  public pName!: string
   public ProDescription?: string
   public pState?: number
   public createdAt?: Date

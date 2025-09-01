@@ -1,4 +1,3 @@
-// import { parseUserAgent } from '@shared/utils/deviceInfo.utils'
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { parseExtendedUserAgent } from '../../../../../shared/utils/deviceInfo.utils'
 import { DeviceServicesFactory } from '../../../infrastructure/services'
@@ -51,10 +50,10 @@ export const deviceUserResolvers = {
           platform: value.platform ?? parsedInfo.platform ?? 'Unknown',
           version: value.version ?? parsedInfo.version ?? 'Unknown',
           family: value?.family ?? parsedInfo.family ?? 'Unknown',
-          os: parsedInfo.os ?? 'Unknown',                    // NUEVO
-          model: parsedInfo.model ?? 'Unknown',              // NUEVO
-          ip: parsedInfo.ip ?? null,                         // NUEVO
-          isBot: parsedInfo.isBot,                           // NUEVO
+          os: parsedInfo.os ?? 'Unknown',
+          model: parsedInfo.model ?? 'Unknown',
+          ip: parsedInfo.ip ?? null,
+          isBot: parsedInfo.isBot,
           dState: value.dState ?? 0
         }
 

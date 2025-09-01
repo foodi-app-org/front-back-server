@@ -1,7 +1,7 @@
 import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.logger'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { CreateProductCategoryUseCase } from '../../application/use-cases/create-product-category.use-case'
-import { SequelizeCategoryProductRepository } from '../repositories/sequelize-store.controller.repository'
+import { SequelizeCategoryProductRepository } from '../repositories/sequelize-category-products.controller.repository'
 
 
 const userRepository = new SequelizeCategoryProductRepository()

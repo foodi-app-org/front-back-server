@@ -43,6 +43,7 @@ export class CreateProductCategoryUseCase {
             carProId,
             pName,
             ProDescription,
+            pState: 1
         })
 
         try {

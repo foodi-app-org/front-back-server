@@ -55,7 +55,7 @@ export class SequelizeUserRepository implements UserRepository {
     const user = await SequelizeUserModel.schema(this.tenant).findOne({ where: { email } })
     if (!user) return null
 
-    return new User(user.id, user.name, user.email, user.password, user.createdAt, user.updatedAt)
+    return user
   }
 
   /**
@@ -64,10 +64,11 @@ export class SequelizeUserRepository implements UserRepository {
    * @returns User entity or null if not found
    */
   async findById(id: string): Promise<User | null> {
+    console.log("🚀 ~ SequelizeUserRepository ~ findById ~ id:", id)
     const user = await SequelizeUserModel.schema(this.tenant).findByPk(id)
     if (!user) return null
 
-    return new User(user.id, user.name, user.email, user.password, user.createdAt, user.updatedAt)
+    return user
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User | null> {

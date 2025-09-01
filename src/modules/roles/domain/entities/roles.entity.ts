@@ -1,11 +1,9 @@
-import { UUID } from 'crypto'
-
 /**
  * Role entity that represents the business object.
  */
 export class Role {
   constructor(
-    public readonly idRole: UUID,
+    public readonly idRole: string,
     public idStore: string | null,
     public priority: number | null,
     public name: string,

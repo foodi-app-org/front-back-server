@@ -1,16 +1,22 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { ProductServices } from '../../../infrastructure/services'
 import { productSchema } from '../../../infrastructure/validators'
 import { CreateStatusTypeOrderInput } from '../inputs'
+import { GraphQLContext } from '../../../../../shared/types/context'
+import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
 
 export const productResolvers = {
   Query: {
    
   },
   Mutation: {
-    updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }) => {
-      const { error, value } = productSchema.validate(args.input)
+    updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
+      const values = { ...args.input }
+      const { error, value } = productSchema.validate({
+        ...values,
+        idStore: context.restaurant ?? ''
+      })
+      console.log("🚀 ~ error:", error)
       if (error) {
         return {
           success: false,
@@ -24,7 +30,8 @@ export const productResolvers = {
           }))
         }
       }
-      return await ProductServices.create.execute(value)
+      const services = ProductServicesTenantFactory(context.restaurant ?? '')
+      return await services.create.execute(value)
     }
   }
 }

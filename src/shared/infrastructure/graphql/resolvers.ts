@@ -18,6 +18,7 @@ import { dateTimeScalar } from './scalars/date-time.scalar'
 export default {
     ...orderResolvers.Type,
     ...modulesResolvers.Type,
+    ...userResolvers.Type,
 
     Query: {
         ...userResolvers.Query,
