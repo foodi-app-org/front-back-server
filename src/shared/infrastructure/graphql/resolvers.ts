@@ -19,6 +19,7 @@ export default {
     ...orderResolvers.Type,
     ...modulesResolvers.Type,
     ...userResolvers.Type,
+    ...storeResolvers.Type,
 
     Query: {
         ...userResolvers.Query,

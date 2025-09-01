@@ -1,4 +1,5 @@
 
+import { CategoryProductRepository } from '../../../category_products/domain/repositories/category_products.repository'
 import { IProduct, Product } from '../../domain/entities/products.entity'
 import { ProductRepository } from '../../domain/repositories/products.repository'
 
@@ -18,6 +19,7 @@ interface ResponseOrderStatusType {
 export class CreateProductTypeUseCase {
   constructor(
     private readonly productRepository: ProductRepository,
+    private readonly categoryProductRepository: CategoryProductRepository
   ) { }
 
   /**
@@ -33,12 +35,17 @@ export class CreateProductTypeUseCase {
     if (existingProduct) {
       return {
         success: false,
-        message: 'Product already exists',
+        message: 'Product with this barcode already exists',
         data: existingProduct
       }
     }
-    
-    const created = await this.productRepository.create(newProduct)
+    const category = await this.categoryProductRepository.getByName(process.env.DEFAULT_CATEGORY ?? '')
+
+    const productToCreate = input.carProId
+      ? newProduct
+      : { ...input, carProId: category?.carProId }
+
+      const created = await this.productRepository.create(productToCreate)
 
     if (!created) {
       return {
@@ -49,7 +56,7 @@ export class CreateProductTypeUseCase {
     }
     return {
       success: true,
-      message: 'product status type created successfully',
+      message: 'product created successfully',
       data: created
     }
   }

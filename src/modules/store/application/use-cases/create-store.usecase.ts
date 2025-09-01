@@ -14,6 +14,7 @@ export interface CreateStoreDTO {
   storeName: string
   emailStore: string
   storePhone: string
+  catStore: string
 }
 
 /**
@@ -36,6 +37,7 @@ export class CreateStoreUseCase {
     const {
       storeName,
       emailStore,
+      catStore,
       storePhone
     } = input
 
@@ -77,6 +79,7 @@ export class CreateStoreUseCase {
       storeName,
       deliveryTimeMinutes: 0,
       storePhone,
+      catStore,
       id: user.id,
       description: storeName
     }

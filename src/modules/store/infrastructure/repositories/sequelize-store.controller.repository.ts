@@ -5,10 +5,10 @@ import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
 export class SequelizeStoreRepository implements StoreRepository {
-  async create(user: Store): Promise<Store | null> {
+  async create(store: Store): Promise<Store | null> {
     try {
       const created = await models.Store.create({
-        ...user,
+        ...store,
         createdAt: new Date()
       })
       return created

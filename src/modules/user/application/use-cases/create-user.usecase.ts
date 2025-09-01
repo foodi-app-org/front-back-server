@@ -33,13 +33,17 @@ export class CreateUserUseCase {
         email: String(existing?.email),
         name: String(existing?.name)
       })
+
       return {
         token,
-        message: `Bienvenido ${existing.name ?? existing.email}`,
-        user: {
-          ...existing,
-          password: ''
-        },
+        message: `Bienvenido ${existing.name ?? existing.email}`, 
+        user: new User(
+          existing.id,
+          existing.name,
+          existing.email,
+          '',
+          existing.createdAt
+        ),
         success: false,
         admin: false,
         isVerifyEmail: false,

@@ -108,13 +108,10 @@ export const StoreColumns = {
   },
   dId: DataTypes.STRING(36),
   ctId: DataTypes.STRING(36),
-  // catStore: {
-  //   type: DataTypes.STRING(36),
-  //   references: {
-  //     model: CatStore,
-  //     key: 'catStore'
-  //   }
-  // },
+  catStore: {
+    type: DataTypes.STRING(36),
+    // category store reference
+  },
   deliveryTimeMinutes: {
     type: DataTypes.INTEGER,
     allowNull: false,

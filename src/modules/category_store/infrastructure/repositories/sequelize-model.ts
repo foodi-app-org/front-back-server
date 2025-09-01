@@ -17,10 +17,10 @@ export const MODEL_CAT_STORE_NAME = 'category_stores'
  */
 export interface ICategoryStoreAttributes {
   catStore?: string
-  pName: string
-  ProDescription: string
-  pState?: number
-  ProImage?: string
+  cName: string
+  csDescription: string
+  cState?: number
+  cPathImage?: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -37,10 +37,10 @@ export class SequelizeCategoryStoreModel
   extends Model<ICategoryStoreAttributes, ICategoryStoreCreationAttributes>
   implements ICategoryStoreAttributes {
   declare catStore: string
-  declare pName: string
-  declare ProDescription: string
-  declare pState?: number
-  declare ProImage?: string
+  declare cName: string
+  declare csDescription: string
+  declare cState?: number
+  declare cPathImage?: string
   declare createdAt?: Date
   declare updatedAt?: Date
 }
@@ -52,19 +52,19 @@ export const CategoryStoreColumns = {
     allowNull: false,
     defaultValue: DataTypes.UUIDV4
   },
-  pName: {
+  cName: {
     type: DataTypes.STRING(100),
     allowNull: false
   },
-  ProDescription: {
+  csDescription: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  pState: {
+  cState: {
     type: DataTypes.SMALLINT,
     defaultValue: 1
   },
-  ProImage: {
+  cPathImage: {
     type: DataTypes.STRING,
     allowNull: true
   },

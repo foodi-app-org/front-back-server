@@ -16,7 +16,6 @@ export const productResolvers = {
         ...values,
         idStore: context.restaurant ?? ''
       })
-      console.log("🚀 ~ error:", error)
       if (error) {
         return {
           success: false,

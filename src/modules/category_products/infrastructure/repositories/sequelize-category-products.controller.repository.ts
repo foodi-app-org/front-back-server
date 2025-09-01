@@ -52,5 +52,22 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
       throw new Error('Error al obtener las categorías')
     }
   }
+
+  async getByName(name: string): Promise<ProductCategory | null> {
+    try {
+      const category = await models.CategoryProduct.schema(this.tenant).findOne({
+        where: { pName: name }
+      })
+      return category ? new ProductCategory({
+        ...category.get(),
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt,
+        pState: category.pState ?? 0
+      }) : null
+    } catch (e) {
+      console.error('Error in SequelizeCategoryProductRepository.getByName:', e)
+      throw new Error('Error al obtener la categoría por nombre')
+    }
+  }
 }
 
