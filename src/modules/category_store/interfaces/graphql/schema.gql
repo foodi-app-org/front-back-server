@@ -5,8 +5,8 @@ type CatStore {
     idUser: ID
     cName: String
     cState: Int
-    cDatCre: DateTime
-    cDatMod: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
     csDescription: String
     cPathImage: String
     getAllStore: [Store]
@@ -18,8 +18,8 @@ type CatStore {
 input ICatStore {
     cName: String
     cState: Int
-    cDatCre: DateTime
-    cDatMod: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
     cPathImage: String
     csDescription: String
 }

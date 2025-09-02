@@ -3,8 +3,15 @@
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeStoreRepository implements StoreRepository {
+  private readonly tenant: string = MigrationFolder.Public
+
+  constructor(tenant: string) {
+    this.tenant = tenant ?? MigrationFolder.Public
+  }
+
   async create(store: Store): Promise<Store | null> {
     try {
       const created = await models.Store.create({
@@ -62,6 +69,20 @@ export class SequelizeStoreRepository implements StoreRepository {
   async update(id: string, updateData: Partial<Store>): Promise<Store | null> {
     try {
       const [updated] = await models.Store.update(updateData, {
+        where: { idStore: id }
+      })
+      return updated ? (await this.findById(id)) : null
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null> {
+    try {
+      const [updated] = await models.Store.schema(this.tenant).update({ scheduleOpenAll: openAll }, {
         where: { idStore: id }
       })
       return updated ? (await this.findById(id)) : null

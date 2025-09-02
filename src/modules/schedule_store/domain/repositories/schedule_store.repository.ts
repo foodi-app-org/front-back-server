@@ -33,11 +33,11 @@ export interface ScheduleStoreRepository {
   //  */
   // findById(idStore: string): Promise<Store | null>;
 
-  // /**
-  //  * Retrieves all stores.
-  //  * @returns Array of Store entities.
-  //  */
-  // getAll(): Promise<Store[]>;
+  /**
+   * Retrieves all stores.
+   * @returns Array of schedule Store entities.
+   */
+  getAll(idStore: string): Promise<ScheduleStore[]>;
 
   // /**
   //  * Updates store data by id.

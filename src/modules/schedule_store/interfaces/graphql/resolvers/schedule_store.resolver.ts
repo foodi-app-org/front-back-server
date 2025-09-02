@@ -1,22 +1,29 @@
 
 import { GraphQLResolveInfo } from 'graphql'
 
-import { CreateScheduleStoreUseCase } from '../../../application/use-cases/create-schedule-store.usecase'
-import { SequelizeScheduleStoreRepository } from '../../../infrastructure/repositories/sequelize-store.controller.repository'
 import { storeScheduleSchema } from '../../../infrastructure/validators/create-schedule-store.validator'
 import { CreateScheduleStoreInput } from '../inputs'
+import { GraphQLContext } from '../../../../../shared/types/context'
+import { ScheduleServicesTenantFactory } from '../../../main/factories/schedule_store-services.factory'
 
-const userRepository = new SequelizeScheduleStoreRepository()
 
-const createScheduleStoreUseCase = new CreateScheduleStoreUseCase(userRepository)
 
 
 export const scheduleStoreResolvers = {
   Query: {
+    getStoreSchedules: async (_: GraphQLResolveInfo, args: { idStore: string }, context: GraphQLContext) => {
+      const services = ScheduleServicesTenantFactory(context?.restaurant ?? '')
+      const schedules = await services.getAll.execute(context?.restaurant ?? args?.idStore)
+      return schedules ?? []
+    }
   },
   Mutation: {
-    setStoreSchedule: async (_: GraphQLResolveInfo, args: { input: CreateScheduleStoreInput }) => {
-      const { error } = storeScheduleSchema.validate(args.input)
+    setStoreSchedule: async (_: GraphQLResolveInfo, args: { input: CreateScheduleStoreInput }, context: GraphQLContext) => {
+      const { error, value } = storeScheduleSchema.validate({
+        ...args.input,
+        idStore: context.restaurant,
+        id: context.User?.id
+      })
       if (error) {
         return {
           success: false,
@@ -30,8 +37,9 @@ export const scheduleStoreResolvers = {
           }))
         }
       }
+      const services = ScheduleServicesTenantFactory(context?.restaurant ?? '')
 
-      return await createScheduleStoreUseCase.execute(args.input)
+      return await services.create.execute(value)
     }
   }
 }

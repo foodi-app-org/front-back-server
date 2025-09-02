@@ -4,6 +4,7 @@ import { GraphQLContext } from '../../../../../shared/types/context'
 import { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
 import { StoreServicesPublic } from '../../../infrastructure/services'
 import { CategoryStoreServicesPublic } from '../../../../category_store/main/factories/category_store.factory'
+import { StoreServicesTenantFactory } from '../../../main/factories/store-services.factory'
 
 
 interface NewRegisterStoreArgs {
@@ -28,8 +29,16 @@ export const storeResolvers = {
   },
   Mutation: {
     newRegisterStore: async (_: GraphQLResolveInfo, args: NewRegisterStoreArgs) => {
-      console.log("🚀 ~ args.input:", args.input)
       return await StoreServicesPublic.create.execute(args.input)
+    },
+    setScheduleOpenAll: async (_: GraphQLResolveInfo, args: { id: string, openAll: boolean }, context: GraphQLContext) => {
+      const services = StoreServicesTenantFactory(context.restaurant ?? '')
+      await services.updateScheduleOpenAll.execute(args.id, args.openAll)
+      return {
+        success: true,
+        message: 'Schedule updated successfully',
+        errors: null
+      }
     }
   }
 }

@@ -32,6 +32,14 @@ export interface StoreRepository {
    */
   findByUserId(id: string): Promise<Store | null>;
 
+  /**
+   * Updates the scheduleOpenAll flag of a store.
+   * @param id - UUID of the store.
+   * @param openAll - Boolean flag (true = always open, false = normal schedule).
+   * @returns Updated Store or null if not found.
+   */
+  updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null>;
+
 
   update(id: string, updateData: Partial<Store>): Promise<Store | null>;
   // /**

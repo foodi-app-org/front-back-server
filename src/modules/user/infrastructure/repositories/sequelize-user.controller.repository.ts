@@ -1,5 +1,3 @@
-// infrastructure/repositories/sequelize-user.repository.ts
-
 import { v4 as uuid } from 'uuid'
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
@@ -64,7 +62,6 @@ export class SequelizeUserRepository implements UserRepository {
    * @returns User entity or null if not found
    */
   async findById(id: string): Promise<User | null> {
-    console.log("🚀 ~ SequelizeUserRepository ~ findById ~ id:", id)
     const user = await SequelizeUserModel.schema(this.tenant).findByPk(id)
     if (!user) return null
 

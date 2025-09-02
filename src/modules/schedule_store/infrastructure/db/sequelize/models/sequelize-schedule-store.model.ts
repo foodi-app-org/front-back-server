@@ -54,7 +54,7 @@ export const columnsScheduleStore = {
   },
   id: {
     type: DataTypes.STRING(36),
-    allowNull: false
+    allowNull: true
   },
   idStore: {
     type: DataTypes.STRING(36),
