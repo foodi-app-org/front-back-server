@@ -20,6 +20,7 @@ export default {
     ...modulesResolvers.Type,
     ...userResolvers.Type,
     ...storeResolvers.Type,
+    ...categoryProductResolvers.Type,
 
     Query: {
         ...userResolvers.Query,

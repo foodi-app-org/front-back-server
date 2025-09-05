@@ -10,6 +10,7 @@ import { UserServices } from '../../../../user/main/factories/user-services.fact
 import { StatusOrderTypesServices } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
+import { MigrationFolder } from '../../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export const orderResolvers = {
   Type: {

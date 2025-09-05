@@ -24,16 +24,16 @@ export const storeResolvers = {
    */
   Query: {
     getStore: async (_: GraphQLResolveInfo, args: { id: string }, context: GraphQLContext) => {
-      return await StoreServicesPublic.findById.execute(args.id ??  context.restaurant ?? '')
+      return await StoreServicesPublic.findById.execute(args.id ?? context.restaurant ?? '')
     }
   },
   Mutation: {
     newRegisterStore: async (_: GraphQLResolveInfo, args: NewRegisterStoreArgs) => {
       return await StoreServicesPublic.create.execute(args.input)
     },
-    setScheduleOpenAll: async (_: GraphQLResolveInfo, args: { id: string, openAll: boolean }, context: GraphQLContext) => {
+    setScheduleOpenAll: async (_: GraphQLResolveInfo, { scheduleOpenAll }: { scheduleOpenAll: boolean }, context: GraphQLContext) => {
       const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      await services.updateScheduleOpenAll.execute(args.id, args.openAll)
+      await services.updateScheduleOpenAll.execute(context.restaurant ?? '', scheduleOpenAll)
       return {
         success: true,
         message: 'Schedule updated successfully',

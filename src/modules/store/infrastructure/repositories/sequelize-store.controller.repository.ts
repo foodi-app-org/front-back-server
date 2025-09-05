@@ -1,5 +1,3 @@
-// infrastructure/repositories/sequelize-store.repository.ts
-
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
@@ -82,7 +80,7 @@ export class SequelizeStoreRepository implements StoreRepository {
 
   async updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null> {
     try {
-      const [updated] = await models.Store.schema(this.tenant).update({ scheduleOpenAll: openAll }, {
+      const [updated] = await models.Store.update({ scheduleOpenAll: openAll }, {
         where: { idStore: id }
       })
       return updated ? (await this.findById(id)) : null

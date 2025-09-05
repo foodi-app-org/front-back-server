@@ -1,0 +1,51 @@
+type TagsProduct {
+  tgId: ID
+  idUser: ID
+  idStore: ID
+  pId: ID
+  state: Int
+  nameTag: String
+  aName: String
+}
+# Tag Type
+
+# Tag Input
+input ITag {
+  idUser: ID
+  idStore: ID
+  pId: ID
+  state: Int
+  nameTag: String
+  aName: String
+}
+
+type IResponseTag {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: TagsProduct
+}
+
+type IResponseMultipleTag {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [TagsProduct]
+}
+
+"Respuesta de la petición de los clientes"
+type ResponseAllTags {
+    success: Boolean
+    message: String
+    errors: [errors]
+    data: [TagsProduct]
+    pagination: Pagination 
+}
+
+
+
+# Query
+type Query {
+  getAllTags(idStore: ID): ResponseAllTags
+  getOneTags(idStore: ID): TagsProduct
+}

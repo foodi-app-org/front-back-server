@@ -20,7 +20,7 @@ type catProductsWithProduct {
   pState: Int
   createdAt: DateTime
   updatedAt: DateTime
-  # productFoodsAll: [ProductFood]
+  productFoodsAll: [ProductFood]
 }
 type customTotalAndCatProductsWithProduct {
   totalCount: Int
@@ -71,6 +71,7 @@ type Query {
     desc: [String]
     categories: [ID]
   ): [catProducts]
+
   getCatProductsWithProduct(
     carProId: ID
     cId: ID
@@ -84,6 +85,7 @@ type Query {
     desc: [String]
     categories: [ID]
   ): customTotalAndCatProductsWithProduct
+
   getCatProductsWithProductClient(
     carProId: ID
     cId: ID

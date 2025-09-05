@@ -30,15 +30,34 @@ export class CreateProductTypeUseCase {
   async execute(input: CreateProductDTO): Promise<ResponseOrderStatusType | null> {
     
     const newProduct = new Product(input)
-    const existingProduct = await this.productRepository.findByProBarCode(newProduct?.ProBarCode ?? '')
-    
-    if (existingProduct) {
+
+    const existingProductById = await this.productRepository.findById(newProduct?.pId ?? '')
+
+    if (existingProductById) {
+      const updated = await this.productRepository.update(String(existingProductById.pId), { pState: Number(existingProductById.pState === 1 ? 0 : 1) })
+      if (updated) {
+        return {
+          success: true,
+          message: 'Product with this ID already exists and has been updated',
+          data: updated
+        }
+      }
+      return {
+        success: true,
+        message: 'Product with this ID already exists, updating data',
+        data: existingProductById
+      }
+    }
+    const existingProductByProBarCode = await this.productRepository.findByProBarCode(newProduct?.ProBarCode ?? '')
+
+    if (existingProductByProBarCode) {
       return {
         success: false,
         message: 'Product with this barcode already exists',
-        data: existingProduct
+        data: existingProductByProBarCode
       }
     }
+
     const category = await this.categoryProductRepository.getByName(process.env.DEFAULT_CATEGORY ?? '')
 
     const productToCreate = input.carProId

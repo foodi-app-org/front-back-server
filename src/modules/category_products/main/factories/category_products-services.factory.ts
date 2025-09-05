@@ -2,6 +2,7 @@ import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { CreateProductCategoryUseCase } from '../../application/use-cases/create-product-category.use-case'
 import { GetAllCategoryProductsUseCase } from '../../application/use-cases/get-all-products-category.use-case'
+import { GetCatProductsWithProductUseCase } from '../../application/use-cases/get-all-category-with-products-category.usecase'
 import { GetCategoryByNameProductsUseCase } from '../../application/use-cases/get-by-name-products-category.use-case'
 import { SequelizeCategoryProductRepository } from '../../infrastructure/repositories/sequelize-category-products.controller.repository'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
@@ -39,5 +40,6 @@ export const CategoryProductRepositoryServicesTenantFactory = (tenant: string) =
         create: createProductCategoryUseCase,
         getAll: new GetAllCategoryProductsUseCase(categoryProductsRepository),
         getByName: new GetCategoryByNameProductsUseCase(categoryProductsRepository),
+        getCatProductsWithProduct: new GetCatProductsWithProductUseCase(categoryProductsRepository)
     }
 }

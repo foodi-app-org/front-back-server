@@ -1,0 +1,8 @@
+# Mutations
+type Mutation {
+  registerTag(input: ITag): IResponseTag
+  registerTagName(name: String): IResponseTag
+  registerMultipleTags(input: [String]!): IResponseMultipleTag
+  EditTags(input: ITag): TagsProduct
+  deleteOneTag(tgId: ID, nameTag: String): IResponseTag,
+}

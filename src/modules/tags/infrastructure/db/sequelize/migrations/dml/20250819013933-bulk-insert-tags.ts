@@ -2,6 +2,7 @@ import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
 import { states, TAGS_PRODUCT_MODEL_NAME } from '../../models/sequelize-tags.model'
+import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
 
 const tagNames = [
     {
@@ -35,7 +36,7 @@ export const up = async (
 
     const tags = tagNames.map(nameTag => ({
         tgId: uuidv4(),
-        idStore: schemaName,
+        idStore: removeTenantPrefix(schemaName),
         idUser: null,
         nameTag: nameTag.nameTag,
         state: states.ACTIVE,

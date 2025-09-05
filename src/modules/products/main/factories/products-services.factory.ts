@@ -2,6 +2,7 @@
 
 import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
 import { FindProductByIdUseCase } from '../../application/use-cases/find-products-by-id.usecase'
+import { GetAllProductsByCategoryIdUseCase } from '../../application/use-cases/get-all-products-by-category.usecase'
 import { SequelizeProductRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
@@ -23,6 +24,7 @@ export const ProductServicesTenantFactory = (tenant: string) => {
 
     return {
         create: new CreateProductTypeUseCase(productRepository, categoryProductsRepository),
-        findById: new FindProductByIdUseCase(productRepository)
+        findById: new FindProductByIdUseCase(productRepository),
+        getAllProductsByCategoryId: new GetAllProductsByCategoryIdUseCase(productRepository)
     }
 }
