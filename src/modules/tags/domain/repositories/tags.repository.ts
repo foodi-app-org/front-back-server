@@ -1,10 +1,10 @@
-import { TagProductEntity } from '../entities/tags.entity'
+import { ShoppingCartPagination, TagProductEntity } from '../entities/tags.entity'
 
 /**
  * Repository class to handle TagProduct DB operations
  */
-export class TagProductRepository {
-  async create(data: TagProductEntity): Promise<TagProductEntity | null> {
-    return data ?? null
-  }
+export interface TagProductRepository {
+  create(tag: TagProductEntity): Promise<TagProductEntity | null>
+  getAll(idStore: string): Promise<ShoppingCartPagination | null>
 }
+  

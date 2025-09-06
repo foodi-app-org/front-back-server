@@ -13,7 +13,9 @@ import { statusOrderTypesResolvers } from '../../../modules/status_order_types/i
 import { storeResolvers } from '../../../modules/store/interfaces/graphql/resolvers/store.resolver'
 import { tableResolvers } from '../../../modules/tables/interfaces/graphql/resolvers/tables.resolver'
 import { userResolvers } from '../../../modules/user/interfaces/graphql/resolvers/user.resolver'
+import { tagsResolvers } from '../../../modules/tags/interfaces/graphql/resolvers/tags.resolver'
 import { dateTimeScalar } from './scalars/date-time.scalar'
+
 
 export default {
     ...orderResolvers.Type,
@@ -37,7 +39,8 @@ export default {
         ...tableResolvers.Query,
         ...salesResolvers.Query,
         ...dashboardResolvers.Query,
-        ...deviceUserResolvers.Query
+        ...deviceUserResolvers.Query,
+        ...tagsResolvers.Query
 
     },
     Mutation: {
@@ -56,6 +59,7 @@ export default {
         ...salesResolvers.Mutation,
         ...dashboardResolvers.Mutation,
         ...deviceUserResolvers.Mutation,
+        ...tagsResolvers.Mutation
     },
     Subscription: {
     },

@@ -43,7 +43,7 @@ interface GetAllParams {
  * @template T Sequelize Model type
  */
 export class GenericService<T extends Model> {
-    private model: ModelStatic<T>
+    private readonly model: ModelStatic<T>
 
     /**
      * @param model Sequelize model

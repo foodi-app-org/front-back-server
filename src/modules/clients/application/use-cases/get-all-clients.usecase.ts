@@ -23,16 +23,12 @@ export class GetAllClientUseCase {
    * @param input - The client entity containing the table data.
    * @returns The created Client or an error message.
    */
-  async execute(): Promise<CreateClientResponse> {
+  async execute(idStore: string): Promise<CreateClientResponse | null> {
     try {
       // Persist in repository
-      const data = await this.clientsRepository.getAll()
+      const data = await this.clientsRepository.getAll(idStore)
 
-      return {
-        success: true,
-        message: 'Clients retrieved successfully',
-        data: data ?? [],
-      }
+      return data
     } catch (error: unknown) {
       return {
         success: false,
