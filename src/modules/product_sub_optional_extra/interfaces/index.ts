@@ -1,0 +1,1 @@
+export * from './graphql/resolvers/product_optional_extra.resolver'

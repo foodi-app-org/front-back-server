@@ -17,7 +17,7 @@ import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/i
 import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables/infrastructure/db/sequelize/models/sequelize-table.model'
 import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
-
+import { SequelizeProductOptionalExtra, PRODUCT_OPTIONAL_EXTRA_MODEL } from '../../../../../modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra.model'
 export const models = {
   User: SequelizeUserModel,
   Store: SequelizeStoreModel,
@@ -36,7 +36,9 @@ export const models = {
   StockMovement: SequelizeStockMovementModel,
   TagProduct: SequelizeTagProductModel,
   Client: SequelizeClientModel,
-  DashboardComponents: SequelizeDashboardComponentsModel
+  DashboardComponents: SequelizeDashboardComponentsModel,
+  ProductOptionalExtra: SequelizeProductOptionalExtra,
+
 }
 
 export const models_names = {
@@ -57,5 +59,6 @@ export const models_names = {
   StockMovement: STOCK_MOVEMENT_NAME,
   TagProduct: TAGS_PRODUCT_MODEL_NAME,
   Client: CLIENTS_TABLE,
-  DashboardComponents: DASHBOARD_COMPONENTS
+  DashboardComponents: DASHBOARD_COMPONENTS,
+  ProductOptionalExtra: PRODUCT_OPTIONAL_EXTRA_MODEL,
 }

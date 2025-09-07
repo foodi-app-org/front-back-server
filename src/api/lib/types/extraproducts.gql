@@ -11,6 +11,7 @@ type ExtProductFood {
 	pDatCre: DateTime
 	pDatMod: DateTime
 }
+
 # type OPTIONAL PRODUCT
 type ExtProductFoodOptional {
 	pId: ID!
@@ -24,6 +25,7 @@ type ExtProductFoodOptional {
 	pDatMod: DateTime
 	ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptional]
 }
+
 # type SUB_OPTIONAL PRODUCT
 type ExtProductFoodSubOptional {
 	pId: ID
@@ -37,6 +39,7 @@ type ExtProductFoodSubOptional {
 	pDatCre: DateTime
 	pDatMod: DateTime
 }
+
 input InputExtProductFoodSubOptional {
 	pId: ID
 	opExPid: ID
@@ -49,6 +52,7 @@ input InputExtProductFoodSubOptional {
 	pDatCre: DateTime
 	pDatMod: DateTime
 }
+
 # INPUT OPTIONAL
 input InputExtProductFoodOptional {
 	pId: ID
@@ -70,9 +74,11 @@ input InputExtProductFood {
 	pDatCre: DateTime
 	pDatMod: DateTime
 }
+
 input ILineItemsExtraFinal {
 	setData: [InputExtProductFood]
 }
+
 input EditExtProductFoodOptionalInput {
 	pId: ID!
 	opExPid: ID
@@ -119,7 +125,7 @@ type Mutation {
 	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
 	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
 	"Registra un ExtProductFoodOptional"
-	updateExtProductFoodsOptional(input: InputExtProductFoodOptional): Response
+	updateExtProductOptional(input: InputExtProductFoodOptional): Response
 	"Registra un ExtProductFoodSubOptional"
 	updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
 	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response

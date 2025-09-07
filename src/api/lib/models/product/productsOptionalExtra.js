@@ -31,7 +31,6 @@ const productsOptionalExtra = sequelize.define(PRODUCT_OPTIONAL_EXTRA_MODEL, {
       model: productModelFood,
       key: 'pId'
     }
-
   },
   idStore: {
     type: STRING(36),

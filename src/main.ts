@@ -5,17 +5,18 @@ import { ApolloServer } from 'apollo-server-express'
 import cors from 'cors'
 import express from 'express'
 
+
 import { config } from './configs/app.config'
 import { context } from './shared/infrastructure/graphql/context'
 import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import routes from './shared/infrastructure/res/routes'
+import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 const startServer = async () => {
-  // Initialization apps
   const app = express()
-  app.use(express.json())
 
+  // CORS
   const allowedOrigins = [
     process.env.WEB_CLIENT,
     process.env.WEB_ADMIN_STORE,
@@ -43,26 +44,46 @@ const startServer = async () => {
         }
       },
       credentials: true,
-      methods: ['GET', 'POST']
+      methods: ['GET', 'POST'],
     })
   )
 
-
+  app.use(express.json())
   app.use('/api', routes)
+
+  // 👇 Middleware de upload ANTES de Apollo
+  app.use(
+    graphqlUploadExpress({
+      maxFileSize: 10_000_000, // 10MB
+      maxFiles: 10,
+    })
+  )
+
+  // Apollo server con el scalar Upload agregado
   const server = new ApolloServer({
     typeDefs,
-    resolvers,
+    resolvers: {
+      ...resolvers,
+    },
     introspection: true,
-    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()], // Habilita el Playground
-    context
+    plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+    context,
   })
 
   await server.start()
-  server.applyMiddleware({ app })
+
+  server.applyMiddleware({
+    app,
+    cors: false, // ya lo maneja Express
+    path: config.server.graphqlPath || '/graphql',
+  })
+
   const { port } = config.server
   app.listen({ port }, () => {
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+    console.log(`🚀 Server ready at http://localhost:${port}${server.graphqlPath}`)
   })
 }
 
-startServer()
+startServer().catch((err) => {
+  console.error('❌ Server failed to start', err)
+})

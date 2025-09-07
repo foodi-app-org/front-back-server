@@ -133,4 +133,21 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+  async updateImage(id: string, image: string): Promise<Product | null> {
+    try {
+      const [affectedCount, updatedRows] = await models.Product.schema(this.tenant).update({ ProImage: image }, {
+        where: { pId: id },
+        returning: true
+      })
+      if (!affectedCount || !updatedRows || updatedRows.length === 0) {
+        return null
+      }
+      return updatedRows[0]
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
 }

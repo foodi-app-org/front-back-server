@@ -15,8 +15,7 @@ dotenv.config({
 /**
  * Ruta base donde se almacenan los datos persistentes
  */
-export const PATH_EXTERNAL_OS = 'app_data'
-
+export const PATH_EXTERNAL_OS = String(process.env.PATH_EXTERNAL_OS)
 /**
  * Flag para determinar si se usa SQLite
  */

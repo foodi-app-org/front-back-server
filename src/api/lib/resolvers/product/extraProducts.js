@@ -123,7 +123,7 @@ export const updateExtProductFoods = async (_root, { input }) => {
   }
 }
 // OPTIONAL PRODUCTS
-export const updateExtProductFoodsOptional = async (_root, { input }, context) => {
+export const updateExtProductOptional = async (_root, { input }, context) => {
   const {
     opExPid,
     pId,
@@ -460,7 +460,7 @@ export default {
     // OPTIONAL
     DeleteExtProductFoodsOptional,
     editExtProductFoods,
-    updateExtProductFoodsOptional,
+    updateExtProductOptional,
     // SUB_OPTIONAL
     updateExtProductFoodsSubOptional,
     DeleteExtFoodSubsOptional,

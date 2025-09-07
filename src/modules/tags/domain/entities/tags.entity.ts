@@ -1,6 +1,6 @@
 export enum TagState {
   ACTIVE = 1,
-  INACTIVE = 0,
+  DELETED = 0,
   ARCHIVED = -1
 }
 

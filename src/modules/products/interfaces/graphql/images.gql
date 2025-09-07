@@ -1,0 +1,20 @@
+# types.graphql
+type Mutation {
+  setImageProducts(input: IFileImageProductFood): ResponseMessageImageProduct
+}
+
+input IFileImageProductFood {
+  pId: ID
+  image: Upload
+}
+type IResponseData {
+  pId: ID
+  ProImage: String
+}
+
+type ResponseMessageImageProduct {
+  success: Boolean
+  message: String
+  data: IResponseData
+  errors: [errors]
+}

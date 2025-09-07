@@ -1,0 +1,45 @@
+import { GraphQLResolveInfo } from 'graphql'
+
+import { ProductOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
+import { productOptionalExtraSchema } from '../../../infrastructure/validators/product-optional-extra.validator'
+import { GraphQLContext } from '../../../../../shared/types/context'
+
+type CreateStatusTypeOrderInput = {
+  pId: string
+  OptionalProName: string
+  numbersOptionalOnly?: number
+  code: string
+  required?: number
+  state?: number
+  opExPid?: string
+}
+
+export const productOptionalExtraResolvers = {
+  Query: {
+
+  },
+  Mutation: {
+    updateExtProductOptional: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
+      const values = { ...args.input }
+      const { error, value } = productOptionalExtraSchema.validate({
+        ...values,
+        idStore: context.restaurant ?? ''
+      })
+      if (error) {
+        return {
+          success: false,
+          data: null,
+          message: 'Error de validación',
+          errors: error?.details.map(e => ({
+            message: e.message,
+            path: e.path,
+            type: e.type,
+            context: e.context
+          }))
+        }
+      }
+      const services = ProductOptionalServicesTenantFactory(context.restaurant ?? '')
+      return await services.create.execute(value, context.restaurant ?? '')
+    },
+  },
+}

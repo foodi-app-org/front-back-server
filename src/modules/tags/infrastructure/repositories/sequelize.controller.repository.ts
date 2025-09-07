@@ -1,7 +1,7 @@
 import { Transaction } from 'sequelize'
 
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
-import { ShoppingCartPagination, TagProductEntity } from '../../domain/entities/tags.entity'
+import { ShoppingCartPagination, TagProductEntity, TagState } from '../../domain/entities/tags.entity'
 import { TagProductRepository } from '../../domain/repositories/tags.repository'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
@@ -34,12 +34,47 @@ export class SequelizeTagsRepository implements TagProductRepository {
   async getAll(idStore: string): Promise<ShoppingCartPagination | null> {
     try {
       const result = await this.genericService.getAll({
-        searchFields: ['pCodeRef'],
-        idStore
+        searchFields: ['nameTag'],
+        idStore,
+        where: { 
+          state: TagState.ACTIVE,
+          
+        }
       })
       return result
     } catch (e) {
-      console.log("🚀 ~ SequelizeTagsRepository ~ findAndCountAll ~ e:", e)
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+  async findByIdOrName(idStore: string, tgId?: string, nameTag?: string): Promise<TagProductEntity | null> {
+    try {
+      const whereClause: Record<string, any> = { idStore }
+      if (tgId) {
+        whereClause.tgId = tgId
+      }
+      if (nameTag) {
+        whereClause.nameTag = nameTag
+      }
+      const tag = await models.TagProduct.schema(this.tenant).findOne({ where: whereClause })
+      return tag
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async updateState(tgId: string, state: number, idStore: string): Promise<void> {
+    try {
+      await models.TagProduct.schema(this.tenant).update(
+        { state },
+        { where: { tgId, idStore } }
+      )
+    } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)
       }

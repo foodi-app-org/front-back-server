@@ -7,7 +7,7 @@ import { ProductServicesTenantFactory } from '../../../main/factories/products-s
 
 export const productResolvers = {
   Query: {
-   
+
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
@@ -31,6 +31,24 @@ export const productResolvers = {
       }
       const services = ProductServicesTenantFactory(context.restaurant ?? '')
       return await services.create.execute(value)
+    },
+    setImageProducts: async (
+      _: GraphQLResolveInfo,
+      args: { input: { pId: string; image: any } },
+      context: GraphQLContext
+    ) => {
+      const { pId, image } = args.input
+      try {
+        const services = ProductServicesTenantFactory(context.restaurant ?? "")
+        return await services.setImageProduct.execute({ pId, image })
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : "Unexpected error",
+          data: null,
+        }
+      }
     }
-  }
+
+  },
 }

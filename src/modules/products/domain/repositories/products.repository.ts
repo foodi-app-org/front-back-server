@@ -11,4 +11,5 @@ export interface ProductRepository {
   findById(id: string): Promise<Product | null>
   getAllByCategoryId(categoryId: string): Promise<Product[] | null>
   update(id: string, data: Partial<Product>): Promise<Product | null>
+  updateImage(id: string, image: string): Promise<Product | null>
 }

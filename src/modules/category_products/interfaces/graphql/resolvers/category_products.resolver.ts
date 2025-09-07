@@ -18,7 +18,6 @@ export const categoryProductResolvers = {
     catProductsAll: async (_: GraphQLResolveInfo, __: {}, context: GraphQLContext) => {
       const services = CategoryProductRepositoryServicesTenantFactory(context.restaurant ?? '')
       const { data } = await services.getAll.execute()
-      console.log("🚀 ~ data:", data)
       return data
     },
     getCatProductsWithProduct: async (_: GraphQLResolveInfo, args: any, context: GraphQLContext) => {

@@ -1,0 +1,91 @@
+import { Op } from 'sequelize'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
+import { GenericService } from '../../../../shared/infrastructure/persistence'
+import { ProductOptionalExtra, ProductOptionalExtraPagination } from '../../domain/entities/product-optional-extra.entity'
+import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
+import { StateProductOptionalExtra, type SequelizeProductOptionalExtra } from '../db/sequelize/models/sequelize-product-optional-extra.model'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+
+export class SequelizeProductOptionalExtraRepository implements IProductOptionalExtraRepo {
+  private readonly genericService: GenericService<SequelizeProductOptionalExtra>
+  private readonly tenant: string
+
+
+  constructor(tenant?: string) {
+    this.tenant = tenant ?? MigrationFolder.Public
+    this.genericService = new GenericService(models.ProductOptionalExtra)
+  }
+
+
+  async create(data: ProductOptionalExtra): Promise<ProductOptionalExtra | null> {
+    try {
+      const created = await models.ProductOptionalExtra.schema(this.tenant).create({
+        ...data,
+      })
+      return created
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async findByCode(code: string): Promise<ProductOptionalExtra | null> {
+    try {
+      const scheduleStore = await models.ProductOptionalExtra.schema(this.tenant).findOne({
+        attributes: ['pId', 'code'],
+        where: {
+          [Op.or]: [
+            {
+              code
+            }
+          ]
+        }
+      })
+      return scheduleStore
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async getAll(idStore: string): Promise<ProductOptionalExtraPagination | null> {
+    try {
+      const result = await this.genericService.getAll({
+        searchFields: [''],
+        idStore,
+        where: {
+          state: { [Op.gt]: StateProductOptionalExtra.ACTIVE }
+        }
+      })
+
+      return result
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async update(code: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
+    try {
+      const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
+        where: { code }
+      })
+      if (!updated) {
+        throw new Error('Product not found')
+      }
+      await updated.update(data)
+      return updated
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+}
