@@ -1,10 +1,10 @@
 import { QueryInterface } from 'sequelize'
 
-import { columnsProductOptionalExtra, PRODUCT_OPTIONAL_EXTRA_MODEL } from '../../models/sequelize-product-optional-extra.model'
+import { columnsProductSubOptionalExtra, PRODUCT_SUB_OPTIONAL_EXTRA } from '../../models/sequelize-product-sub-optional-extra.model'
 
 
 /**
- * Creates the `productsoptionalextras` table in the provided schema.
+ * Creates the `products_sub_optional_extras` table in the provided schema.
  *
  * @param {string} schemaName - The schema where the table will be created.
  * @param {QueryInterface} queryInterface - Sequelize query interface for executing SQL operations.
@@ -16,15 +16,15 @@ export const up = async (
 ): Promise<void> => {
     await queryInterface.createTable(
         {
-            tableName: PRODUCT_OPTIONAL_EXTRA_MODEL,
+            tableName: PRODUCT_SUB_OPTIONAL_EXTRA,
             schema: schemaName
         },
-        columnsProductOptionalExtra
+        columnsProductSubOptionalExtra
     )
 }
 
 /**
- * Drops the `productsoptionalextras` table from the provided schema.
+ * Drops the `products_sub_optional_extras` table from the provided schema.
  *
  * @param {string} schemaName - The schema where the table will be dropped from.
  * @param {QueryInterface} queryInterface - Sequelize query interface for executing SQL operations.
@@ -34,5 +34,5 @@ export const down = async (
     schemaName: string,
     queryInterface: QueryInterface
 ): Promise<void> => {
-    await queryInterface.dropTable({ tableName: PRODUCT_OPTIONAL_EXTRA_MODEL, schema: schemaName })
+    await queryInterface.dropTable({ tableName: PRODUCT_SUB_OPTIONAL_EXTRA, schema: schemaName })
 }

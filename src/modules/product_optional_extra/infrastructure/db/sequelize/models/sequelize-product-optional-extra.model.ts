@@ -2,9 +2,9 @@ import {
   INTEGER,
   STRING,
   UUIDV4,
-  literal,
   Model,
-  Optional
+  Optional,
+  DataTypes
 } from "sequelize"
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
@@ -51,8 +51,7 @@ export type IProductOptionalExtraCreationAttributes = Optional<
  */
 export class SequelizeProductOptionalExtra
   extends Model<IProductOptionalExtraAttributes, IProductOptionalExtraCreationAttributes>
-  implements IProductOptionalExtraAttributes
-{
+  implements IProductOptionalExtraAttributes {
   declare opExPid?: string
   declare pId: string
   declare idStore: string
@@ -108,14 +107,12 @@ export const columnsProductOptionalExtra = {
     defaultValue: 0
   },
   createdAt: {
-    type: "TIMESTAMP",
-    defaultValue: literal("CURRENT_TIMESTAMP"),
-    allowNull: false
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
   updatedAt: {
-    type: "TIMESTAMP",
-    defaultValue: literal("CURRENT_TIMESTAMP"),
-    allowNull: false
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }
 

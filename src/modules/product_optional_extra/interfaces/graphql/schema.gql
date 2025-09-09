@@ -8,8 +8,8 @@ type ExtProductFood {
 	quantity: Int
 	newExtraPrice: Int
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 # type OPTIONAL PRODUCT
@@ -21,8 +21,8 @@ type ExtProductFoodOptional {
 	code: String
 	required: Int
 	numbersOptionalOnly: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 	ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptional]
 }
 
@@ -36,8 +36,8 @@ type ExtProductFoodSubOptional {
 	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
 	exCode: String # Relación con ExtProductFoodOptional
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 input InputExtProductFoodSubOptional {
@@ -49,8 +49,8 @@ input InputExtProductFoodSubOptional {
 	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
 	exCode: String # Relación con ExtProductFoodOptional
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 # INPUT OPTIONAL
@@ -71,8 +71,8 @@ input InputExtProductFood {
 	extraName: String
 	extraPrice: Float
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 input ILineItemsExtraFinal {
@@ -87,7 +87,7 @@ input EditExtProductFoodOptionalInput {
 	code: String
 	required: Int
 	numbersOptionalOnly: Int
-	pDatMod: DateTime
+	updatedAt: DateTime
 	ExtProductFoodsSubOptionalAll: [EditExtProductFoodSubOptionalInput]
 }
 

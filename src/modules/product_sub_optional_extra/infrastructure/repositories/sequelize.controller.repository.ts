@@ -1,25 +1,25 @@
-import { Op } from 'sequelize'
+// import { Op } from 'sequelize'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
-import { GenericService } from '../../../../shared/infrastructure/persistence'
-import { ProductOptionalExtra, ProductOptionalExtraPagination } from '../../domain/entities/product-optional-extra.entity'
-import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { StateProductOptionalExtra, type SequelizeProductOptionalExtra } from '../db/sequelize/models/sequelize-product-optional-extra.model'
+// import { GenericService } from '../../../../shared/infrastructure/persistence'
+import { ProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
+import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
+// import { StateProductSubOptionalExtra, type SequelizeProductSubOptionalExtra } from '../db/sequelize/models/sequelize-product-sub-optional-extra.model'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
-export class SequelizeProductOptionalExtraRepository implements IProductOptionalExtraRepo {
-  private readonly genericService: GenericService<SequelizeProductOptionalExtra>
+export class SequelizeProductSubOptionalExtraRepository implements IProductSubOptionalExtraRepo {
+  // private readonly genericService: GenericService<SequelizeProductOptionalExtra>
   private readonly tenant: string
 
 
   constructor(tenant?: string) {
     this.tenant = tenant ?? MigrationFolder.Public
-    this.genericService = new GenericService(models.ProductOptionalExtra)
+    // this.genericService = new GenericService(models.ProductOptionalExtra)
   }
 
 
-  async create(data: ProductOptionalExtra): Promise<ProductOptionalExtra | null> {
+  async create(data: ProductSubOptionalExtra): Promise<ProductSubOptionalExtra | null> {
     try {
-      const created = await models.ProductOptionalExtra.schema(this.tenant).create({
+      const created = await models.ProductSubOptionalExtra.schema(this.tenant).create({
         ...data,
       })
       return created
@@ -30,17 +30,11 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
       throw new Error(String(e))
     }
   }
-
-  async findByCode(code: string): Promise<ProductOptionalExtra | null> {
+  async findByExCode(exCode: string): Promise<ProductSubOptionalExtra | null> {
     try {
-      const scheduleStore = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-        attributes: ['pId', 'code'],
+      const scheduleStore = await models.ProductSubOptionalExtra.schema(this.tenant).findOne({
         where: {
-          [Op.or]: [
-            {
-              code
-            }
-          ]
+          exCode
         }
       })
       return scheduleStore
@@ -51,35 +45,15 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
       throw new Error(String(e))
     }
   }
-
-  async getAll(idStore: string): Promise<ProductOptionalExtraPagination | null> {
+  async updateByExCode(exCode: string, update: Partial<ProductSubOptionalExtra>): Promise<ProductSubOptionalExtra | null> {
     try {
-      const result = await this.genericService.getAll({
-        searchFields: [''],
-        idStore,
-        where: {
-          state: { [Op.gt]: StateProductOptionalExtra.ACTIVE }
+      const [, [updated]] = await models.ProductSubOptionalExtra.schema(this.tenant).update(
+        update,
+        {
+          where: { exCode },
+          returning: true
         }
-      })
-
-      return result
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
-    }
-  }
-
-  async update(code: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
-    try {
-      const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-        where: { code }
-      })
-      if (!updated) {
-        throw new Error('Product not found')
-      }
-      await updated.update(data)
+      )
       return updated
     } catch (e) {
       if (e instanceof Error) {

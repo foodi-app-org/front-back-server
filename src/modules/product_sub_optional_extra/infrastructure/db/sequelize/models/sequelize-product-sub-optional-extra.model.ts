@@ -2,10 +2,10 @@ import {
   INTEGER,
   STRING,
   UUIDV4,
-  literal,
   Model,
-  Optional
-} from "sequelize"
+  Optional,
+  DataTypes
+} from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 
@@ -16,7 +16,7 @@ export const PRODUCT_SUB_OPTIONAL_EXTRA = 'products_sub_optional_extras'
 /**
  * Enum for state of the optional extra product
  */
-export enum StateProductOptionalExtra {
+export enum StateProductSubOptionalExtra {
   ACTIVE = 1,
   INACTIVE = 0,
   ARCHIVED = -1
@@ -26,13 +26,14 @@ export enum StateProductOptionalExtra {
  * Attributes stored in DB
  */
 export interface IProductOptionalExtraAttributes {
+  opSubExPid?: string
+  pId: string
+  idStore: string
   opExPid?: string
-  pId?: string
-  idStore?: string
-  OptionalProName: string
-  code?: string
-  numbersOptionalOnly?: number
-  state?: StateProductOptionalExtra
+  OptionalSubProName: string
+  exCodeOptionExtra: string
+  exCode: string
+  state?: StateProductSubOptionalExtra
   required?: number
   createdAt?: Date
   updatedAt?: Date
@@ -43,23 +44,23 @@ export interface IProductOptionalExtraAttributes {
  */
 export type IProductOptionalExtraCreationAttributes = Optional<
   IProductOptionalExtraAttributes,
-  "opExPid" | "createdAt" | "updatedAt" | "state" | "required"
+  'opSubExPid' | 'createdAt' | 'updatedAt' | 'state' | 'required'
 >
 
 /**
  * Sequelize model definition
  */
-export class SequelizeProductOptionalExtra
+export class SequelizeProductSubOptionalExtra
   extends Model<IProductOptionalExtraAttributes, IProductOptionalExtraCreationAttributes>
-  implements IProductOptionalExtraAttributes
-{
-  declare opExPid?: string
+  implements IProductOptionalExtraAttributes {
+  opSubExPid?: string
   declare pId: string
   declare idStore: string
-  declare OptionalProName: string
-  declare code: string
-  declare numbersOptionalOnly: number
-  declare state: StateProductOptionalExtra
+  declare opExPid?: string
+  declare OptionalSubProName: string
+  declare exCodeOptionExtra: string
+  declare exCode: string
+  declare state: StateProductSubOptionalExtra
   declare required: number
   declare createdAt?: Date
   declare updatedAt?: Date
@@ -68,8 +69,8 @@ export class SequelizeProductOptionalExtra
 /**
  * Column definitions
  */
-export const columnsProductOptionalExtra = {
-  opExPid: {
+export const columnsProductSubOptionalExtra = {
+  opSubExPid: {
     type: STRING(36),
     primaryKey: true,
     autoIncrement: false,
@@ -78,52 +79,48 @@ export const columnsProductOptionalExtra = {
   },
   pId: {
     type: STRING(36),
-    allowNull: true
+    allowNull: false
   },
   idStore: {
     type: STRING(36),
+    allowNull: false,
+  },
+  opExPid: {
+    type: STRING(36),
+    allowNull: true,
+  },
+  OptionalSubProName: {
+    type: STRING,
     allowNull: false
   },
-  OptionalProName: {
+  exCodeOptionExtra: {
     type: STRING,
-    allowNull: false,
-    field: "OptionalProName"
+    allowNull: false
   },
-  code: {
-    type: STRING,
-    allowNull: true
-  },
-  numbersOptionalOnly: {
-    type: INTEGER,
-    allowNull: true
+  exCode: { 
+    type: STRING, // relation with module product_optional_extra
+    allowNull: false
   },
   state: {
     type: INTEGER,
     allowNull: false,
-    defaultValue: StateProductOptionalExtra.ACTIVE
-  },
-  required: {
-    type: INTEGER,
-    allowNull: true,
-    defaultValue: 0
+    defaultValue: 1
   },
   createdAt: {
-    type: "TIMESTAMP",
-    defaultValue: literal("CURRENT_TIMESTAMP"),
-    allowNull: false
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
   updatedAt: {
-    type: "TIMESTAMP",
-    defaultValue: literal("CURRENT_TIMESTAMP"),
-    allowNull: false
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }
 
-SequelizeProductOptionalExtra.init(columnsProductOptionalExtra, {
+SequelizeProductSubOptionalExtra.init(columnsProductSubOptionalExtra, {
   sequelize,
   modelName: PRODUCT_SUB_OPTIONAL_EXTRA,
   freezeTableName: true,
   timestamps: false
 })
 
-export default SequelizeProductOptionalExtra
+export default SequelizeProductSubOptionalExtra

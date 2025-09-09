@@ -171,7 +171,7 @@ export const updateExtProductOptional = async (_root, { input }, context) => {
   }
 }
 
-export const updateExtProductFoodsSubOptional = async (_root, { input }, context) => {
+export const updateExtProductSubOptional = async (_root, { input }, context) => {
   try {
     const {
       exCode,
@@ -462,7 +462,7 @@ export default {
     editExtProductFoods,
     updateExtProductOptional,
     // SUB_OPTIONAL
-    updateExtProductFoodsSubOptional,
+    updateExtProductSubOptional,
     DeleteExtFoodSubsOptional,
     editExtFoodSubsOptional
   }

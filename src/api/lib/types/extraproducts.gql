@@ -127,7 +127,7 @@ type Mutation {
 	"Registra un ExtProductFoodOptional"
 	updateExtProductOptional(input: InputExtProductFoodOptional): Response
 	"Registra un ExtProductFoodSubOptional"
-	updateExtProductFoodsSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
+	updateExtProductSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
 	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
 	editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
 	"EDITA UN EXTRAPRODUCTOPTIONAL"

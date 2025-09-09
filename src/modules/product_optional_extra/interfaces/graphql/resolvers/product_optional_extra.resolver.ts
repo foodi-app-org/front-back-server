@@ -1,5 +1,4 @@
 import { GraphQLResolveInfo } from 'graphql'
-
 import { ProductOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
 import { productOptionalExtraSchema } from '../../../infrastructure/validators/product-optional-extra.validator'
 import { GraphQLContext } from '../../../../../shared/types/context'
@@ -41,5 +40,14 @@ export const productOptionalExtraResolvers = {
       const services = ProductOptionalServicesTenantFactory(context.restaurant ?? '')
       return await services.create.execute(value, context.restaurant ?? '')
     },
+
+    DeleteExtProductFoodsOptional: async (_: GraphQLResolveInfo, args: { opExPid: string, state: number }, context: GraphQLContext) => {
+      const services = ProductOptionalServicesTenantFactory(context.restaurant ?? '')
+      const { opExPid, state } = args ?? {
+        opExPid: '',
+        state: null
+      }
+      return await services.delete.execute({ code: opExPid, state })
+    }
   },
 }

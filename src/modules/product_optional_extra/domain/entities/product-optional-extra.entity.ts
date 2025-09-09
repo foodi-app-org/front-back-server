@@ -1,5 +1,5 @@
 
-enum StateProductOptionalExtra {
+export enum StateProductOptionalExtra {
   ACTIVE = 1,
   INACTIVE = 0,
   ARCHIVED = -1

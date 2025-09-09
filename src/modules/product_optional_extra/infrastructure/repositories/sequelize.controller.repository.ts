@@ -71,7 +71,7 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
     }
   }
 
-  async update(code: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
+  async updateByCode(code: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
     try {
       const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
         where: { code }
@@ -81,6 +81,38 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
       }
       await updated.update(data)
       return updated
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async update(id: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
+    try {
+      const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
+        where: { opExPid: id }
+      })
+      if (!updated) {
+        throw new Error('Product not found')
+      }
+      await updated.update(data)
+      return updated
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async findById(id: string): Promise<ProductOptionalExtra | null> {
+    try {
+      const product = await models.ProductOptionalExtra.schema(this.tenant).findOne({
+        where: { opExPid: id }
+      })
+      return product
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

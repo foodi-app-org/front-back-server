@@ -1,1 +1,1 @@
-export * from './product-optional-extra.validator'
+export * from './product-sub-optional-extra.validator'

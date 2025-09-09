@@ -18,6 +18,8 @@ import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables
 import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
 import { SequelizeProductOptionalExtra, PRODUCT_OPTIONAL_EXTRA_MODEL } from '../../../../../modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra.model'
+import { SequelizeProductSubOptionalExtra, PRODUCT_SUB_OPTIONAL_EXTRA } from '../../../../../modules/product_sub_optional_extra/infrastructure/db/sequelize/models/sequelize-product-sub-optional-extra.model'
+
 export const models = {
   User: SequelizeUserModel,
   Store: SequelizeStoreModel,
@@ -38,6 +40,7 @@ export const models = {
   Client: SequelizeClientModel,
   DashboardComponents: SequelizeDashboardComponentsModel,
   ProductOptionalExtra: SequelizeProductOptionalExtra,
+  ProductSubOptionalExtra: SequelizeProductSubOptionalExtra,
 
 }
 
@@ -61,4 +64,5 @@ export const models_names = {
   Client: CLIENTS_TABLE,
   DashboardComponents: DASHBOARD_COMPONENTS,
   ProductOptionalExtra: PRODUCT_OPTIONAL_EXTRA_MODEL,
+  ProductSubOptionalExtra: PRODUCT_SUB_OPTIONAL_EXTRA,
 }
