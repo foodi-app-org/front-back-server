@@ -15,6 +15,7 @@ export class ProductExtra {
   public pId?: string
   public readonly idStore?: string
   public readonly extraName: string
+  public readonly extraPrice?: number
   public readonly exState?: StateProductExtra
   public readonly required: number
   public readonly createdAt?: Date
@@ -24,6 +25,7 @@ export class ProductExtra {
     pId: string
     idStore: string
     extraName: string
+    extraPrice?: number
     exState?: StateProductExtra
     required?: number
     createdAt?: Date
@@ -33,6 +35,7 @@ export class ProductExtra {
     this.pId = props.pId
     this.idStore = props.idStore
     this.extraName = props.extraName
+    this.extraPrice = props.extraPrice
     this.exState = props.exState ?? StateProductExtra.ACTIVE
     this.required = props.required ?? 0
     this.createdAt = props.createdAt ?? new Date()

@@ -1,5 +1,5 @@
 import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { ProductExtra } from '../../domain/entities/product-optional-extra.entity'
+import { ProductExtra, StateProductExtra } from '../../domain/entities/product-optional-extra.entity'
 
 export type UpdateProductExtraInput = Partial<ProductExtra>
 
@@ -33,10 +33,10 @@ export class UpdateProductOptionalUseCase {
           pId: item.pId ?? '',
           extraName: item.extraName ?? '',
           idStore,
-          exState: item.exState,
+          extraPrice: item.extraPrice,
+          exState: StateProductExtra.ACTIVE,
           required: item.required ?? 0,
         })
-
         const updated = await this.repo.create(entity)
         if (updated) {
           results.push(updated)
