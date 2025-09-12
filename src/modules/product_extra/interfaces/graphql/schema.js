@@ -8,8 +8,8 @@ type ExtProductFood {
 	quantity: Int
 	newExtraPrice: Int
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 # type OPTIONAL PRODUCT
@@ -21,8 +21,8 @@ type ExtProductFoodOptional {
 	code: String
 	required: Int
 	numbersOptionalOnly: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 	ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptional]
 }
 
@@ -36,8 +36,8 @@ type ExtProductFoodSubOptional {
 	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
 	exCode: String # Relación con ExtProductFoodOptional
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 input InputExtProductFoodSubOptional {
@@ -49,8 +49,8 @@ input InputExtProductFoodSubOptional {
 	exCodeOptionExtra: String # Relación con ExtProductFoodOptional
 	exCode: String # Relación con ExtProductFoodOptional
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 # INPUT OPTIONAL
@@ -71,8 +71,8 @@ input InputExtProductFood {
 	extraName: String
 	extraPrice: Float
 	state: Int
-	pDatCre: DateTime
-	pDatMod: DateTime
+	createdAt: DateTime
+	updatedAt: DateTime
 }
 
 input ILineItemsExtraFinal {
@@ -87,7 +87,7 @@ input EditExtProductFoodOptionalInput {
 	code: String
 	required: Int
 	numbersOptionalOnly: Int
-	pDatMod: DateTime
+	updatedAt: DateTime
 	ExtProductFoodsSubOptionalAll: [EditExtProductFoodSubOptionalInput]
 }
 
@@ -114,22 +114,4 @@ type Query {
 	"Consulta todos los ExtSubProductFoodOptional"
 	ExtProductFoodsSubOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodSubOptional]
 	ExtProductFoodsSubOptionalOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFoodSubOptional
-}
-# Mutations
-type Mutation {
-	"Registra un ExtProductFood"
-	updateExtProductFoods(input: InputExtProductFood): ExtProductFood
-	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ExtProductFood
-	editExtProductFoods(input: InputExtProductFood!): Response
-	deleteextraproductfoods(id: ID, state: Int): Response
-	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
-	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
-	"Registra un ExtProductFoodOptional"
-	updateExtProductOptional(input: InputExtProductFoodOptional): Response
-	"Registra un ExtProductFoodSubOptional"
-	updateExtProductSubOptional(input: InputExtProductFoodSubOptional): ExtProductFoodSubOptional
-	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
-	editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
-	"EDITA UN EXTRAPRODUCTOPTIONAL"
-	editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
 }

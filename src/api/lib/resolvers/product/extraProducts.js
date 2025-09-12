@@ -231,7 +231,7 @@ export const editExtProductFoods = async (_root, { input }, context) => {
 }
 const GENERIC_ERROR_MESSAGE = 'No ha sido posible procesar su solicitud.'
 
-export const updateMultipleExtProductFoods = async (_root, args, context) => {
+export const updateMultipleExtProduct = async (_root, args, context) => {
   const { inputLineItems: { setData } } = args || {
     inputLineItems: {
       setData: []
@@ -454,7 +454,7 @@ export default {
   MUTATIONS: {
     updateExtProductFoods,
     editExtProductFoodOptional,
-    updateMultipleExtProductFoods,
+    updateMultipleExtProduct,
     deleteextraproductfoods,
     editExtraProductFoods,
     // OPTIONAL

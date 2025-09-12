@@ -16,6 +16,7 @@ import { userResolvers } from '../../../modules/user/interfaces/graphql/resolver
 import { tagsResolvers } from '../../../modules/tags/interfaces/graphql/resolvers/tags.resolver'
 import { productOptionalExtraResolvers } from '../../../modules/product_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
 import { productSubOptionalExtraResolvers } from '../../../modules/product_sub_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
+import { productExtraResolvers } from '../../../modules/product_extra/interfaces/graphql/resolvers/product-extra.resolver'
 import { dateTimeScalar } from './scalars/date-time.scalar'
 
 
@@ -44,7 +45,8 @@ export default {
         ...deviceUserResolvers.Query,
         ...tagsResolvers.Query,
         ...productOptionalExtraResolvers.Query,
-        ...productSubOptionalExtraResolvers.Query
+        ...productSubOptionalExtraResolvers.Query,
+        ...productExtraResolvers.Query
 
     },
     Mutation: {
@@ -65,7 +67,8 @@ export default {
         ...deviceUserResolvers.Mutation,
         ...tagsResolvers.Mutation,
         ...productOptionalExtraResolvers.Mutation,
-        ...productSubOptionalExtraResolvers.Mutation
+        ...productSubOptionalExtraResolvers.Mutation,
+        ...productExtraResolvers.Mutation
     },
     Subscription: {
     },

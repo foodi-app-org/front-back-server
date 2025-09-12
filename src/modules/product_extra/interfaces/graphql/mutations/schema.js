@@ -5,20 +5,11 @@ type ResponseExtProductFoodSubOptional {
 	data: ExtProductFoodSubOptional
 }
 
-type ResponseExtProduct {
-	success: Boolean
-	message: String
-	errors: [errors]
-	data: [ExtProductFood]
-}
-
-
-
 # Mutations
 type Mutation {
 	"Registra un ExtProductFood"
 	updateExtProductFoods(input: InputExtProductFood): ExtProductFood
-	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ResponseExtProduct
+	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ExtProductFood
 	editExtProductFoods(input: InputExtProductFood!): Response
 	deleteextraproductfoods(id: ID, state: Int): Response
 	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response

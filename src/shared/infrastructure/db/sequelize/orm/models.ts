@@ -19,6 +19,7 @@ import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../.
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
 import { SequelizeProductOptionalExtra, PRODUCT_OPTIONAL_EXTRA_MODEL } from '../../../../../modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra.model'
 import { SequelizeProductSubOptionalExtra, PRODUCT_SUB_OPTIONAL_EXTRA } from '../../../../../modules/product_sub_optional_extra/infrastructure/db/sequelize/models/sequelize-product-sub-optional-extra.model'
+import { SequelizeProductExtra, EXTRA_PRODUCT_MODEL } from '../../../../../modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
 
 export const models = {
   User: SequelizeUserModel,
@@ -41,6 +42,7 @@ export const models = {
   DashboardComponents: SequelizeDashboardComponentsModel,
   ProductOptionalExtra: SequelizeProductOptionalExtra,
   ProductSubOptionalExtra: SequelizeProductSubOptionalExtra,
+  ProductExtra: SequelizeProductExtra,
 
 }
 
@@ -65,4 +67,5 @@ export const models_names = {
   DashboardComponents: DASHBOARD_COMPONENTS,
   ProductOptionalExtra: PRODUCT_OPTIONAL_EXTRA_MODEL,
   ProductSubOptionalExtra: PRODUCT_SUB_OPTIONAL_EXTRA,
+  ProductExtra: EXTRA_PRODUCT_MODEL,
 }

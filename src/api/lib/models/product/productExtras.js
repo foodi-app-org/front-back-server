@@ -13,7 +13,7 @@ import productModelFood from './productFood'
 
 const sequelize = connect()
 
-export const EXTRA_PRODUCT_MODEL = 'extrasproducts'
+export const EXTRA_PRODUCT_MODEL = 'products_extras'
 
 const ExtraProductModel = sequelize.define(EXTRA_PRODUCT_MODEL, {
   exPid: {
