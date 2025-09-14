@@ -1,7 +1,7 @@
 
 import { CategoryProductRepository } from '../../../category_products/domain/repositories/category_products.repository'
 import { IProduct, Product } from '../../domain/entities/products.entity'
-import { ProductRepository } from '../../domain/repositories/products.repository'
+import { ProductRepository } from '../../domain/repositories/products.repository' 
 
 /**
  * Input DTO to create a new Store

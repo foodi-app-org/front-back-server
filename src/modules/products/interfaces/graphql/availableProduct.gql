@@ -1,0 +1,42 @@
+
+
+type AvailableProduct {
+    availableProductId: ID
+    idStore: ID
+    pId: ID
+    dayAvailable: Int
+    startDate: String
+    endDate: String
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+# Account Type
+
+# Account Input
+input IAvailableProduct {
+    availableProductId: ID
+    idStore: ID
+    pId: ID
+    dayAvailable: Int
+    startDate: String
+    endDate: String
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+type ResponseAvailableProduct {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: [AvailableProduct]
+}
+
+# Query
+type Query {
+  getAllAvailableProduct(pId: ID): [AvailableProduct]
+}
+# Mutations
+type Mutation {
+  registerAvailableProduct(input: [IAvailableProduct]): ResponseAvailableProduct
+  editAvailableProduct(pId: ID): Boolean,
+}

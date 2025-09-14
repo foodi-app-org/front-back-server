@@ -1,7 +1,7 @@
 // import { Op } from 'sequelize'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 // import { GenericService } from '../../../../shared/infrastructure/persistence'
-import { ProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
+import { ProductSubOptionalExtra, StateProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
 import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 // import { StateProductSubOptionalExtra, type SequelizeProductSubOptionalExtra } from '../db/sequelize/models/sequelize-product-sub-optional-extra.model'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
@@ -55,6 +55,23 @@ export class SequelizeProductSubOptionalExtraRepository implements IProductSubOp
         }
       )
       return updated
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async getAllByExtraCode(exCodeOptionExtra: string): Promise<ProductSubOptionalExtra[] | null> {
+    try {
+      const scheduleStore = await models.ProductSubOptionalExtra.schema(this.tenant).findAll({
+        where: {
+          exCodeOptionExtra,
+          state: StateProductSubOptionalExtra.ACTIVE
+        }
+      })
+      return scheduleStore
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

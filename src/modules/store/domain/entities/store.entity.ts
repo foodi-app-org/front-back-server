@@ -20,6 +20,8 @@ export interface Store {
   storeName: string
   deliveryTimeMinutes: number
   storePhone: string
+  Image?: string
+  banner?: string
   description?: string
   neighborhoodStore?: string
   Viaprincipal?: string

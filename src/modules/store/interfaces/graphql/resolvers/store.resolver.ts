@@ -5,12 +5,17 @@ import { CreateStoreDTO } from '../../../application/use-cases/create-store.usec
 import { StoreServicesPublic } from '../../../infrastructure/services'
 import { CategoryStoreServicesPublic } from '../../../../category_store/main/factories/category_store.factory'
 import { StoreServicesTenantFactory } from '../../../main/factories/store-services.factory'
+import { FileUpload } from 'graphql-upload-ts'
 
 
 interface NewRegisterStoreArgs {
   input: CreateStoreDTO
 }
 
+interface BannerInput {
+  bnImage: string
+  idStore: string
+}
 export const storeResolvers = {
   Type: {
     Store: {
@@ -39,6 +44,24 @@ export const storeResolvers = {
         message: 'Schedule updated successfully',
         errors: null
       }
+    },
+
+    registerBanner: async (_: GraphQLResolveInfo, { input }: { input: BannerInput }, context: GraphQLContext) => {
+      const services = StoreServicesTenantFactory(context.restaurant ?? '')
+      return await services.registerBanner.execute(input)
+    },
+
+    deleteOneBanner: async (_: GraphQLResolveInfo, { idStore }: { idStore: string }, context: GraphQLContext) => {
+      const services = StoreServicesTenantFactory(context.restaurant ?? '')
+      return await services.deleteOneBanner.execute(idStore)
+    },
+    registerLogo: async (_: GraphQLResolveInfo, { logo, idStore }: { logo: FileUpload, idStore: string }, context: GraphQLContext) => {
+      const services = StoreServicesTenantFactory(context.restaurant ?? '')
+      return await services.registerLogo.execute({ logo, idStore: idStore ?? context.restaurant ?? '' })
+    },
+    deleteALogoStore: async (_: GraphQLResolveInfo, { idStore }: { idStore: string }, context: GraphQLContext) => {
+      const services = StoreServicesTenantFactory(context.restaurant ?? '')
+      return await services.deleteALogoStore.execute({ idStore: idStore ?? context.restaurant ?? '' })
     }
   }
 }

@@ -4,6 +4,10 @@ import { SequelizeUserRepository } from '../../../user/infrastructure/repositori
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'
 import { UpdateStoreScheduleOpenAllUseCase } from '../../application/use-cases/update-store-schedule-open-all.usecase'
 import { FindStoreUseCase } from '../../application/use-cases/find-by-id-store.usecase'
+import { DeleteBannerUseCase } from '../../application/use-cases/delete-banner.usecase'
+import { RegisterLogoUseCase } from '../../application/use-cases/register-logo-store.usecase'
+import { RegisterBannerUseCase } from '../../application/use-cases/register-banner-store.usecase'
+import { DeleteLogoUseCase } from '../../application/use-cases/delete-logo-store.usecase'
 import { FindStoreByUserIdUseCase } from '../../application/use-cases/find-by-user-id-store.usecase'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { SequelizeStoreRepository } from '../../infrastructure/repositories/sequelize-store.controller.repository'
@@ -45,11 +49,14 @@ export const StoreServicesTenantFactory = (tenant: string) => {
 
     const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)
     const findByUserIdStoreUseCase = new FindStoreByUserIdUseCase(storeRepository)
-
     return {
         create: createStoreUseCase,
         findById: findByIdStoreUseCase,
         findByUserId: findByUserIdStoreUseCase,
-        updateScheduleOpenAll: new UpdateStoreScheduleOpenAllUseCase(storeRepository)
+        updateScheduleOpenAll: new UpdateStoreScheduleOpenAllUseCase(storeRepository),
+        registerBanner: new RegisterBannerUseCase(storeRepository),
+        deleteOneBanner: new DeleteBannerUseCase(storeRepository),
+        registerLogo: new RegisterLogoUseCase(storeRepository),
+        deleteALogoStore: new DeleteLogoUseCase(storeRepository),   
     }
 }

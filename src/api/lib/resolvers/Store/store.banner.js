@@ -9,6 +9,8 @@ import { deCode, getTenantName } from '../../utils/util'
 import { userDataPath } from '../product/images'
 import Store from '../../models/Store/Store'
 
+export const userDataPath = path.join(os.homedir(), PATH_EXTERNAL_OS)
+
 const registerBanner = async (parent, { input }, context) => {
   try {
     const validator = new ContextValidator(context)

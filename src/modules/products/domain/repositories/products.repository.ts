@@ -1,3 +1,4 @@
+import { AvailableProduct } from '../entities/available_product.entity'
 import { Product, ProductPagination } from '../entities/products.entity'
 
 /**
@@ -12,4 +13,6 @@ export interface ProductRepository {
   getAllByCategoryId(categoryId: string): Promise<Product[] | null>
   update(id: string, data: Partial<Product>): Promise<Product | null>
   updateImage(id: string, image: string): Promise<Product | null>
+  findByProductAndStore(pId: string, idStore: string): Promise<Product | null>
+  createAvailableProduct(data: Partial<AvailableProduct>): Promise<AvailableProduct | null>
 }

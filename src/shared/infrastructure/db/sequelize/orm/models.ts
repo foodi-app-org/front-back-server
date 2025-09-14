@@ -7,6 +7,7 @@ import { SequelizeDeviceModel, USER_DEVICE_MODEL } from '../../../../../modules/
 import { MODULES_MODEL,SequelizeModuleModel } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-modules.model'
 import { SequelizeSubmoduleModel,SUB_MODULES_MODEL } from '../../../../../modules/modules/infrastructure/db/sequelize/models/sequelize-sub-modules.model'
 import { PRODUCT_MODEL,SequelizeProductModel } from '../../../../../modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+import { PRODUCT_AVAILABLE ,SequelizeProductAvailableModel } from '../../../../../modules/products/infrastructure/db/sequelize/models/sequelize-available-product.model'
 import { ROLE_MODEL,SequelizeRoleModel } from '../../../../../modules/roles/infrastructure/db/sequelize/models/sequelize-roles.model'
 import { SCHEDULE_MODEL,SequelizeScheduleStoreModel } from '../../../../../modules/schedule_store/infrastructure/db/sequelize/models/sequelize-schedule-store.model'
 import { SequelizeShoppingOrderModel, SHOPPING_CART_MODEL } from '../../../../../modules/shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
@@ -43,6 +44,7 @@ export const models = {
   ProductOptionalExtra: SequelizeProductOptionalExtra,
   ProductSubOptionalExtra: SequelizeProductSubOptionalExtra,
   ProductExtra: SequelizeProductExtra,
+  AvailableProduct: SequelizeProductAvailableModel,
 
 }
 
@@ -68,4 +70,5 @@ export const models_names = {
   ProductOptionalExtra: PRODUCT_OPTIONAL_EXTRA_MODEL,
   ProductSubOptionalExtra: PRODUCT_SUB_OPTIONAL_EXTRA,
   ProductExtra: EXTRA_PRODUCT_MODEL,
+  AvailableProduct: PRODUCT_AVAILABLE,
 }

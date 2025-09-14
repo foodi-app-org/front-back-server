@@ -5,6 +5,7 @@ import { dashboardResolvers } from '../../../modules/dashboard/interfaces/graphq
 import { deviceUserResolvers } from '../../../modules/devices/interfaces/graphql/resolvers/devices.resolver'
 import { modulesResolvers } from '../../../modules/modules/interfaces/graphql/resolvers/modules.resolver'
 import { productResolvers } from '../../../modules/products/interfaces/graphql/resolvers/products.resolver'
+import { productAvailableResolvers } from '../../../modules/products/interfaces/graphql/resolvers/products-available.resolver'
 import { salesResolvers } from '../../../modules/sales/interfaces/graphql/resolvers/sales.resolver'
 import { scheduleStoreResolvers } from '../../../modules/schedule_store/interfaces/graphql/resolvers/schedule_store.resolver'
 import { shoppingResolvers } from '../../../modules/shopping/interfaces/graphql/resolvers/shopping.resolver'
@@ -46,7 +47,8 @@ export default {
         ...tagsResolvers.Query,
         ...productOptionalExtraResolvers.Query,
         ...productSubOptionalExtraResolvers.Query,
-        ...productExtraResolvers.Query
+        ...productExtraResolvers.Query,
+        ...productAvailableResolvers.Query,
 
     },
     Mutation: {
@@ -68,7 +70,8 @@ export default {
         ...tagsResolvers.Mutation,
         ...productOptionalExtraResolvers.Mutation,
         ...productSubOptionalExtraResolvers.Mutation,
-        ...productExtraResolvers.Mutation
+        ...productExtraResolvers.Mutation,
+        ...productAvailableResolvers.Mutation
     },
     Subscription: {
     },

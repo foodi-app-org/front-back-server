@@ -34,7 +34,7 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
   async findByCode(code: string): Promise<ProductOptionalExtra | null> {
     try {
       const scheduleStore = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-        attributes: ['pId', 'code'],
+        attributes: ['pId', 'code', 'opExPid', 'numbersOptionalOnly', 'OptionalProName'],
         where: {
           [Op.or]: [
             {

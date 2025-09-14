@@ -14,7 +14,7 @@ import { ContextValidator } from '../../utils/context-validator'
  * @param {*} ctx
  * @returns {{ success: boolean, message: string }}
  */
-export const setALogoStore = async (_root, { logo, idStore }, ctx) => {
+export const registerLogo = async (_root, { logo, idStore }, ctx) => {
   try {
     // Apollo Upload returns an object with a .file property containing the file info
     const fileUpload = await logo
@@ -133,7 +133,7 @@ export default {
   TYPES: {},
   QUERIES: {},
   MUTATIONS: {
-    setALogoStore,
+    registerLogo,
     deleteALogoStore
   }
 }
