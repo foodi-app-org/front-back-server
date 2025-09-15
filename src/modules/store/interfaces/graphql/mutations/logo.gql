@@ -1,7 +1,14 @@
+type ResponseUploadLogo {
+  success: Boolean
+  message: String
+  errors: [errors]
+  data: String
+}
+
 type Mutation {
   """
   Uploads a logo image for the specified store.
   """
-  registerLogo(logo: Upload, idStore: ID): Response!
-  deleteALogoStore(idStore: ID, Image: String): Response!
+  registerLogo(logo: Upload, idStore: ID): ResponseUploadLogo
+  deleteALogoStore(idStore: ID, Image: String): ResponseUploadLogo
 }

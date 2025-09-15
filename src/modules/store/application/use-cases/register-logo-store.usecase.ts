@@ -4,7 +4,7 @@ import os from 'os'
 import { GraphQLError } from 'graphql'
 import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
-import { LogDanger } from '../../../../shared/utils/logger.utils'
+import { LogDanger, LogInfo } from '../../../../shared/utils/logger.utils'
 
 const PATH_EXTERNAL_OS = process.env.PATH_EXTERNAL_OS
 const userDataPath = path.join(os.homedir(), String(PATH_EXTERNAL_OS))
@@ -17,13 +17,14 @@ interface RegisterLogoDTO {
 interface RegisterLogoResponse {
   success: boolean
   message: string
+  data?: string
 }
 
 /**
  * Use case responsible for registering/updating a store's logo.
  */
 export class RegisterLogoUseCase {
-  constructor(private readonly storeRepository: StoreRepository) {}
+  constructor(private readonly storeRepository: StoreRepository) { }
 
   /**
    * Executes the use case for uploading and saving a logo
@@ -43,17 +44,31 @@ export class RegisterLogoUseCase {
         return { success: false, message: 'Invalid filename provided' }
       }
 
+      // Fetch store
+      const storeData = await this.storeRepository.findById(input.idStore)
+      if (!storeData) {
+        LogInfo(`Store not found with id: ${input.idStore}`)
+        return {
+          success: false,
+          message: 'Store not found',
+          data: ''
+        }
+      }
+
+
       // Ensure base directory exists
       if (!fs.existsSync(userDataPath)) {
+        LogInfo(`Creating directory: ${userDataPath}`)
         fs.mkdirSync(userDataPath, { recursive: true })
       }
 
       // Clean filename -> store_{id}.ext (overwrite style)
       const ext = path.extname(filename)
-      const cleanFileName = `store_${input.idStore}${ext}`
+      const cleanFileName = `store_${storeData.idStore}${ext}`
       const filePath = path.join(userDataPath, cleanFileName)
       const fileStream = createReadStream()
 
+      LogInfo(`Uploading logo for store ${storeData.idStore} to ${filePath}`)
       // Save file to filesystem
       await new Promise<void>((resolve, reject) => {
         const writeStream = fs.createWriteStream(filePath)
@@ -62,29 +77,27 @@ export class RegisterLogoUseCase {
         writeStream.on('error', reject)
       })
 
-      // Fetch store
-      const storeData = await this.storeRepository.findById(input.idStore)
-      if (!storeData) {
-        return { success: false, message: 'Store not found' }
-      }
-
+      LogInfo(`Logo uploaded successfully: ${filePath}`)
       // Save logo path in DB
-      await this.storeRepository.update(input.idStore, {
+      await this.storeRepository.update(String(storeData.idStore), {
         Image: cleanFileName
       } as Partial<Store>)
 
+      LogInfo(`Store logo path updated in DB for store ${storeData.idStore}`)
+
       return {
         success: true,
-        message: 'Logo uploaded successfully'
+        message: 'Logo uploaded successfully',
+        data: cleanFileName
       }
     } catch (e: any) {
       if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
+        LogInfo(`Token expired while uploading logo: ${JSON.stringify(e)}`)
         return { success: false, message: 'Token expired' }
       }
 
       LogDanger(
-        `Error uploading logo: ${
-          e instanceof Error ? e.message : JSON.stringify(e)
+        `Error uploading logo: ${e instanceof Error ? e.message : JSON.stringify(e)
         }`
       )
 

@@ -69,7 +69,8 @@ export class SequelizeStoreRepository implements StoreRepository {
       const [updated] = await models.Store.update(updateData, {
         where: { idStore: id }
       })
-      return updated ? (await this.findById(id)) : null
+      console.log(updated)
+      return updated === 1 ? (await this.findById(id)) : null
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

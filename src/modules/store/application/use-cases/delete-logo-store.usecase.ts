@@ -46,7 +46,6 @@ export class DeleteLogoUseCase {
       if (!storeData.Image) {
         return { success: false, message: 'Store logo does not exist' }
       }
-
       const logoPath = path.join(userDataPath, storeData.Image)
 
       // Delete file if exists
@@ -59,9 +58,13 @@ export class DeleteLogoUseCase {
       }
 
       // Remove logo reference from DB
-      await this.storeRepository.update(String(input.idStore), { Image: undefined } as Partial<Store>)
+      const updated = await this.storeRepository.update(String(storeData.idStore), { Image: '' })
+      if (!updated) {
+        return { success: false, message: 'Could not update store logo information' }
+      }
 
       return { success: true, message: 'Logo eliminado correctamente' }
+    
     } catch (e) {
       if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
         return { success: false, message: 'Token expired' }
