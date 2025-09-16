@@ -13,7 +13,7 @@ export interface UseCaseResponse<T = any> {
 /**
  * Use case for creating or updating optional product extras
  */
-export class UpdateProductOptionalUseCase {
+export class CreateProductOptionalUseCase {
   constructor(
     private readonly repo: IProductExtraRepo
   ) {}
@@ -26,6 +26,15 @@ export class UpdateProductOptionalUseCase {
    */
   async execute(input: UpdateProductExtraInput[], idStore: string): Promise<UseCaseResponse> {
     try {
+      if (input.length === 0) {
+        return {
+          success: false,
+          message: 'No product extras provided',
+          errors: [],
+          data: [],
+        }
+      }
+      
       const results: ProductExtra[] = []
 
       for (const item of input) {

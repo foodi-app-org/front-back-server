@@ -10,7 +10,7 @@ import {
   getTenantName
 } from '../../utils/util'
 
-export const deleteextraproductfoods = async (_root, { state, id }, context) => {
+export const deleteExtraProduct = async (_root, { state, id }, context) => {
   try {
     await ExtraProductModel.schema(getTenantName(context?.restaurant)).update({ state: state === 1 ? 0 : 1 }, { where: { exPid: deCode(id) } })
     return {
@@ -455,7 +455,7 @@ export default {
     updateExtProductFoods,
     editExtProductFoodOptional,
     updateMultipleExtProduct,
-    deleteextraproductfoods,
+    deleteExtraProduct,
     editExtraProductFoods,
     // OPTIONAL
     DeleteExtProductFoodsOptional,

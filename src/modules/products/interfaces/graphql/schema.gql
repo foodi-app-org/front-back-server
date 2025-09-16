@@ -50,11 +50,11 @@ type ProductFood {
   vat: Float
   # color: Color
   getStore: Store
-  # ExtProductFoodsAll: [ExtProductFood]
-  # getAllAvailableProduct: [AvailableProduct]
-  # ExtProductFoodOptional: [ExtProductFoodOptional]
+  ExtProductFoodsAll: [ExtProductFood]
+  getAllAvailableProduct: [AvailableProduct]
+  ExtProductFoodOptional: [ExtProductFoodOptional]
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
-  # getOneTags: TagsProduct
+  getOneTags: TagsProduct
 }
 # Inputs
 input ICategories {

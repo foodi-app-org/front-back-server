@@ -27,7 +27,6 @@ export class DeleteExtFoodSubsOptionalUseCase {
         try {
 
             const existing = await this.repo.findByExCode(String(input.code))
-            console.log("🚀 ~ DeleteExtFoodSubsOptionalUseCase ~ execute ~ existing:", existing)
             if (!existing) {
                 return { success: false, message: 'No product exists with that code', data: null }
             }

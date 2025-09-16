@@ -12,7 +12,22 @@ type CreateStatusTypeOrderInput = {
 
 export const productExtraResolvers = {
   Query: {
-
+    ExtProductFoodsAll: async (_: GraphQLResolveInfo, args: { pId: string }, context: GraphQLContext) => {
+      const { pId } = args ?? {
+        pId: ''
+      }
+      try {
+        const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
+        const result = await services.getAllByProductId.execute(pId)
+        const { data } = result ?? {
+          data: null
+        }
+        return data
+      } catch (err) {
+        console.error(err)
+        return null
+      }
+    },
   },
   Mutation: {
     updateMultipleExtProduct: async (
@@ -48,17 +63,54 @@ export const productExtraResolvers = {
       const result = await services.create.execute(values, context.restaurant ?? '')
       if (result.success) {
         return {
-          success: true,
-          message: 'Product extras created successfully',
+          success: result.success,
+          message: result.message,
           data: Array.isArray(result.data) ? result.data : [],
         }
       }
       return {
-        success: false,
-        message: 'Failed to create product extras',
+        success: result.success,
+        message: result.message,
         errors: result.errors ?? [],
         data: [],
       }
     },
-  },
+    deleteExtraProduct: async (
+      _: GraphQLResolveInfo,
+      args: { id: string, state: number },
+      context: GraphQLContext
+    ) => {
+      const { id, state } = args ?? {
+        id: '',
+        state: null
+      }
+      try {
+        const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
+        return await services.delete.execute({ id, state })
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Unexpected error',
+          data: null,
+        }
+      }
+    },
+    editExtraProductFoods: async (
+      _: GraphQLResolveInfo,
+      args: { exPid: string; extraName: string; extraPrice: number },
+      context: GraphQLContext
+    ) => {
+      const { exPid, extraName, extraPrice } = args
+      try {
+        const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
+        return await services.update.execute({ exPid, extraName, extraPrice })
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Unexpected error',
+          data: null,
+        }
+      }
+    },
+  }
 }

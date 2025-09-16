@@ -1,10 +1,10 @@
 import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { StateProductExtra } from '../../domain/entities/product-optional-extra.entity'
 
 
 interface DeleteProductExtraInput {
-    id: string
-    state: StateProductExtra
+    exPid: string
+    extraName: string,
+    extraPrice: number
 }
 
 interface DeleteProductUseCaseResponse<T = any> {
@@ -18,7 +18,7 @@ interface DeleteProductUseCaseResponse<T = any> {
 /**
  * Use case for creating or updating optional product extras
  */
-export class DeleteProductExtraUseCase {
+export class UpdateProductOptionalUseCase {
     constructor(
         private readonly repo: IProductExtraRepo
     ) { }
@@ -26,35 +26,33 @@ export class DeleteProductExtraUseCase {
     async execute(input: DeleteProductExtraInput): Promise<DeleteProductUseCaseResponse | null> {
         try {
 
-            const existing = await this.repo.findById(String(input.id))
+            const existing = await this.repo.findById(String(input.exPid))
             if (!existing) {
                 return {
-                    success: false, 
-                    message: 'No existe el producto', 
+                    success: false,
+                    message: 'No existe el producto',
                     data: null
                 }
             }
 
-            const active = StateProductExtra.ACTIVE
-
             const updated = await this.repo.update(String(existing.exPid), {
                 updatedAt: new Date(),
-                exState: input.state === active ? StateProductExtra.INACTIVE : active
+                extraName: String(input.extraName),
+                extraPrice: input.extraPrice
             })
 
             if (!updated) {
                 return {
                     success: false,
-                    message: 'No se pudo actualizar el estado del producto',
+                    message: 'No se pudo actualizar el producto',
                     data: null
                 }
             }
 
-            const message = input.state === active ? 'Producto Eliminado' : 'Producto Activado'
 
             return {
                 success: true,
-                message,
+                message: 'Producto actualizado correctamente',
                 data: updated
             }
         } catch (err) {

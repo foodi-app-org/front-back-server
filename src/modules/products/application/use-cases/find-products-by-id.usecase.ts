@@ -39,7 +39,7 @@ export class FindProductByIdUseCase {
     return {
       success: true,
       message: 'Product found successfully',
-      data: new Product(created)
+      data: created
     }
   }
 }

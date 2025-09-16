@@ -1,6 +1,10 @@
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
-import { Product, ProductPagination } from '../../domain/entities/products.entity'
+import { 
+  Product, 
+  ProductPagination, 
+  StateProduct
+} from '../../domain/entities/products.entity'
 import { AvailableProduct } from '../../domain/entities/available_product.entity'
 import { ProductRepository } from '../../domain/repositories/products.repository'
 import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
@@ -68,7 +72,8 @@ export class SequelizeProductRepository implements ProductRepository {
     try {
       const Product = await models.Product.schema(this.tenant).findOne({
         where: {
-          pId: id
+          pId: id,
+          pState: StateProduct.ACTIVE
         }
       })
       if (!Product) {
@@ -117,7 +122,6 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
   async update(id: string, data: Partial<Product>): Promise<Product | null> {
-    console.log("🚀 ~ SequelizeProductRepository ~ update ~ data:", data)
     try {
       const [affectedCount, updatedRows] = await models.Product.schema(this.tenant).update(data, {
         where: { pId: id },

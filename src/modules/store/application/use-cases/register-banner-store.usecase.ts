@@ -79,7 +79,6 @@ export class RegisterBannerUseCase {
 
       return { success: true, message: 'El banner ha cambiado' }
     } catch (e: any) {
-      console.log("🚀 ~ RegisterBannerUseCase ~ execute ~ e:", e)
       if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
         return { success: false, message: 'Token expired' }
       }

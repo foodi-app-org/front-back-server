@@ -42,7 +42,6 @@ export const productSubOptionalExtraResolvers = {
     },
     DeleteExtFoodSubsOptional: async (_: GraphQLResolveInfo, args: { opSubExPid: string, state: number }, context: GraphQLContext) => {
       const services = ProductSubOptionalServicesTenantFactory(context.restaurant ?? '')
-      console.log("🚀 ~ args:", args)
       const { opSubExPid, state } = args ?? {
         opSubExPid: '',
         state: null

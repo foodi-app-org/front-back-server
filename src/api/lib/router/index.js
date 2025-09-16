@@ -46,7 +46,6 @@ export const getDevice = async ({ input }) => {
   let res = {}
   try {
     // const store = await Store.findOne({ where: { id: userId } })
-    console.log("🚀 ~ getDevice ~ store:", input)
     // const tenantName = getTenantName(idStore)
     // const existingDevice = await UserDeviceModel.schema(tenantName).findOne({
     //   where: {

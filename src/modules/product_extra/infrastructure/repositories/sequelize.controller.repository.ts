@@ -31,27 +31,22 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
       throw new Error(String(e))
     }
   }
-
-  // async findByCode(code: string): Promise<ProductOptionalExtra | null> {
-  //   try {
-  //     const scheduleStore = await models.ProductExtra.schema(this.tenant).findOne({
-  //       attributes: ['pId', 'code'],
-  //       where: {
-  //         [Op.or]: [
-  //           {
-  //             code
-  //           }
-  //         ]
-  //       }
-  //     })
-  //     return scheduleStore
-  //   } catch (e) {
-  //     if (e instanceof Error) {
-  //       throw new Error(e.message)
-  //     }
-  //     throw new Error(String(e))
-  //   }
-  // }
+  async getAllByProductId(id: string): Promise<ProductExtra[] | null> {
+    try {
+      const extras = await models.ProductExtra.schema(this.tenant).findAll({
+        where: {
+          pId: id,
+          exState: StateProductExtra.ACTIVE 
+        }
+      })
+      return extras
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
 
   async getAll(idStore: string): Promise<ProductExtraPagination | null> {
     try {
@@ -72,53 +67,36 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
     }
   }
 
-  // async updateByCode(code: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
-  //   try {
-  //     const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-  //       where: { code }
-  //     })
-  //     if (!updated) {
-  //       throw new Error('Product not found')
-  //     }
-  //     await updated.update(data)
-  //     return updated
-  //   } catch (e) {
-  //     if (e instanceof Error) {
-  //       throw new Error(e.message)
-  //     }
-  //     throw new Error(String(e))
-  //   }
-  // }
 
-  // async update(id: string, data: Partial<ProductOptionalExtra>): Promise<ProductOptionalExtra | null> {
-  //   try {
-  //     const updated = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-  //       where: { opExPid: id }
-  //     })
-  //     if (!updated) {
-  //       throw new Error('Product not found')
-  //     }
-  //     await updated.update(data)
-  //     return updated
-  //   } catch (e) {
-  //     if (e instanceof Error) {
-  //       throw new Error(e.message)
-  //     }
-  //     throw new Error(String(e))
-  //   }
-  // }
+  async update(id: string, data: Partial<ProductExtra>): Promise<ProductExtra | null> {
+    try {
+      const updated = await models.ProductExtra.schema(this.tenant).findOne({
+        where: { exPid: id }
+      })
+      if (!updated) {
+        throw new Error('Product not found')
+      }
+      await updated.update(data)
+      return updated
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
 
-  // async findById(id: string): Promise<ProductOptionalExtra | null> {
-  //   try {
-  //     const product = await models.ProductOptionalExtra.schema(this.tenant).findOne({
-  //       where: { opExPid: id }
-  //     })
-  //     return product
-  //   } catch (e) {
-  //     if (e instanceof Error) {
-  //       throw new Error(e.message)
-  //     }
-  //     throw new Error(String(e))
-  //   }
-  // }
+  async findById(id: string): Promise<ProductExtra | null> {
+    try {
+      const product = await models.ProductExtra.schema(this.tenant).findOne({
+        where: { exPid: id }
+      })
+      return product
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
 }

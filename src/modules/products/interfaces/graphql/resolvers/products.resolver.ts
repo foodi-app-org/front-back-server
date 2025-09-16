@@ -7,7 +7,26 @@ import { ProductServicesTenantFactory } from '../../../main/factories/products-s
 
 export const productResolvers = {
   Query: {
+    productFoodsOne: async (_: GraphQLResolveInfo, args: { pId: string }, context: GraphQLContext) => {
+      const { pId } = args ?? {
+        pId: ''
+      }
 
+      try {
+        const services = ProductServicesTenantFactory(context.restaurant ?? '')
+        const result = await services.findById.execute(pId)
+        const { data } = result ?? {
+          data: null
+        }
+        return data
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Unexpected error',
+          data: null,
+        }
+      }
+    },
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
@@ -39,16 +58,15 @@ export const productResolvers = {
     ) => {
       const { pId, image } = args.input
       try {
-        const services = ProductServicesTenantFactory(context.restaurant ?? "")
+        const services = ProductServicesTenantFactory(context.restaurant ?? '')
         return await services.setImageProduct.execute({ pId, image })
       } catch (err) {
         return {
           success: false,
-          message: err instanceof Error ? err.message : "Unexpected error",
+          message: err instanceof Error ? err.message : 'Unexpected error',
           data: null,
         }
       }
     }
-
   },
 }
