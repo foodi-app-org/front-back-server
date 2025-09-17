@@ -1,8 +1,8 @@
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
-import { 
-  Product, 
-  ProductPagination, 
+import {
+  Product,
+  ProductPagination,
   StateProduct
 } from '../../domain/entities/products.entity'
 import { AvailableProduct } from '../../domain/entities/available_product.entity'
@@ -10,6 +10,7 @@ import { ProductRepository } from '../../domain/repositories/products.repository
 import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { Op } from 'sequelize'
+import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
 
 export class SequelizeProductRepository implements ProductRepository {
   private readonly genericService: GenericService<SequelizeProductModel>
@@ -102,18 +103,37 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
 
+  /**
+   * Get all active products by category that are associated and available today.
+   *
+   * @param {string} categoryId - The category id to filter products.
+   * @returns {Promise<Product[] | null>} - List of products or null if not found.
+   */
   async getAllByCategoryId(categoryId: string): Promise<Product[] | null> {
+    models.Product.hasMany(models.AvailableProduct, { foreignKey: 'pId' })
+    models.AvailableProduct.belongsTo(models.Product, { foreignKey: 'pId' })
+    // 00:00 - 23:59 format
     try {
       const products = await models.Product.schema(this.tenant).findAll({
         where: {
           carProId: categoryId,
-          pState: { [Op.gt]: 0 }
-        }
+          pState: StateProduct.ACTIVE
+        },
+        include: [{
+          model: models.AvailableProduct.schema(this.tenant),
+          where: {
+            state: StateProductAvailable.ACTIVE,
+          },
+          required: false // Use left join to include products without available entries
+        }]
       })
-      if (!products) {
+
+      if (!products || products.length === 0) {
         return null
       }
+
       return products
+
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)
@@ -121,6 +141,7 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+
   async update(id: string, data: Partial<Product>): Promise<Product | null> {
     try {
       const [affectedCount, updatedRows] = await models.Product.schema(this.tenant).update(data, {

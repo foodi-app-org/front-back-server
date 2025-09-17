@@ -46,7 +46,14 @@ export class RegisterAvailableProductUseCase {
       const products = Array.isArray(input) ? input : [input]
 
       const createdProducts: AvailableProduct[] = []
-
+      if (!products.length) {
+        return {
+          success: true,
+          message: 'No se registro el horario del producto',
+          data: null,
+          errors: [{ message: 'No products provided', path: 'input' }]
+        }
+      }
       for (const prod of products) {
         // ✅ Validation: startDate must be less than endDate
         if (prod.startDate && prod.endDate) {

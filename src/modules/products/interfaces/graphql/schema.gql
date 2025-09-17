@@ -55,6 +55,7 @@ type ProductFood {
   ExtProductFoodOptional: [ExtProductFoodOptional]
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
   getOneTags: TagsProduct
+  product_availables: [AvailableProduct]
 }
 # Inputs
 input ICategories {
