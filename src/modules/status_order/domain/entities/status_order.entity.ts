@@ -14,6 +14,7 @@ export interface IStatusOrder {
   stPId?: string
   id?: string
   tableId?: string
+  shoppingCartRefCode: string
   idStore?: string
   pSState: number
   valueDelivery?: number
@@ -37,6 +38,7 @@ export interface IStatusOrder {
 export class StatusOrder {
   public stPId?: string
   public id?: string
+  public shoppingCartRefCode!: string
   public tableId?: string
   public idStore?: string
   public pSState!: number

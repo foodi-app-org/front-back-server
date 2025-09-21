@@ -28,16 +28,6 @@ export class CreateStatusOrderTypeUseCase {
    * @returns The newly created Store or null if it already exists
    */
   async execute(input: CreateStatusOrderDTO, transaction?: Transaction): Promise<ResponseOrderStatusType | null> {
-    
-    // const statusOrderExist = await this.statusOrderRepository.findByName(input.name)
-
-    // if (statusOrderExist) {
-    //   return {
-    //     success: false,
-    //     message: 'Order status type with this name already exists',
-    //     data: statusOrderExist
-    //   }
-    // }
     // find findCodeRef exists
     const statusOrderExist = await this.statusOrderRepository.findCodeRef(input.pCodeRef)
 

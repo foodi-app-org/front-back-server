@@ -25,7 +25,28 @@ export const orderResolvers = {
       }
     }
   },
-  Query: {},
+  Query: {
+    getOneSalesStore: async (_: GraphQLResolveInfo, args: { pCodeRef: string }, context: GraphQLContext) => {
+      if (!args.pCodeRef) {
+        return {
+          success: false,
+          message: 'Code sale reference is required',
+          errors: []
+        }
+      }
+      const idStore = context.restaurant ?? ''
+      const services = StatusOrderServicesTenantFactory(idStore)
+      if (!idStore) {
+        return {
+          success: false,
+          message: 'Store not found',
+          errors: []
+        }
+      }
+      const response = await services.getOneByCodeRef.execute(args.pCodeRef)
+      return response
+    },
+  },
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
       const start = Date.now()

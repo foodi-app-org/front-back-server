@@ -70,12 +70,11 @@ export class SequelizeProductRepository implements ProductRepository {
   }
 
   async findById(id: string): Promise<Product | null> {
-    console.log("🚀 ~ SequelizeProductRepository ~ findById ~ id:", this.tenant)
     try {
       const product = await models.Product.schema(this.tenant).findOne({
         where: {
           pId: id,
-          // pState: StateProduct.ACTIVE
+          pState: StateProduct.ACTIVE
         }
       })
       return product
