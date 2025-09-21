@@ -19,14 +19,19 @@ export class SequelizeProductOptionalExtraSold extends SequelizeProductOptionalE
 
 export const columnsProductOptionalExtraSold = {
   ...columnsProductOptionalExtra,
-  original_extra_id: {
+  originalExtraId: {
     type: STRING(36),
-    primaryKey: true,
+    primaryKey: false,
     autoIncrement: false,
     defaultValue: UUIDV4,
     allowNull: false,
     comment: 'Reference to the original optional extra product'
   },
+  pCodeRef: {
+    type: STRING(100),
+    unique: false,
+    allowNull: false
+  }
 }
 /**
  * Init model with same columns but different table
