@@ -34,7 +34,7 @@ export class CreateIShoppingCartTypeUseCase {
     if (!product) {
       return {
         success: false,
-        message: `Product with id ${input.pId} not found`,
+        message: `Product with id ${input.pId}  not found`,
         data: null,
       }
     }

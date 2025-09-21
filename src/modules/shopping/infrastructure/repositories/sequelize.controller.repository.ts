@@ -3,12 +3,19 @@ import { Transaction } from 'sequelize'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
-export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
+export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
+  private readonly tenant: string
+
+
+  constructor(tenant?: string) {
+    this.tenant = tenant ?? MigrationFolder.Public
+  }
 
   async create(data: ShoppingCart, transaction?: Transaction): Promise<ShoppingCart | null> {
     try {
-      const created = await models.ShoppingCart.create({
+      const created = await models.ShoppingCart.schema(this.tenant).create({
         ...data,
       }, { transaction })
       return created
@@ -22,7 +29,7 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
 
   async findCodeRef(pCodeRef: string): Promise<ShoppingCart | null> {
     try {
-      const scheduleStore = models.ShoppingCart.findOne({
+      const scheduleStore = models.ShoppingCart.schema(this.tenant).findOne({
         where: { shoppingCartRefCode: String(pCodeRef) },
       })
       return scheduleStore
@@ -36,7 +43,7 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
 
   async findById(id: string): Promise<ShoppingCart | null> {
     try {
-      const statusOrder = await models.ShoppingCart.findOne({ where: { shoppingCartId: id } })
+      const statusOrder = await models.ShoppingCart.schema(this.tenant).findOne({ where: { shoppingCartId: id } })
       if (!statusOrder) {
         return null
       }
@@ -50,7 +57,7 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
   }
   async sumPrice(shoppingCartRefCode: string): Promise<number> {
     try {
-      const result = await models.ShoppingCart.findOne({
+      const result = await models.ShoppingCart.schema(this.tenant).findOne({
         attributes: [
           [models.ShoppingCart.sequelize!.fn('SUM', models.ShoppingCart.sequelize!.col('priceProduct')), 'priceProduct']
         ],

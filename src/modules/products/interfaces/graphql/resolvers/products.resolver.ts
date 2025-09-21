@@ -27,6 +27,19 @@ export const productResolvers = {
         }
       }
     },
+    productFoodsAll: async (_: GraphQLResolveInfo, __: any, context: GraphQLContext) => {
+      try {
+        const store = context.restaurant ?? ''
+        const services = ProductServicesTenantFactory(store)
+        return await services.productFoodsAll.execute(store)
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Unexpected error',
+          data: null,
+        }
+      }
+    },
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {

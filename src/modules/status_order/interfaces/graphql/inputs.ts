@@ -54,6 +54,7 @@ interface ShoppingCartItem {
   priceProduct: number
   cantProducts: number
   idUser: string
+  refCodePid: string
   idStore: string
   comments?: string
 }

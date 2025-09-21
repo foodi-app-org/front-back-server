@@ -82,7 +82,6 @@ export const getDevice = async ({ input }) => {
     }).catch(() => ({ error: false, message: 'No se pudo enviar el correo' }))
     return { res, error: false, data: res }
   } catch (error) {
-    console.log('🚀 ~ getDevice ~ error:', error)
     return { error: { message: error.message }, data: {} }
   }
 }

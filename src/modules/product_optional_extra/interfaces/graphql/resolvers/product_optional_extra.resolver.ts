@@ -15,7 +15,25 @@ type CreateStatusTypeOrderInput = {
 
 export const productOptionalExtraResolvers = {
   Query: {
-
+    ExtProductFoodsOptionalAll: async (_: GraphQLResolveInfo, { pId }: { pId: string }, context: GraphQLContext) => {
+      console.log("🚀 ~ pId:", pId)
+      try {
+        const store = context.restaurant ?? ''
+        const services = ProductOptionalServicesTenantFactory(store)
+        const result = await services.getAllProductOptionalByProductId.execute(pId)
+        console.log("🚀 ~ result:", result)
+        const { data } = result ?? {
+          data: null
+        }
+        return data
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Unexpected error',
+          data: null,
+        }
+      }
+    }
   },
   Mutation: {
     updateExtProductOptional: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {

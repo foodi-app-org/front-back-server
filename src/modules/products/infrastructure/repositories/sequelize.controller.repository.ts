@@ -60,7 +60,6 @@ export class SequelizeProductRepository implements ProductRepository {
           pState: { [Op.gt]: 0 }
         }
       })
-
       return result
     } catch (e) {
       if (e instanceof Error) {
@@ -69,18 +68,17 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+
   async findById(id: string): Promise<Product | null> {
+    console.log("🚀 ~ SequelizeProductRepository ~ findById ~ id:", this.tenant)
     try {
-      const Product = await models.Product.schema(this.tenant).findOne({
+      const product = await models.Product.schema(this.tenant).findOne({
         where: {
           pId: id,
-          pState: StateProduct.ACTIVE
+          // pState: StateProduct.ACTIVE
         }
       })
-      if (!Product) {
-        return null
-      }
-      return Product
+      return product
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)
@@ -88,6 +86,7 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+
   async findByProBarCode(id: string): Promise<Product | null> {
     try {
       const Product = await models.Product.schema(this.tenant).findOne({ where: { ProBarCode: id } })
@@ -124,7 +123,7 @@ export class SequelizeProductRepository implements ProductRepository {
           where: {
             state: StateProductAvailable.ACTIVE,
           },
-          required: false // Use left join to include products without available entries
+          required: false
         }]
       })
 

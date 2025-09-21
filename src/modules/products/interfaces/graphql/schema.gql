@@ -38,8 +38,8 @@ type ProductFood {
   createdAt: DateTime
   updatedAt: DateTime
   # thirdParties: ThirdParties
-  # area: [Area]
-  # feat: [Feature]
+  area: [Area]
+  feat: [Feature]
   # pais: Country
   # city: City
   # department: Department

@@ -50,6 +50,7 @@ input ExtProductFoodInput {
   quantity: Int
   newExtraPrice: Float
 }
+
 input ExtProductFoodSubOptionalInput {
   pId: String
   opExPid: String
@@ -97,7 +98,7 @@ input IShoppingCard {
   cDatCre: DateTime
   cDatMod: DateTime
   csDescription: String
-  dataExtra: [ExtProductFoodInput]
+  # dataExtra: [ExtProductFoodInput]
   dataOptional: [ExtProductFoodOptionalInput]
 }
 

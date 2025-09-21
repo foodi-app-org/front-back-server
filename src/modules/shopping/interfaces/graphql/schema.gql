@@ -20,6 +20,46 @@ type ShoppingCart {
   # ExtProductFoodsAll: [ExtProductFood]
 }
 
+input ExtProductFoodSubOptionalInput {
+  pId: String
+  opExPid: String
+  idStore: String
+  opSubExPid: String
+  OptionalSubProName: String
+  exCodeOptionExtra: String
+  exCode: String
+  state: Int
+  createdAt: String
+  updatedAt: String
+  check: Boolean
+}
+
+input ExtProductFoodOptionalInput {
+  pId: String
+  opExPid: String
+  OptionalProName: String
+  state: Int
+  code: String
+  numbersOptionalOnly: Int
+  createdAt: String
+  required: Int
+  updatedAt: String
+  ExtProductFoodsSubOptionalAll: [ExtProductFoodSubOptionalInput]
+}
+
+input ExtProductFoodInput {
+  pId: String
+  exPid: String
+  exState: Int
+  extraName: String
+  extraPrice: Float
+  state: Int
+  createdAt: String
+  updatedAt: String
+  quantity: Int
+  newExtraPrice: Float
+}
+
 
 input IShoppingCart {
   shoppingCartId: ID
@@ -29,15 +69,18 @@ input IShoppingCart {
   idUser: ID
   idStore: ID
   comments: String
+  ProPrice: Float # quitar
+  totalExtra: Float # quitar
   cantProducts: Int
   priceProduct: Float
   refCodePid: String
   sState: Int
   createdAt: DateTime
   updatedAt: DateTime
-  # dataExtra: [ExtProductFoodInput]
-  # dataOptional: [ExtProductFoodOptionalInput]
+  dataExtra: [ExtProductFoodInput]
+  dataOptional: [ExtProductFoodOptionalInput]
 }
+
 
 type ResponseShoppingCart {
   success: Boolean

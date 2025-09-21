@@ -9,7 +9,7 @@ export const categoryProductResolvers = {
   Type: {
     catProductsWithProduct: {
       productFoodsAll: async (parent: any, _args: any, context: GraphQLContext, _info: GraphQLResolveInfo) => {
-        const services  = ProductServicesTenantFactory(context.restaurant ?? '')
+        const services = ProductServicesTenantFactory(context.restaurant ?? '')
         return services.getAllProductsByCategoryId.execute(parent.carProId)
       }
     }

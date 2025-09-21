@@ -4,13 +4,12 @@ import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
+import { ShoppingTypesServices, ShoppingServicesTenantFactory } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
-import { StatusOrderTypesServices } from '../../../infrastructure/services'
+import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
-import { MigrationFolder } from '../../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export const orderResolvers = {
   Type: {
@@ -38,11 +37,29 @@ export const orderResolvers = {
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
         if (!storeExists) {
           await t.rollback()
-          return { success: false, message: 'Store not found', errors: [] }
+          return {
+            success: false,
+            message: 'Store not found',
+            errors: []
+          }
+        }
+        if (!Array.isArray(args.input) || args.input.length === 0) {
+          await t.rollback()
+          return {
+            success: false,
+            message: 'No products to add',
+            data: null,
+            errors: []
+          }
         }
 
         for (const item of args.input) {
-          const { error } = shoppingCartItemSchema.validate(item, { abortEarly: false })
+          const newItem = {
+            ProPrice: 0,
+            id: context?.User?.id ?? null,
+            ...item,
+          }
+          const { error } = shoppingCartItemSchema.validate(newItem, { abortEarly: false })
           if (error) {
             await t.rollback()
             return {
@@ -57,9 +74,8 @@ export const orderResolvers = {
               }))
             }
           }
-
-          const generatedCode = (Math.random() + 1).toString(36).substring(2, 15)
-          const response = await ShoppingTypesServices.create.execute({
+          const ShoppingServices = ShoppingServicesTenantFactory(idStore)
+          const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
             shoppingCartRefCode: args.shoppingCartRefCode,
@@ -68,7 +84,7 @@ export const orderResolvers = {
             idUser: item.idUser,
             comments: item.comments,
             id: args.id,
-            refCodePid: generatedCode,
+            refCodePid: item.refCodePid,
             sState: StateShoppingCart.ACTIVE,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -135,8 +151,8 @@ export const orderResolvers = {
             }))
           }
         }
-
-        const createResponse = await StatusOrderTypesServices.create.execute(value, t)
+        const statusOrderServices = StatusOrderServicesTenantFactory(idStore)
+        const createResponse = await statusOrderServices.create.execute(value, t)
         if (createResponse?.success === false) {
           const end = Date.now()
           const durationMs = end - start

@@ -241,7 +241,6 @@ export const getAllCatStore = async (_root, { input }, _context, info) => {
     })
     return data
   } catch (e) {
-    console.log('🚀 ~ getAllCatStore ~ e:', e)
     throw new ApolloError('Lo sentimos, ha ocurrido un error interno')
   }
 }

@@ -5,17 +5,20 @@ import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
 import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 import type { SequelizeStatusOrderModel } from '../db/sequelize/models/sequelize-status_orders.model'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   private readonly genericService: GenericService<SequelizeStatusOrderModel>
+  private readonly tenant: string
 
-  constructor() {
-    this.genericService = new GenericService(models.StatusOrder)
+  constructor(tenant: string) {
+    this.genericService = new GenericService(models.StatusOrder.schema(tenant))
+    this.tenant = tenant || MigrationFolder.Public
   }
 
   async create(data: StatusOrder, transaction?: Transaction): Promise<StatusOrder | null> {
     try {
-      const created = await models.StatusOrder.create({
+      const created = await models.StatusOrder.schema(this.tenant).create({
         ...data,
       }, { transaction })
       return created
@@ -29,7 +32,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
 
   async findCodeRef(pCodeRef: string): Promise<StatusOrder | null> {
     try {
-      const scheduleStore = await models.StatusOrder.findOne({
+      const scheduleStore = await models.StatusOrder.schema(this.tenant).findOne({
         where: { pCodeRef: String(pCodeRef) },
       })
       return scheduleStore  
@@ -58,7 +61,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   }
   async findById(id: string): Promise<StatusOrder | null> {
     try {
-      const statusOrder = await models.StatusOrder.findOne({ where: { stPId: id } })
+      const statusOrder = await models.StatusOrder.schema(this.tenant).findOne({ where: { stPId: id } })
       if (!statusOrder) {
         return null
       }

@@ -7,4 +7,5 @@ export interface IProductOptionalExtraRepo {
   findByCode(code: string): Promise<ProductOptionalExtra | null>
   findById(id: string): Promise<ProductOptionalExtra | null>
   getAll(idStore: string): Promise<ProductOptionalExtraPagination | null>
+  getAllProductOptionalByProductId(pId: string): Promise<ProductOptionalExtra[] | null>
 }

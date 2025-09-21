@@ -10,6 +10,7 @@ export const shoppingResolvers = {
   },
   Mutation: {
     registerShoppingCart: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }) => {
+      // public
       const { error, value } = shoppingCartSchema.validate(args.input)
       if (error) {
         return {
