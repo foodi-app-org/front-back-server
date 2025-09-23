@@ -69,7 +69,6 @@ export class SequelizeStoreRepository implements StoreRepository {
       const [updated] = await models.Store.update(updateData, {
         where: { idStore: id }
       })
-      console.log(updated)
       return updated === 1 ? (await this.findById(id)) : null
     } catch (e) {
       if (e instanceof Error) {
@@ -82,6 +81,9 @@ export class SequelizeStoreRepository implements StoreRepository {
   async updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null> {
     try {
       const [updated] = await models.Store.update({ scheduleOpenAll: openAll }, {
+        where: { idStore: id }
+      })
+      await models.Store.schema(this.tenant).update({ scheduleOpenAll: openAll }, {
         where: { idStore: id }
       })
       return updated ? (await this.findById(id)) : null

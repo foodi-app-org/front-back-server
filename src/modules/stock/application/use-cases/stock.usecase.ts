@@ -8,7 +8,7 @@ import { IStockMovementRepository } from '../../domain/repositories/roles.reposi
 export class RoleUseCase {
   constructor(private readonly stockRepository: IStockMovementRepository) {}
 
-  async execute(data: StockMovement): Promise<StockMovement> {
-    return this.stockRepository.create(data)
+  async execute(data: StockMovement): Promise<StockMovement | null> {
+    return this.stockRepository.create(data) ?? null
   }
 }

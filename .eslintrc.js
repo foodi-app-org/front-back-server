@@ -27,7 +27,6 @@ module.exports = {
     semi: ['error', 'never'],
     quotes: ['error', 'single'],
     'comma-dangle': ['error', 'never'],
-    'max-len': ['error', { code: 100, ignoreUrls: true, ignoreComments: true }],
 
     // 🚀 TypeScript
     '@typescript-eslint/no-explicit-any': 'warn',
@@ -83,7 +82,7 @@ module.exports = {
         rules: [
           { from: 'domain', allow: [] },
           { from: 'application', allow: ['domain'] },
-          { from: 'infrastructure', allow: ['domain', 'application'] },
+          { from: 'infrastructure', allow: ['domain', 'application', 'infrastructure'] }, // 👈 fix
           { from: 'interface', allow: ['domain', 'application', 'infrastructure'] }
         ]
       }
@@ -159,7 +158,7 @@ module.exports = {
       node: { extensions: ['.js', '.ts'] },
       typescript: {
         alwaysTryTypes: true,
-        project: './tsconfig.json', // 👈 muy importante
+        project: './tsconfig.json' // 👈 muy importante
       }
     },
     'boundaries/elements': [

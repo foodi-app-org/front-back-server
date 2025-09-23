@@ -46,7 +46,7 @@ export class CreateIShoppingCartTypeUseCase {
       ...input,
       priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1)
     })
-    const newProductSold = JSON.parse(JSON.stringify(product))
+    // const newProductSold = JSON.parse(JSON.stringify(product))
     // const createdProductSold = await this.productRepository.createProductSold(
     //   String(product.pId),
     //   input.pCodeRef,

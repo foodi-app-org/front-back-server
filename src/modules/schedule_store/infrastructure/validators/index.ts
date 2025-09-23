@@ -1,1 +1,1 @@
-export * from './create-product-category.validator'
+export * from './create-schedule-store.validator'

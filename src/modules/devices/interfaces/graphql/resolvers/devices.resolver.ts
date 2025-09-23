@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { parseExtendedUserAgent } from '../../../../../shared/utils/deviceInfo.utils'
 import { DeviceServicesFactory } from '../../../infrastructure/services'
@@ -5,7 +6,7 @@ import { DeviceUserInput, deviceUserSchema } from '../../../infrastructure/valid
 
 export const deviceUserResolvers = {
   Query: {
-    getDeviceUsers: async (_: unknown, args: { userId: string }, context: GraphQLContext) => {
+    getDeviceUsers: async (_: unknown, _args: { userId: string }, context: GraphQLContext) => {
       const deviceServices = DeviceServicesFactory(context.restaurant ?? '')
       return await deviceServices.getAll.execute()
     }

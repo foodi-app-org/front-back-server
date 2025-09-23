@@ -66,8 +66,8 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
       },
       restaurant: restaurant as string
     }
-  } catch (err: any) {
-    if (err.message === 'jwt expired') {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'jwt expired') {
       throw new GraphQLError('Token expired', {
         extensions: {
           code: 'FORBIDDEN',
@@ -79,7 +79,7 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
     throw new GraphQLError('Authentication error', {
       extensions: {
         code: 'UNAUTHENTICATED',
-        message: err.message
+        message: err instanceof Error ? err.message : 'Unknown error'
       }
     })
   }

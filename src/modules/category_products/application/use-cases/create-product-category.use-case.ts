@@ -1,5 +1,5 @@
 import { Logger } from '../../../../shared/domain/logger'
-import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
+// import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { ProductCategory, ProductCategoryProps } from '../../domain/entities/category_products.entity'
 import { CategoryProductRepository } from '../../domain/repositories/category_products.repository'
 
@@ -20,7 +20,7 @@ export class CreateProductCategoryUseCase {
     constructor(
         private readonly name = 'CreateProductCategoryUseCase',
         private readonly categoryProductRepository: CategoryProductRepository,
-        private readonly i18n: I18nAdapter,
+        // private readonly i18n: I18nAdapter,
         private readonly logger: Logger
     ) { }
 

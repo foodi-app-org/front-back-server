@@ -55,10 +55,10 @@ export class AuthController {
         success: true,
         data: result
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       res.status(400).json({
         success: false,
-        error: error.message || 'Register failed'
+        error: typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message : 'Register failed'
       })
     }
   }

@@ -1,25 +1,25 @@
-type ResponseExtProductFoodSubOptional {
-	success: Boolean
-	message: String
-	errors: [errors]
-	data: ExtProductFoodSubOptional
-}
+// type ResponseExtProductFoodSubOptional {
+// 	success: Boolean
+// 	message: String
+// 	errors: [errors]
+// 	data: ExtProductFoodSubOptional
+// }
 
-# Mutations
-type Mutation {
-	"Registra un ExtProductFood"
-	updateExtProductFoods(input: InputExtProductFood): ExtProductFood
-	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ExtProductFood
-	editExtProductFoods(input: InputExtProductFood!): Response
-	deleteExtraProduct(id: ID, state: Int): Response
-	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
-	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
-	"Registra un ExtProductFoodOptional"
-	updateExtProductOptional(input: InputExtProductFoodOptional): Response
-	"Registra un ExtProductFoodSubOptional"
-	updateExtProductSubOptional(input: InputExtProductFoodSubOptional): ResponseExtProductFoodSubOptional
-	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
-	editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
-	"EDITA UN EXTRAPRODUCTOPTIONAL"
-	editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
-}
+// # Mutations
+// type Mutation {
+// 	"Registra un ExtProductFood"
+// 	updateExtProductFoods(input: InputExtProductFood): ExtProductFood
+// 	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ExtProductFood
+// 	editExtProductFoods(input: InputExtProductFood!): Response
+// 	deleteExtraProduct(id: ID, state: Int): Response
+// 	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
+// 	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
+// 	"Registra un ExtProductFoodOptional"
+// 	updateExtProductOptional(input: InputExtProductFoodOptional): Response
+// 	"Registra un ExtProductFoodSubOptional"
+// 	updateExtProductSubOptional(input: InputExtProductFoodSubOptional): ResponseExtProductFoodSubOptional
+// 	DeleteExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean): Response
+// 	editExtFoodSubsOptional(opSubExPid: ID, state: Int, isCustomSubOpExPid: Boolean, OptionalSubProName: String): Response
+// 	"EDITA UN EXTRAPRODUCTOPTIONAL"
+// 	editExtProductFoodOptional(input: EditExtProductFoodOptionalInput!): ExtProductFoodOptional
+// }

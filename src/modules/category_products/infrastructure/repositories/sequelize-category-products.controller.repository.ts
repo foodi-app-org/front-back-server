@@ -7,7 +7,6 @@ import { CategoryProductRepository } from '../../domain/repositories/category_pr
 
 export class SequelizeCategoryProductRepository implements CategoryProductRepository {
   private readonly tenant: string
-
   constructor(tenant?: string) {
     this.tenant = tenant ?? MigrationFolder.Public
   }
@@ -90,7 +89,7 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
         idStore
       } = filters
 
-      let whereSearch: any = {}
+      let whereSearch: Record<string, unknown> = {}
 
       if (search) {
         whereSearch = {

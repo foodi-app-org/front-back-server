@@ -108,7 +108,7 @@
   },
   "scripts": {
     "babel-node": "babel-node --presets=@babel/preset-env",
-    "build": "babel src/ --out-dir build --copy-files",
+    "build": "tsc",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
     "migration:run:public": "npm run babel-node src/api/lib/db/migrations/migrations.public.js up",
@@ -117,7 +117,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "migrate": "npx sequelize-cli db:migrate",
-    "start": "node build/app.js",
+    "start": "node build/main.js",
     "build:pkg": "pkg . --out-path dist",
     "build:all": "concurrently \"npm run build\" \"npm run build:pkg\"",
     "build:electron": "electron-builder",

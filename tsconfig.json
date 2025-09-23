@@ -27,7 +27,7 @@
 
     /* ✅ Estructura de compilación */
     "rootDir": "src",
-    "outDir": "dist_hex",
+    "outDir": "build",
 
     /* ✅ BaseUrl + Paths para hexagonal */
     "baseUrl": "./src",

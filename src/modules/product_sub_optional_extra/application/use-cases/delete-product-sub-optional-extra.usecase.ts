@@ -7,7 +7,7 @@ interface DeleteProductOptionalInput {
     state: StateProductSubOptionalExtra
 }
 
-export interface UseCaseResponse<T = any> {
+export interface UseCaseResponse<T = unknown> {
     success: boolean
     message: string
     data?: T | null

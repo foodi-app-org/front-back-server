@@ -1,15 +1,14 @@
 import fs from 'fs'
+import { GraphQLError } from 'graphql'
+import os from 'os'
 import path from 'path'
 
-import { GraphQLError } from 'graphql'
-
+import Store from '../../models/Store/Store'
 import { ContextValidator } from '../../utils/context-validator'
 import { LogDanger } from '../../utils/logs'
 import { deCode, getTenantName } from '../../utils/util'
-import { userDataPath } from '../product/images'
-import Store from '../../models/Store/Store'
 
-export const userDataPath = path.join(os.homedir(), PATH_EXTERNAL_OS)
+export const userDataPath = path.join(os.homedir(), process.env.PATH_EXTERNAL_OS ?? '', 'user-data')
 
 const registerBanner = async (parent, { input }, context) => {
   try {
@@ -66,7 +65,7 @@ const registerBanner = async (parent, { input }, context) => {
   }
 }
 
-const deleteOneBanner = async (parent, { input }, context) => {
+const deleteOneBanner = async (parent, { _input }, context) => {
   try {
     const validator = new ContextValidator(context)
     const idStore = validator.validateUserSession()

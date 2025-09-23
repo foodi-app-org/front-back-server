@@ -18,7 +18,6 @@ export const removeTenantPrefix = (tenantName: unknown): string => {
 
     return tenantName.startsWith('tenant_') ? tenantName.slice(7) : tenantName
   } catch (error) {
-    console.error(`Error removing tenant prefix: ${error}`)
-    return ''
+    return `Error removing tenant prefix: ${error}`
   }
 }

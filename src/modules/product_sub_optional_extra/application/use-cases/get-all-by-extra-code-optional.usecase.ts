@@ -1,6 +1,6 @@
 import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
-export interface UseCaseResponse<T = any> {
+export interface UseCaseResponse<T = unknown> {
     success: boolean
     message: string
     data?: T | null
@@ -15,7 +15,7 @@ export class GetAllProductSubOptionalUseCase {
         private readonly repo: IProductSubOptionalExtraRepo
     ) { }
 
-    async execute(exCodeOptionExtra: string, idStore: string): Promise<UseCaseResponse> {
+    async execute(exCodeOptionExtra: string): Promise<UseCaseResponse> {
         try {
             // get all sub optional extras by extra code
             const optionalExtra = await this.repo.getAllByExtraCode(exCodeOptionExtra ?? '') ?? []
