@@ -12,7 +12,7 @@ import { columnsStatusOrdersStore, STATUS_ORDER_MODEL } from '../../models/seque
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

@@ -1,4 +1,5 @@
 import Joi from 'joi'
+
 import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
 
 /**
@@ -12,7 +13,7 @@ export const availableProductSchema = Joi.object({
   idStore: Joi.string()
     .required()
     .messages({
-      'any.required': 'Store ID is required',
+      'any.required': 'Store ID is required'
     }),
 
   pId: Joi.string()

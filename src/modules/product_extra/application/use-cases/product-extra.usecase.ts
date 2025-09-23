@@ -1,5 +1,5 @@
-import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 import { ProductExtra, StateProductExtra } from '../../domain/entities/product-optional-extra.entity'
+import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
 export type UpdateProductExtraInput = Partial<ProductExtra>
 
@@ -31,7 +31,7 @@ export class CreateProductOptionalUseCase {
           success: false,
           message: 'No product extras provided',
           errors: [],
-          data: [],
+          data: []
         }
       }
       
@@ -44,7 +44,7 @@ export class CreateProductOptionalUseCase {
           idStore,
           extraPrice: item.extraPrice,
           exState: StateProductExtra.ACTIVE,
-          required: item.required ?? 0,
+          required: item.required ?? 0
         })
         const updated = await this.repo.create(entity)
         if (updated) {
@@ -57,7 +57,7 @@ export class CreateProductOptionalUseCase {
           success: true,
           message: 'Product extras created successfully',
           errors: [],
-          data: results,
+          data: results
         }
       }
 
@@ -65,14 +65,14 @@ export class CreateProductOptionalUseCase {
         success: false,
         message: 'No product extras were created',
         errors: [],
-        data: [],
+        data: []
       }
     } catch (err) {
       return {
         success: false,
         message: err instanceof Error ? err.message : 'Unexpected error',
         errors: [{ message: err instanceof Error ? err.message : 'Unexpected error' }],
-        data: [],
+        data: []
       }
     }
   }

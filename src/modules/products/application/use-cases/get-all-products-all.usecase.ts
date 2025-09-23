@@ -7,7 +7,7 @@ import { ProductRepository } from '../../domain/repositories/products.repository
  */
 export class GetAllProductsAllUseCase {
   constructor(
-    private readonly productRepository: ProductRepository,
+    private readonly productRepository: ProductRepository
   ) { }
 
   /**

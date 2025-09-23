@@ -1,10 +1,11 @@
 import { Op } from 'sequelize'
+
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { ProductExtra, ProductExtraPagination } from '../../domain/entities/product-optional-extra.entity'
 import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { StateProductExtra, type SequelizeProductExtra } from '../db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { type SequelizeProductExtra,StateProductExtra } from '../db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
 
 export class SequelizeProductExtraRepository implements IProductExtraRepo {
   private readonly genericService: GenericService<SequelizeProductExtra>

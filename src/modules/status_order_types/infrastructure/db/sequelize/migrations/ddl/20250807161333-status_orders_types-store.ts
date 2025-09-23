@@ -12,7 +12,7 @@ import { columnsStatusOrdersTypesStore, ORDER_STATUS_TYPE_MODEL } from '../../mo
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

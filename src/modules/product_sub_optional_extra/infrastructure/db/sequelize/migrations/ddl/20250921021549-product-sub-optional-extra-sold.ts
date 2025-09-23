@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import { columnsProductSubOptionalExtraSold, PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL } from '../../models/sequelize-product-sub-optional-extra-sold.model'
+import { columnsProductSubOptionalExtraSold, PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL } from '../../models/sequelize-product-sub-optional-extra-sold.model'
 
 
 /**
@@ -12,11 +12,11 @@ import { columnsProductSubOptionalExtraSold, PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL }
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {
-            tableName: PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL,
+            tableName: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
             schema: schemaName
         },
         columnsProductSubOptionalExtraSold
@@ -34,5 +34,5 @@ export const down = async (
     schemaName: string,
     queryInterface: QueryInterface
 ): Promise<void> => {
-    await queryInterface.dropTable({ tableName: PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL, schema: schemaName })
+    await queryInterface.dropTable({ tableName: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL, schema: schemaName })
 }

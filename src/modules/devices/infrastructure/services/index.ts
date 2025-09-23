@@ -9,7 +9,7 @@ import { SequelizeDeviceStoreRepository } from '../repositories/sequelize-device
 const deviceStoreRepository = new SequelizeDeviceStoreRepository(MigrationFolder.Public)
 
 const createDeviceUseCase = new CreateDeviceUseCase(
-    deviceStoreRepository, 
+    deviceStoreRepository 
 )
 
 export const DeviceStoreServicesPublic = {
@@ -22,6 +22,6 @@ export const DeviceServicesFactory = (tenant: string) => {
     return {
         create: new CreateDeviceUseCase(deviceRepository),
         getAll: new GetAllDevicesUseCase(deviceRepository),
-        findByDeviceId: new FindDeviceByDeviceIdUseCase(deviceRepository),
+        findByDeviceId: new FindDeviceByDeviceIdUseCase(deviceRepository)
     }
 }

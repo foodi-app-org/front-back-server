@@ -10,7 +10,7 @@ const dataExtraItemSchema = Joi.object({
   createdAt: Joi.date().optional().allow(null),
   updatedAt: Joi.date().optional().allow(null),
   quantity: Joi.number().integer().min(1).required(),
-  newExtraPrice: Joi.number().optional(),
+  newExtraPrice: Joi.number().optional()
 })
 
 
@@ -76,7 +76,7 @@ export const statusOrderSchema = Joi.object({
 
   updatedAt: Joi.date()
     .iso()
-    .default(() => new Date()),
+    .default(() => new Date())
 })
 
 
@@ -94,7 +94,7 @@ export const shoppingCartItemSchema = Joi.object({
     .messages({
       'string.base': '"shoppingCartRefCode" must be a string',
       'string.empty': '"shoppingCartRefCode" cannot be empty',
-      'any.required': '"shoppingCartRefCode" is required',
+      'any.required': '"shoppingCartRefCode" is required'
     }),
   refCodePid: Joi.string().required(),
   ProPrice: Joi.number().optional().default(0),
@@ -106,6 +106,6 @@ export const shoppingCartItemSchema = Joi.object({
   comments: Joi.string().allow(null, ''),
   idStore: Joi.string().optional().allow(null, ''),
   dataExtra: Joi.array().items(dataExtraItemSchema).optional().default([]),
-  dataOptional: Joi.array().items(dataOptionalSchema).optional().default([]),
+  dataOptional: Joi.array().items(dataOptionalSchema).optional().default([])
 })
 

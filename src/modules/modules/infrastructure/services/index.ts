@@ -13,7 +13,7 @@ const submoduleRepository = new SequelizeSubModuleOrderRepository(MigrationFolde
 
 export const ModuleServicesPublic = {
     create: new CreateModuleUseCase(moduleRepository),
-    getAll: new GetAllModulesUseCase(moduleRepository),
+    getAll: new GetAllModulesUseCase(moduleRepository)
 }
 
 export const SubmoduleServicesPublic = {
@@ -26,7 +26,7 @@ export const ModuleServicesFactory = (tenant: string) => {
 
   return {
     create: new CreateModuleUseCase(moduleRepository),
-    getAll: new GetAllModulesUseCase(moduleRepository),
+    getAll: new GetAllModulesUseCase(moduleRepository)
   }
 }
 
@@ -34,6 +34,6 @@ export const SubmoduleServicesFactory = (tenant: string) => {
   const submoduleRepository = new SequelizeSubModuleOrderRepository(getTenantName(tenant))
 
   return {
-    getAll: new GetAllSubmodulesUseCase(submoduleRepository),
+    getAll: new GetAllSubmodulesUseCase(submoduleRepository)
   }
 }

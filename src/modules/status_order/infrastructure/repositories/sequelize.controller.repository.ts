@@ -1,11 +1,11 @@
 import { Transaction } from 'sequelize'
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
 import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 import type { SequelizeStatusOrderModel } from '../db/sequelize/models/sequelize-status_orders.model'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   private readonly genericService: GenericService<SequelizeStatusOrderModel>
@@ -19,7 +19,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   async create(data: StatusOrder, transaction?: Transaction): Promise<StatusOrder | null> {
     try {
       const created = await models.StatusOrder.schema(this.tenant).create({
-        ...data,
+        ...data
       }, { transaction })
       return created
     } catch (e) {
@@ -33,7 +33,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   async findCodeRef(pCodeRef: string): Promise<StatusOrder | null> {
     try {
       const scheduleStore = await models.StatusOrder.schema(this.tenant).findOne({
-        where: { pCodeRef: String(pCodeRef) },
+        where: { pCodeRef: String(pCodeRef) }
       })
       return scheduleStore  
     } catch (e) {

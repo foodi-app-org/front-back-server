@@ -6,5 +6,5 @@ const shoppingRepository = new SequelizeRolesRepository()
 
 export const ShoppingTypesServices = {
     create: new RoleUseCase(shoppingRepository),
-    findById: new RoleUseCase(shoppingRepository),
+    findById: new RoleUseCase(shoppingRepository)
 }

@@ -41,7 +41,7 @@ export class CreateDeviceUseCase {
       platform: input.platform,
       os: input.os,
       model: input.model,
-      family: input.family,
+      family: input.family
     })
     if (existingCriteria) {
       return existingCriteria
@@ -61,7 +61,7 @@ export class CreateDeviceUseCase {
       model: input.model,
       ip: input.ip,
       isBot: input.isBot,
-      dState: input.dState,
+      dState: input.dState
     })
 
     // Check if device already exists

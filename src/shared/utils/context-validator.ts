@@ -1,5 +1,6 @@
-import { GraphQLContext } from '../types/context'
 import { GraphQLError } from 'graphql'
+
+import { GraphQLContext } from '../types/context'
 
 export const SESSION_EXPIRED = 'Session expired'
 export const FORBIDDEN = 'FORBIDDEN'

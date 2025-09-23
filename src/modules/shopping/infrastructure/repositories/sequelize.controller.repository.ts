@@ -1,9 +1,9 @@
 import { Transaction } from 'sequelize'
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   private readonly tenant: string
@@ -16,7 +16,7 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   async create(data: ShoppingCart, transaction?: Transaction): Promise<ShoppingCart | null> {
     try {
       const created = await models.ShoppingCart.schema(this.tenant).create({
-        ...data,
+        ...data
       }, { transaction })
       return created
     } catch (e) {
@@ -30,7 +30,7 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   async findCodeRef(pCodeRef: string): Promise<ShoppingCart | null> {
     try {
       const scheduleStore = models.ShoppingCart.schema(this.tenant).findOne({
-        where: { shoppingCartRefCode: String(pCodeRef) },
+        where: { shoppingCartRefCode: String(pCodeRef) }
       })
       return scheduleStore
     } catch (e) {

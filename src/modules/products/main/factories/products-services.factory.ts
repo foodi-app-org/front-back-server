@@ -1,15 +1,15 @@
 
 
-import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
-import { SetImageProductUseCase } from '../../application/use-cases/create-image-product.usecase'
-import { FindProductByIdUseCase } from '../../application/use-cases/find-products-by-id.usecase'
-import { GetAllProductsByCategoryIdUseCase } from '../../application/use-cases/get-all-products-by-category.usecase'
-import { GetAllProductsAllUseCase } from '../../application/use-cases/get-all-products-all.usecase'
-import { RegisterAvailableProductUseCase } from '../../application/use-cases/create-available-product.usecase'
-import { SequelizeProductRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { SequelizeCategoryProductRepository } from '../../../category_products/infrastructure/repositories/sequelize-category-products.controller.repository'
+import { RegisterAvailableProductUseCase } from '../../application/use-cases/create-available-product.usecase'
+import { SetImageProductUseCase } from '../../application/use-cases/create-image-product.usecase'
+import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
+import { FindProductByIdUseCase } from '../../application/use-cases/find-products-by-id.usecase'
+import { GetAllProductsAllUseCase } from '../../application/use-cases/get-all-products-all.usecase'
+import { GetAllProductsByCategoryIdUseCase } from '../../application/use-cases/get-all-products-by-category.usecase'
+import { SequelizeProductRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
 
 const productRepository = new SequelizeProductRepository(MigrationFolder.Public)
 const categoryProductsRepository = new SequelizeCategoryProductRepository(MigrationFolder.Public)
@@ -18,7 +18,7 @@ const categoryProductsRepository = new SequelizeCategoryProductRepository(Migrat
 
 export const ProductServices = {
     create: new CreateProductTypeUseCase(productRepository, categoryProductsRepository),
-    findById: new FindProductByIdUseCase(productRepository),
+    findById: new FindProductByIdUseCase(productRepository)
 }
 
 export const ProductServicesTenantFactory = (tenant: string) => {
@@ -31,6 +31,6 @@ export const ProductServicesTenantFactory = (tenant: string) => {
         getAllProductsByCategoryId: new GetAllProductsByCategoryIdUseCase(productRepository),
         setImageProduct: new SetImageProductUseCase(productRepository),
         registerAvailableProduct: new RegisterAvailableProductUseCase(productRepository),
-        productFoodsAll: new GetAllProductsAllUseCase(productRepository),
+        productFoodsAll: new GetAllProductsAllUseCase(productRepository)
     }
 }

@@ -1,8 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { CategoryProductRepositoryServicesTenantFactory } from '../../../main/factories/category_products-services.factory'
 import { ProductServicesTenantFactory } from '../../../../products/main/factories/products-services.factory'
+import { CategoryProductRepositoryServicesTenantFactory } from '../../../main/factories/category_products-services.factory'
 
 
 export const categoryProductResolvers = {
@@ -24,7 +24,7 @@ export const categoryProductResolvers = {
       const services = CategoryProductRepositoryServicesTenantFactory(context.restaurant ?? '')
       const data = await services.getCatProductsWithProduct.execute(args)
       return data
-    },
+    }
   },
   Mutation: {
   }

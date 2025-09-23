@@ -27,9 +27,9 @@ export class GetAllTagsUseCase {
         pagination: {
           totalRecords: 0,
           totalPages: 0,
-          currentPage: 1,
+          currentPage: 1
         },
-        data: [],
+        data: []
       }
     }
   }

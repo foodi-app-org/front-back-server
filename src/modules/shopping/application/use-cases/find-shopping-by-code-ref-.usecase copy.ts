@@ -12,7 +12,7 @@ export type CreateIShoppingCartDTO = IShoppingCart
  */
 export class CreateIShoppingCartTypeUseCase {
   constructor(
-    private readonly shoppingCartRepository: ShoppingCartRepository,
+    private readonly shoppingCartRepository: ShoppingCartRepository
   ) { }
 
   /**

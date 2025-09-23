@@ -55,7 +55,7 @@ export class SequelizeDashboardComponentsRepository implements DashboardComponen
           ...component.get({ plain: true }),
           ...updatedData,
           id: component.id,
-          coordinates,
+          coordinates
         }
       })
       console.log('🚀 ~ SequelizeDashboardComponentsRepository ~ update ~ mappedComponents:', mappedComponents)

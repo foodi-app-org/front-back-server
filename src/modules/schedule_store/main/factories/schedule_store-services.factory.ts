@@ -1,9 +1,9 @@
 
-import { CreateScheduleStoreUseCase } from '../../application/use-cases/create-schedule-store.usecase'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
-import { SequelizeScheduleStoreRepository } from '../../infrastructure/repositories/sequelize-store.controller.repository'
+import { CreateScheduleStoreUseCase } from '../../application/use-cases/create-schedule-store.usecase'
 import { GetAllScheduleStoreUseCase } from '../../application/use-cases/get-all-schedule-store.usecase'
+import { SequelizeScheduleStoreRepository } from '../../infrastructure/repositories/sequelize-store.controller.repository'
 
 const userRepository = new SequelizeScheduleStoreRepository(MigrationFolder.Public)
 

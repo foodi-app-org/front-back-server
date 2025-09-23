@@ -1,5 +1,5 @@
-import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 import { ProductExtra } from '../../domain/entities/product-optional-extra.entity'
+import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
 export type UpdateProductExtraInput = Partial<ProductExtra>
 
@@ -26,20 +26,20 @@ export class GetAllExtraProduct {
                 return {
                     success: true,
                     message: 'Product extras retrieved successfully',
-                    data: data,
+                    data: data
                 }
             }
             return {
                 success: false,
                 message: 'No product extras found',
-                data: [],
+                data: []
             }
         } catch (err) {
             return {
                 success: false,
                 message: err instanceof Error ? err.message : 'Unexpected error',
                 errors: [{ message: err instanceof Error ? err.message : 'Unexpected error' }],
-                data: [],
+                data: []
             }
         }
     }

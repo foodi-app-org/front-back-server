@@ -37,7 +37,7 @@ export class CreateTableUseCase {
     return {
       success: true,
       message: 'Table created successfully',
-      data: created,
+      data: created
     }
   }
 }

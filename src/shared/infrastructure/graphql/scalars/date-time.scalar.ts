@@ -69,5 +69,5 @@ export const dateTimeScalar = new GraphQLScalarType({
     }
 
     return dt.toJSDate()
-  },
+  }
 })

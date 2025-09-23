@@ -1,11 +1,11 @@
 import { GraphQLResolveInfo } from 'graphql'
+import { FileUpload } from 'graphql-upload-ts'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { CategoryStoreServicesPublic } from '../../../../category_store/main/factories/category_store.factory'
 import { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
 import { StoreServicesPublic } from '../../../infrastructure/services'
-import { CategoryStoreServicesPublic } from '../../../../category_store/main/factories/category_store.factory'
 import { StoreServicesTenantFactory } from '../../../main/factories/store-services.factory'
-import { FileUpload } from 'graphql-upload-ts'
 
 
 interface NewRegisterStoreArgs {

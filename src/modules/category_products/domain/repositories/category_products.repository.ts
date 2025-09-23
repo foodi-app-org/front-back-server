@@ -1,4 +1,3 @@
-import { GetCatProductsWithProductInput, GetCatProductsWithProductOutput } from '../../application/use-cases/get-all-category-with-products-category.usecase'
 import { ProductCategory } from '../entities/category_products.entity'
 
 /**

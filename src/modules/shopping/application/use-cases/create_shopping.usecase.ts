@@ -8,7 +8,9 @@ import { ShoppingCartRepository } from '../../domain/repositories/shopping.repos
 /**
  * Input DTO to create a ShoppingCart.
  */
-export type CreateIShoppingCartDTO = IShoppingCart  
+export type CreateIShoppingCartDTO = IShoppingCart & {
+  pCodeRef: string
+}
 
 interface ResponseOrderStatusType {
   success: boolean
@@ -35,22 +37,27 @@ export class CreateIShoppingCartTypeUseCase {
       return {
         success: false,
         message: `Product with id ${input.pId}  not found`,
-        data: null,
+        data: null
       }
     }
 
     // sum price of product by cantProducts
     const newIShoppingCart = new ShoppingCart({
       ...input,
-      priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1),
+      priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1)
     })
-
+    const newProductSold = JSON.parse(JSON.stringify(product))
+    // const createdProductSold = await this.productRepository.createProductSold(
+    //   String(product.pId),
+    //   input.pCodeRef,
+    //   newProductSold
+    // )
     const created = await this.shoppingCartRepository.create(newIShoppingCart, transaction)
 
     return {
       success: true,
       message: 'Shopping created successfully',
-      data: created,
+      data: created
     }
   }
 }

@@ -101,7 +101,7 @@ export const columnsDashboardComponents = {
   },
   idStore: {
     type: STRING(36),
-    allowNull: false,
+    allowNull: false
   },
   title: {
     type: STRING(255),

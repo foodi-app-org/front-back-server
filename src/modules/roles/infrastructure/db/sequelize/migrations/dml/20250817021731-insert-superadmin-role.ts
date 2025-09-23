@@ -2,8 +2,8 @@ import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
 import { models_names } from '../../../../../../../shared/infrastructure/db/sequelize/orm/models'
-import { ROLE_MODEL } from '../../models/sequelize-roles.model'
 import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
+import { ROLE_MODEL } from '../../models/sequelize-roles.model'
 
 const TAG = 'SUPERADMIN'
 

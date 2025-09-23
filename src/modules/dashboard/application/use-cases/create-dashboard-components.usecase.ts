@@ -8,7 +8,7 @@ import { DashboardComponentsRepository } from '../../domain/repositories/dashboa
  */
 export class GetAllDashboardComponentsUseCase {
   constructor(
-    private readonly dashboardComponentsRepository: DashboardComponentsRepository,
+    private readonly dashboardComponentsRepository: DashboardComponentsRepository
   ) { }
 
   /**

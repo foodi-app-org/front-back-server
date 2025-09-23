@@ -27,7 +27,7 @@ const findUserByIdUseCase = new FindUserByIdUseCase(userRepository)
 export const UserServices = {
     create: createUserUseCase,
     findByEmail: findUserByEmailUseCase,
-    findById: findUserByIdUseCase,
+    findById: findUserByIdUseCase
 }
 
 export const UserServicesTenantFactory = (tenant: string) => {
@@ -39,6 +39,6 @@ export const UserServicesTenantFactory = (tenant: string) => {
             encrypter
         ),
         findByEmail: new FindUserByEmailUseCase(userRepository),
-        findById: new FindUserByIdUseCase(userRepository),
+        findById: new FindUserByIdUseCase(userRepository)
     }
 }

@@ -67,6 +67,8 @@ export interface IStatusOrderStoreAttributes {
   ProDelivery?: number
   ProVoltaje?: string
   ProBarCode?: string
+  originalPid?: string // to link sold product to original product
+  pCodeRef?: string // to link sold product to original product code
   createdAt?: Date
   updatedAt?: Date
 }
@@ -159,7 +161,7 @@ export const columnsProduct = {
   // Locations
   cId: {
     type: STRING(36),
-    allowNull: true,
+    allowNull: true
   },
   dId: {
     type: STRING(36),
@@ -175,7 +177,7 @@ export const columnsProduct = {
   },
   caId: {
     type: STRING(36),
-    field: 'caId',
+    field: 'caId'
 
   },
   poPriority: {
@@ -265,7 +267,8 @@ export const columnsProduct = {
   },
   sTateLogistic: {
     type: INTEGER,
-    allowNull: false
+    allowNull: false,
+    defaultValue: 0
   },
   // Si el producto esta asegurado ( Protegido )
   ProProtegido: {

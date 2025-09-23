@@ -1,16 +1,16 @@
 // models/productOptionalExtraSold.model.ts
 
-import {
-  SequelizeProductSubOptionalExtra,
-  columnsProductSubOptionalExtra
-} from './sequelize-product-sub-optional-extra.model'
+import { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { STRING, UUIDV4 } from 'sequelize'
+import {
+  columnsProductSubOptionalExtra,
+  SequelizeProductSubOptionalExtra
+} from './sequelize-product-sub-optional-extra.model'
 
 const sequelize = connect()
 
-export const PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL = 'products_sub_optional_extras_sold'
+export const PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL = 'products_sub_optional_extras_sold'
 
 /**
  * Sequelize model definition for sold optional sub extras
@@ -38,7 +38,7 @@ export const columnsProductSubOptionalExtraSold = {
  */
 SequelizeProductSubOptionalExtraSold.init(columnsProductSubOptionalExtraSold, {
   sequelize,
-  modelName: PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL,
+  modelName: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
   freezeTableName: true,
   timestamps: false
 })

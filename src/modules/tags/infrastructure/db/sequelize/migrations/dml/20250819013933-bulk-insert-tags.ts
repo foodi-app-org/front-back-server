@@ -1,8 +1,8 @@
 import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
-import { states, TAGS_PRODUCT_MODEL_NAME } from '../../models/sequelize-tags.model'
 import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
+import { states, TAGS_PRODUCT_MODEL_NAME } from '../../models/sequelize-tags.model'
 
 const tagNames = [
     {

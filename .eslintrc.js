@@ -21,46 +21,31 @@ module.exports = {
   },
   ignorePatterns: ['dist/', 'node_modules/'],
   rules: {
-    // 💣 Limpieza
+    // 💣 Clean code
     'no-console': 'warn',
     'no-debugger': 'error',
     semi: ['error', 'never'],
+    quotes: ['error', 'single'],
+    'comma-dangle': ['error', 'never'],
+    'max-len': ['error', { code: 100, ignoreUrls: true, ignoreComments: true }],
 
     // 🚀 TypeScript
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
 
-    // 🔥 No dejar basura
-    'no-unused-vars': 'off', // 🔕 Desactiva la nativa de JS
+    // 🔥 Remove garbage
+    'no-unused-vars': 'off', // disable native rule
     '@typescript-eslint/no-unused-vars': [
       'error',
-      {
-        vars: 'all',
-        args: 'after-used',
-        caughtErrors: 'all',
-        ignoreRestSiblings: false,
-        varsIgnorePattern: '^_',
-        argsIgnorePattern: '^_'
-      }
+      { vars: 'all', args: 'after-used', argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
     ],
     'unused-imports/no-unused-imports': 'error',
-    'unused-imports/no-unused-vars': [
-      'error',
-      {
-        vars: 'all',
-        varsIgnorePattern: '^_',
-        argsIgnorePattern: '^_'
-      }
-    ],
 
-    // 🧹 Imports organizados
+    // 🧹 Import sorting
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',
 
-    // 🔐 Comillas simples siempre
-    quotes: ['error', 'single', { avoidEscape: true }],
-
-    // 📦 Importaciones ordenadas
+    // 📦 Import order
     'import/order': [
       'error',
       {
@@ -68,25 +53,23 @@ module.exports = {
         'newlines-between': 'always'
       }
     ],
-    // Requiere salto de línea si hay más de 2 imports en una sola línea
+
+    // Enforce newline for imports with more than 2 props
     'object-curly-newline': [
       'error',
       {
-        ImportDeclaration: { minProperties: 3, multiline: true, consistent: true },
-      },
+        ImportDeclaration: { minProperties: 3, multiline: true, consistent: true }
+      }
     ],
-    // 🧠 Hexagonal: evitar imports cruzados (si quieres ir a fuego)
+
+    // 🧠 Hexagonal: avoid cross imports
     'no-restricted-imports': [
       'error',
       {
         patterns: [
           {
-            group: [
-              // bloquea infra e interface excepto si vienen de main
-              '**/!(main)/**/infrastructure/**',
-              '**/!(main)/**/interface/**'
-            ],
-            message: 'Application layer should not import from infrastructure/interface'
+            group: ['**/infrastructure/**', '**/interface/**'],
+            message: 'Application layer should not import from infrastructure or interface'
           }
         ]
       }
@@ -115,15 +98,19 @@ module.exports = {
           'error',
           {
             patterns: [
-              '**/application/**',
-              '**/infrastructure/**',
-              '**/main/**',
-              '**/interfaces/**', // si interfaces son adaptadores
-            ],
-            message: 'Domain layer must be pure. No imports from application, infrastructure, main or interfaces',
-          },
-        ],
-      },
+              {
+                group: [
+                  '**/application/**',
+                  '**/infrastructure/**',
+                  '**/main/**',
+                  '**/interface/**'
+                ],
+                message: 'Domain layer must be pure. No imports from application, infrastructure, main or interface'
+              }
+            ]
+          }
+        ]
+      }
     },
     // APPLICATION
     {
@@ -133,13 +120,14 @@ module.exports = {
           'error',
           {
             patterns: [
-              '**/infrastructure/**',
-              '**/main/**',
-            ],
-            message: 'Application layer should only depend on domain (entities, repos, interfaces, value-objects)',
-          },
-        ],
-      },
+              {
+                group: ['**/infrastructure/**', '**/main/**'],
+                message: 'Application layer should only depend on domain'
+              }
+            ]
+          }
+        ]
+      }
     },
     // INFRASTRUCTURE
     {
@@ -149,37 +137,36 @@ module.exports = {
           'error',
           {
             patterns: [
-              '**/application/**',
-              '**/main/**',
-            ],
-            message: 'Infrastructure should not import application or main',
-          },
-        ],
-      },
+              {
+                group: ['**/application/**', '**/main/**'],
+                message: 'Infrastructure should not import application or main'
+              }
+            ]
+          }
+        ]
+      }
     },
-    // MAIN (factories, composition root)
+    // MAIN (composition root) -> allow everything
     {
       files: ['src/modules/**/main/**/*.ts'],
       rules: {
-        // Main puede importar todo (composition root)
-        'no-restricted-imports': 'off',
-      },
-    },
+        'no-restricted-imports': 'off'
+      }
+    }
   ],
   settings: {
     'import/resolver': {
-      node: {
-        extensions: ['.js', '.ts']
-      },
+      node: { extensions: ['.js', '.ts'] },
       typescript: {
-        project: './tsconfig.json'
+        alwaysTryTypes: true,
+        project: './tsconfig.json', // 👈 muy importante
       }
     },
     'boundaries/elements': [
-      { type: 'domain', pattern: 'src/*/domain' },
-      { type: 'application', pattern: 'src/*/application' },
-      { type: 'infrastructure', pattern: 'src/*/infrastructure' },
-      { type: 'interface', pattern: 'src/*/interface' }
+      { type: 'domain', pattern: 'src/modules/*/domain' },
+      { type: 'application', pattern: 'src/modules/*/application' },
+      { type: 'infrastructure', pattern: 'src/modules/*/infrastructure' },
+      { type: 'interface', pattern: 'src/modules/*/interface' }
     ]
   }
 }

@@ -14,7 +14,7 @@ export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderType
   async create(typeOrder: StatusOrderTypes): Promise<StatusOrderTypes | null> {
     try {
       const created = await models.StatusOrderTypes.create({
-        ...typeOrder,
+        ...typeOrder
       })
       return created
     } catch (e) {
@@ -28,7 +28,7 @@ export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderType
   async findByName(name: string): Promise<StatusOrderTypes | null> {
     try {
       const scheduleStore = models.StatusOrderTypes.findOne({
-        where: { name: String(name) },
+        where: { name: String(name) }
       })
       return scheduleStore
     } catch (e) {

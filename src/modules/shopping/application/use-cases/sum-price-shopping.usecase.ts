@@ -14,7 +14,7 @@ interface ResponseOrderStatusType {
  */
 export class SumPriceShoppingCartUseCase  {
   constructor(
-    private readonly shoppingCartRepository: ShoppingCartRepository,
+    private readonly shoppingCartRepository: ShoppingCartRepository
   ) {}
 
   /**
@@ -29,14 +29,14 @@ export class SumPriceShoppingCartUseCase  {
       return {
         success: true,
         message: 'Sum price calculated successfully',
-        data: sum ?? 0,
+        data: sum ?? 0
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error occurred'
       return {
         success: false,
         message: `Failed to calculate sum price: ${message}`,
-        data: null,
+        data: null
       }
     }
   }

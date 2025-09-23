@@ -1,11 +1,11 @@
 import {
+  DataTypes,
   INTEGER,
-  STRING,
-  UUIDV4,
   Model,
   Optional,
-  DataTypes
-} from "sequelize"
+  STRING,
+  UUIDV4
+} from 'sequelize'
 
 import connect from '../../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 
@@ -41,7 +41,7 @@ export interface IProductExtraAttributes {
  */
 export type IProductExtraCreationAttributes = Optional<
   IProductExtraAttributes,
-  "exPid" | "createdAt" | "updatedAt" | "exState" | "required"
+  'exPid' | 'createdAt' | 'updatedAt' | 'exState' | 'required'
 >
 
 /**

@@ -97,7 +97,7 @@ export class GenericService<T extends Model> {
                 }
             })
 
-            const pageSize = pagination?.max ?? 50
+            const pageSize = pagination?.max ?? 300
             const currentPage = pagination?.page ?? 1
             const offset = (currentPage - 1) * pageSize
 

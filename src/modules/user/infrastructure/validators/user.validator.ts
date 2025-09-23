@@ -16,6 +16,6 @@ export const getUserByEmailSchema = Joi.object({
     .messages({
       'string.base': 'Email must be a string',
       'string.email': 'Email must be a valid email address',
-      'any.required': 'Email is required',
-    }),
+      'any.required': 'Email is required'
+    })
 })

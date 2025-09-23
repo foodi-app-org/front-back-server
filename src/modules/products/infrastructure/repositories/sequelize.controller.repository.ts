@@ -1,17 +1,18 @@
+import { Op } from 'sequelize'
+import { v4 as uuidv4 } from 'uuid'
+
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
+import { AvailableProduct } from '../../domain/entities/available_product.entity'
 import {
   Product,
   ProductPagination,
   StateProduct
 } from '../../domain/entities/products.entity'
-import { AvailableProduct } from '../../domain/entities/available_product.entity'
 import { ProductRepository } from '../../domain/repositories/products.repository'
-import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
-import { Op } from 'sequelize'
 import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
-
+import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
 export class SequelizeProductRepository implements ProductRepository {
   private readonly genericService: GenericService<SequelizeProductModel>
   private readonly tenant: string
@@ -26,7 +27,7 @@ export class SequelizeProductRepository implements ProductRepository {
   async create(data: Product): Promise<Product | null> {
     try {
       const created = await models.Product.schema(this.tenant).create({
-        ...data,
+        ...data
       })
       return created
     } catch (e) {
@@ -40,7 +41,7 @@ export class SequelizeProductRepository implements ProductRepository {
   async findCode(pCodeRef: string): Promise<Product | null> {
     try {
       const scheduleStore = models.Product.schema(this.tenant).findOne({
-        where: { pCode: String(pCodeRef) },
+        where: { pCode: String(pCodeRef) }
       })
       return scheduleStore
     } catch (e) {
@@ -120,7 +121,7 @@ export class SequelizeProductRepository implements ProductRepository {
         include: [{
           model: models.AvailableProduct.schema(this.tenant),
           where: {
-            state: StateProductAvailable.ACTIVE,
+            state: StateProductAvailable.ACTIVE
           },
           required: false
         }]
@@ -198,7 +199,7 @@ export class SequelizeProductRepository implements ProductRepository {
   async createAvailableProduct(data: Partial<Product>): Promise<AvailableProduct | null> {
     try {
       const created = await models.AvailableProduct.schema(this.tenant).create({
-        ...data,
+        ...data
       })
       return created
     } catch (e) {
@@ -206,6 +207,30 @@ export class SequelizeProductRepository implements ProductRepository {
         throw new Error(e.message)
       }
       throw new Error(String(e))
+    }
+  }
+  async createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null> {
+    console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ product:', product)
+    try {
+      const id = uuidv4()
+      const created = await models.ProductSold.schema(this.tenant).create({
+        ...product, 
+        pId: id,
+        originalPid,
+        pName: `${product.pName} - SOLD`,
+        pCodeRef: `${pCodeRef}`,
+        ProBarCode: `${product.ProBarCode}-SOLD-${id.substring(0, 8)}`,
+        pState: StateProduct.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      return created
+    } catch (e) {
+      console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ e:', e)
+      if (e instanceof Error) {
+        throw new Error(`Failed to create ProductSold: ${e.message}`)
+      }
+      throw new Error(`Unexpected error: ${String(e)}`)
     }
   }
 }

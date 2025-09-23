@@ -1,11 +1,10 @@
 
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateTagsUseCase } from '../../application/use-cases/create_tags.usecase'
-import { GetAllTagsUseCase } from '../../application/use-cases/get-all-tags.usecase'
 import { DeleteTagUseCase } from '../../application/use-cases/delete-tag.usecase'
+import { GetAllTagsUseCase } from '../../application/use-cases/get-all-tags.usecase'
 import { RegisterMultipleTagsUseCase } from '../../application/use-cases/register-multiple-tags.usecase'
 import { SequelizeTagsRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
-
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
 
 const shoppingRepository = new SequelizeTagsRepository()
 

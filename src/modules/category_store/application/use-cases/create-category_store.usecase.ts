@@ -18,7 +18,7 @@ export interface CreateStoreDTO {
  */
 export class CreateCategoryStoreUseCase {
   constructor(
-    private readonly categoryStoreRepository: CategoryStoreRepository,
+    private readonly categoryStoreRepository: CategoryStoreRepository
   ) { }
 
   /**
@@ -41,7 +41,7 @@ export class CreateCategoryStoreUseCase {
       cState: cState ?? 1,
       cPathImage,
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     }
 
     const created = await this.categoryStoreRepository.create(categoryStore)

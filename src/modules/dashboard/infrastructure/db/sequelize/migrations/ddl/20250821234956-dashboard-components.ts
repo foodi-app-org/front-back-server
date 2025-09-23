@@ -12,7 +12,7 @@ import { columnsDashboardComponents, DASHBOARD_COMPONENTS } from '../../models/s
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

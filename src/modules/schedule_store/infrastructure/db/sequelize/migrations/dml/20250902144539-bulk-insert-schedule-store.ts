@@ -1,7 +1,8 @@
 import { Op, QueryInterface } from 'sequelize'
-import { SCHEDULE_MODEL } from '../../models/sequelize-schedule-store.model'
 import { v4 as uuidv4 } from 'uuid'
+
 import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
+import { SCHEDULE_MODEL } from '../../models/sequelize-schedule-store.model'
 
 
 /**
@@ -13,7 +14,7 @@ import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.uti
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     const now = new Date()
     const schedules = Array.from({ length: 7 }).map((_, day) => ({
@@ -25,7 +26,7 @@ export const up = async (
     schHoEnd: '23:59',
     schState: 1,
     createdAt: now,
-    updatedAt: now,
+    updatedAt: now
   }))
 
   await queryInterface.bulkInsert(

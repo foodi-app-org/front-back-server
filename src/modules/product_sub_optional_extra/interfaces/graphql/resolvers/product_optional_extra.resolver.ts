@@ -1,8 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { ProductSubOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
-import { productSubOptionalExtraSchema } from '../../../infrastructure/validators/product-sub-optional-extra.validator'
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { productSubOptionalExtraSchema } from '../../../infrastructure/validators/product-sub-optional-extra.validator'
+import { ProductSubOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
 
 type CreateProductSubOptionalInput = {
   exCode: string
@@ -48,5 +48,5 @@ export const productSubOptionalExtraResolvers = {
       }
       return await services.delete.execute({ code: opSubExPid, state })
     }
-  },
+  }
 }

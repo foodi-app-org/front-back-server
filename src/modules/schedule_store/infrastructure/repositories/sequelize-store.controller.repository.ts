@@ -1,7 +1,7 @@
 
 import { Op } from 'sequelize'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ScheduleStore } from '../../domain/entities/schedule_store.entity'
 import { ScheduleStoreRepository } from '../../domain/repositories/schedule_store.repository'
@@ -16,7 +16,7 @@ export class SequelizeScheduleStoreRepository implements ScheduleStoreRepository
   async create(scheduleStore: ScheduleStore): Promise<ScheduleStore | null> {
     try {
       const created = await models.ScheduleStore.schema(this.tenant).create({
-        ...scheduleStore,
+        ...scheduleStore
       })
       return created
     } catch (e) {
@@ -30,7 +30,7 @@ export class SequelizeScheduleStoreRepository implements ScheduleStoreRepository
   async findByDay(day: number): Promise<ScheduleStore | null> {
     try {
       const scheduleStore = models.ScheduleStore.schema(this.tenant).findOne({
-        where: { schDay: Number(day) },
+        where: { schDay: Number(day) }
       })
       return scheduleStore
     } catch (e) {
@@ -70,7 +70,7 @@ export class SequelizeScheduleStoreRepository implements ScheduleStoreRepository
               idStore
             }
           ]
-        },
+        }
       })
       return scheduleStores
     } catch (e) {

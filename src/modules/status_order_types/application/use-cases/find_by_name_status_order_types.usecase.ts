@@ -7,7 +7,7 @@ import { CategoryOrderTypesRepository } from '../../domain/repositories/status_o
  */
 export class FindByNameStatusOrderTypeUseCase {
   constructor(
-    private readonly categoryStatusOrderRepository: CategoryOrderTypesRepository,
+    private readonly categoryStatusOrderRepository: CategoryOrderTypesRepository
   ) { }
 
   /**

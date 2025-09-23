@@ -1,8 +1,8 @@
 import fs from 'fs'
-import path from 'path'
-import os from 'os'
 import { GraphQLError } from 'graphql'
-import { Store } from '../../domain/entities/store.entity'
+import os from 'os'
+import path from 'path'
+
 import { LogDanger } from '../../../../shared/utils/logger.utils'
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
@@ -23,7 +23,7 @@ interface DeleteLogoResponse {
  */
 export class DeleteLogoUseCase {
   constructor(
-    private readonly storeRepository: StoreRepository,
+    private readonly storeRepository: StoreRepository
   ) {}
 
   /**

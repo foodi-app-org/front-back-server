@@ -1,9 +1,9 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { productSchema } from '../../../infrastructure/validators'
-import { CreateStatusTypeOrderInput } from '../inputs'
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { productSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
+import { CreateStatusTypeOrderInput } from '../inputs'
 
 export const productResolvers = {
   Query: {
@@ -23,7 +23,7 @@ export const productResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
     },
@@ -36,10 +36,10 @@ export const productResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
-    },
+    }
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
@@ -77,9 +77,9 @@ export const productResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
     }
-  },
+  }
 }

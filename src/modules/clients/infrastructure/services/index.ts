@@ -7,5 +7,5 @@ const clientsRepository = new SequelizeClientsRepository()
 
 export const ClientsServices = {
     create: new CreateClientUseCase(clientsRepository),
-    getAll: new GetAllClientUseCase(clientsRepository),
+    getAll: new GetAllClientUseCase(clientsRepository)
 }

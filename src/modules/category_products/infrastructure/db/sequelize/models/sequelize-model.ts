@@ -57,7 +57,7 @@ export const CategoryProductColumns = {
   // id store
   idStore: {
     type: STRING(36),
-    allowNull: false,
+    allowNull: false
     // onUpdate: 'CASCADE',
     // onDelete: 'CASCADE',
     // references: {
@@ -68,7 +68,7 @@ export const CategoryProductColumns = {
   // User
   id: {
     type: STRING(36),
-    allowNull: true,
+    allowNull: true
     // onUpdate: 'CASCADE',
     // onDelete: 'CASCADE',
     // references: {

@@ -25,5 +25,5 @@ export const CategoryProductSchema = Joi.object({
 
   updatedAt: Joi.date()
     .iso()
-    .default(() => new Date()),
+    .default(() => new Date())
 })

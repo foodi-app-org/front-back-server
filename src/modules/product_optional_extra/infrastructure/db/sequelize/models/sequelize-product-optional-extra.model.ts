@@ -1,17 +1,17 @@
 import {
+  DataTypes,
   INTEGER,
-  STRING,
-  UUIDV4,
   Model,
   Optional,
-  DataTypes
-} from "sequelize"
+  STRING,
+  UUIDV4
+} from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 
 const sequelize = connect()
 
-export const PRODUCT_OPTIONAL_EXTRA_MODEL = "products_optional_extras"
+export const PRODUCT_OPTIONAL_EXTRA_MODEL = 'products_optional_extras'
 
 /**
  * Enum for state of the optional extra product
@@ -43,7 +43,7 @@ export interface IProductOptionalExtraAttributes {
  */
 export type IProductOptionalExtraCreationAttributes = Optional<
   IProductOptionalExtraAttributes,
-  "opExPid" | "createdAt" | "updatedAt" | "state" | "required"
+  'opExPid' | 'createdAt' | 'updatedAt' | 'state' | 'required'
 >
 
 /**
@@ -86,7 +86,7 @@ export const columnsProductOptionalExtra = {
   OptionalProName: {
     type: STRING,
     allowNull: false,
-    field: "OptionalProName"
+    field: 'OptionalProName'
   },
   code: {
     type: STRING,

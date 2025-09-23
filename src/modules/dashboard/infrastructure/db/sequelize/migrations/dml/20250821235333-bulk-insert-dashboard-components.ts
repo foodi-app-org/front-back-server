@@ -19,7 +19,7 @@ const defaultItems = [
     moved: false,
     static: true,
     title: '',
-    mobile: true,
+    mobile: true
   },
   {
     w: 3,
@@ -31,7 +31,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Meta del día',
-    mobile: true,
+    mobile: true
   },
   {
     w: 3,
@@ -43,7 +43,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Código QR',
-    mobile: true,
+    mobile: true
   },
   {
     w: 3,
@@ -55,7 +55,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Ventas del día',
-    mobile: true,
+    mobile: true
   },
   {
     w: 3,
@@ -67,7 +67,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Equipo del comercio',
-    mobile: true,
+    mobile: true
   },
   {
     w: 3,
@@ -79,7 +79,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Dispositivos conectados',
-    mobile: true,
+    mobile: true
   },
   {
     w: 9,
@@ -91,7 +91,7 @@ const defaultItems = [
     moved: false,
     static: false,
     title: 'Estadísticas',
-    mobile: false,
+    mobile: false
   }
 ]
 

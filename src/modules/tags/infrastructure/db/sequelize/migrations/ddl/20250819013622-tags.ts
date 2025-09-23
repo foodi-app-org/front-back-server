@@ -11,7 +11,7 @@ import { columnsTagsProduct, TAGS_PRODUCT_MODEL_NAME } from '../../models/sequel
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

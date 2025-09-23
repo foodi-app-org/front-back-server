@@ -13,18 +13,18 @@ describe('CreateUserUseCase', () => {
   const mockUserRepo: jest.Mocked<UserRepository> = {
     findByEmail: jest.fn(),
     create: jest.fn(),
-    findById: jest.fn(),
+    findById: jest.fn()
     // si tienes más métodos declarados en la interfaz los agregas como mocks vacíos
   }
 
   const mockEncrypter: jest.Mocked<Encrypter> = {
     hash: jest.fn(),
-    compare: jest.fn(),
+    compare: jest.fn()
   }
 
   const mockTokenService: jest.Mocked<TokenGenerator> = {
     generate: jest.fn(),
-    verify: jest.fn(),
+    verify: jest.fn()
   }
 
   const useCase = new CreateUserUseCase(mockUserRepo, mockTokenService, mockEncrypter)

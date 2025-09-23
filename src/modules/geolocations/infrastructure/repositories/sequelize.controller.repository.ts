@@ -9,7 +9,7 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
   async create(data: ShoppingCart, transaction?: Transaction): Promise<ShoppingCart | null> {
     try {
       const created = await models.ShoppingCart.create({
-        ...data,
+        ...data
       }, { transaction })
       return created
     } catch (e) {
@@ -23,7 +23,7 @@ export class SequelizeStatusOrderRepository implements ShoppingCartRepository {
   async findCodeRef(pCodeRef: string): Promise<ShoppingCart | null> {
     try {
       const scheduleStore = models.ShoppingCart.findOne({
-        where: { shoppingCartRefCode: String(pCodeRef) },
+        where: { shoppingCartRefCode: String(pCodeRef) }
       })
       return scheduleStore
     } catch (e) {

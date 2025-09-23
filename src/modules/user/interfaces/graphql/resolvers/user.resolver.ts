@@ -1,9 +1,9 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { RolesServicesTenantFactory } from '../../../../roles/main/factories/roles-services.factory'
 import { UserServices, UserServicesTenantFactory } from '../../../main/factories/user-services.factory'
 import { CreateUserInput } from '../inputs'
-import { RolesServicesTenantFactory } from '../../../../roles/main/factories/roles-services.factory'
 
 
 export const userResolvers = {
@@ -20,7 +20,7 @@ export const userResolvers = {
           const role = await services.findById.execute(parent?.idRole ?? '')
           return role
         } catch (error) {
-          console.error('Error resolving user role:', error);
+          console.error('Error resolving user role:', error)
           return null
         }
       }
@@ -45,7 +45,7 @@ export const userResolvers = {
       const {
         name,
         email,
-        password,
+        password
       } = args.input
       return await UserServices.create.execute(name, email, password)
     }

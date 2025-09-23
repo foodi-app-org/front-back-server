@@ -34,7 +34,7 @@ export class CreateProductCategoryUseCase {
             idStore,
             carProId,
             pName,
-            ProDescription,
+            ProDescription
          } = data
 
 
@@ -51,13 +51,13 @@ export class CreateProductCategoryUseCase {
            this.logger.success(`${this.name} ✅ Category created: ${pName}`)
             return {
                 success: true,
-                message: 'Categoría creada exitosamente',
+                message: 'Categoría creada exitosamente'
             }
         } catch (error) {
             this.logger.error(`'❌ Error creating product category:', ${error}`)
             return {
                 success: false,
-                message: 'Error al crear la categoría',
+                message: 'Error al crear la categoría'
                 // message: this.i18n.t('category.create.error'),
             }
         }

@@ -19,7 +19,7 @@ interface ResponseOrderStatusType {
  */
 export class CreateStatusOrderTypeUseCase {
   constructor(
-    private readonly statusOrderRepository: StatusOrderRepository,
+    private readonly statusOrderRepository: StatusOrderRepository
   ) { }
 
   /**

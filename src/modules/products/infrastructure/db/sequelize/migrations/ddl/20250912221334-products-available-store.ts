@@ -12,7 +12,7 @@ import { columnsAvailableProduct, PRODUCT_AVAILABLE } from '../../models/sequeli
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

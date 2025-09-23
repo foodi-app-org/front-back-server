@@ -16,7 +16,7 @@ export interface CreateProductCategoryResponse {
  */
 export class GetAllCategoryProductsUseCase {
     constructor(
-        private readonly categoryProductRepository: CategoryProductRepository,
+        private readonly categoryProductRepository: CategoryProductRepository
     ) { }
 
     async execute(): Promise<CreateProductCategoryResponse> {
@@ -29,10 +29,10 @@ export class GetAllCategoryProductsUseCase {
                 data: categories ?? []
             }
         } catch (error) {
-            console.error('Error in GetAllCategoryProductsUseCase:', error);
+            console.error('Error in GetAllCategoryProductsUseCase:', error)
             return {
                 success: false,
-                message: 'Error al obtener las categorías',
+                message: 'Error al obtener las categorías'
             }
         }
     }

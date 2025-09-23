@@ -1,8 +1,9 @@
-import { UniqueConstraintError, Op } from 'sequelize'
+import { Op,UniqueConstraintError } from 'sequelize'
+
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ProductCategory } from '../../domain/entities/category_products.entity'
 import { CategoryProductRepository } from '../../domain/repositories/category_products.repository'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeCategoryProductRepository implements CategoryProductRepository {
   private readonly tenant: string
@@ -17,14 +18,14 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
         ...data,
         createdAt: new Date(),
         pName: data.pName,
-        ProDescription: data.ProDescription,
+        ProDescription: data.ProDescription
       })
       return new ProductCategory({
         ...created.get(),
         pName: created?.pName,
         ProDescription: created.ProDescription,
         carProId: created.carProId,
-        pState: created.pState ?? 0,
+        pState: created.pState ?? 0
       })
     } catch (e) {
       if (e instanceof UniqueConstraintError) {
@@ -42,7 +43,7 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
         ...category.get(),
         createdAt: category.createdAt,
         updatedAt: category.updatedAt,
-        pState: category.pState ?? 0,
+        pState: category.pState ?? 0
       }))
     } catch (e) {
       console.error('Error in SequelizeCategoryProductRepository.getAll:', e)
@@ -60,7 +61,7 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
           ...category.get(),
           createdAt: category.createdAt,
           updatedAt: category.updatedAt,
-          pState: category.pState ?? 0,
+          pState: category.pState ?? 0
         })
         : null
     } catch (e) {
@@ -143,7 +144,7 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
           ...category.get(),
           createdAt: category.createdAt,
           updatedAt: category.updatedAt,
-          pState: category.pState ?? 0,
+          pState: category.pState ?? 0
         }))
       }
     } catch (e) {

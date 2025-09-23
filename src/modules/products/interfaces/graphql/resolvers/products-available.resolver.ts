@@ -1,7 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { availableProductSchema } from '../../../infrastructure/validators'
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { availableProductSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
 
 export type AvailableProduct = {
@@ -50,6 +50,6 @@ export const productAvailableResolvers = {
         state: 1
       }))
       return await services.registerAvailableProduct.execute(mappedInput)
-    },
+    }
   }
 }

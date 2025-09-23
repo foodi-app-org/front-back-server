@@ -35,14 +35,14 @@ export class CreateIShoppingCartTypeUseCase {
       return {
         success: false,
         message: `Product with id ${input.pId} not found`,
-        data: null,
+        data: null
       }
     }
 
     // sum price of product by cantProducts
     const newIShoppingCart = new ShoppingCart({
       ...input,
-      priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1),
+      priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1)
     })
 
     const created = await this.shoppingCartRepository.create(newIShoppingCart, transaction)
@@ -50,7 +50,7 @@ export class CreateIShoppingCartTypeUseCase {
     return {
       success: true,
       message: 'Shopping created successfully',
-      data: created,
+      data: created
     }
   }
 }

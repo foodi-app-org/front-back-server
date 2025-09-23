@@ -1,12 +1,12 @@
 // models/productOptionalExtraSold.model.ts
 
-import {
-  SequelizeProductModel,
-  columnsProduct
-} from './sequelize-product.model'
+import { DataTypes,STRING } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { STRING, UUIDV4 } from 'sequelize'
+import {
+  columnsProduct,
+  SequelizeProductModel
+} from './sequelize-product.model'
 
 const sequelize = connect()
 
@@ -15,19 +15,26 @@ export const PRODUCT_MODEL_SOLD = 'product_models_sold'
 /**
  * Sequelize model definition for sold optional sub extras
  */
-export class SequelizeProductSubOptionalExtraSold extends SequelizeProductModel { }
+export class SequelizeProductSold extends SequelizeProductModel { 
+  pCodeRef!: string
+}
 
 export const columnsProductSold = {
   ...columnsProduct,
   optionalProductId: {
     type: STRING(36),
-    primaryKey: false,
+    primaryKey: true,
     autoIncrement: false,
-    defaultValue: UUIDV4,
+    defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     comment: 'Reference to the original optional extra product ID'
   },
-    pCodeRef: {
+  pCodeRef: {
+    type: STRING(100),
+    unique: false,
+    allowNull: false
+  },
+  pId: {
     type: STRING(100),
     unique: false,
     allowNull: false
@@ -36,11 +43,9 @@ export const columnsProductSold = {
 /**
  * Init model with same columns but different table
  */
-SequelizeProductSubOptionalExtraSold.init(columnsProductSold, {
+SequelizeProductSold.init(columnsProductSold, {
   sequelize,
   modelName: PRODUCT_MODEL_SOLD,
   freezeTableName: true,
   timestamps: false
 })
-
-export default SequelizeProductSubOptionalExtraSold

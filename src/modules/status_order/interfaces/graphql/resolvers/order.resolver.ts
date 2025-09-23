@@ -4,7 +4,7 @@ import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { ShoppingTypesServices, ShoppingServicesTenantFactory } from '../../../../shopping/infrastructure/services'
+import { ShoppingServicesTenantFactory,ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
@@ -45,7 +45,7 @@ export const orderResolvers = {
       }
       const response = await services.getOneByCodeRef.execute(args.pCodeRef)
       return response
-    },
+    }
   },
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
@@ -55,30 +55,27 @@ export const orderResolvers = {
       const t = await sequelize.transaction()
 
       try {
+        // 1. Validaciones iniciales
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
         if (!storeExists) {
           await t.rollback()
-          return {
-            success: false,
-            message: 'Store not found',
-            errors: []
-          }
+          return { success: false, message: 'Store not found', errors: [] }
         }
+
         if (!Array.isArray(args.input) || args.input.length === 0) {
           await t.rollback()
-          return {
-            success: false,
-            message: 'No products to add',
-            data: null,
-            errors: []
-          }
+          return { success: false, message: 'No products to add', data: null, errors: [] }
         }
+
+        // 2. Instanciar servicios una sola vez
+        const ShoppingServices = ShoppingServicesTenantFactory(idStore)
+        const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
 
         for (const item of args.input) {
           const newItem = {
             ProPrice: 0,
             id: context?.User?.id ?? null,
-            ...item,
+            ...item
           }
           const { error } = shoppingCartItemSchema.validate(newItem, { abortEarly: false })
           if (error) {
@@ -95,7 +92,6 @@ export const orderResolvers = {
               }))
             }
           }
-          const ShoppingServices = ShoppingServicesTenantFactory(idStore)
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -107,8 +103,9 @@ export const orderResolvers = {
             id: args.id,
             refCodePid: item.refCodePid,
             sState: StateShoppingCart.ACTIVE,
+            pCodeRef: args.pCodeRef,
             createdAt: new Date(),
-            updatedAt: new Date(),
+            updatedAt: new Date()
           }, t)
 
 
@@ -122,7 +119,6 @@ export const orderResolvers = {
             }
           }
         }
-
         // Resto del flujo (sumPrice, statusOrder, etc.)
         const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode)
         const {
@@ -134,7 +130,7 @@ export const orderResolvers = {
           payMethodPState,
           shoppingCartRefCode,
           pCodeRef,
-          tip = 0,
+          tip = 0
         } = args
 
         const mockSalesStore = {
@@ -172,8 +168,7 @@ export const orderResolvers = {
             }))
           }
         }
-        const statusOrderServices = StatusOrderServicesTenantFactory(idStore)
-        const createResponse = await statusOrderServices.create.execute(value, t)
+        const createResponse = await StatusOrderServices.create.execute(value, t)
         if (createResponse?.success === false) {
           const end = Date.now()
           const durationMs = end - start

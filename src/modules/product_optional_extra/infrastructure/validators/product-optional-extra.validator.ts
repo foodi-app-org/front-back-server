@@ -1,4 +1,5 @@
 import Joi from 'joi'
+
 import { StateProductOptionalExtra } from '../db/sequelize/models/sequelize-product-optional-extra.model'
 
 /**

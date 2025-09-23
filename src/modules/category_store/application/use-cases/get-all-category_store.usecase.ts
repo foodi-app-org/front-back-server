@@ -5,7 +5,7 @@ import { CategoryStoreRepository } from '../../domain/repositories/category_stor
 
 export class FindAllCategoryStoreUseCase {
   constructor(
-    private readonly categoryStoreRepository: CategoryStoreRepository,
+    private readonly categoryStoreRepository: CategoryStoreRepository
   ) { }
 
   async execute(): Promise<CategoryStore[]> {

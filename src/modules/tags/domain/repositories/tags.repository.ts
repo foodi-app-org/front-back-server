@@ -1,4 +1,6 @@
-import { ShoppingCartPagination, TagProductEntity, TagState } from '../entities/tags.entity'
+import {
+ ShoppingCartPagination, TagProductEntity, TagState 
+} from '../entities/tags.entity'
 
 /**
  * Repository class to handle TagProduct DB operations

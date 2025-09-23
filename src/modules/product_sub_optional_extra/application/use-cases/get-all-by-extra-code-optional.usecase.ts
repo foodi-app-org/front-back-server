@@ -12,7 +12,7 @@ export interface UseCaseResponse<T = any> {
  */
 export class GetAllProductSubOptionalUseCase {
     constructor(
-        private readonly repo: IProductSubOptionalExtraRepo,
+        private readonly repo: IProductSubOptionalExtraRepo
     ) { }
 
     async execute(exCodeOptionExtra: string, idStore: string): Promise<UseCaseResponse> {

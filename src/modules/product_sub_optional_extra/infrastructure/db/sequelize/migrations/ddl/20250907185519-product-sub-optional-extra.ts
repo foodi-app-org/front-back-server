@@ -12,7 +12,7 @@ import { columnsProductSubOptionalExtra, PRODUCT_SUB_OPTIONAL_EXTRA } from '../.
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

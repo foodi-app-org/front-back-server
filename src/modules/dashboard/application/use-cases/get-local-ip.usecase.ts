@@ -7,7 +7,7 @@ import { DashboardComponentsRepository } from '../../domain/repositories/dashboa
  */
 export class GetLocalBackendIpUseCase {
   constructor(
-    private readonly dashboardComponentsRepository: DashboardComponentsRepository,
+    private readonly dashboardComponentsRepository: DashboardComponentsRepository
   ) { }
 
   async execute(): Promise<string | null> {

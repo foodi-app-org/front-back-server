@@ -1,10 +1,12 @@
 import { Transaction } from 'sequelize'
 
-import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
-import { ShoppingCartPagination, TagProductEntity, TagState } from '../../domain/entities/tags.entity'
-import { TagProductRepository } from '../../domain/repositories/tags.repository'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
+import {
+ ShoppingCartPagination, TagProductEntity, TagState 
+} from '../../domain/entities/tags.entity'
+import { TagProductRepository } from '../../domain/repositories/tags.repository'
 import type { SequelizeTagProductModel } from '../db/sequelize/models/sequelize-tags.model'
 
 export class SequelizeTagsRepository implements TagProductRepository {
@@ -21,7 +23,7 @@ export class SequelizeTagsRepository implements TagProductRepository {
   async create(data: TagProductEntity, transaction?: Transaction): Promise<TagProductEntity | null> {
     try {
       const created = await models.TagProduct.schema(this.tenant).create({
-        ...data,
+        ...data
       }, transaction ? { transaction } : undefined)
       return created
     } catch (e) {
@@ -37,7 +39,7 @@ export class SequelizeTagsRepository implements TagProductRepository {
         searchFields: ['nameTag'],
         idStore,
         where: { 
-          state: TagState.ACTIVE,
+          state: TagState.ACTIVE
           
         }
       })

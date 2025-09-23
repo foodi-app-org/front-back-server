@@ -40,12 +40,12 @@ export const up = async (
 
     const tablesDataWithIds = clientsDefault.map((data) => ({
       ...data,
-      idStore: removeTenantPrefix(schemaName),
+      idStore: removeTenantPrefix(schemaName)
     }))
 
     await queryInterface.bulkInsert(
       { schema: schemaName, tableName: CLIENTS_TABLE },
-      tablesDataWithIds as IClientAttributes[],
+      tablesDataWithIds as IClientAttributes[]
     )
   } catch (error: unknown) {
     console.error('Error inserting default clients:', error)

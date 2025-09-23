@@ -10,7 +10,7 @@ export const authResolvers = {
     loginUser: async (_: GraphQLResolveInfo, args: AuthUserInput) => {
       const { 
         uEmail: email,
-        uPassword: password,
+        uPassword: password
       }= args
       return await AuthServices.loginUser.execute(email, password)
     },
@@ -18,7 +18,7 @@ export const authResolvers = {
       const { 
         name,
         email,
-        password,
+        password
       } = args
       return await AuthServices.createUser.execute(name, email, password)
     }

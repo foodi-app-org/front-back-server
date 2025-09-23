@@ -1,6 +1,6 @@
-import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { ProductSubOptionalExtra, StateProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
 import { IProductOptionalExtraRepo } from '../../../product_optional_extra/domain/repositories/product-optional-extra.repository'
+import { ProductSubOptionalExtra, StateProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
+import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
 
 
@@ -32,7 +32,7 @@ export class UpdateProductSubOptionalUseCase {
         idStore: idStore,
         state: StateProductSubOptionalExtra.ACTIVE,
         createdAt: new Date(),
-        updatedAt: new Date(),
+        updatedAt: new Date()
       })
 
       // verify limit of sub optional extras for the given optional extra

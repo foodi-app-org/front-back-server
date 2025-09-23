@@ -8,7 +8,7 @@ import { StatusTypesOrderTypesRepository } from '../../domain/repositories/statu
  */
 export class GetAllStatusOrderTypeUseCase {
   constructor(
-    private readonly statusOrderTypesRepository: StatusTypesOrderTypesRepository,
+    private readonly statusOrderTypesRepository: StatusTypesOrderTypesRepository
   ) { }
 
   /**

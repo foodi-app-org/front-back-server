@@ -87,7 +87,7 @@ export const columnsStatusOrdersStore = {
   },
   idStore: {
     type: STRING(36),
-    allowNull: true,
+    allowNull: true
   },
   pSState: {
     type: STRING(36),
@@ -139,7 +139,7 @@ export const columnsStatusOrdersStore = {
   },
   channel: {
     type: INTEGER, // store or client-store
-    defaultValue: 0,
+    defaultValue: 0
   },
   pPDate: {
     type: DATE

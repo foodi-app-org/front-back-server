@@ -10,7 +10,7 @@ import { columnsUser, USER_MODEL } from '../../models/sequelize-user.model'
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         { tableName: USER_MODEL, schema: schemaName },

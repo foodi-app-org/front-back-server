@@ -4,16 +4,26 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-co
 import { ApolloServer } from 'apollo-server-express'
 import cors from 'cors'
 import express from 'express'
-
+import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 import { config } from './configs/app.config'
+// 👇 Importa tu conexión
+import connect, { setupSQLite, useSQLITE } from './shared/infrastructure/db/sequelize/sequelize.connect'
 import { context } from './shared/infrastructure/graphql/context'
 import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import routes from './shared/infrastructure/res/routes'
-import { graphqlUploadExpress } from 'graphql-upload-ts'
 
 const startServer = async () => {
+
+  // 🟢 Conexión DB primero
+  connect()
+
+  // ⚙️ Config extra solo para SQLite
+  if (useSQLITE) {
+    await setupSQLite()
+  }
+
   const app = express()
 
   // CORS
@@ -44,7 +54,7 @@ const startServer = async () => {
         }
       },
       credentials: true,
-      methods: ['GET', 'POST'],
+      methods: ['GET', 'POST']
     })
   )
 
@@ -55,7 +65,7 @@ const startServer = async () => {
   app.use(
     graphqlUploadExpress({
       maxFileSize: 10_000_000, // 10MB
-      maxFiles: 10,
+      maxFiles: 10
     })
   )
 
@@ -63,11 +73,11 @@ const startServer = async () => {
   const server = new ApolloServer({
     typeDefs,
     resolvers: {
-      ...resolvers,
+      ...resolvers
     },
     introspection: true,
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
-    context,
+    context
   })
 
   await server.start()
@@ -75,7 +85,7 @@ const startServer = async () => {
   server.applyMiddleware({
     app,
     cors: false, // ya lo maneja Express
-    path: config.server.graphqlPath || '/graphql',
+    path: config.server.graphqlPath || '/graphql'
   })
 
   const { port } = config.server

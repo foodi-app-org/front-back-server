@@ -1,16 +1,16 @@
 
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { SequelizeProductRepository } from '../../../products/infrastructure/repositories/sequelize.controller.repository'
 import { CreateIShoppingCartTypeUseCase } from '../../application/use-cases/create_shopping.usecase'
 import { SumPriceShoppingCartUseCase } from '../../application/use-cases/sum-price-shopping.usecase'
 import { SequelizeShoppingCartRepository } from '../repositories/sequelize.controller.repository'
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
 
 const shoppingRepository = new SequelizeShoppingCartRepository()
 const productRepository = new SequelizeProductRepository()
 
 export const ShoppingTypesServices = {
     create: new CreateIShoppingCartTypeUseCase(shoppingRepository, productRepository),
-    sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository),
+    sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository)
 }
 
 export const ShoppingServicesTenantFactory = (tenant: string) => {
@@ -19,6 +19,6 @@ export const ShoppingServicesTenantFactory = (tenant: string) => {
 
     return {
         create: new CreateIShoppingCartTypeUseCase(shoppingRepository, productRepository),
-        sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository),
+        sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository)
     }
 }

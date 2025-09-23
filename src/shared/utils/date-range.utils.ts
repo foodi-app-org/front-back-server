@@ -51,7 +51,7 @@ export class DateRange {
     const date = input instanceof Date ? input : new Date(input)
 
     const localDate = DateTime.fromJSDate(date, {
-      zone: `UTC${this.offset >= 0 ? '+' : ''}${this.offset}`,
+      zone: `UTC${this.offset >= 0 ? '+' : ''}${this.offset}`
     })
 
     return isEnd
@@ -79,7 +79,7 @@ export class DateRange {
 
     return {
       start: this.formatUTC(startDate),
-      end: this.formatUTC(endDate),
+      end: this.formatUTC(endDate)
     }
   }
 

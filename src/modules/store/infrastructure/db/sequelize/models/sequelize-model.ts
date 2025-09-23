@@ -109,7 +109,7 @@ export const StoreColumns = {
   dId: DataTypes.STRING(36),
   ctId: DataTypes.STRING(36),
   catStore: {
-    type: DataTypes.STRING(36),
+    type: DataTypes.STRING(36)
     // category store reference
   },
   deliveryTimeMinutes: {

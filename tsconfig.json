@@ -1,48 +1,50 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "lib": [
-      "ES2020"
-    ],
-    "moduleResolution": "node",
+    /* ✅ Modern target & modules */
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    /* ✅ Libs para features modernas */
+    "lib": ["ES2022"],
+
+    /* ✅ Seguridad y consistencia */
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
+
+    /* ✅ Mejor control de errores */
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* ✅ Debug */
     "sourceMap": true,
-    "outDir": "dist_hex",
+
+    /* ✅ Estructura de compilación */
     "rootDir": "src",
+    "outDir": "dist_hex",
+
+    /* ✅ BaseUrl + Paths para hexagonal */
     "baseUrl": "./src",
     "paths": {
-      "@modules/*": [
-        "modules/*"
-      ],
-      "@shared/*": [
-        "shared/*"
-      ],
-      "@config/*": [
-        "config/*"
-      ],
-      "@api/*": [
-        "api/*"
-      ],
-      "@infrastructure/*": [
-        "infrastructure/*"
-      ]
+      "@modules/*": ["modules/*"],
+      "@shared/*": ["shared/*"],
+      "@config/*": ["config/*"],
+      "@api/*": ["api/*"],
+      "@infrastructure/*": ["infrastructure/*"]
     }
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src"],
   "exclude": [
     "node_modules",
     "dist",
     "build",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ]
 }

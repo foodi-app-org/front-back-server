@@ -1,10 +1,11 @@
 import fs from 'fs'
-import path from 'path'
-import os from 'os'
 import { GraphQLError } from 'graphql'
+import os from 'os'
+import path from 'path'
+
+import { LogDanger, LogInfo } from '../../../../shared/utils/logger.utils'
 import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
-import { LogDanger, LogInfo } from '../../../../shared/utils/logger.utils'
 
 const PATH_EXTERNAL_OS = process.env.PATH_EXTERNAL_OS
 const userDataPath = path.join(os.homedir(), String(PATH_EXTERNAL_OS))

@@ -28,8 +28,8 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
       throw new GraphQLError('Session expired', {
         extensions: {
           code: 'SESSION_EXPIRED',
-          http: { status: 401 },
-        },
+          http: { status: 401 }
+        }
       })
     }
     if (!token) {
@@ -49,8 +49,8 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
       throw new GraphQLError('Invalid token payload', {
         extensions: {
           code: 'FORBIDDEN',
-          http: { status: 403 },
-        },
+          http: { status: 403 }
+        }
       })
     }
 
@@ -71,16 +71,16 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
       throw new GraphQLError('Token expired', {
         extensions: {
           code: 'FORBIDDEN',
-          message: 'Token expired',
-        },
+          message: 'Token expired'
+        }
       })
     }
 
     throw new GraphQLError('Authentication error', {
       extensions: {
         code: 'UNAUTHENTICATED',
-        message: err.message,
-      },
+        message: err.message
+      }
     })
   }
 }

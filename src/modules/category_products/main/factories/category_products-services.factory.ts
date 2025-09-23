@@ -1,12 +1,12 @@
-import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.logger'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.logger'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateProductCategoryUseCase } from '../../application/use-cases/create-product-category.use-case'
-import { GetAllCategoryProductsUseCase } from '../../application/use-cases/get-all-products-category.use-case'
 import { GetCatProductsWithProductUseCase } from '../../application/use-cases/get-all-category-with-products-category.usecase'
+import { GetAllCategoryProductsUseCase } from '../../application/use-cases/get-all-products-category.use-case'
 import { GetCategoryByNameProductsUseCase } from '../../application/use-cases/get-by-name-products-category.use-case'
 import { SequelizeCategoryProductRepository } from '../../infrastructure/repositories/sequelize-category-products.controller.repository'
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 const categoryProductsRepository = new SequelizeCategoryProductRepository(MigrationFolder.Public)
 const name = '[CreateProductCategoryUseCase]'

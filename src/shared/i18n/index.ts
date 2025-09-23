@@ -7,11 +7,11 @@ const locales: Record<string, Record<LocaleLang, Record<string, string>>> = {
   store: {
     es: storeEs.default,
     en: storeEn.default
-  },
+  }
 }
 
 export function getLocales(module: string, lang: LocaleLang) {
   return {
-    ...(locales[module]?.[lang] || {}),
+    ...(locales[module]?.[lang] || {})
   }
 }

@@ -12,7 +12,7 @@ import { CategoryStoreColumns, MODEL_CAT_STORE_NAME } from '../../../../reposito
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

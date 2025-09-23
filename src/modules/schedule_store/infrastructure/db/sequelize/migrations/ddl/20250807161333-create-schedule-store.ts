@@ -12,7 +12,7 @@ import { columnsScheduleStore, SCHEDULE_MODEL } from '../../models/sequelize-sch
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

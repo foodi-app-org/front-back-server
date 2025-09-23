@@ -7,7 +7,7 @@ import { SequelizeSalesRepository } from '../repositories/sequelize.controller.r
 
 const salesRepository = new SequelizeSalesRepository(MigrationFolder.Public)
 export const SalesTypesServicesPublic = {
-    getSalesCount: new GetSalesCountUseCase(salesRepository),
+    getSalesCount: new GetSalesCountUseCase(salesRepository)
 }
 
 export const SalesServicesFactory = (tenant: string) => {
@@ -15,6 +15,6 @@ export const SalesServicesFactory = (tenant: string) => {
 
   return {
     getSalesCount: new GetSalesCountUseCase(salesRepository),
-    getSalesAmountToday: new GetSalesAmountTodayUseCase(salesRepository),
+    getSalesAmountToday: new GetSalesAmountTodayUseCase(salesRepository)
   }
 }

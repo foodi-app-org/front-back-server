@@ -1,10 +1,10 @@
 // import { Op } from 'sequelize'
+// import { StateProductSubOptionalExtra, type SequelizeProductSubOptionalExtra } from '../db/sequelize/models/sequelize-product-sub-optional-extra.model'
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 // import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { ProductSubOptionalExtra, StateProductSubOptionalExtra } from '../../domain/entities/product-sub-optional-extra.entity'
 import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-// import { StateProductSubOptionalExtra, type SequelizeProductSubOptionalExtra } from '../db/sequelize/models/sequelize-product-sub-optional-extra.model'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 export class SequelizeProductSubOptionalExtraRepository implements IProductSubOptionalExtraRepo {
   // private readonly genericService: GenericService<SequelizeProductOptionalExtra>
@@ -20,7 +20,7 @@ export class SequelizeProductSubOptionalExtraRepository implements IProductSubOp
   async create(data: ProductSubOptionalExtra): Promise<ProductSubOptionalExtra | null> {
     try {
       const created = await models.ProductSubOptionalExtra.schema(this.tenant).create({
-        ...data,
+        ...data
       })
       return created
     } catch (e) {

@@ -17,7 +17,7 @@ interface ResponseOrderStatusType {
  */
 export class FindProductByIdUseCase {
   constructor(
-    private readonly productRepository: ProductRepository,
+    private readonly productRepository: ProductRepository
   ) { }
 
   /**

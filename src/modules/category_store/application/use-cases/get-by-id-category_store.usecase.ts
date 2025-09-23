@@ -5,7 +5,7 @@ import { CategoryStoreRepository } from '../../domain/repositories/category_stor
 
 export class FindByIdCategoryStoreByIdUseCase {
   constructor(
-    private readonly categoryStoreRepository: CategoryStoreRepository,
+    private readonly categoryStoreRepository: CategoryStoreRepository
   ) { }
 
   async execute(id: string): Promise<CategoryStore | null> {

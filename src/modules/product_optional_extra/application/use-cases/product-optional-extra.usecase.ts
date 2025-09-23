@@ -1,5 +1,5 @@
-import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 import { ProductOptionalExtra } from '../../domain/entities/product-optional-extra.entity'
+import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
 
 
@@ -30,7 +30,7 @@ export class UpdateProductOptionalUseCase {
         numbersOptionalOnly: input.numbersOptionalOnly ?? 0,
         code: input.code ?? '',
         required: input.required ?? 0,
-        idStore,
+        idStore
       })
 
       if (!input.opExPid) {
@@ -47,7 +47,7 @@ export class UpdateProductOptionalUseCase {
         OptionalProName: input.OptionalProName,
         numbersOptionalOnly: input.numbersOptionalOnly,
         required: input.required,
-        createdAt: new Date(),
+        createdAt: new Date()
       })
 
       return { success: true, message: 'Actualizado', data: updated }

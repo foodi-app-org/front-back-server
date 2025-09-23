@@ -8,5 +8,5 @@ const productRepository = new SequelizeProductRepository()
 
 export const ProductServices = {
   create: new CreateProductTypeUseCase(productRepository),
-  findById: new FindProductByIdUseCase(productRepository),
+  findById: new FindProductByIdUseCase(productRepository)
 }

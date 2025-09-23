@@ -33,14 +33,14 @@ export class DeleteTagUseCase {
         return {
           success: false,
           data: null,
-          message: "Tag not found",
+          message: 'Tag not found',
           errors: [
             {
-              message: "Tag not found by ID or name",
-              path: ["tgId", "nameTag"],
-              type: "not_found",
-            },
-          ],
+              message: 'Tag not found by ID or name',
+              path: ['tgId', 'nameTag'],
+              type: 'not_found'
+            }
+          ]
         }
       }
 
@@ -51,11 +51,11 @@ export class DeleteTagUseCase {
           message: `Tag '${tag.nameTag}' is already deleted.`,
           errors: [
             {
-              message: "The tag is already marked as deleted.",
-              path: ["state"],
-              type: "already_deleted",
-            },
-          ],
+              message: 'The tag is already marked as deleted.',
+              path: ['state'],
+              type: 'already_deleted'
+            }
+          ]
         }
       }
 
@@ -64,25 +64,25 @@ export class DeleteTagUseCase {
 
       return {
         success: true,
-        message: "Tag successfully deleted.",
+        message: 'Tag successfully deleted.',
         data: {
           tgId: tag.tgId,
           nameTag: tag.nameTag,
-          state: TagState.DELETED,
-        },
+          state: TagState.DELETED
+        }
       }
     } catch (err) {
       return {
         success: false,
         data: null,
-        message: "Unexpected error while deleting tag",
+        message: 'Unexpected error while deleting tag',
         errors: [
           {
             message: err instanceof Error ? err.message : String(err),
-            path: ["execute"],
-            type: "unexpected_error",
-          },
-        ],
+            path: ['execute'],
+            type: 'unexpected_error'
+          }
+        ]
       }
     }
   }

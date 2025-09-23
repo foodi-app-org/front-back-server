@@ -105,8 +105,8 @@ export class Product {
   constructor(props: IProduct) {
     Object.assign(this, props)
   }
+  dataValues?: IProduct
 }
-
 
 
 export class PaginationMeta {

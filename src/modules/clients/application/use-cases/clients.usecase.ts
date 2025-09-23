@@ -38,7 +38,7 @@ export class CreateClientUseCase {
         input.clientLastName ?? null,
         input.ccClient ?? null,
         input.createdAt ?? new Date(),
-        input.updatedAt ?? new Date(),
+        input.updatedAt ?? new Date()
       )
 
       // Persist in repository
@@ -47,13 +47,13 @@ export class CreateClientUseCase {
       return {
         success: true,
         message: 'Table created successfully',
-        data: created,
+        data: created
       }
     } catch (error: unknown) {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unexpected error occurred',
-        data: null,
+        data: null
       }
     }
   }

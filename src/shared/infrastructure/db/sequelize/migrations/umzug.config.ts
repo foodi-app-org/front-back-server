@@ -26,7 +26,7 @@ export const getMigrationPaths = async (
   if (type === 'ddl') {
     const ddlEntries = await glob([
       'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
-      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js',
+      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
     ])
     return ddlEntries.map(file => path.resolve(file))
   }
@@ -34,7 +34,7 @@ export const getMigrationPaths = async (
   if (type === 'dml') {
     const dmlEntries = await glob([
       'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
-      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js',
+      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
     ])
     return dmlEntries.map(file => path.resolve(file))
   }
@@ -42,15 +42,15 @@ export const getMigrationPaths = async (
   // 'all': primero las DDL, luego las DML
   const ddlEntries = await glob([
     'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
-    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js',
+    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
   ])
   const dmlEntries = await glob([
     'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
-    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js',
+    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
   ])
   return [
     ...ddlEntries.map(file => path.resolve(file)),
-    ...dmlEntries.map(file => path.resolve(file)),
+    ...dmlEntries.map(file => path.resolve(file))
   ]
 }
 

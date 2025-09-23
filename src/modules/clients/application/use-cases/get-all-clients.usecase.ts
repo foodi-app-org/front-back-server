@@ -33,7 +33,7 @@ export class GetAllClientUseCase {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unexpected error occurred',
-        data: [],
+        data: []
       }
     }
   }

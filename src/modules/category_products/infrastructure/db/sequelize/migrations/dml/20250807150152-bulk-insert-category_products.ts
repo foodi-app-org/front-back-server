@@ -35,7 +35,7 @@ const mappedCategories = categories.map((category) => ({
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
 
  await queryInterface.bulkInsert(

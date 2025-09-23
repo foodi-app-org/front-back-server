@@ -65,7 +65,7 @@ export const responseService = async (
     success,
     message,
     data: {
-      data,
-    },
+      data
+    }
   }
 }

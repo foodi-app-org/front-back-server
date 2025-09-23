@@ -2,11 +2,11 @@
 
 import { v4 as uuid } from 'uuid'
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { CategoryStore } from '../../domain/entities/category_store.entity'
 import { CategoryStoreRepository } from '../../domain/repositories/category_store.repository'
 import { CategoryStoreStatus } from '../../interfaces/enums/category_store_enum'
 import { SequelizeCategoryStoreModel } from './sequelize-model'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 /**
  * Sequelize implementation of the CategoryStoreRepository.
@@ -31,7 +31,7 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
       cState: categoryStore.cState,
       cPathImage: categoryStore.cPathImage,
       createdAt: categoryStore.createdAt,
-      updatedAt: categoryStore.updatedAt ?? new Date(),
+      updatedAt: categoryStore.updatedAt ?? new Date()
     })
 
     return new CategoryStore(
@@ -41,7 +41,7 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
       created.cState ?? CategoryStoreStatus.ACTIVE,
       created.cPathImage,
       created.createdAt,
-      created.updatedAt,
+      created.updatedAt
     )
   }
 
@@ -61,7 +61,7 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
       result.cState ?? CategoryStoreStatus.ACTIVE,
       result.cPathImage,
       result.createdAt,
-      result.updatedAt,
+      result.updatedAt
     )
   }
 
@@ -79,7 +79,7 @@ export class SequelizeCategoryStoreRepository implements CategoryStoreRepository
       store.cState ?? 1,
       store.cPathImage,
       store.createdAt,
-      store.updatedAt,
+      store.updatedAt
     ))
   }
 }

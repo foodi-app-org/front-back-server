@@ -9,7 +9,7 @@ export const modulesResolvers = {
       subModules: async (parent: { dataValues: { mId: string } }, _args: Record<string, unknown>, context: GraphQLContext) => {
         const services = SubmoduleServicesFactory(context?.restaurant ?? '')
         return await services.getAll.execute(parent.dataValues.mId)
-      },
+      }
     }
   },
   Query: {

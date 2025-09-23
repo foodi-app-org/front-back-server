@@ -18,7 +18,7 @@ interface ResponseOrderStatusType {
  */
 export class CreateTagsUseCase {
   constructor(
-    private readonly tagProductRepository: TagProductRepository,
+    private readonly tagProductRepository: TagProductRepository
   ) { }
 
 
@@ -43,7 +43,7 @@ export class CreateTagsUseCase {
     return {
       success: true,
       message: 'TagProduct created successfully',
-      data: created,
+      data: created
     }
   }
 }

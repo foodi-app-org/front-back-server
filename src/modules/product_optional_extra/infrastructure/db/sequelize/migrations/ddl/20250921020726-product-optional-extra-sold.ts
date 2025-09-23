@@ -12,7 +12,7 @@ import { columnsProductOptionalExtraSold, PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL } fr
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

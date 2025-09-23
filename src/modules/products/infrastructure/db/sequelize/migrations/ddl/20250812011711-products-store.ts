@@ -12,7 +12,7 @@ import { columnsProduct, PRODUCT_MODEL } from '../../models/sequelize-product.mo
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

@@ -1,11 +1,11 @@
 
 
-import { UpdateProductOptionalUseCase } from '../../application/use-cases/product-optional-extra.usecase'
-import { GetAllProductSubOptionalByProductIdUseCase } from '../../application/use-cases/get-all-product-optional-by-product-id.usecase'
-import { DeleteExtProductFoodsOptionalUseCase } from '../../application/use-cases/delete-product-optional-extra.usecase'
-import { SequelizeProductOptionalExtraRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
+import { DeleteExtProductFoodsOptionalUseCase } from '../../application/use-cases/delete-product-optional-extra.usecase'
+import { GetAllProductSubOptionalByProductIdUseCase } from '../../application/use-cases/get-all-product-optional-by-product-id.usecase'
+import { UpdateProductOptionalUseCase } from '../../application/use-cases/product-optional-extra.usecase'
+import { SequelizeProductOptionalExtraRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
 
 const productRepository = new SequelizeProductOptionalExtraRepository(MigrationFolder.Public)
 
@@ -19,6 +19,6 @@ export const ProductOptionalServicesTenantFactory = (tenant: string) => {
     return {
         create: new UpdateProductOptionalUseCase(productRepository),
         delete: new DeleteExtProductFoodsOptionalUseCase(productRepository),
-        getAllProductOptionalByProductId: new GetAllProductSubOptionalByProductIdUseCase(productRepository),
+        getAllProductOptionalByProductId: new GetAllProductSubOptionalByProductIdUseCase(productRepository)
     }
 }

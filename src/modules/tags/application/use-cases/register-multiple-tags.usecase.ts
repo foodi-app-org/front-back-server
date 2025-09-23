@@ -1,7 +1,8 @@
 
+import { v4 as uuidv4 } from 'uuid'
+
 import { TagProductEntity, TagState } from '../../domain/entities/tags.entity'
 import { TagProductRepository } from '../../domain/repositories/tags.repository'
-import { v4 as uuidv4 } from 'uuid'
 
 /**
  * Output DTO for RegisterMultipleTagsUseCase
@@ -32,7 +33,7 @@ export class RegisterMultipleTagsUseCase {
         return {
           success: false,
           message: 'No tags provided',
-          errors: null,
+          errors: null
         }
       }
 
@@ -42,7 +43,7 @@ export class RegisterMultipleTagsUseCase {
           return {
             success: false,
             message: 'Invalid tag name',
-            errors: null,
+            errors: null
           }
         }
         const tgId = uuidv4()
@@ -64,14 +65,14 @@ export class RegisterMultipleTagsUseCase {
       return {
         success: true,
         message: 'Tags registered successfully',
-        data: tags,
+        data: tags
       }
     } catch (error) {
       console.error('Error in RegisterMultipleTagsUseCase:', error)
       return {
         success: false,
         message: 'Error registering tags',
-        errors: null,
+        errors: null
       }
     }
   }

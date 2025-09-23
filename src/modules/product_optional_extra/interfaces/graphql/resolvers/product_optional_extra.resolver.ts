@@ -1,7 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql'
-import { ProductOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
-import { productOptionalExtraSchema } from '../../../infrastructure/validators/product-optional-extra.validator'
+
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { productOptionalExtraSchema } from '../../../infrastructure/validators/product-optional-extra.validator'
+import { ProductOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
 
 type CreateStatusTypeOrderInput = {
   pId: string
@@ -16,12 +17,12 @@ type CreateStatusTypeOrderInput = {
 export const productOptionalExtraResolvers = {
   Query: {
     ExtProductFoodsOptionalAll: async (_: GraphQLResolveInfo, { pId }: { pId: string }, context: GraphQLContext) => {
-      console.log("🚀 ~ pId:", pId)
+      console.log('🚀 ~ pId:', pId)
       try {
         const store = context.restaurant ?? ''
         const services = ProductOptionalServicesTenantFactory(store)
         const result = await services.getAllProductOptionalByProductId.execute(pId)
-        console.log("🚀 ~ result:", result)
+        console.log('🚀 ~ result:', result)
         const { data } = result ?? {
           data: null
         }
@@ -30,7 +31,7 @@ export const productOptionalExtraResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
     }
@@ -67,5 +68,5 @@ export const productOptionalExtraResolvers = {
       }
       return await services.delete.execute({ code: opExPid, state })
     }
-  },
+  }
 }

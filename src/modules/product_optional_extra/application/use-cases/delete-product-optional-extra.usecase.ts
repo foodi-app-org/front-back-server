@@ -1,5 +1,5 @@
-import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 import { StateProductOptionalExtra } from '../../domain/entities/product-optional-extra.entity'
+import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
 
 interface DeleteProductOptionalInput {

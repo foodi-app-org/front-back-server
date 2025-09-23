@@ -33,11 +33,11 @@ export interface GetCatProductsWithProductOutput {
  */
 export class GetCatProductsWithProductUseCase {
   constructor(
-    private readonly categoryProductRepository: CategoryProductRepository,
+    private readonly categoryProductRepository: CategoryProductRepository
   ) {}
 
   async execute(
-    filters: GetCatProductsWithProductInput,
+    filters: GetCatProductsWithProductInput
   ): Promise<{ totalCount: number; catProductsWithProduct: ProductCategory[] } | GetCatProductsWithProductOutput> {
     try {
       const result = await this.categoryProductRepository.getCatProductsWithProduct(filters)
@@ -46,7 +46,7 @@ export class GetCatProductsWithProductUseCase {
       console.error('Error in GetCatProductsWithProductUseCase:', error)
       return {
         success: false,
-        message: 'Error al obtener categorías con productos',
+        message: 'Error al obtener categorías con productos'
       }
     }
   }

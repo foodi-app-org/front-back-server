@@ -4,15 +4,15 @@ import {
   Sequelize
 } from 'sequelize'
 
-import { models } from '../../orm/models'
-import { MigrationFolder } from '../../migrations/umzug.config'
-import { removeTenantPrefix } from '../../../../../utils/tenant.utils'
 import { ConsoleLogger } from '../../../../../../shared/infrastructure/logger/console.logger'
+import { removeTenantPrefix } from '../../../../../utils/tenant.utils'
+import { MigrationFolder } from '../../migrations/umzug.config'
+import { models } from '../../orm/models'
 
 
 const migrate = [
   'User',
-  'Store',
+  'Store'
 ] as Array<keyof typeof models>
 
 /**
@@ -41,7 +41,7 @@ export const run = async (schemaName: string, sequelize: Sequelize): Promise<voi
       if (!records.length) continue
 
       const cleaned = records.map((record) => ({
-        ...record,
+        ...record
       }))
 
       // Insert into target schema

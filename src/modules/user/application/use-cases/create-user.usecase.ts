@@ -11,7 +11,7 @@ export class CreateUserUseCase {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly tokenService: TokenGenerator,
-    private readonly encrypter: Encrypter,
+    private readonly encrypter: Encrypter
   ) { }
 
   async execute(

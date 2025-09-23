@@ -12,7 +12,7 @@ import { CATEGORY_PRODUCT_MODEL, CategoryProductColumns } from '../../models/seq
  */
 export const up = async (
     queryInterface: QueryInterface,
-    schemaName: string,
+    schemaName: string
 ): Promise<void> => {
     await queryInterface.createTable(
         {

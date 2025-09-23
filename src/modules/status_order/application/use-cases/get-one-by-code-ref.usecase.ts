@@ -14,7 +14,7 @@ interface ResponseOrderStatusType {
  */
 export class GetOneByCodeRefTypeUseCase {
     constructor(
-        private readonly statusOrderRepository: StatusOrderRepository,
+        private readonly statusOrderRepository: StatusOrderRepository
     ) { }
 
     /**

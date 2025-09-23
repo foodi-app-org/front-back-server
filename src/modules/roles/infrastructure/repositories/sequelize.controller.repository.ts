@@ -1,8 +1,8 @@
 
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { Role } from '../../domain/entities/roles.entity'
 import { IRoleRepository } from '../../domain/repositories/roles.repository'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 
 export class SequelizeRolesRepository implements IRoleRepository {
@@ -22,7 +22,7 @@ export class SequelizeRolesRepository implements IRoleRepository {
         ...data,
         idStore: data.idStore ?? '', // Ensure idStore is always a string
         priority: data.priority ?? undefined, // Use nullish coalescing operator
-        description: data.description ?? undefined, // Ensure description is string | undefined
+        description: data.description ?? undefined // Ensure description is string | undefined
       })
       return created as Role
     } catch (e) {
@@ -38,7 +38,7 @@ export class SequelizeRolesRepository implements IRoleRepository {
       if (!role) return null
       return {
         ...role.toJSON(),
-        description: role.description ?? null,
+        description: role.description ?? null
       } as Role
     } catch (e) {
       if (e instanceof Error) {

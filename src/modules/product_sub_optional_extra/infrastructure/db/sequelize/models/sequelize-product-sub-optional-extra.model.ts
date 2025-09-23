@@ -1,10 +1,10 @@
 import {
+  DataTypes,
   INTEGER,
-  STRING,
-  UUIDV4,
   Model,
   Optional,
-  DataTypes
+  STRING,
+  UUIDV4
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
@@ -83,11 +83,11 @@ export const columnsProductSubOptionalExtra = {
   },
   idStore: {
     type: STRING(36),
-    allowNull: false,
+    allowNull: false
   },
   opExPid: {
     type: STRING(36),
-    allowNull: true,
+    allowNull: true
   },
   OptionalSubProName: {
     type: STRING,

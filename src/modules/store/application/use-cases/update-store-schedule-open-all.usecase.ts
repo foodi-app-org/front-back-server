@@ -1,4 +1,4 @@
-import { StoreRepository } from "../../domain/repositories/store.repository";
+import { StoreRepository } from '../../domain/repositories/store.repository'
 
 export class UpdateStoreScheduleOpenAllUseCase {
     constructor(
@@ -6,6 +6,6 @@ export class UpdateStoreScheduleOpenAllUseCase {
     ) {}
 
     async execute(storeId: string, openAll: boolean): Promise<void> {
-        await this.storeRepository.updateScheduleOpenAll(storeId, openAll);
+        await this.storeRepository.updateScheduleOpenAll(storeId, openAll)
     }
 }

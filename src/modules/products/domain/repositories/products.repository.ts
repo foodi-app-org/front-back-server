@@ -15,4 +15,7 @@ export interface ProductRepository {
   updateImage(id: string, image: string): Promise<Product | null>
   findByProductAndStore(pId: string, idStore: string): Promise<Product | null>
   createAvailableProduct(data: Partial<AvailableProduct>): Promise<AvailableProduct | null>
+
+  // sold products
+  createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null>
 }

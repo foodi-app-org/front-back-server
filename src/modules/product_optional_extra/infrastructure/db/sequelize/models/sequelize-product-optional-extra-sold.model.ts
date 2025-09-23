@@ -1,12 +1,12 @@
 // models/productOptionalExtraSold.model.ts
 
-import {
-  SequelizeProductOptionalExtra,
-  columnsProductOptionalExtra
-} from './sequelize-product-optional-extra.model'
+import { STRING, UUIDV4 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { STRING, UUIDV4 } from 'sequelize'
+import {
+  columnsProductOptionalExtra,
+  SequelizeProductOptionalExtra
+} from './sequelize-product-optional-extra.model'
 
 const sequelize = connect()
 

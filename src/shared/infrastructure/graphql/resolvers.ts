@@ -4,6 +4,9 @@ import { categoryStoreResolvers } from '../../../modules/category_store/interfac
 import { dashboardResolvers } from '../../../modules/dashboard/interfaces/graphql/resolvers/dashboard.resolver'
 import { deviceUserResolvers } from '../../../modules/devices/interfaces/graphql/resolvers/devices.resolver'
 import { modulesResolvers } from '../../../modules/modules/interfaces/graphql/resolvers/modules.resolver'
+import { productExtraResolvers } from '../../../modules/product_extra/interfaces/graphql/resolvers/product-extra.resolver'
+import { productOptionalExtraResolvers } from '../../../modules/product_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
+import { productSubOptionalExtraResolvers } from '../../../modules/product_sub_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
 import { productResolvers } from '../../../modules/products/interfaces/graphql/resolvers/products.resolver'
 import { productAvailableResolvers } from '../../../modules/products/interfaces/graphql/resolvers/products-available.resolver'
 import { salesResolvers } from '../../../modules/sales/interfaces/graphql/resolvers/sales.resolver'
@@ -13,11 +16,8 @@ import { orderResolvers } from '../../../modules/status_order/interfaces/graphql
 import { statusOrderTypesResolvers } from '../../../modules/status_order_types/interfaces/graphql/resolvers/status_order_types.resolver'
 import { storeResolvers } from '../../../modules/store/interfaces/graphql/resolvers/store.resolver'
 import { tableResolvers } from '../../../modules/tables/interfaces/graphql/resolvers/tables.resolver'
-import { userResolvers } from '../../../modules/user/interfaces/graphql/resolvers/user.resolver'
 import { tagsResolvers } from '../../../modules/tags/interfaces/graphql/resolvers/tags.resolver'
-import { productOptionalExtraResolvers } from '../../../modules/product_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
-import { productSubOptionalExtraResolvers } from '../../../modules/product_sub_optional_extra/interfaces/graphql/resolvers/product_optional_extra.resolver'
-import { productExtraResolvers } from '../../../modules/product_extra/interfaces/graphql/resolvers/product-extra.resolver'
+import { userResolvers } from '../../../modules/user/interfaces/graphql/resolvers/user.resolver'
 import { dateTimeScalar } from './scalars/date-time.scalar'
 
 
@@ -48,7 +48,7 @@ export default {
         ...productOptionalExtraResolvers.Query,
         ...productSubOptionalExtraResolvers.Query,
         ...productExtraResolvers.Query,
-        ...productAvailableResolvers.Query,
+        ...productAvailableResolvers.Query
 
     },
     Mutation: {
@@ -75,5 +75,5 @@ export default {
     },
     Subscription: {
     },
-    DateTime: dateTimeScalar,
+    DateTime: dateTimeScalar
 }

@@ -1,9 +1,9 @@
  
+import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateStatusOrderTypeUseCase } from '../../application/use-cases/create_status_order.usecase'
 import { GetOneByCodeRefTypeUseCase } from '../../application/use-cases/get-one-by-code-ref.usecase'
 import { SequelizeStatusOrderRepository } from '../repositories/sequelize.controller.repository'
-import { getTenantName } from '../../../../shared/utils/tenant.utils'
-import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 const statusOrderTypesRepository = new SequelizeStatusOrderRepository(MigrationFolder.Public)
 

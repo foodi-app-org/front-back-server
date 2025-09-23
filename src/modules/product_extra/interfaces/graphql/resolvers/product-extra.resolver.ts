@@ -1,7 +1,8 @@
 import { GraphQLResolveInfo } from 'graphql'
-import { ProductExtraServicesTenantFactory } from '../../../main/factories/product-extra-services.factory'
-import { productExtraSchema } from '../../../infrastructure/validators/product-extra.validator'
+
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { productExtraSchema } from '../../../infrastructure/validators/product-extra.validator'
+import { ProductExtraServicesTenantFactory } from '../../../main/factories/product-extra-services.factory'
 
 type CreateStatusTypeOrderInput = {
   extraPrice: number,
@@ -27,7 +28,7 @@ export const productExtraResolvers = {
         console.error(err)
         return null
       }
-    },
+    }
   },
   Mutation: {
     updateMultipleExtProduct: async (
@@ -59,20 +60,20 @@ export const productExtraResolvers = {
         }
       }
 
-      const services = ProductExtraServicesTenantFactory(context.restaurant ?? '');
+      const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
       const result = await services.create.execute(values, context.restaurant ?? '')
       if (result.success) {
         return {
           success: result.success,
           message: result.message,
-          data: Array.isArray(result.data) ? result.data : [],
+          data: Array.isArray(result.data) ? result.data : []
         }
       }
       return {
         success: result.success,
         message: result.message,
         errors: result.errors ?? [],
-        data: [],
+        data: []
       }
     },
     deleteExtraProduct: async (
@@ -91,7 +92,7 @@ export const productExtraResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
     },
@@ -108,9 +109,9 @@ export const productExtraResolvers = {
         return {
           success: false,
           message: err instanceof Error ? err.message : 'Unexpected error',
-          data: null,
+          data: null
         }
       }
-    },
+    }
   }
 }

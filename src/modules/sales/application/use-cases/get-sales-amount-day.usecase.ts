@@ -2,7 +2,7 @@ import { SalesRepository } from '../../domain/repositories/sales.repository'
 
 export class GetSalesAmountTodayUseCase {
   constructor(
-    private readonly salesRepository: SalesRepository,
+    private readonly salesRepository: SalesRepository
   ) { }
 
   async execute(start: Date, end: Date): Promise<number> {

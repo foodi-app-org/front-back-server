@@ -9,5 +9,5 @@ const productRepository = new SequelizeProductRepository()
 
 export const ShoppingTypesServices = {
     create: new CreateIShoppingCartTypeUseCase(shoppingRepository, productRepository),
-    sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository),
+    sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository)
 }

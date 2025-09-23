@@ -6,7 +6,7 @@ import { CategoryProductRepository } from '../../domain/repositories/category_pr
  */
 export class GetCategoryByNameProductsUseCase {
     constructor(
-        private readonly categoryProductRepository: CategoryProductRepository,
+        private readonly categoryProductRepository: CategoryProductRepository
     ) { }
 
     async execute(name: string): Promise<ProductCategory | null> {
@@ -15,7 +15,7 @@ export class GetCategoryByNameProductsUseCase {
             const category = await this.categoryProductRepository.getByName(name)
             return category
         } catch (error) {
-            console.error('Error in GetAllCategoryProductsUseCase:', error);
+            console.error('Error in GetAllCategoryProductsUseCase:', error)
             return null
         }
     }
