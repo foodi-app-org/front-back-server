@@ -96,16 +96,4 @@ function connect(): Sequelize {
   }
 }
 
-/**
- * Ejecuta PRAGMAs solo una vez para SQLite.
- */
-export async function setupSQLite(): Promise<void> {
-  if (useSQLITE && sequelize) {
-    await sequelize.query('PRAGMA journal_mode = WAL;')
-    await sequelize.query('PRAGMA busy_timeout = 5000;')
-  }
-}
-
 export default connect
-
-// https://www.xvideos.com/video.kpfcfide53c/solo_18_anos_de_edad_un_ano_bien_apretado_en_su_primera_vez_le_destrozan_el_culo_a_morrita_mexicana_verdadero_sexo_anal

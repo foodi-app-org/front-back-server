@@ -1,4 +1,4 @@
-import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
+// import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.logger'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
@@ -11,12 +11,12 @@ import { SequelizeCategoryProductRepository } from '../../infrastructure/reposit
 const categoryProductsRepository = new SequelizeCategoryProductRepository(MigrationFolder.Public)
 const name = '[CreateProductCategoryUseCase]'
 
-const i18n = new I18nAdapter('es', 'category_products')
+// const i18n = new I18nAdapter('es', 'category_products')
 const logger = new ConsoleLogger()
 const createProductCategoryUseCase = new CreateProductCategoryUseCase(
     name,
     categoryProductsRepository,
-    i18n,
+    // i18n
     logger
 )
 
@@ -27,12 +27,12 @@ export const CategoryProductRepositoryServices = {
 export const CategoryProductRepositoryServicesTenantFactory = (tenant: string) => {
     const categoryProductsRepository = new SequelizeCategoryProductRepository(getTenantName(tenant))
     const name = '[CreateProductCategoryUseCase]'
-    const i18n = new I18nAdapter('es', 'category_products')
+    // const i18n = new I18nAdapter('es', 'category_products')
     const logger = new ConsoleLogger()
     const createProductCategoryUseCase = new CreateProductCategoryUseCase(
         name,
         categoryProductsRepository,
-        i18n,
+        // i18n,
         logger
     )
 

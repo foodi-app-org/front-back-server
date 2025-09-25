@@ -39,7 +39,7 @@
       "@infrastructure/*": ["infrastructure/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "apollo-express.d.ts"],
   "exclude": [
     "node_modules",
     "dist",

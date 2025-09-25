@@ -68,15 +68,18 @@ export const up = async (
   queryInterface: QueryInterface,
   schemaName: string
 ): Promise<void> => {
-  for (let inserted = 0; inserted < TOTAL_PRODUCTS; inserted += CHUNK_SIZE) {
-    const products = generateProducts(
-      Math.min(CHUNK_SIZE, TOTAL_PRODUCTS - inserted)
-    )
-    await queryInterface.bulkInsert(
-      { tableName: PRODUCT_MODEL, schema: schemaName },
-      products
-    )
-    console.log(`Inserted ${inserted + products.length}/${TOTAL_PRODUCTS}`)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Skipping product seeding in development environment')
+    for (let inserted = 0; inserted < TOTAL_PRODUCTS; inserted += CHUNK_SIZE) {
+      const products = generateProducts(
+        Math.min(CHUNK_SIZE, TOTAL_PRODUCTS - inserted)
+      )
+      await queryInterface.bulkInsert(
+        { tableName: PRODUCT_MODEL, schema: schemaName },
+        products
+      )
+      console.log(`Inserted ${inserted + products.length}/${TOTAL_PRODUCTS}`)
+    }
   }
 }
 
