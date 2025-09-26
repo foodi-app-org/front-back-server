@@ -61,7 +61,7 @@ export class SequelizeProductRepository implements ProductRepository {
           pState: { [Op.gt]: 0 }
         }
       })
-      return result
+      return result ?? null
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

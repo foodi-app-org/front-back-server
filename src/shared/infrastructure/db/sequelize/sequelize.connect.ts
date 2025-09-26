@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-console */
 // src/infrastructure/db/index.ts
 
@@ -13,19 +12,22 @@ dotenv.config({
 })
 
 /**
- * Ruta base donde se almacenan los datos persistentes
+ * Base path where persistent data is stored
  */
-export const PATH_EXTERNAL_OS = String(process.env.PATH_EXTERNAL_OS)
+export const PATH_EXTERNAL_OS: string = String(process.env.PATH_EXTERNAL_OS)
+
 /**
- * Flag para determinar si se usa SQLite
+ * Flag to determine if SQLite is used
  */
 export const useSQLITE: boolean = process.env.DIALECT_DB === 'sqlite'
 
+/**
+ * Sequelize instance (singleton)
+ */
 let sequelize: Sequelize | null = null
 
 /**
- * Devuelve una ruta de escritura segura para almacenar datos persistentes.
- * Evita usar __dirname si la app está empaquetada.
+ * Returns a safe writable path for storing persistent data.
  */
 function getWritablePath(): string {
   const basePath = path.join(os.homedir(), PATH_EXTERNAL_OS)
@@ -39,39 +41,39 @@ const userDataPath: string = getWritablePath()
 const sqliteDatabasePath: string = path.join(userDataPath, 'database.sqlite')
 
 /**
- * Configuración de conexión para Sequelize
+ * Sequelize connection configuration
  */
 const connectConfig: Options = useSQLITE
   ? {
-    dialect: 'sqlite',
-    storage: sqliteDatabasePath,
-    logging: false,
-    schema: 'public',
-    dialectOptions: {
-      useUTC: false
+      dialect: 'sqlite',
+      storage: sqliteDatabasePath,
+      logging: false,
+      // schema solo aplica a Postgres, puedes quitarlo aquí
+      dialectOptions: {
+        useUTC: false
+      }
     }
-  }
   : {
-    host: process.env.HOST_DB,
-    port: Number(process.env.PORT_DB),
-    dialect: process.env.DIALECT_DB as any || 'postgres',
-    logging: false,
-    dialectOptions:
-      process.env.USE_SSL_CONNECTION === 'true'
-        ? {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false
-          }
-        }
-        : {}
-  }
+      host: process.env.HOST_DB,
+      port: Number(process.env.PORT_DB),
+      dialect: (process.env.DIALECT_DB as any) || 'postgres',
+      logging: false,
+      dialectOptions:
+        process.env.USE_SSL_CONNECTION === 'true'
+          ? {
+              ssl: {
+                require: true,
+                rejectUnauthorized: false
+              }
+            }
+          : {}
+    }
 
 /**
- * Inicializa y retorna la instancia de Sequelize
- * @returns {Sequelize} Instancia singleton de Sequelize
+ * Initialize and return Sequelize instance
+ * @returns {Sequelize} Singleton Sequelize instance
  */
-function connect(): Sequelize {
+export function connect(): Sequelize {
   try {
     if (sequelize) return sequelize
 
@@ -90,9 +92,8 @@ function connect(): Sequelize {
     }
 
     return sequelize
-  } catch (error: any) {
-    console.error('❌ Database connection error:', error.message)
-    throw new Error(error)
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : 'Database connection error')
   }
 }
 

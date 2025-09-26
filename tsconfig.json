@@ -15,7 +15,7 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-
+    "noImplicitAny": false,
     /* ✅ Mejor control de errores */
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,

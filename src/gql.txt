@@ -1,0 +1,5 @@
+APOLLO_KEY=service:My-Graph-j594ng:xe2wK52qJ_3dDV-mKOKEig \
+  rover subgraph publish My-Graph-j594ng@current \
+  --schema "path-to-your-subgraph-schema.{graphql,gql}" \
+  --name your-subgraph-name \
+  --routing-url "your-subgraph-public-endpoint"
