@@ -1,1 +1,1 @@
-export * from './graphql/resolvers/user.resolver'
+export * from './graphql/resolvers/schedule_store.resolver'

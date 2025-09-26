@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { ShoppingTypesServices } from '../../../infrastructure/services'
+// import { ShoppingTypesServices } from '../../../infrastructure/services'
 
 /**
  * Data Transfer Object for creating/updating a Role
@@ -26,8 +26,8 @@ export const storeResolvers = {
 
   },
   Mutation: {
-    createRoleMutation: async (_: GraphQLResolveInfo, args: NewRoleArgs) => {
-      return await ShoppingTypesServices.create.execute(args.input)
+    createRoleMutation: async (_: GraphQLResolveInfo, _args: NewRoleArgs) => {
+      // return await ShoppingTypesServices.create.execute(args.input)
     }
   }
 }

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/order
 import 'dotenv/config'
 
 import boom from '@hapi/boom'

@@ -17,6 +17,7 @@ import cors from 'cors'
 import routes from './shared/infrastructure/res/routes'
 import morgan from 'morgan'
 import { context } from './shared/infrastructure/graphql/context'
+import { PubSub } from 'graphql-subscriptions'
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -46,6 +47,7 @@ const server = new ApolloServer({
 })
 
   ; (async () => {
+    const pubsub = new PubSub();
     await server.start()
     // 🌐 CORS
     const allowedOrigins = [
@@ -62,7 +64,8 @@ const server = new ApolloServer({
       'https://foodistore.netlify.app',
       'https://app-foodi-store.vercel.app',
       'https://front-back-server.onrender.com',
-      'https://app-foodi-admin.vercel.app'
+      'https://app-foodi-admin.vercel.app',
+      'https://studio.apollographql.com'
     ].filter(Boolean)
 
     app.use(
@@ -82,15 +85,6 @@ const server = new ApolloServer({
     app.use('/api', routes)
     app.use(morgan('dev'))
     // Root simple
-    app.get('/', (_, res) => res.send('Apollo + WS Ready 🚀'))
-
-    // Middleware CORS
-    app.use((_req, res, next) => {
-      res.setHeader('Access-Control-Allow-Origin', '*')
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-      next()
-    })
     app.use(
       helmet({
         crossOriginEmbedderPolicy: false,
@@ -107,60 +101,37 @@ const server = new ApolloServer({
     )
 
     // GraphQL endpoint manual (sin expressMiddleware)
-    // GraphQL endpoint manual (sin expressMiddleware)
     app.use('/graphql', express.json(), async (req, res, next) => {
       try {
-        // 🚨 Si es GET desde navegador => muestra Sandbox
-        if (req.method === 'GET' && !req.headers['content-type']) {
-          const landingPage = await server.executeHTTPGraphQLRequest({
-            httpGraphQLRequest: {
-              method: req.method,
-              headers: new HeaderMap(
-                Object.entries(req.headers)
-                  .filter(([_, v]) => typeof v === 'string' || Array.isArray(v))
-                  .map(([k, v]) => [
-                    k,
-                    Array.isArray(v) ? v.join(',') : v ?? ''
-                  ]) as [string, string][]
-              ),
-              search: new URL(req.url, `http://${req.headers.host}`).search,
-              body: null,
-            },
-            context: async () => ({}),
-          })
+        const headers = new HeaderMap(
+          Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v ?? ''])
+        )
 
-          for (const [key, value] of landingPage.headers) {
-            res.setHeader(key, value)
-          }
-
-          return res.status(landingPage.status || 200).send(landingPage.body)
-        }
-
-        // 🚨 Si es POST JSON => procesa query/mutation
-        const httpGraphQLResponse = await server.executeHTTPGraphQLRequest({
+        const response = await server.executeHTTPGraphQLRequest({
           httpGraphQLRequest: {
             method: req.method,
-            headers: new HeaderMap(
-              Object.entries(req.headers).map(([k, v]) => [
-                k,
-                Array.isArray(v) ? v.join(',') : v ?? '',
-              ])
-            ),
+            headers,
             search: new URL(req.url, `http://${req.headers.host}`).search,
             body: req.body,
           },
-          context: () => context({ req, res }),
+          context: () => context({ req, res, pubsub }),
         })
 
-        for (const [key, value] of httpGraphQLResponse.headers) {
-          res.setHeader(key, value)
-        }
+        // Copiar headers de Apollo al response
+        response.headers.forEach((value, key) => res.setHeader(key, value))
 
-        return res.status(httpGraphQLResponse.status || 200).send(httpGraphQLResponse.body)
+        // Devuelve JSON limpio
+        let body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
+        if (body?.string) body = JSON.parse(body.string)
+
+        return res.status(response.status || 200).json(body)
       } catch (err) {
-        return next(err)
+        next(err)
+        return
       }
     })
+
+
 
 
     // WebSocket para subscriptions
@@ -168,7 +139,30 @@ const server = new ApolloServer({
       server: httpServer,
       path: '/graphql',
     })
-    useServer({ schema: wsSchema }, wsServer)
+
+    interface ConnectionParams {
+      authorization?: string;
+    }
+
+    useServer({
+      schema: wsSchema,
+      context: ({ connectionParams }: { connectionParams?: ConnectionParams }) => {
+        console.log('🔌 Nueva conexión a subscriptions', connectionParams)
+        // CANCELLATION: IF connectionParams.Authorization === null close the connection
+        if (!connectionParams || !connectionParams.authorization) {
+          console.log('❌ Conexión cerrada: falta authorization')
+          return false
+        }
+        return { pubsub } // mismo PubSub compartido
+      },
+      onConnect: (ctx) => {
+        console.log('🎉 Cliente conectado a la suscripción', ctx.connectionParams)
+      },
+      onDisconnect: (_ctx, code, reason) => {
+        console.log('❌ Cliente desconectado', code, reason)
+      }
+    }, wsServer)
+
 
     const PORT = process.env.PORT || 4000
     httpServer.listen(PORT, () => {

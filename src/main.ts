@@ -74,7 +74,7 @@ const startServer = async () => {
   await server.start()
 
   server.applyMiddleware({
-    app,
+    app: app as any,
     cors: false,
     path: config.server.graphqlPath || '/graphql'
   })

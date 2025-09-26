@@ -23,6 +23,13 @@ type StoreOrders {
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
   getOneStore: Store
 }
+  type OrderPapu {
+    id: String
+    idStore: String
+    pdpId: String
+    totalProductsPrice: Int
+    unidProducts: Int
+  }
 
 type ResponseSalesStore {
   success: Boolean
@@ -34,3 +41,4 @@ type ResponseSalesStore {
 type Query {
   getOneSalesStore(pCodeRef: String): ResponseSalesStore
 }
+

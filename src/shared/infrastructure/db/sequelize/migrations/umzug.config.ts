@@ -1,4 +1,3 @@
-// import 'ts-node/register'
 import glob from 'fast-glob'
 import path from 'path'
 import { STRING } from 'sequelize'
@@ -17,6 +16,9 @@ export enum MigrationFolder {
 }
 
 export type MigrationType = 'all' | 'ddl' | 'dml'
+// const dml = '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
+// const ddl = '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
+
 /**
  * Obtiene las rutas de las migraciones DDL y DML en orden correcto.
  *
@@ -27,28 +29,24 @@ export const getMigrationPaths = async (
 ): Promise<string[]> => {
   if (type === 'ddl') {
     const ddlEntries = await glob([
-      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
-      'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
+      '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
     ])
     return ddlEntries.map(file => path.resolve(file))
   }
 
   if (type === 'dml') {
     const dmlEntries = await glob([
-      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
-      'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
+      '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
     ])
     return dmlEntries.map(file => path.resolve(file))
   }
 
   // 'all': primero las DDL, luego las DML
   const ddlEntries = await glob([
-    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.ts',
-    'src/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
+    '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
   ])
   const dmlEntries = await glob([
-    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.ts',
-    'src/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
+    '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
   ])
   return [
     ...ddlEntries.map(file => path.resolve(file)),
@@ -95,7 +93,7 @@ export const createUmzugMigrator = async (
 
   return new Umzug({
     migrations: migrationFiles.map((file) => {
-      const fileUrl = pathToFileURL(file).href // ✅ convierte C:\... en file:///C:/...
+      const fileUrl = pathToFileURL(file).href
       return {
         name: path.basename(file),
         up: async ({ context }) =>

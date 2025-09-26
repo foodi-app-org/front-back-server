@@ -10,7 +10,7 @@ const CHUNK_SIZE = 5000
  * Generate fake products for seeding
  */
 const generateProducts = (count: number) => {
-  const products = []
+  const products: any[] = []
   for (let i = 0; i < count; i++) {
     const id = uuidv4()
     products.push({

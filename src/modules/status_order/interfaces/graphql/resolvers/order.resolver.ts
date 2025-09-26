@@ -10,6 +10,8 @@ import { UserServices } from '../../../../user/main/factories/user-services.fact
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
+import { NEW_STORE_ORDER } from '../../../../../ws-schema'
+import { PubSub } from 'graphql-subscriptions'
 
 export const orderResolvers = {
   Type: {
@@ -198,6 +200,18 @@ export const orderResolvers = {
           errors: []
         }
       }
+    },
+    createOrder: async (_: GraphQLResolveInfo, args: { idStore: string, pdpId: string, totalProductsPrice: number, unidProducts: number }, { pubsub }: { pubsub: PubSub }) => {
+      const newOrder = {
+        id: Math.random().toString(36).substring(2, 15),
+        idStore: args.idStore,
+        pdpId: args.pdpId,
+        totalProductsPrice: args.totalProductsPrice,
+        unidProducts: args.unidProducts
+      }
+      // Publicar el nuevo pedido en el canal correspondiente
+      pubsub.publish(NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
+      return newOrder
     }
   }
 }

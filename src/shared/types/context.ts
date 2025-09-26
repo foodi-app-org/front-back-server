@@ -1,6 +1,7 @@
 // src/shared/types/GQLContext.ts
 
 import { Request, Response } from 'express'
+import { PubSub } from 'graphql-subscriptions'
 
 
 interface User {
@@ -17,4 +18,5 @@ export interface GraphQLContext {
   setHeaders?: string[]
   User?: User | null
   restaurant?: string | null
+  pubsub?: PubSub
 }

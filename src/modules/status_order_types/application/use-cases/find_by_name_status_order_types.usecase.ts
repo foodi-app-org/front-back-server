@@ -1,13 +1,13 @@
 
 import { StatusOrderTypes } from '../../domain/entities/status_order_types.entity'
-import { CategoryOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
+import { StatusTypesOrderTypesRepository } from '../../domain/repositories/status_order_types.repository'
 
 /**
  * Use case responsible for creating a new store
  */
 export class FindByNameStatusOrderTypeUseCase {
   constructor(
-    private readonly categoryStatusOrderRepository: CategoryOrderTypesRepository
+    private readonly categoryStatusOrderRepository: StatusTypesOrderTypesRepository
   ) { }
 
   /**

@@ -20,6 +20,14 @@ import { tagsResolvers } from '../../../modules/tags/interfaces/graphql/resolver
 import { userResolvers } from '../../../modules/user/interfaces/graphql/resolvers/user.resolver'
 import { dateTimeScalar } from './scalars/date-time.scalar'
 
+import { PubSub } from 'graphql-subscriptions'
+const pubsub = new PubSub() // create a PubSub instance with correct type
+let currentNumber = 0
+function incrementNumber () {
+  currentNumber++
+  pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber })
+  setTimeout(incrementNumber, 1000)
+}
 
 export default {
     ...orderResolvers.Type,
@@ -48,7 +56,13 @@ export default {
         ...productOptionalExtraResolvers.Query,
         ...productSubOptionalExtraResolvers.Query,
         ...productExtraResolvers.Query,
-        ...productAvailableResolvers.Query
+        ...productAvailableResolvers.Query,
+        // eslint-disable-next-line
+        currentNumber: async () => {
+            setTimeout(incrementNumber, 1000)
+            pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber })
+            return 1
+        }
 
     },
     Mutation: {
@@ -74,6 +88,9 @@ export default {
         ...productAvailableResolvers.Mutation
     },
     Subscription: {
+     numberIncremented: {
+        subscribe: () => (pubsub as any).asyncIterator(['NUMBER_INCREMENTED'])
+    }
     },
     DateTime: dateTimeScalar
 }

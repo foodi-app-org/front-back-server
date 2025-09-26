@@ -6,13 +6,15 @@ import { GraphQLError } from 'graphql'
 import { JwtTokenService } from '../../../modules/user/infrastructure/services/jwt-token.service'
 import { GraphQLContext } from '../../types/context'
 import { getUserFromToken } from '../../utils/jwt.utils'
+import { PubSub } from 'graphql-subscriptions'
 
 interface IContextParams {
   req: Request
   res?: Response
+  pubsub: PubSub
 }
 
-export const context = async ({ req, res }: IContextParams): Promise<GraphQLContext> => {
+export const context = async ({ req, res, pubsub }: IContextParams): Promise<GraphQLContext> => {
   try {
     const tokenService = new JwtTokenService()
 
@@ -40,6 +42,7 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
         setHeaders,
         userAgent: req.headers['user-agent'],
         User: null,
+        pubsub,
         restaurant: restaurant as string
       }
     }
@@ -64,6 +67,7 @@ export const context = async ({ req, res }: IContextParams): Promise<GraphQLCont
       User: {
         id: decoded.sub
       },
+      pubsub,
       restaurant: restaurant as string
     }
   } catch (err: unknown) {

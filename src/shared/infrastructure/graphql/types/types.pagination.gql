@@ -3,3 +3,12 @@ type Pagination {
   totalPages: Int
   currentPage: Int
 }
+
+type Query {
+    currentNumber: Int
+}
+
+type Subscription {
+    newStore: Store
+    numberIncremented: Int
+}

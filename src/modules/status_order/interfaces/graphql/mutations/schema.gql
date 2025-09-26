@@ -9,7 +9,7 @@ type Mutation {
     idStore: ID
     pCodeRef: String
     change: Float
-    shoppingCartRefCode: String 
+    shoppingCartRefCode: String
     payMethodPState: Int
     pickUp: Int
     totalProductsPrice: Float
@@ -18,4 +18,12 @@ type Mutation {
   ): ResponseSalesStore
 
   deleteOneItem(cState: Int, ShoppingCart: ID): Response
+
+  createOrder(
+    id: String!
+    idStore: String!
+    pdpId: String!
+    totalProductsPrice: Int!
+    unidProducts: Int!
+  ): OrderPapu
 }
