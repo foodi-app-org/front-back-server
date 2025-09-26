@@ -5,7 +5,6 @@ import { LogDanger } from './logs'
 
 /* eslint-disable n/no-deprecated-api */
 const crypto = require('crypto')
-const { Base64 } = require('js-base64')
 
 const SECRET_KEY = 'f128635fca2edc7bb4e47a577cfe0d1a013dcdceffacad1abb128e640f9e571c'
 
@@ -133,8 +132,10 @@ const isNull = value => {
 }
 const validationID = (value, typeNull = true) => {
   try {
-    if (typeNull && isNull(value) && isNaN(Base64.decode(value))) throw new Error('No es una codificación valida.')
-    else if (!typeNull && isNaN(value ? Base64.decode(value) : 0)) throw new Error('No es una codificación valida')
+    // Decodifica usando Buffer en lugar de Base64 del paquete
+    const decoded = value ? Buffer.from(value, 'base64').toString('utf-8') : ''
+    if (typeNull && isNull(value) && isNaN(decoded)) throw new Error('No es una codificación valida.')
+    else if (!typeNull && isNaN(value ? decoded : 0)) throw new Error('No es una codificación valida')
     return value ? deCode(value) : null
   } catch (error) {
     throw new Error('No es una codificación valida.')

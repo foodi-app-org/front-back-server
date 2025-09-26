@@ -1,4 +1,3 @@
-import { ApolloError } from 'apollo-server-express'
 import {
     FindOptions,
     Model,
@@ -68,7 +67,7 @@ export class GenericService<T extends Model> {
     }: GetAllParams) {
         try {
             if (!Array.isArray(searchFields) || searchFields.length === 0) {
-                throw new ApolloError('Invalid searchFields parameter.', '400')
+                throw new Error('searchFields must be a non-empty array')
             }
 
             // Build search conditions
@@ -127,9 +126,29 @@ export class GenericService<T extends Model> {
                     currentPage
                 }
             }
-        } catch (e) {
-            //   LogDanger(e.message)
-            throw new ApolloError('Unable to process your request.', '500', { internalData: e })
+        } catch (error) {
+            if (error instanceof Error) {
+                return {
+                    success: false,
+                    message: error.message,
+                    data: [],
+                    pagination: {
+                        totalRecords: 0,
+                        totalPages: 0,
+                        currentPage: pagination?.page ?? 1
+                    }
+                }
+            }
+            return {
+                success: false,
+                message: 'An unknown error occurred',
+                data: [],
+                pagination: {
+                    totalRecords: 0,
+                    totalPages: 0,
+                    currentPage: pagination?.page ?? 1
+                }
+            }
         }
     }
 }

@@ -1,4 +1,3 @@
-import { ApolloError } from 'apollo-server-express'
 import { Op } from 'sequelize'
 
 import clients from '../../models/Store/clients'

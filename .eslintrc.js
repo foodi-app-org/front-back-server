@@ -82,7 +82,7 @@ module.exports = {
         rules: [
           { from: 'domain', allow: [] },
           { from: 'application', allow: ['domain'] },
-          { from: 'infrastructure', allow: ['domain', 'application', 'infrastructure'] }, // 👈 fix
+          { from: 'infrastructure', allow: ['domain', 'application', 'infrastructure'] },
           { from: 'interface', allow: ['domain', 'application', 'infrastructure'] }
         ]
       }
@@ -104,7 +104,8 @@ module.exports = {
                   '**/main/**',
                   '**/interface/**'
                 ],
-                message: 'Domain layer must be pure. No imports from application, infrastructure, main or interface'
+                message:
+                  'Domain layer must be pure. No imports from application, infrastructure, main or interface'
               }
             ]
           }
@@ -123,7 +124,8 @@ module.exports = {
                 group: ['**/infrastructure/**', '**/main/**'],
                 message: 'Application layer should only depend on domain'
               }
-            ]
+            ],
+            allow: ['./shared/infrastructure/graphql/resolvers'] // 👈 whitelist puntual
           }
         ]
       }

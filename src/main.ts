@@ -3,12 +3,11 @@ import './configs/load-env-vars'
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
 import { ApolloServer } from 'apollo-server-express'
 import cors from 'cors'
-import express from 'express'
+import express, { Application } from 'express'
 import { graphqlUploadExpress } from 'graphql-upload-ts'
+import morgan from 'morgan'
 
 import { config } from './configs/app.config'
-// 👇 Importa tu conexión
-import connect, { setupSQLite, useSQLITE } from './shared/infrastructure/db/sequelize/sequelize.connect'
 import { context } from './shared/infrastructure/graphql/context'
 import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
@@ -16,17 +15,10 @@ import routes from './shared/infrastructure/res/routes'
 
 const startServer = async () => {
 
-  // 🟢 Conexión DB primero
-  connect()
+  // ✅ Tipamos app como Application
+  const app: Application = express()
 
-  // ⚙️ Config extra solo para SQLite
-  if (useSQLITE) {
-    await setupSQLite()
-  }
-
-  const app = express()
-
-  // CORS
+  // 🌐 CORS
   const allowedOrigins = [
     process.env.WEB_CLIENT,
     process.env.WEB_ADMIN_STORE,
@@ -60,21 +52,20 @@ const startServer = async () => {
 
   app.use(express.json())
   app.use('/api', routes)
+  app.use(morgan('combined'))
 
-  // 👇 Middleware de upload ANTES de Apollo
+  // 📂 Upload middleware antes de Apollo
   app.use(
     graphqlUploadExpress({
-      maxFileSize: 10_000_000, // 10MB
+      maxFileSize: 10_000_000, // 10 MB
       maxFiles: 10
     })
   )
 
-  // Apollo server con el scalar Upload agregado
+  // 🚀 Apollo Server
   const server = new ApolloServer({
     typeDefs,
-    resolvers: {
-      ...resolvers
-    },
+    resolvers: { ...resolvers },
     introspection: true,
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
     context
@@ -84,7 +75,7 @@ const startServer = async () => {
 
   server.applyMiddleware({
     app,
-    cors: false, // ya lo maneja Express
+    cors: false,
     path: config.server.graphqlPath || '/graphql'
   })
 

@@ -19,7 +19,8 @@ interface BannerInput {
 export const storeResolvers = {
   Type: {
     Store: {
-      cateStore: async (parent: any, _: any, context: GraphQLContext) => {
+      catStore: async (parent: { catStore?: string }, _: unknown, context: GraphQLContext) => {
+        if (!context.User?.id) return null
         return await CategoryStoreServicesPublic.findById.execute(parent.catStore ?? '')
       }
     }

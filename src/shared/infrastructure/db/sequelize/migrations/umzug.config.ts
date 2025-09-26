@@ -1,9 +1,11 @@
+// import 'ts-node/register'
 import glob from 'fast-glob'
 import path from 'path'
 import { STRING } from 'sequelize'
 import { SequelizeStorage, Umzug } from 'umzug'
 
 import connect from '../sequelize.connect'
+import { pathToFileURL } from 'url'
 
 const sequelize = connect()
 
@@ -92,16 +94,19 @@ export const createUmzugMigrator = async (
   )
 
   return new Umzug({
-    migrations: migrationFiles.map((file) => ({
-      name: path.basename(file),
-      up: async ({ context }) =>
-        (await import(file)).up(context, schemaName),
-      down: async ({ context }) =>
-        (await import(file)).down(context, schemaName)
-    })),
+    migrations: migrationFiles.map((file) => {
+      const fileUrl = pathToFileURL(file).href // ✅ convierte C:\... en file:///C:/...
+      return {
+        name: path.basename(file),
+        up: async ({ context }) =>
+          (await import(fileUrl)).up(context, schemaName),
+        down: async ({ context }) =>
+          (await import(fileUrl)).down(context, schemaName),
+      }
+    }),
     context: sequelize.getQueryInterface() as object,
     storage: new SequelizeStorage({ model }),
-    logger: console
+    logger: console,
   })
 }
 
