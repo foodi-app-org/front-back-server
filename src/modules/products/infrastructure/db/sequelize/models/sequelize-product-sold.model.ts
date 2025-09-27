@@ -16,7 +16,7 @@ export const PRODUCT_MODEL_SOLD = 'product_models_sold'
  * Sequelize model definition for sold optional sub extras
  */
 export class SequelizeProductSold extends SequelizeProductModel { 
-  pCodeRef!: string
+  declare pCodeRef: string
 }
 
 export const columnsProductSold = {

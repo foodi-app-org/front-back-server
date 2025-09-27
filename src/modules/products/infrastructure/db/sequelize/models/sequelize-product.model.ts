@@ -26,8 +26,8 @@ export enum StateProduct {
 /**
  * Interface that defines the attributes stored in DB
  */
-export interface IStatusOrderStoreAttributes {
-  pId?: string
+export interface IProductAttributes {
+  pId: string
   idStore?: string
   id?: string
   carProId?: string
@@ -43,15 +43,15 @@ export interface IStatusOrderStoreAttributes {
   manageStock?: boolean
   previousStock?: number
   valueDelivery?: number
-  pName?: string
+  pName: string
   tgId?: string
-  pCode?: string
+  pCode: string
   ProPrice?: number
   vat?: number
   ProDescuento?: number
   ProUniDisponibles?: number
   ProDescription?: string
-  pState?: StateProduct
+  pState: StateProduct
   sTateLogistic?: number
   ProProtegido?: number
   ProAssurance?: string
@@ -67,61 +67,68 @@ export interface IStatusOrderStoreAttributes {
   ProDelivery?: number
   ProVoltaje?: string
   ProBarCode?: string
-  originalPid?: string // to link sold product to original product
-  pCodeRef?: string // to link sold product to original product code
+  originalPid?: string
+  pCodeRef?: string
   createdAt?: Date
   updatedAt?: Date
 }
 
 /**
- * Fields allowed during User creation
+ * Fields allowed during creation
  */
-export type IStatusOrderStoreCreationAttributes = Optional<IStatusOrderStoreAttributes, 'createdAt' | 'updatedAt'>
+export type IProductCreationAttributes = Optional<
+  IProductAttributes,
+  'pId' | 'createdAt' | 'updatedAt'
+>
 
 /**
  * Sequelize Model definition
  */
-export class SequelizeProductModel extends Model<IStatusOrderStoreAttributes, IStatusOrderStoreCreationAttributes> implements IStatusOrderStoreAttributes {
-  pId?: string
-  idStore?: string
-  id?: string
-  carProId?: string
-  sizeId?: string
-  colorId?: string
-  cId?: string
-  dId?: string
-  ctId?: string
-  fId?: string
-  caId?: string
-  poPriority?: number
-  stock?: number
-  manageStock?: boolean
-  previousStock?: number
-  valueDelivery?: number
-  pName?: string
-  tgId?: string
-  pCode?: string
-  ProPrice?: number
-  vat?: number
-  ProDescuento?: number
-  ProUniDisponibles?: number
-  ProDescription?: string
-  pState?: StateProduct
-  sTateLogistic?: number
-  ProProtegido?: number
-  ProAssurance?: string
-  ProStar?: number
-  ProImage?: string
-  ProWidth?: number
-  ProHeight?: number
-  free?: number
-  ProLength?: string
-  ProWeight?: string
-  ProQuantity?: number
-  ProOutstanding?: number
-  ProDelivery?: number
-  ProVoltaje?: string
-  ProBarCode?: string
+export class SequelizeProductModel
+  extends Model<IProductAttributes, IProductCreationAttributes>
+  implements IProductAttributes {
+  declare pId: string
+  declare idStore?: string
+  declare id?: string
+  declare carProId?: string
+  declare sizeId?: string
+  declare colorId?: string
+  declare cId?: string
+  declare dId?: string
+  declare ctId?: string
+  declare fId?: string
+  declare caId?: string
+  declare poPriority?: number
+  declare stock?: number
+  declare manageStock?: boolean
+  declare previousStock?: number
+  declare valueDelivery?: number
+  declare pName: string
+  declare tgId?: string
+  declare pCode: string
+  declare ProPrice?: number
+  declare vat?: number
+  declare ProDescuento?: number
+  declare ProUniDisponibles?: number
+  declare ProDescription?: string
+  declare pState: StateProduct
+  declare sTateLogistic?: number
+  declare ProProtegido?: number
+  declare ProAssurance?: string
+  declare ProStar?: number
+  declare ProImage?: string
+  declare ProWidth?: number
+  declare ProHeight?: number
+  declare free?: number
+  declare ProLength?: string
+  declare ProWeight?: string
+  declare ProQuantity?: number
+  declare ProOutstanding?: number
+  declare ProDelivery?: number
+  declare ProVoltaje?: string
+  declare ProBarCode?: string
+  declare originalPid?: string
+  declare pCodeRef?: string
   declare readonly createdAt: Date
   declare updatedAt: Date
 }
@@ -138,27 +145,22 @@ export const columnsProduct = {
     type: STRING(36),
     allowNull: true
   },
-  // User
   id: {
     type: STRING(36),
     allowNull: true
   },
-  // CATEGORY PRODUCT
   carProId: {
     type: STRING(36),
     allowNull: true
   },
-  // Talla
   sizeId: {
     type: STRING(36),
     allowNull: true
   },
-  // color
   colorId: {
     type: STRING(36),
     allowNull: true
   },
-  // Locations
   cId: {
     type: STRING(36),
     allowNull: true
@@ -178,7 +180,6 @@ export const columnsProduct = {
   caId: {
     type: STRING(36),
     field: 'caId'
-
   },
   poPriority: {
     type: SMALLINT,
@@ -189,9 +190,7 @@ export const columnsProduct = {
     type: INTEGER,
     allowNull: true,
     defaultValue: 0,
-    validate: {
-      min: 0
-    }
+    validate: { min: 0 }
   },
   manageStock: {
     type: BOOLEAN,
@@ -199,9 +198,7 @@ export const columnsProduct = {
     defaultValue: true,
     validate: {
       isBoolean(value: boolean) {
-        if (typeof value !== 'boolean') {
-          throw new Error('manageStock must be a boolean')
-        }
+        if (typeof value !== 'boolean') throw new Error('manageStock must be a boolean')
       }
     },
     field: 'manageStock'
@@ -210,9 +207,7 @@ export const columnsProduct = {
     type: INTEGER,
     allowNull: true,
     defaultValue: 0,
-    validate: {
-      min: 0
-    }
+    validate: { min: 0 }
   },
   valueDelivery: {
     type: DECIMAL(1000, 2),
@@ -234,7 +229,7 @@ export const columnsProduct = {
   ProPrice: {
     type: DECIMAL(1000, 2),
     allowNull: true,
-    defaultValue: 0.00,
+    defaultValue: 0.0,
     validate: {
       max: 999999999999.99,
       isDecimal: true
@@ -243,7 +238,7 @@ export const columnsProduct = {
   vat: {
     type: DECIMAL(6, 2),
     allowNull: true,
-    defaultValue: 0.00, // define un valor por defecto
+    defaultValue: 0.0,
     validate: {
       min: 0,
       max: 100
@@ -270,32 +265,25 @@ export const columnsProduct = {
     allowNull: false,
     defaultValue: 0
   },
-  // Si el producto esta asegurado ( Protegido )
   ProProtegido: {
     type: INTEGER,
     allowNull: true
   },
-  // GARANTÍA )
   ProAssurance: {
     type: STRING,
     allowNull: true
   },
-  // Numero de estrellas
   ProStar: {
     type: INTEGER,
     allowNull: true
   },
   ProImage: {
     type: STRING,
-    trim: true,
     allowNull: true
   },
-  // ---------------------
-  // Ancho
   ProWidth: {
     type: INTEGER
   },
-  // Alto
   ProHeight: {
     type: INTEGER,
     defaultValue: 1
@@ -304,42 +292,33 @@ export const columnsProduct = {
     type: INTEGER,
     defaultValue: 0
   },
-  // Largo
   ProLength: {
     type: STRING,
-    defaultValue: 1
+    defaultValue: '1'
   },
-  // Peso
   ProWeight: {
     type: STRING,
-    defaultValue: 1
+    defaultValue: '1'
   },
-  // -----------------------------Listo-----------------------------
-  // Cantidad
   ProQuantity: {
     type: INTEGER,
     allowNull: true
   },
-  // Destacado
   ProOutstanding: {
     type: INTEGER
   },
-  // Entrega
   ProDelivery: {
     type: INTEGER
   },
-  // Entrega
   ProVoltaje: {
     type: STRING,
     allowNull: true
   },
   ProBarCode: {
-    type: STRING(50), // Espacio suficiente para cualquier tipo de código de barras, incluidos los alfanuméricos largos.
+    type: STRING(50),
     allowNull: true,
     unique: true,
-    validate: {
-      len: [1, 50] as [number, number]
-    }
+    validate: { len: [1, 50] as [number, number] }
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -350,14 +329,12 @@ export const columnsProduct = {
     defaultValue: DataTypes.NOW
   }
 }
-SequelizeProductModel.init(
-  columnsProduct,
-  {
-    sequelize,
-    modelName: PRODUCT_MODEL,
-    freezeTableName: true,
-    timestamps: true
-  }
-)
+
+SequelizeProductModel.init(columnsProduct, {
+  sequelize,
+  modelName: PRODUCT_MODEL,
+  freezeTableName: true,
+  timestamps: true
+})
 
 export default SequelizeProductModel

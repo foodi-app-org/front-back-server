@@ -27,7 +27,12 @@ export class SequelizeProductRepository implements ProductRepository {
   async create(data: Product): Promise<Product | null> {
     try {
       const created = await models.Product.schema(this.tenant).create({
-        ...data
+        ...data,
+        pCode: data.pCode ?? uuidv4(),
+        pName: String(data.pName),
+        pState: data.pState ?? StateProduct.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date()
       })
       return created
     } catch (e) {
@@ -55,7 +60,7 @@ export class SequelizeProductRepository implements ProductRepository {
   async getAll(idStore: string): Promise<ProductPagination | null> {
     try {
       const result = await this.genericService.getAll({
-        searchFields: ['pCodeRef'],
+        searchFields: ['pName', 'pId'],
         idStore,
         where: {
           pState: { [Op.gt]: 0 }
@@ -209,22 +214,10 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
-  async createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null> {
+  async createProductSold(_originalPid: string, _pCodeRef: string, product: Partial<Product>): Promise<Product | null> {
     console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ product:', product)
     try {
-      const id = uuidv4()
-      const created = await models.ProductSold.schema(this.tenant).create({
-        ...product, 
-        pId: id,
-        originalPid,
-        pName: `${product.pName} - SOLD`,
-        pCodeRef: `${pCodeRef}`,
-        ProBarCode: `${product.ProBarCode}-SOLD-${id.substring(0, 8)}`,
-        pState: StateProduct.ACTIVE,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      return created
+      return null
     } catch (e) {
       console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ e:', e)
       if (e instanceof Error) {
