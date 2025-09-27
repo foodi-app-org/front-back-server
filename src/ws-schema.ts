@@ -55,14 +55,12 @@ export const wsSchema = new GraphQLSchema({
           name: 'Order',
           fields: {
             id: { type: GraphQLString },
-            idStore: { type: GraphQLString },
-            pdpId: { type: GraphQLString },
-            totalProductsPrice: { type: GraphQLInt },
-            unidProducts: { type: GraphQLInt }
+            pCodeRef: { type: GraphQLString },
+            idStore: { type: GraphQLString }
           }
         }),
         args: {
-          idStore: { type: GraphQLString } // variable para filtrar la sala
+          idStore: { type: GraphQLString }
         },
         subscribe: withFilter(
            (_: any, __: any, context: { pubsub: PubSub<Record<string, never>> } | undefined) => {

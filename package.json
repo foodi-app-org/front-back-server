@@ -72,6 +72,7 @@
     "@types/jsonwebtoken": "9.0.10",
     "@types/luxon": "3.7.1",
     "@types/morgan": "1.9.10",
+    "@types/node": "^24.5.2",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
@@ -96,12 +97,12 @@
     "sequelize-cli": "6.6.3",
     "subscriptions-transport-ws": "^0.11.0",
     "ts-jest": "^29.4.4",
-    "ts-node": "10.9.2",
-    "typescript": "5.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   },
   "scripts": {
     "babel-node": "babel-node --presets=@babel/preset-env",
-    "build": "tsc",
+    "build": "tsc --project .",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
     "migration:run:public": "npm run babel-node src/api/lib/db/migrations/migrations.public.js up",
@@ -110,7 +111,7 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "migrate": "npx sequelize-cli db:migrate",
-    "start": "node build/main.js",
+    "start": "node build/server.js",
     "build:pkg": "pkg . --out-path dist",
     "build:all": "concurrently \"npm run build\" \"npm run build:pkg\"",
     "build:electron": "electron-builder",

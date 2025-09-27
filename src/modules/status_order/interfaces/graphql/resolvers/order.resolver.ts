@@ -4,7 +4,7 @@ import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { ShoppingServicesTenantFactory,ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
+import { ShoppingServicesTenantFactory, ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
@@ -190,6 +190,14 @@ export const orderResolvers = {
         const durationMs = end - start
         const time = (durationMs / 1000).toFixed(2)
         console.log('🚀 ~ time:', time)
+        const newOrder = {
+          id: createResponse?.data?.id ?? '',
+          idStore: idStore,
+          pCodeRef: createResponse?.data?.pCodeRef ?? ''
+        }
+        if (context.pubsub) {
+          context.pubsub.publish(NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
+        }
         return createResponse
 
       } catch (e) {
@@ -205,9 +213,7 @@ export const orderResolvers = {
       const newOrder = {
         id: Math.random().toString(36).substring(2, 15),
         idStore: args.idStore,
-        pdpId: args.pdpId,
-        totalProductsPrice: args.totalProductsPrice,
-        unidProducts: args.unidProducts
+        pCodeRef: Math.random().toString(36).substring(2, 15),
       }
       // Publicar el nuevo pedido en el canal correspondiente
       pubsub.publish(NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });

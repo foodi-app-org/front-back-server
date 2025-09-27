@@ -12,7 +12,7 @@ export class SequelizeStoreRepository implements StoreRepository {
 
   async create(store: Store): Promise<Store | null> {
     try {
-      const created = await models.Store.create({
+      const created = await models.Store.schema(this.tenant).create({
         ...store,
         createdAt: new Date()
       })
@@ -44,7 +44,7 @@ export class SequelizeStoreRepository implements StoreRepository {
  * @returns {Promise<Store | null>} The store if found, or null.
  */
   async findById(id: string): Promise<Store | null> {
-    const store = await models.Store.findOne({
+    const store = await models.Store.schema(this.tenant).findOne({
       where: { idStore: id }
     })
 
@@ -58,7 +58,7 @@ export class SequelizeStoreRepository implements StoreRepository {
    * @returns {Promise<Store | null>} The store if found, or null.
    */
   async findByUserId(id: string): Promise<Store | null> {
-    const store = await models.Store.findOne({
+    const store = await models.Store.schema(this.tenant).findOne({
       where: { id }
     })
     return store ? store as Store : null

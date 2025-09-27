@@ -16,6 +16,7 @@ export class SequelizeMigrationService implements MigrationService {
     this.logger.info('Starting migration...')
     this.logger.info(`Connected to database for schema: ${schemaName}`)
     try {
+      this.logger.info(`start migration on schema: ${schemaName}`)
       const umzug = await createUmzugMigrator(schemaName as MigrationFolder, type, customMigrationFiles)
       await umzug.up()
     } catch (error) {

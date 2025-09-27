@@ -1,4 +1,5 @@
 
+import { MigrationType } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
@@ -88,7 +89,7 @@ export class CreateStoreUseCase {
 
     if (created?.idStore) {
       // Migrate initial data for the new store
-      await this.migrationService.execute(getTenantName(created.idStore), 'all')
+      await this.migrationService.execute(getTenantName(created.idStore), MigrationType.All)
       
       await this.userRepository.update(user.id, { idStore: created.idStore })
       // Migrate initial data for the new store

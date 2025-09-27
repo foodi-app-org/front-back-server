@@ -30,6 +30,7 @@ export const storeResolvers = {
    */
   Query: {
     getStore: async (_: GraphQLResolveInfo, args: { id: string }, context: GraphQLContext) => {
+      console.log("🚀 ~ args.id:", args.id)
       return await StoreServicesPublic.findById.execute(args.id ?? context.restaurant ?? '')
     }
   },

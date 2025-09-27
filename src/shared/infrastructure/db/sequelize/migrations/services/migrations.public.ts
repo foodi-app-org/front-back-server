@@ -1,5 +1,5 @@
 import { ConsoleLogger } from '../../../../logger/console.logger'
-import { MigrationFolder } from '../umzug.config'
+import { MigrationFolder, MigrationType } from '../umzug.config'
 import { SequelizeMigrationService } from './SequelizeMigrationService'
 
 (async () => {
@@ -10,7 +10,7 @@ import { SequelizeMigrationService } from './SequelizeMigrationService'
     
     try {
         logger.info(`Running migrations for schema: ${schema}`)
-        await migrationService.execute(schema, 'all')
+        await migrationService.execute(schema, MigrationType.All)
         logger.info('✅ Migrations completed successfully')
     } catch (err) {
         if (err instanceof Error) {

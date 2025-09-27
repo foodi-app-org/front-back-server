@@ -1,10 +1,17 @@
+import { register } from 'ts-node'
+
+
+register({
+  transpileOnly: true,
+})
+
 import glob from 'fast-glob'
 import path from 'path'
-import { STRING } from 'sequelize'
+import { QueryInterface, STRING } from 'sequelize'
 import { SequelizeStorage, Umzug } from 'umzug'
+import { ConsoleLogger } from '../../../logger/console.logger'
 
 import connect from '../sequelize.connect'
-import { pathToFileURL } from 'url'
 
 const sequelize = connect()
 
@@ -15,43 +22,30 @@ export enum MigrationFolder {
   Empty = ''
 }
 
-export type MigrationType = 'all' | 'ddl' | 'dml'
-// const dml = '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
-// const ddl = '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
+export enum MigrationType {
+  All = 'all',
+  DDL = 'ddl',
+  DML = 'dml'
+}
 
 /**
- * Obtiene las rutas de las migraciones DDL y DML en orden correcto.
+ * Get migration paths for all modules by type (ddl or dml).
  *
- * @returns {Promise<string[]>} Lista de rutas absolutas a los archivos de migración.
+ * @param type - Migration type: 'ddl' | 'dml'
+ * @returns {Promise<string[]>} List of absolute migration paths
  */
-export const getMigrationPaths = async (
-  type: MigrationType = 'all'
-): Promise<string[]> => {
-  if (type === 'ddl') {
-    const ddlEntries = await glob([
-      '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
-    ])
-    return ddlEntries.map(file => path.resolve(file))
-  }
+const getMigrationPaths = async (type: MigrationType): Promise<string[]> => {
+  const pattern = path.resolve(
+    __dirname,
+    `../../../../../modules/**/infrastructure/db/sequelize/migrations/${type}/*.ts`
+  )
 
-  if (type === 'dml') {
-    const dmlEntries = await glob([
-      '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
-    ])
-    return dmlEntries.map(file => path.resolve(file))
+  if (type === MigrationType.All) {
+    const ddlMigrations = await getMigrationPaths(MigrationType.DDL)
+    const dmlMigrations = await getMigrationPaths(MigrationType.DML)
+    return [...ddlMigrations, ...dmlMigrations]
   }
-
-  // 'all': primero las DDL, luego las DML
-  const ddlEntries = await glob([
-    '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/ddl/*.js'
-  ])
-  const dmlEntries = await glob([
-    '../../../../../../build/modules/**/infrastructure/db/sequelize/migrations/dml/*.js'
-  ])
-  return [
-    ...ddlEntries.map(file => path.resolve(file)),
-    ...dmlEntries.map(file => path.resolve(file))
-  ]
+  return glob(pattern.replace(/\\/g, '/')) // normalize for Windows
 }
 
 /**
@@ -59,17 +53,30 @@ export const getMigrationPaths = async (
  *
  * @param {string} schemaName - The DB schema to apply migrations on.
  * @param {MigrationType} type - Migration type: ddl | dml.
- * @returns {Promise<Umzug>} - Configured Umzug instance.
+ * @returns {Promise<Umzug<QueryInterface>>} - Configured Umzug instance.
  */
 export const createUmzugMigrator = async (
   schemaName: MigrationFolder = MigrationFolder.Public,
-  type: MigrationType = 'all',
+  type: MigrationType = MigrationType.All,
   customMigrationFiles: string[] = []
-): Promise<Umzug> => {
-  const migrationFiles = customMigrationFiles.length
+): Promise<Umzug<QueryInterface>> => {
+  const logger = new ConsoleLogger()
+  logger.info(`Creating Umzug migrator for schema: ${schemaName}, type: ${type}`)
+  // Get all migration paths
+  const allMigrations = await getMigrationPaths(MigrationType.All)
+  console.log("🚀 ~ createUmzugMigrator ~ allMigrations:", allMigrations)
+
+  const migrationFiles = customMigrationFiles.length > 0
     ? customMigrationFiles
-    : await getMigrationPaths(type)
-  // const migrationFiles = await getMigrationPaths(type)
+    : allMigrations
+  logger.info(`Found ${migrationFiles.length} migration files.`)
+
+  if (migrationFiles.length === 0) {
+    logger.warn('No migration files found. Ensure the glob patterns are correct.')
+    throw new Error('No migration files found.')
+  }
+
+
 
   // Define a tracking model per schema + type
   const model = sequelize.define(
@@ -91,21 +98,23 @@ export const createUmzugMigrator = async (
     }
   )
 
-  return new Umzug({
-    migrations: migrationFiles.map((file) => {
-      const fileUrl = pathToFileURL(file).href
+
+  return new Umzug<QueryInterface>({
+    migrations: migrationFiles.map(file => {
+      const migration = require(file)
       return {
-        name: path.basename(file),
-        up: async ({ context }) =>
-          (await import(fileUrl)).up(context, schemaName),
-        down: async ({ context }) =>
-          (await import(fileUrl)).down(context, schemaName),
+        name: path.basename(file, '.ts'),
+        up: async ({ context }: { context: QueryInterface }) =>
+          migration.up(context, schemaName),
+        down: async ({ context }: { context: QueryInterface }) =>
+          migration.down(context, schemaName),
       }
     }),
-    context: sequelize.getQueryInterface() as object,
+    context: sequelize.getQueryInterface(), // ahora sí es el QueryInterface real
     storage: new SequelizeStorage({ model }),
     logger: console,
   })
+
 }
 
 /**
@@ -117,11 +126,11 @@ export const runMigrations = async (
   schemaName: MigrationFolder = MigrationFolder.Public
 ): Promise<void> => {
   console.log('🚀 Running DDL migrations...')
-  const ddlMigrator = await createUmzugMigrator(schemaName, 'ddl')
+  const ddlMigrator = await createUmzugMigrator(schemaName, MigrationType.DDL)
   await ddlMigrator.up()
 
   console.log('🚀 Running DML migrations...')
-  const dmlMigrator = await createUmzugMigrator(schemaName, 'dml')
+  const dmlMigrator = await createUmzugMigrator(schemaName, MigrationType.DML)
   await dmlMigrator.up()
 
   console.log('✅ All migrations completed successfully!')

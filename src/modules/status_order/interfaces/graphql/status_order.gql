@@ -41,4 +41,3 @@ type ResponseSalesStore {
 type Query {
   getOneSalesStore(pCodeRef: String): ResponseSalesStore
 }
-

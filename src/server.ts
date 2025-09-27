@@ -142,18 +142,20 @@ const server = new ApolloServer({
 
     interface ConnectionParams {
       authorization?: string;
+      restaurant?: string;
+      deviceid?: string;
     }
 
     useServer({
       schema: wsSchema,
-      context: ({ connectionParams }: { connectionParams?: ConnectionParams }) => {
-        console.log('🔌 Nueva conexión a subscriptions', connectionParams)
-        // CANCELLATION: IF connectionParams.Authorization === null close the connection
-        if (!connectionParams || !connectionParams.authorization) {
-          console.log('❌ Conexión cerrada: falta authorization')
-          return false
-        }
-        return { pubsub } // mismo PubSub compartido
+      context: async (ctx) => {
+        const params = ctx.connectionParams as ConnectionParams
+        console.log("🔌 WS context", params)
+
+        // Aquí validas el token
+        // if (!params?.authorization) throw new Error("Unauthorized")
+
+        return { pubsub }
       },
       onConnect: (ctx) => {
         console.log('🎉 Cliente conectado a la suscripción', ctx.connectionParams)
@@ -171,5 +173,7 @@ const server = new ApolloServer({
       console.log(
         `🛠 Sandbox: http://localhost:${PORT}/graphql (solo en desarrollo)`
       )
+      console.log(`✅ 🛠 Sandbox: https://studio.apollographql.com/sandbox/explorer`)
+
     })
   })()
