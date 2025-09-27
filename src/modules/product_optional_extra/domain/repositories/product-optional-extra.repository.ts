@@ -1,3 +1,5 @@
+import { Transaction } from 'sequelize'
+import { UpdateProductOptionalAndSubOptionalInput } from '../../application/use-cases/bulk-insert-product-optional-and-sub-optional-extra.usecase'
 import { ProductOptionalExtra, ProductOptionalExtraPagination } from '../entities/product-optional-extra.entity'
 
 export interface IProductOptionalExtraRepo {
@@ -8,4 +10,7 @@ export interface IProductOptionalExtraRepo {
   findById(id: string): Promise<ProductOptionalExtra | null>
   getAll(idStore: string): Promise<ProductOptionalExtraPagination | null>
   getAllProductOptionalByProductId(pId: string): Promise<ProductOptionalExtra[] | null>
+
+  // sold
+  bulkCreateOrUpdateProductOptionalAndSubOptional(dataOptional: UpdateProductOptionalAndSubOptionalInput[], transaction: Transaction): Promise<UpdateProductOptionalAndSubOptionalInput[] | null>
 }

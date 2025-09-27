@@ -13,6 +13,7 @@ import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { NEW_STORE_ORDER } from '../../../../../ws-schema'
 import { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
+import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
 import { v4 as uuiv4 } from 'uuid'
 
 export const orderResolvers = {
@@ -75,6 +76,8 @@ export const orderResolvers = {
         const ShoppingServices = ShoppingServicesTenantFactory(idStore)
         const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
         const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
+        const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
+
 
         for (const item of args.input) {
           const newItem = {
@@ -121,19 +124,25 @@ export const orderResolvers = {
               errors: []
             }
           }
-          console.log('New item added to shopping cart:', newItem)
           const extras = item.dataExtra || []
-          ProductExtraServices.bulkCreateExtraSold.execute(extras.map(e => ({
+          const dataOptional = item.dataOptional || []
+          const soldPid = response?.data?.pId ?? ''
+          await ProductExtraServices.bulkCreateExtraSold.execute(extras.map(e => ({
             originalExPid: e.exPid,
             exPid: uuiv4(),
             idStore,
             pCodeRef: args.pCodeRef,
             extraName: e.extraName,
             extraPrice: e.extraPrice,
-            pId: response?.data?.pId ?? '',
+            pId: soldPid,
             quantity: e.quantity
           })), t)
-
+          await ProductOptionalServices.bulkCreateProductOptionalAndSubOptional.execute(dataOptional.map(op => ({
+            ...op,
+            pCodeRef: args.pCodeRef,
+            idStore,
+            pId: soldPid
+          })), t)
         }
         // Resto del flujo (sumPrice, statusOrder, etc.)
         const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode)

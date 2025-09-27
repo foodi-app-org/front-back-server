@@ -1,4 +1,4 @@
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
@@ -6,8 +6,9 @@ import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StateProductSubOptionalExtra } from '../../../product_sub_optional_extra/infrastructure/db/sequelize/models/sequelize-product-sub-optional-extra.model'
 import { ProductOptionalExtra, ProductOptionalExtraPagination } from '../../domain/entities/product-optional-extra.entity'
 import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
-import { type SequelizeProductOptionalExtra,StateProductOptionalExtra } from '../db/sequelize/models/sequelize-product-optional-extra.model'
-
+import { type SequelizeProductOptionalExtra, StateProductOptionalExtra } from '../db/sequelize/models/sequelize-product-optional-extra.model'
+import { UpdateProductOptionalAndSubOptionalInput } from '@modules/product_optional_extra/application/use-cases/bulk-insert-product-optional-and-sub-optional-extra.usecase'
+import { v4 as uuiv4 } from 'uuid'
 export class SequelizeProductOptionalExtraRepository implements IProductOptionalExtraRepo {
   private readonly genericService: GenericService<SequelizeProductOptionalExtra>
   private readonly tenant: string
@@ -165,4 +166,63 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
       throw new Error(String(e))
     }
   }
+
+  async bulkCreateOrUpdateProductOptionalAndSubOptional(dataOptional: UpdateProductOptionalAndSubOptionalInput[], transaction: Transaction): Promise<UpdateProductOptionalAndSubOptionalInput[] | null> {
+    try {
+      if (!Array.isArray(dataOptional) || dataOptional.length === 0) return null
+      await Promise.all(dataOptional.map(async (optional) => {
+        const {
+          pId,
+          opExPid,
+          OptionalProName,
+          state,
+          code,
+          numbersOptionalOnly,
+          idStore,
+          required,
+          ExtProductFoodsSubOptionalAll
+        } = optional
+        // For example:
+        await models.ProductOptionalExtraSold.schema(this.tenant).upsert({
+          pId: String(pId),
+          opExPid: uuiv4(),
+          OptionalProName: String(OptionalProName),
+          state,
+          code,
+          numbersOptionalOnly,
+          required,
+          idStore,
+          pCodeRef: optional.pCodeRef,
+          originalExtraId: String(opExPid),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }, { transaction })
+        if (Array.isArray(ExtProductFoodsSubOptionalAll) && ExtProductFoodsSubOptionalAll.length > 0) {
+          await Promise.all(ExtProductFoodsSubOptionalAll.map(async (subOptional) => {
+            await models.ProductSubOptionalExtraSold.schema(this.tenant).upsert({
+              pId: String(pId),
+              opExPid,
+              opSubExPid: uuiv4(),
+              OptionalSubProName: subOptional.OptionalSubProName,
+              exCodeOptionExtra: subOptional.exCodeOptionExtra,
+              exCode: subOptional.exCode,
+              state: subOptional.state,
+              pCodeRef: optional.pCodeRef,
+              optionalSubExtraId: String(subOptional.opSubExPid),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              idStore: subOptional.idStore
+            }, { transaction })
+          }))
+        }
+      }))
+      return dataOptional
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(err.message)
+      }
+      throw new Error(String(err))
+    }
+  }
 }
+

@@ -22,11 +22,13 @@ export const productOptionalExtraResolvers = {
         const store = context.restaurant ?? ''
         const services = ProductOptionalServicesTenantFactory(store)
         const result = await services.getAllProductOptionalByProductId.execute(pId)
-        console.log('🚀 ~ result:', result)
         const { data } = result ?? {
           data: null
         }
-        return data
+        return data.map(item => ({
+          ...item.dataValues,
+          ExtProductFoodsSubOptionalAll: item.ExtProductFoodsSubOptionalAll ? item.ExtProductFoodsSubOptionalAll.map(subItem => subItem.dataValues) : []
+        }))
       } catch (err) {
         return {
           success: false,

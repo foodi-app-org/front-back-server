@@ -13,6 +13,7 @@ export class ProductOptionalExtra {
   public readonly OptionalProName: string
   public readonly numbersOptionalOnly: number
   public readonly code: string
+  public readonly pCodeRef?: string
   public readonly required: number
   public readonly idStore: string
   public readonly state: StateProductOptionalExtra

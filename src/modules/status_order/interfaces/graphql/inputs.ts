@@ -1,3 +1,5 @@
+import { UpdateProductOptionalAndSubOptionalInput } from "../../../product_optional_extra/application/use-cases/bulk-insert-product-optional-and-sub-optional-extra.usecase"
+
 export enum StateShoppingCart {
   ACTIVE = 1,
   INACTIVE = 0,
@@ -71,6 +73,7 @@ interface ShoppingCartItem {
   idStore: string
   comments?: string
   dataExtra?: ExtraItem[]
+  dataOptional: UpdateProductOptionalAndSubOptionalInput[]
 }
 
 /**

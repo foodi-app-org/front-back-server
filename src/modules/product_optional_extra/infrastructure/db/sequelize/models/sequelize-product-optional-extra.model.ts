@@ -31,6 +31,8 @@ export interface IProductOptionalExtraAttributes {
   idStore?: string
   OptionalProName: string
   code?: string
+  pCodeRef?: string // New field for sold model
+  originalExtraId?: string // New field for sold model
   numbersOptionalOnly?: number
   state?: StateProductOptionalExtra
   required?: number
@@ -57,6 +59,8 @@ export class SequelizeProductOptionalExtra
   declare idStore: string
   declare OptionalProName: string
   declare code: string
+  declare originalExtraId?: string // New field for sold model
+  declare pCodeRef?: string // New field for sold model
   declare numbersOptionalOnly: number
   declare state: StateProductOptionalExtra
   declare required: number

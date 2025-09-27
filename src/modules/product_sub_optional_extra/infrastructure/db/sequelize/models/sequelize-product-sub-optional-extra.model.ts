@@ -32,6 +32,8 @@ export interface IProductOptionalExtraAttributes {
   opExPid?: string
   OptionalSubProName: string
   exCodeOptionExtra: string
+  pCodeRef?: string // Reference to the sale code
+  optionalSubExtraId?: string // ID of the sub optional extra
   exCode: string
   state?: StateProductSubOptionalExtra
   required?: number

@@ -15,7 +15,8 @@ export const PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL = 'products_optional_extras_sold'
 /**
  * Sequelize model definition for sold optional extras
  */
-export class SequelizeProductOptionalExtraSold extends SequelizeProductOptionalExtra { }
+export class SequelizeProductOptionalExtraSold extends SequelizeProductOptionalExtra {
+}
 
 export const columnsProductOptionalExtraSold = {
   ...columnsProductOptionalExtra,
