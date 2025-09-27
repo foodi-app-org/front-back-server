@@ -12,6 +12,8 @@ import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructu
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { NEW_STORE_ORDER } from '../../../../../ws-schema'
 import { PubSub } from 'graphql-subscriptions'
+import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
+import { v4 as uuiv4 } from 'uuid'
 
 export const orderResolvers = {
   Type: {
@@ -72,6 +74,7 @@ export const orderResolvers = {
         // 2. Instanciar servicios una sola vez
         const ShoppingServices = ShoppingServicesTenantFactory(idStore)
         const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
+        const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
 
         for (const item of args.input) {
           const newItem = {
@@ -109,9 +112,6 @@ export const orderResolvers = {
             createdAt: new Date(),
             updatedAt: new Date()
           }, t)
-
-          console.log('New item added to shopping cart:', newItem)
-          
           if (response?.success === false) {
             await t.rollback()
             return {
@@ -121,6 +121,19 @@ export const orderResolvers = {
               errors: []
             }
           }
+          console.log('New item added to shopping cart:', newItem)
+          const extras = item.dataExtra || []
+          ProductExtraServices.bulkCreateExtraSold.execute(extras.map(e => ({
+            originalExPid: e.exPid,
+            exPid: uuiv4(),
+            idStore,
+            pCodeRef: args.pCodeRef,
+            extraName: e.extraName,
+            extraPrice: e.extraPrice,
+            pId: response?.data?.pId ?? '',
+            quantity: e.quantity
+          })), t)
+
         }
         // Resto del flujo (sumPrice, statusOrder, etc.)
         const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode)

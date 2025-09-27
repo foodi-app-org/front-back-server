@@ -1,4 +1,4 @@
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
@@ -6,6 +6,7 @@ import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { ProductExtra, ProductExtraPagination } from '../../domain/entities/product-optional-extra.entity'
 import { IProductExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 import { type SequelizeProductExtra,StateProductExtra } from '../db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
+import { InputProductExtraInput } from '../../application/use-cases/bulk-insert-product-extra.usecase'
 
 export class SequelizeProductExtraRepository implements IProductExtraRepo {
   private readonly genericService: GenericService<SequelizeProductExtra>
@@ -22,6 +23,7 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
     try {
       const created = await models.ProductExtra.schema(this.tenant).create({
         ...data,
+        idStore: String(data.idStore),
         exState: StateProductExtra.ACTIVE
       })
       return created
@@ -94,6 +96,19 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
       })
       return product
     } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async bulkInsert(data: InputProductExtraInput[], transaction: Transaction): Promise<ProductExtra[] | null> {
+    try {
+      const created = await models.ProductExtraSold.schema(this.tenant).bulkCreate(data, { transaction })
+      return created
+    } catch (e) {
+      console.log("🚀 ~ SequelizeProductExtraRepository ~ bulkInsert ~ e:", e)
       if (e instanceof Error) {
         throw new Error(e.message)
       }

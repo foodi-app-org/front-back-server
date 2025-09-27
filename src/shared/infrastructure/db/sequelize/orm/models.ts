@@ -24,6 +24,7 @@ import { SequelizeStoreModel, STORE_MODEL } from '../../../../../modules/store/i
 import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables/infrastructure/db/sequelize/models/sequelize-table.model'
 import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
+import { SequelizeProductExtraSold, EXTRA_PRODUCT_MODEL_SOLD } from '../../../../../modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 
 export const models = {
   User: SequelizeUserModel,
@@ -48,8 +49,10 @@ export const models = {
   ProductSubOptionalExtra: SequelizeProductSubOptionalExtra,
   ProductExtra: SequelizeProductExtra,
   AvailableProduct: SequelizeProductAvailableModel,
+  // SOLD MODELS
   ProductOptionalExtraSold: SequelizeProductOptionalExtraSold,
   ProductSubOptionalExtraSold: SequelizeProductSubOptionalExtraSold,
+  ProductExtraSold: SequelizeProductExtraSold,
   ProductSold: SequelizeProductSold
 
 }
@@ -79,5 +82,6 @@ export const models_names = {
   AvailableProduct: PRODUCT_AVAILABLE,
   ProductOptionalExtraSold: PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL,
   ProductSubOptionalExtraSold: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
-  ProductSold: PRODUCT_MODEL_SOLD
+  ProductSold: PRODUCT_MODEL_SOLD,
+  ExtraProductSold: EXTRA_PRODUCT_MODEL_SOLD,
 }

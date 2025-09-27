@@ -28,7 +28,7 @@ export enum StateProductExtra {
 export interface IProductExtraAttributes {
   exPid?: string
   pId?: string
-  idStore?: string
+  idStore: string
   extraName: string
   exState?: StateProductExtra
   required?: number

@@ -38,6 +38,19 @@ interface IdSubArray {
   setID: SubItem[]
 }
 
+interface ExtraItem {
+  pId: string,
+  exPid: string,
+  exState: number | null,
+  extraName: string,
+  extraPrice: number,
+  state: null,
+  createdAt: Date,
+  updatedAt: Date,
+  quantity: number,
+  newExtraPrice: number
+}
+
 /**
  * @typedef {Object} ShoppingCartItem
  * @property {string} pId - Product UUID
@@ -57,6 +70,7 @@ interface ShoppingCartItem {
   refCodePid: string
   idStore: string
   comments?: string
+  dataExtra?: ExtraItem[]
 }
 
 /**
