@@ -110,7 +110,8 @@ export const orderResolvers = {
             updatedAt: new Date()
           }, t)
 
-
+          console.log('New item added to shopping cart:', newItem)
+          
           if (response?.success === false) {
             await t.rollback()
             return {

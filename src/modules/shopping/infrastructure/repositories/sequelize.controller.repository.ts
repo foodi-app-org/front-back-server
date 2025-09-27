@@ -4,7 +4,7 @@ import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
-
+import { v4 as uuidv4 } from 'uuid'
 export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   private readonly tenant: string
 
@@ -13,17 +13,66 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     this.tenant = tenant ?? MigrationFolder.Public
   }
 
-  async create(data: ShoppingCart, transaction?: Transaction): Promise<ShoppingCart | null> {
+  /**
+   * Create a ShoppingCart and its corresponding ProductSold
+   * @param data ShoppingCart input data
+   * @param transaction Optional sequelize transaction
+   * @returns Created ShoppingCart or null
+   */
+  async create(
+    data: ShoppingCart,
+    transaction?: Transaction
+  ): Promise<ShoppingCart | null> {
     try {
-      const created = await models.ShoppingCart.schema(this.tenant).create({
-        ...data
-      }, { transaction })
-      return created
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
+      // Create ShoppingCart
+      const created = await models.ShoppingCart.schema(this.tenant).create(
+        { ...data },
+        { transaction }
+      )
+
+      // Fetch product only if exists
+      const product = await models.Product.schema(this.tenant).findOne({
+        where: { pId: data.pId },
+        transaction,
+        attributes: [
+          'pId',
+          'pName',
+          'pCode',
+          'ProPrice',
+          'ProImage',
+          'carProId',
+          'idStore'
+        ]
+      })
+
+      if (!product) {
+        throw new Error(`Product with pId=${data.pId} not found`)
       }
-      throw new Error(String(e))
+
+      // Prepare ProductSold
+      const productSoldData = {
+        ...product.get({ plain: true }),
+        pId: uuidv4(),
+        pCodeRef: String(data.pCodeRef ?? ''),
+        pName: String(product.pName ?? ''),
+        pCode: String(product.pCode ?? ''),
+        pState: 1,
+        optionalProductId: data.pId,
+        ProQuantity: Number(data.cantProducts),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+
+      const response = await models.ProductSold.schema(this.tenant).create(productSoldData, {
+        transaction
+      })
+
+      return {
+        ...created.get({ plain: true }),
+        pId: String(response.pId),
+      }
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : String(err))
     }
   }
 

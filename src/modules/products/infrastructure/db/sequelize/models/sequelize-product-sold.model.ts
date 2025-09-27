@@ -23,18 +23,13 @@ export const columnsProductSold = {
   ...columnsProduct,
   optionalProductId: {
     type: STRING(36),
-    primaryKey: true,
+    primaryKey: false,
     autoIncrement: false,
     defaultValue: DataTypes.UUIDV4,
     allowNull: false,
     comment: 'Reference to the original optional extra product ID'
   },
   pCodeRef: {
-    type: STRING(100),
-    unique: false,
-    allowNull: false
-  },
-  pId: {
     type: STRING(100),
     unique: false,
     allowNull: false

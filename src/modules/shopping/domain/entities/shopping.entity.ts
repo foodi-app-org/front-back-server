@@ -44,6 +44,7 @@ export class ShoppingCart {
   public comments?: string
   public refCodePid?: string
   public cantProducts?: number
+  public pCodeRef?: string // Reference code for the sale
   public sState: StateShoppingCart = StateShoppingCart.ACTIVE
   // Timestamps
   public createdAt: Date = new Date()
