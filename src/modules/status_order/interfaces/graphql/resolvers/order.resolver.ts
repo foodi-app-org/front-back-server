@@ -36,7 +36,17 @@ export const orderResolvers = {
         return {
           success: false,
           message: 'Code sale reference is required',
-          errors: []
+          errors: [
+            {
+              message: 'Code sale reference is required',
+              path: ['pCodeRef'],
+              type: 'required',
+              context:
+              {
+                label: 'pCodeRef', key: 'pCodeRef'
+              }
+            }
+          ]
         }
       }
       const idStore = context.restaurant ?? ''

@@ -6,7 +6,7 @@ import { getTenantName } from '../../utils/util'
  * Resolver for fetching all order status types.
  * @returns {Promise<Array<Object>>} List of order status types.
  */
-const getOrderStatusTypes = async (_parent, _args, context) => {
+const getAllOrderStatusTypes = async (_parent, _args, context) => {
   const tenant = getTenantName(context.restaurant)
 
   try {
@@ -46,7 +46,7 @@ export default {
   },
 
   QUERIES: {
-    getOrderStatusTypes,
+    getAllOrderStatusTypes,
     getOrderStatusTypeById
   },
 
