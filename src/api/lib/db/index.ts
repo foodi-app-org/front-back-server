@@ -1,20 +1,17 @@
-'use strict'
-
-import path from 'path'
-import fs from 'fs'
-import os from 'os'
-
+import path from 'node:path'
+import fs from 'node:fs'
+import os from 'node:os'
 import Sequelize from 'sequelize'
 import dotenv from 'dotenv'
 
 import { LogDanger, LogInfo } from '../utils/logs'
 import { PATH_EXTERNAL_OS } from '../utils'
-require('sequelize/lib/sequelize')
 
 // Configurar dotenv
 dotenv.config({
   path: path.join(__dirname, '../../../../.env')
 })
+
 
 let sequelize = null
 

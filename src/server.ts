@@ -6,8 +6,8 @@ import {
 } from '@apollo/server/plugin/landingPage/default'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import express from 'express'
-import { useServer } from 'graphql-ws/use/ws'
-import { createServer } from 'http'
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
 import helmet from 'helmet';
 import resolvers from './shared/infrastructure/graphql/resolvers'
@@ -45,12 +45,13 @@ const server = new ApolloServer({
       }), // 👈 Apollo Sandbox en dev
   ],
 })
+; 
 
-  ; (async () => {
+(async () => {
     const pubsub = new PubSub();
     await server.start()
     // 🌐 CORS
-    const allowedOrigins = [
+    const allowedOrigins = new Set([
       process.env.WEB_CLIENT,
       process.env.WEB_ADMIN_STORE,
       'http://localhost:3000',
@@ -66,12 +67,12 @@ const server = new ApolloServer({
       'https://front-back-server.onrender.com',
       'https://app-foodi-admin.vercel.app',
       'https://studio.apollographql.com'
-    ].filter(Boolean)
+    ].filter(Boolean))
 
     app.use(
       cors({
         origin: (origin, callback) => {
-          if (!origin || allowedOrigins.includes(origin)) {
+          if (!origin || allowedOrigins.has(origin)) {
             callback(null, true)
           } else {
             callback(new Error('Not allowed by CORS'))

@@ -2,12 +2,12 @@
   "compilerOptions": {
     /* ✅ Modern target & modules */
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     /* ✅ Libs para features modernas */
-    "lib": ["ES2022"],
-
+    "lib": [
+      "ES2022"
+    ],
     /* ✅ Seguridad y consistencia */
     "strict": true,
     "esModuleInterop": true,
@@ -21,25 +21,35 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-
     /* ✅ Debug */
     "sourceMap": true,
-
     /* ✅ Estructura de compilación */
     "rootDir": "src",
     "outDir": "build",
-
     /* ✅ BaseUrl + Paths para hexagonal */
     "baseUrl": "./src",
     "paths": {
-      "@modules/*": ["modules/*"],
-      "@shared/*": ["shared/*"],
-      "@config/*": ["config/*"],
-      "@api/*": ["api/*"],
-      "@infrastructure/*": ["infrastructure/*"]
+      "@modules/*": [
+        "modules/*"
+      ],
+      "@shared/*": [
+        "shared/*"
+      ],
+      "@config/*": [
+        "config/*"
+      ],
+      "@api/*": [
+        "api/*"
+      ],
+      "@infrastructure/*": [
+        "infrastructure/*"
+      ]
     }
   },
-  "include": ["src", "apollo-express.d.ts"],
+  "include": [
+    "src",
+    "apollo-express.d.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",
