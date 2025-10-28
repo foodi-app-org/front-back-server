@@ -16,13 +16,7 @@ export class FindByNameStatusOrderTypeUseCase {
    * @returns The newly created Store or null if it already exists
    */
   async execute(name: string): Promise<StatusOrderTypes | null> {
-
     const orderStatusType = await this.categoryStatusOrderRepository.findByName(name)
-
-    if (orderStatusType) {
-      return null
-    }
-
     return orderStatusType
   }
 }

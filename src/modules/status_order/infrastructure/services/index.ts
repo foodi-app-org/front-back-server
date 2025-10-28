@@ -3,6 +3,7 @@ import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateStatusOrderTypeUseCase } from '../../application/use-cases/create_status_order.usecase'
 import { GetOneByCodeRefTypeUseCase } from '../../application/use-cases/get-one-by-code-ref.usecase'
+import { GetAllByStatusTypeUseCase } from '../../application/use-cases/get-all-order-by-status-types.usecase'
 import { SequelizeStatusOrderRepository } from '../repositories/sequelize.controller.repository'
 
 const statusOrderTypesRepository = new SequelizeStatusOrderRepository(MigrationFolder.Public)
@@ -15,6 +16,7 @@ export const StatusOrderServicesTenantFactory = (tenant: string) => {
     const statusOrderTypesRepository = new SequelizeStatusOrderRepository(getTenantName(tenant))
     return {
         create: new CreateStatusOrderTypeUseCase(statusOrderTypesRepository),
-        getOneByCodeRef: new GetOneByCodeRefTypeUseCase(statusOrderTypesRepository)
+        getOneByCodeRef: new GetOneByCodeRefTypeUseCase(statusOrderTypesRepository),
+        getAllByStatusType: new GetAllByStatusTypeUseCase(statusOrderTypesRepository)
     }
 }

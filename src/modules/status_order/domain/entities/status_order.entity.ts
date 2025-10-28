@@ -41,6 +41,7 @@ export class StatusOrder {
   public shoppingCartRefCode!: string
   public tableId?: string
   public idStore?: string
+  public idStatus!: string
   public pSState!: number
   public valueDelivery?: number
   public locationUser?: string

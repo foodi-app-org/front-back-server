@@ -10,4 +10,5 @@ export interface StatusOrderRepository {
   findCodeRef(pCodeRef: string): Promise<StatusOrder | null>
   getAll(idStore: string): Promise<StatusOrderPagination | null>
   findById(id: string): Promise<StatusOrder | null>
+  getAllByStatusType(): Promise<StatusOrder[] | null>
 }

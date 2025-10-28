@@ -15,6 +15,8 @@ import { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
 import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
 import { v4 as uuiv4 } from 'uuid'
+import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
+import { StatusTypeOrder } from '@shared/constants/statusTypeOrder'
 
 export const orderResolvers = {
   Type: {
@@ -60,6 +62,13 @@ export const orderResolvers = {
       }
       const response = await services.getOneByCodeRef.execute(args.pCodeRef)
       return response
+    },
+    getAllSalesStore: async (_: GraphQLResolveInfo, _args: Record<string, unknown>, context: GraphQLContext) => {
+      const idStore = context.restaurant ?? ''
+
+      const services = StatusOrderServicesTenantFactory(idStore)
+      const response = await services.getAllByStatusType.execute()
+      return response?.data ?? []
     }
   },
   Mutation: {
@@ -167,10 +176,15 @@ export const orderResolvers = {
           pCodeRef,
           tip = 0
         } = args
+        const services = StatusOrderTypesServicesTenantFactory(idStore)
+        const statusOrderType = await services.findByName.execute(StatusTypeOrder.CONCLUDES)
+        console.log("🚀 ~ statusOrderType:", statusOrderType?.idStatus)
 
+        // here
         const mockSalesStore = {
           id,
           tableId,
+          idStatus: statusOrderType?.idStatus,
           idStore,
           pSState: StateShoppingCart.ACTIVE,
           valueDelivery,

@@ -1,4 +1,4 @@
-import { Transaction } from 'sequelize'
+import { QueryTypes, Transaction } from 'sequelize'
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
@@ -6,6 +6,7 @@ import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
 import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 import type { SequelizeStatusOrderModel } from '../db/sequelize/models/sequelize-status_orders.model'
+import { connect } from '@shared/infrastructure/db'
 
 export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   private readonly genericService: GenericService<SequelizeStatusOrderModel>
@@ -35,7 +36,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       const scheduleStore = await models.StatusOrder.schema(this.tenant).findOne({
         where: { pCodeRef: String(pCodeRef) }
       })
-      return scheduleStore  
+      return scheduleStore
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)
@@ -66,6 +67,44 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
         return null
       }
       return statusOrder
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+  async getAllByStatusType(): Promise<any[] | null> {
+    try {
+      const sequelize = connect()
+      const query = `
+            SELECT 
+        ost.name AS statusName,
+        os.stPId,
+        os.idStatus,
+        os.pCodeRef,
+        os.pSState,
+        os.totalProductsPrice,
+        os.createdAt,
+        os.updatedAt
+      FROM "${this.tenant}.order_status_types" AS ost
+      INNER JOIN "${this.tenant}.orders_statuses" AS os
+      ON os.idStatus = ost.idStatus
+      `
+      type StatusRow = {
+        statusName: string
+        stPId: string
+        idStatus: number
+        pCodeRef: string
+        pSState: string
+        totalProductsPrice: number
+        createdAt: Date | string
+        updatedAt: Date | string
+      }
+      const results = await sequelize.query<StatusRow>(query, {
+        type: QueryTypes.SELECT
+      })
+      return results
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

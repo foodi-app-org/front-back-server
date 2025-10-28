@@ -51,6 +51,7 @@ export class SequelizeStatusOrderModel extends Model<IStatusOrderStoreAttributes
   declare stPId?: string
   declare id?: string
   declare tableId?: string
+  declare idStatus: string
   declare idStore?: string
   declare shoppingCartRefCode: string
   declare pSState: number
@@ -80,6 +81,10 @@ export const columnsStatusOrdersStore = {
   id: {
     type: STRING(36),
     allowNull: true
+  },
+  idStatus: {
+    type: STRING(36),
+    allowNull: false
   },
   tableId: {
     type: STRING(36),

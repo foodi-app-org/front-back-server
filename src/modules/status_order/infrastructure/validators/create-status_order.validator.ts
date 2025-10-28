@@ -51,7 +51,7 @@ export const statusOrderSchema = Joi.object({
   id: Joi.string().optional().allow(null, ''),
   tableId: Joi.string().optional().allow(null, ''),
   idStore: Joi.string().allow(null),
-
+  idStatus: Joi.string().required(),
   pSState: Joi.number().optional().allow(null),
 
   valueDelivery: Joi.number().optional().allow(null, 0).integer().min(0).default(0),
