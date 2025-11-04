@@ -7,7 +7,7 @@ type StoreOrders {
   channel: Int
   change: Int
   pCodeRef: String
-  statusName: String
+  status: String
   pSState: ID
   payMethodPState: Int
   totalProductsPrice: Float

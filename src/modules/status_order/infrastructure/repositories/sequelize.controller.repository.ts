@@ -79,7 +79,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       const sequelize = connect()
       const query = `
             SELECT 
-        ost.name AS statusName,
+        ost.name AS status,
         os.stPId,
         os.idStatus,
         os.pCodeRef,
@@ -92,7 +92,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       ON os.idStatus = ost.idStatus
       `
       type StatusRow = {
-        statusName: string
+        status: string
         stPId: string
         idStatus: number
         pCodeRef: string
