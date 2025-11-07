@@ -51,7 +51,8 @@ export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderType
     try {
       const result = await this.genericService.getAll({
         searchFields: ['name', 'description'],
-        idStore
+        idStore,
+        orderFields: [{ field: 'createdAt', direction: 'ASC' }]
       })
 
       return result

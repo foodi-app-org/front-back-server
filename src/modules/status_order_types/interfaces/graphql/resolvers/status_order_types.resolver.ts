@@ -1,19 +1,20 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { StatusOrderTypesServices } from '../../../infrastructure/services'
 import { statusOrderTypeSchema } from '../../../infrastructure/validators/index'
 import { CreateStatusTypeOrderInput } from '../inputs'
+import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
 
 export const statusOrderTypesResolvers = {
   Query: {
     getAllOrderStatusTypes: async (_: GraphQLResolveInfo, _args: unknown, context: GraphQLContext) => {
       const { restaurant: idStore } = context
-      return await StatusOrderTypesServices.getAll.execute(idStore ?? '')
+      const services = StatusOrderTypesServicesTenantFactory(idStore ?? '')
+      return await services.getAll.execute(idStore ?? '')
     }
   },
   Mutation: {
-    createOrderStatusType: async (_: GraphQLResolveInfo, args: { data: CreateStatusTypeOrderInput }) => {
+    createOrderStatusType: async (_: GraphQLResolveInfo, args: { data: CreateStatusTypeOrderInput },  context: GraphQLContext) => {
       const { error, value } = statusOrderTypeSchema.validate(args.data)
       if (error) {
         return {
@@ -28,7 +29,10 @@ export const statusOrderTypesResolvers = {
           }))
         }
       }
-      return await StatusOrderTypesServices.create.execute(value)
+      const { restaurant: idStore } = context
+
+      const services = StatusOrderTypesServicesTenantFactory(idStore ?? '')
+      return await services.create.execute(value)
     }
   }
 }
