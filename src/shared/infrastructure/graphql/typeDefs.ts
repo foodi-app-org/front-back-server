@@ -17,6 +17,6 @@ const moduleTypes = loadFilesSync(
 )
 
 export const typeDefs = mergeTypeDefs([
-  ...sharedTypes,
-  ...moduleTypes
+  ...moduleTypes,
+  ...sharedTypes
 ])

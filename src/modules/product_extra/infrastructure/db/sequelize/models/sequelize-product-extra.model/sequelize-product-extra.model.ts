@@ -32,6 +32,7 @@ export interface IProductExtraAttributes {
   extraName: string
   exState?: StateProductExtra
   required?: number
+  pCodeRef?: string
   createdAt?: Date
   updatedAt?: Date
 }

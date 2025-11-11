@@ -45,7 +45,8 @@ export class SequelizeStoreRepository implements StoreRepository {
  */
   async findById(id: string): Promise<Store | null> {
     const store = await models.Store.schema(this.tenant).findOne({
-      where: { idStore: id }
+      where: { idStore: id },
+      raw: true
     })
 
     return store ? store as Store : null

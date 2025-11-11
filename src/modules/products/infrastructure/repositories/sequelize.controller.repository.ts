@@ -81,7 +81,8 @@ export class SequelizeProductRepository implements ProductRepository {
         where: {
           pId: id,
           pState: StateProduct.ACTIVE
-        }
+        },
+        raw: true
       })
       return product
     } catch (e) {
@@ -226,4 +227,81 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(`Unexpected error: ${String(e)}`)
     }
   }
+
+  async getAllProductSoldByPCodeRef(pCodeRef: string): Promise<Product[] | null> {
+    try {
+      const products = await this.fetchProducts(pCodeRef);
+      const extras = await this.fetchExtras(pCodeRef, products.map(p => p.pId));
+
+      const extrasGrouped = this.groupExtrasByProductId(extras);
+
+      return this.mapProductsWithExtras(products, extrasGrouped)
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(`Failed to get ProductSold: ${e.message}`);
+      }
+      throw new Error(`Unexpected error: ${String(e)}`);
+    }
+  }
+
+  /** Consultar productos vendidos */
+  private async fetchProducts(pCodeRef: string) {
+    return models.ProductSold.schema(this.tenant).findAll({
+      where: { pCodeRef },
+      raw: true
+    });
+  }
+
+  /** Consultar extras vendidos de los productos obtenidos */
+  private async fetchExtras(pCodeRef: string, pIds: string[]) {
+    if (pIds.length === 0) return [];
+    return models.ProductExtraSold.schema(this.tenant).findAll({
+      where: {
+        pCodeRef,
+        pId: pIds
+      },
+      raw: true
+    });
+  }
+
+  /** Agrupar extras por pId */
+  private groupExtrasByProductId(extras: any[]) {
+    return extras.reduce<Record<string, any[]>>((acc, extra) => {
+      if (!acc[extra.pId]) acc[extra.pId] = [];
+      acc[extra.pId].push({
+        __typename: 'ExtProductFood',
+        pId: extra.pId,
+        exPid: extra.originalExPid,
+        exState: extra.exState,
+        extraName: extra.extraName,
+        extraPrice: extra.extraPrice,
+        quantity: 1,
+        newExtraPrice: extra.extraPrice,
+        createdAt: extra.createdAt,
+        updatedAt: extra.updatedAt,
+        state: null
+      });
+      return acc;
+    }, {});
+  }
+
+  /** Unir productos con sus extras para formar el DTO final */
+  private mapProductsWithExtras(products: any[], extrasGrouped: Record<string, any[]>) {
+    return products.map(prod => ({
+      pId: prod.pId,
+      pName: prod.pName,
+      editing: false,
+      getOneTags: null,
+      unitPrice: prod.ProPrice,
+      manageStock: !!prod.manageStock,
+      ProDescription: prod.ProDescription || "",
+      ProImage: prod.ProImage,
+      ProPrice: prod.ProPrice,
+      stock: prod.ProQuantity || 1,
+      ProQuantity: prod.ProQuantity,
+      dataOptional: [], // lista de opcionales si las agregas después
+      dataExtra: extrasGrouped[prod.pId] || []
+    }));
+  }
+
 }

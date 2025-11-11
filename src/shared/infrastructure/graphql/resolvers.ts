@@ -21,6 +21,7 @@ import { userResolvers } from '../../../modules/user/interfaces/graphql/resolver
 import { dateTimeScalar } from './scalars/date-time.scalar'
 
 import { PubSub } from 'graphql-subscriptions'
+import { printResolvers } from '@modules/pos_print_core/interfaces/graphql/resolvers/pos_print_core.resolver'
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
 function incrementNumber () {
@@ -85,7 +86,8 @@ export default {
         ...productOptionalExtraResolvers.Mutation,
         ...productSubOptionalExtraResolvers.Mutation,
         ...productExtraResolvers.Mutation,
-        ...productAvailableResolvers.Mutation
+        ...productAvailableResolvers.Mutation,
+        ...printResolvers.Mutation
     },
     Subscription: {
      numberIncremented: {

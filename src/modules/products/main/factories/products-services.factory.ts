@@ -1,5 +1,6 @@
 
 
+import { GetProductsSaleByPCodeRefUseCase } from '@modules/products/application/use-cases/get-products-sale-by-pcodeRef.usecase'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { SequelizeCategoryProductRepository } from '../../../category_products/infrastructure/repositories/sequelize-category-products.controller.repository'
@@ -31,6 +32,7 @@ export const ProductServicesTenantFactory = (tenant: string) => {
         getAllProductsByCategoryId: new GetAllProductsByCategoryIdUseCase(productRepository),
         setImageProduct: new SetImageProductUseCase(productRepository),
         registerAvailableProduct: new RegisterAvailableProductUseCase(productRepository),
-        productFoodsAll: new GetAllProductsAllUseCase(productRepository)
+        productFoodsAll: new GetAllProductsAllUseCase(productRepository),
+        getAllProductSoldByPCodeRef: new GetProductsSaleByPCodeRefUseCase(productRepository)
     }
 }

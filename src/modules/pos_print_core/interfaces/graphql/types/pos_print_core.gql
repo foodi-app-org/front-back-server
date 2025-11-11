@@ -1,0 +1,9 @@
+type Mutation {
+  printSaleTicket(saleId: ID!): PrintSaleTicketResponse!
+}
+
+type PrintSaleTicketResponse {
+  success: Boolean!
+  message: String
+  data: String
+}

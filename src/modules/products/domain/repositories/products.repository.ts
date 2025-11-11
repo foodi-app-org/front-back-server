@@ -18,4 +18,5 @@ export interface ProductRepository {
 
   // sold products
   createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null>
+  getAllProductSoldByPCodeRef(pCodeRef: string): Promise<Product[] | null>
 }

@@ -29,6 +29,7 @@ const httpServer = createServer(app)
 const server = new ApolloServer({
   schema,
   introspection: !isProd, // 👈 habilita introspección solo en dev
+  csrfPrevention: false,
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
     isProd

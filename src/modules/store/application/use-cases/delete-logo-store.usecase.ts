@@ -24,7 +24,7 @@ interface DeleteLogoResponse {
 export class DeleteLogoUseCase {
   constructor(
     private readonly storeRepository: StoreRepository
-  ) {}
+  ) { }
 
   /**
    * Executes the use case for deleting a store logo
@@ -42,6 +42,7 @@ export class DeleteLogoUseCase {
       if (!storeData) {
         return { success: false, message: 'Store not found' }
       }
+      console.log("🚀 ~ userDataPath:", userDataPath)
 
       if (!storeData.Image) {
         return { success: false, message: 'Store logo does not exist' }
@@ -64,7 +65,7 @@ export class DeleteLogoUseCase {
       }
 
       return { success: true, message: 'Logo eliminado correctamente' }
-    
+
     } catch (e) {
       if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
         return { success: false, message: 'Token expired' }

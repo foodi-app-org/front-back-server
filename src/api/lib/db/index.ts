@@ -72,9 +72,11 @@ function connect () {
     if (useSQLITE) {
       LogInfo('🔗 Using SQLite database')
       LogInfo(`📁 DB Path: ${sqliteDatabasePath}`)
+      // @ts-ignore
       sequelize = new Sequelize(connectConfig)
     } else {
       LogInfo('🔗 Using PostgreSQL database')
+      // @ts-ignore
       sequelize = new Sequelize(
         process.env.NAME_DB,
         process.env.USER_DB,
@@ -83,7 +85,9 @@ function connect () {
       )
     }
   } catch (error) {
+      // @ts-ignore
     LogDanger(error.message)
+      // @ts-ignore
     throw new Error(error)
   }
 

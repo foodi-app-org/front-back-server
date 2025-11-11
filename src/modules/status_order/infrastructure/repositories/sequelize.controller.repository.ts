@@ -6,7 +6,7 @@ import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
 import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 import type { SequelizeStatusOrderModel } from '../db/sequelize/models/sequelize-status_orders.model'
-import { connect } from '@shared/infrastructure/db'
+import { connect } from '../../../../shared/infrastructure/db'
 
 export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   private readonly genericService: GenericService<SequelizeStatusOrderModel>
@@ -33,17 +33,19 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
 
   async findCodeRef(pCodeRef: string): Promise<StatusOrder | null> {
     try {
-      const scheduleStore = await models.StatusOrder.schema(this.tenant).findOne({
-        where: { pCodeRef: String(pCodeRef) }
-      })
-      return scheduleStore
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
+      const status = await models.StatusOrder
+        .schema(this.tenant)
+        .findOne({
+          where: { pCodeRef },
+          raw: true
+        })
+      return status
+    } catch (e: any) {
+      throw new Error(e.message || String(e));
     }
   }
+
+
 
   async getAll(idStore: string): Promise<StatusOrderPagination | null> {
     try {
