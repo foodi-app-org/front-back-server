@@ -1,8 +1,9 @@
-import { EscposNetworkPrinterAdapter } from "@modules/pos_print_core/infrastructure/adapters/escpos-usb-printer.adapter";
-import { ProductServicesTenantFactory } from "@modules/products/main/factories/products-services.factory";
-import { StatusOrderServicesTenantFactory } from "@modules/status_order/infrastructure/services";
-import { StoreServicesTenantFactory } from "@modules/store/main/factories/store-services.factory";
-import { GraphQLContext } from "@shared/types/context";
+import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
+import { EscposNetworkPrinterAdapter } from '@modules/pos_print_core/infrastructure/adapters/escpos-usb-printer.adapter'
+import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
+import { StatusOrderServicesTenantFactory } from '@modules/status_order/infrastructure/services'
+import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
+import { GraphQLContext } from '@shared/types/context'
 
 const printer = new EscposNetworkPrinterAdapter()
 
@@ -13,16 +14,39 @@ export const printResolvers = {
         const idStore = context.restaurant ?? ''
         const services = StatusOrderServicesTenantFactory(idStore)
         const response = await services.getOneByCodeRef.execute(saleId)
-        const servicesProduct = ProductServicesTenantFactory(idStore)
+        const {
+          success,
+          message,
+          data
+        } = response ?? {
+          success: false,
+          message: 'Error al obtener la venta',
+          data: null
+        }
+        if (success === false) {
+          throw new Error(message)
+        }
+        const {
+          id: clientId,
+          createdAt,
+          shoppingCartRefCode
+        } = data ?? {
+          id: null,
+          createdAt: null,
+          shoppingCartRefCode: ''
+        }
+
+        const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
+        const saleCart = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode))
         const servicesStore = StoreServicesTenantFactory(idStore)
+        const servicesClient = ClientServicesTenantFactory(idStore)
         const store = await servicesStore.findById.execute(idStore)
-        const products = await servicesProduct.getAllProductSoldByPCodeRef.execute(saleId)
+        const client = await servicesClient.findById.execute(String(clientId))
         const sale = {
-          ...response?.data,
-          date: new Date().toLocaleString(),
+          date: createdAt,
           store,
-          client: null,
-          products: products
+          client: client?.data,
+          products: saleCart
         }
         await printer.print(sale)
         return {

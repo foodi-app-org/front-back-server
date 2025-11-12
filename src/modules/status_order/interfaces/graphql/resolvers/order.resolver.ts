@@ -17,6 +17,8 @@ import { ProductOptionalServicesTenantFactory } from '../../../../product_option
 import { v4 as uuiv4 } from 'uuid'
 import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
 import { StatusTypeOrder } from '@shared/constants/statusTypeOrder'
+import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
+import { clientEnum } from '@modules/clients/infrastructure/db/sequelize/migrations/dml/20250819234251-insert-store-clients.migration'
 
 export const orderResolvers = {
   Type: {
@@ -73,6 +75,7 @@ export const orderResolvers = {
   },
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
+      console.log("🚀 ~ args:", args)
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()
@@ -178,11 +181,13 @@ export const orderResolvers = {
         } = args
         const services = StatusOrderTypesServicesTenantFactory(idStore)
         const statusOrderType = await services.findByName.execute(StatusTypeOrder.CONCLUDES)
-        console.log("🚀 ~ statusOrderType:", statusOrderType?.idStatus)
-
-        // here
+        const servicesClient = ClientServicesTenantFactory(idStore)
+        const client = await servicesClient.findById.execute(idStore)
+        console.log("🚀 ~ client:", {id: id ?? client?.data?.cliId})
+        console.log("🚀 ~ client:", {legal: clientEnum.legal_id})
+        console.log("🚀 ~ client:", {data: client?.data})
         const mockSalesStore = {
-          id,
+          id: id ?? client?.data?.cliId,
           tableId,
           idStatus: statusOrderType?.idStatus,
           idStore,

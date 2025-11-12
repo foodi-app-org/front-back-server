@@ -5,6 +5,7 @@ import { models } from '../../../../shared/infrastructure/db/sequelize/orm/model
 import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
 import { v4 as uuidv4 } from 'uuid'
+import { IShoppingCartWithProducts } from '../db/sequelize/models/sequelize-shopping-cart.model'
 export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   private readonly tenant: string
 
@@ -24,12 +25,6 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     transaction?: Transaction
   ): Promise<ShoppingCart | null> {
     try {
-      // Create ShoppingCart
-      const created = await models.ShoppingCart.schema(this.tenant).create(
-        { ...data },
-        { transaction }
-      )
-
       // Fetch product only if exists
       const product = await models.Product.schema(this.tenant).findOne({
         where: { pId: data.pId },
@@ -66,7 +61,14 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
       const response = await models.ProductSold.schema(this.tenant).create(productSoldData, {
         transaction
       })
-
+      // Create ShoppingCart
+      const created = await models.ShoppingCart.schema(this.tenant).create(
+        {
+          ...data,
+          pId: String(response.pId) // PID SOLD
+        },
+        { transaction }
+      )
       return {
         ...created.get({ plain: true }),
         pId: String(response.pId),
@@ -89,6 +91,47 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
       throw new Error(String(e))
     }
   }
+
+  async getAllByRefCode(shoppingCartRefCode: string): Promise<any[] | null> {
+    try {    
+      const shoppingCarts = await models.ShoppingCart.schema(this.tenant).findAll({
+        where: { shoppingCartRefCode },
+        include: [
+          {
+            model: models.ProductSold.schema(this.tenant),
+            as: 'products',
+            required: true,
+            include: [
+              {
+                model: models.ProductExtraSold.schema(this.tenant),
+                as: 'dataExtra',
+                required: false
+              }
+            ]
+          }
+        ]
+      });
+
+      // Convertimos a objetos planos
+      const plainCarts = shoppingCarts.map(cart => {
+        const { products, ...cartData } = (cart.get({ plain: true })) as IShoppingCartWithProducts
+
+        // Aplanamos los productos
+        const plainProducts = (products || []).map(p => ({ ...p }));
+
+        return {
+          ...cartData,
+          products: plainProducts
+        };
+      });
+
+      return plainCarts
+    } catch (e) {
+      if (e instanceof Error) throw new Error(e.message);
+      throw new Error(String(e));
+    }
+  }
+
 
   async findById(id: string): Promise<ShoppingCart | null> {
     try {

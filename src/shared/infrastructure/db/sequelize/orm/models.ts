@@ -85,14 +85,3 @@ export const models_names = {
   ProductSold: PRODUCT_MODEL_SOLD,
   ExtraProductSold: EXTRA_PRODUCT_MODEL_SOLD,
 }
-
-
-SequelizeProductSold.hasMany(SequelizeProductExtraSold, {
-  foreignKey: 'pCodeRef',
-  as: 'dataExtra'
-})
-
-SequelizeProductExtraSold.belongsTo(SequelizeProductSold, {
-  foreignKey: 'pCodeRef',
-  as: 'product'
-})

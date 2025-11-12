@@ -9,6 +9,7 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import { SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
 
 const sequelize = connect()
 
@@ -38,6 +39,10 @@ export interface IStatusOrderStoreAttributes {
   sState: StateShoppingCart
   createdAt: Date
   updatedAt: Date
+}
+
+export interface IShoppingCartWithProducts extends IStatusOrderStoreAttributes {
+  products?: SequelizeProductSold[]; // opcional porque puede ser vacío
 }
 
 /**
@@ -141,5 +146,18 @@ SequelizeShoppingOrderModel.init(
     timestamps: true
   }
 )
+
+// // Asociación uno a muchos
+// SequelizeShoppingOrderModel.hasMany(SequelizeProductSold, {
+//   foreignKey: 'pId',           // columna de ProductSold
+//   sourceKey: 'pId',            // columna de ShoppingCart
+//   as: 'products',              // alias usado en include
+// });
+
+// SequelizeProductSold.belongsTo(SequelizeShoppingOrderModel, {
+//   foreignKey: 'pId',           // columna de ProductSold
+//   targetKey: 'pId',            // columna de ShoppingCart
+//   as: 'shoppingCart',
+// });
 
 export default SequelizeShoppingOrderModel

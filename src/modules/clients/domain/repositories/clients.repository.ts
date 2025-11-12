@@ -17,4 +17,17 @@ export interface ClientsRepository {
    */
   getAll(idStore: string): Promise<ClientsPagination | null>
 
+  /**
+   * Finds a Client by its ID.
+   * @param id - The ID of the Client to find.
+   * @returns The Client entity or null if not found.
+   */
+  findById(id: string): Promise<Clients | null>
+
+
+  /**   * Finds a Client by its legal ID.
+   * @param legalId - The legal ID of the Client to find.
+   * @returns The Client entity or null if not found.
+   */
+  findByLegalId(legalId: string): Promise<Clients | null>
 }

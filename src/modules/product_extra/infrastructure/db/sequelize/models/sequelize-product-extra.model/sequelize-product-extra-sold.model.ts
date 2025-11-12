@@ -1,12 +1,13 @@
 // models/productOptionalExtraSold.model.ts
 
-import { DataTypes,STRING } from 'sequelize'
+import { DataTypes, STRING } from 'sequelize'
 
 import connect from '../../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import {
   columnsProductExtra,
   SequelizeProductExtra
 } from './sequelize-product-extra.model'
+import { SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
 
 const sequelize = connect()
 
@@ -16,8 +17,10 @@ export const EXTRA_PRODUCT_MODEL_SOLD = 'products_extras_sold'
 /**
  * Sequelize model definition for sold optional sub extras
  */
-export class SequelizeProductExtraSold extends SequelizeProductExtra { 
+export class SequelizeProductExtraSold extends SequelizeProductExtra {
   declare pCodeRef: string
+  declare quantity: number
+  declare originalExPid: string
 }
 
 export const columnsProductExtraSold = {
@@ -34,8 +37,15 @@ export const columnsProductExtraSold = {
     type: STRING(100),
     unique: false,
     allowNull: false
+  },
+  quantity: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1
   }
 }
+
+
 /**
  * Init model with same columns but different table
  */
@@ -44,4 +54,10 @@ SequelizeProductExtraSold.init(columnsProductExtraSold, {
   modelName: EXTRA_PRODUCT_MODEL_SOLD,
   freezeTableName: true,
   timestamps: false
+})
+
+SequelizeProductSold.hasMany(SequelizeProductExtraSold, { 
+  as: 'dataExtra',
+  foreignKey: 'pId', 
+  sourceKey: 'pId' 
 })

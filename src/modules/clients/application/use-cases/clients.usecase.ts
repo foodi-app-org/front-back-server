@@ -46,7 +46,7 @@ export class CreateClientUseCase {
 
       return {
         success: true,
-        message: 'Table created successfully',
+        message: 'Client created successfully',
         data: created
       }
     } catch (error: unknown) {

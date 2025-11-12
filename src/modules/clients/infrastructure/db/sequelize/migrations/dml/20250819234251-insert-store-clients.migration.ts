@@ -1,29 +1,16 @@
 import { QueryInterface } from 'sequelize'
-import { v4 as uuidv4 } from 'uuid'
 
 import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
 import { CLIENTS_TABLE, IClientAttributes } from '../../models/sequelize-table.model'
 
+export enum clientEnum {
+  legal_id = '1234567890',
+  email = 'john.doe@example.com'
+}
 /**
  * Seed data for store tables.
  */
-const clientsDefault: IClientAttributes[] = [
-  {
-    cliId: uuidv4(),
-    idStore: '',
-    idUser: null,
-    clState: 1,
-    gender: 1,
-    clientAddress: '123 Main St',
-    clientNumber: '555-1234',
-    clientName: 'John Doe',
-    clientLastName: 'Doe',
-    ccClient: '123456789',
-    email: 'john.doe@example.com',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-]
+
 
 /**
  * Inserts initial store tables into the `tables` table.
@@ -37,10 +24,28 @@ export const up = async (
   schemaName: string
 ): Promise<void> => {
   try {
+    const idStore = removeTenantPrefix(schemaName)
+    const clientsDefault: IClientAttributes[] = [
+      {
+        cliId: idStore,
+        idStore: idStore,
+        idUser: null,
+        clState: 1,
+        gender: 1,
+        clientAddress: '123 Main St',
+        clientNumber: '555-1234',
+        clientName: 'John Doe',
+        clientLastName: 'Doe',
+        ccClient: clientEnum.legal_id,
+        email: clientEnum.email,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ]
 
     const tablesDataWithIds = clientsDefault.map((data) => ({
       ...data,
-      idStore: removeTenantPrefix(schemaName)
+      idStore
     }))
 
     await queryInterface.bulkInsert(
@@ -67,7 +72,6 @@ export const down = async (
   await queryInterface.bulkDelete(
     { schema: schemaName, tableName: CLIENTS_TABLE },
     {
-      ccClient: clientsDefault.map(client => client.ccClient)
     },
     {}
   )

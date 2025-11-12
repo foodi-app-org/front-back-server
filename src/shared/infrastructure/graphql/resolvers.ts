@@ -1,3 +1,5 @@
+import { PubSub } from 'graphql-subscriptions'
+import { dateTimeScalar } from './scalars/date-time.scalar'
 import { authResolvers } from '../../../modules/auth/interfaces/graphql/resolvers/auth.resolver'
 import { categoryProductResolvers } from '../../../modules/category_products/interfaces/graphql/resolvers/category_products.resolver'
 import { categoryStoreResolvers } from '../../../modules/category_store/interfaces/graphql/resolvers/category_store.resolver'
@@ -18,9 +20,8 @@ import { storeResolvers } from '../../../modules/store/interfaces/graphql/resolv
 import { tableResolvers } from '../../../modules/tables/interfaces/graphql/resolvers/tables.resolver'
 import { tagsResolvers } from '../../../modules/tags/interfaces/graphql/resolvers/tags.resolver'
 import { userResolvers } from '../../../modules/user/interfaces/graphql/resolvers/user.resolver'
-import { dateTimeScalar } from './scalars/date-time.scalar'
+import { clientResolvers } from '../../../modules/clients/interfaces/graphql/resolvers/clients.resolver'
 
-import { PubSub } from 'graphql-subscriptions'
 import { printResolvers } from '@modules/pos_print_core/interfaces/graphql/resolvers/pos_print_core.resolver'
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
@@ -58,6 +59,7 @@ export default {
         ...productSubOptionalExtraResolvers.Query,
         ...productExtraResolvers.Query,
         ...productAvailableResolvers.Query,
+        ...clientResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)
@@ -87,7 +89,8 @@ export default {
         ...productSubOptionalExtraResolvers.Mutation,
         ...productExtraResolvers.Mutation,
         ...productAvailableResolvers.Mutation,
-        ...printResolvers.Mutation
+        ...printResolvers.Mutation,
+        ...clientResolvers.Mutation
     },
     Subscription: {
      numberIncremented: {

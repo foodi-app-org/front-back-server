@@ -10,4 +10,5 @@ export interface ShoppingCartRepository {
   findCodeRef(pCodeRef: string): Promise<ShoppingCart | null>
   findById(id: string): Promise<ShoppingCart | null>
   sumPrice(id: string): Promise<number | null>
+  getAllByRefCode(shoppingCartRefCode: string): Promise<ShoppingCart[] | null>
 }

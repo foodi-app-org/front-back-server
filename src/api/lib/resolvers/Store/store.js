@@ -381,7 +381,7 @@ export const registerSalesStore = async (
       }
 
       if (dataExtra?.length > 0) {
-        SaleDataExtra.belongsTo(ShoppingCard, { foreignKey: 'shoppingCardId' })
+        // SaleDataExtra.belongsTo(ShoppingCard, { foreignKey: 'shoppingCardId' })
         await SaleDataExtra.schema(getTenantName(context.restaurant)).bulkCreate(dataExtra.map(extra => ({
           exPid: extra.exPid,
           exState: extra.exState,
