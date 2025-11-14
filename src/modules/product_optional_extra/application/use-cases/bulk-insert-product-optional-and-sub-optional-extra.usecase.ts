@@ -37,7 +37,6 @@ export class BulkCreateProductOptionalAndSubOptionalUseCase {
   async execute(dataOptional: UpdateProductOptionalAndSubOptionalInput[], transaction: Transaction): Promise<UseCaseResponse> {
     try {
 
-      console.log("🚀 ~ BulkCreateProductOptionalAndSubOptionalUseCase ~ execute ~ input:", dataOptional)
       await this.repo.bulkCreateOrUpdateProductOptionalAndSubOptional(dataOptional, transaction)
 
       return { success: true, message: 'Actualizado' }

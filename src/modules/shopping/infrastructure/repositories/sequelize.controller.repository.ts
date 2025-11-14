@@ -115,12 +115,22 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
                 required: false,
                 where: {
                   pCodeRef: pCodeRef
-                }
+                },
+                include: [
+                  {
+                    model: models.ProductSubOptionalExtraSold.schema(this.tenant),
+                    as: 'ExtProductFoodsSubOptionalAll',
+                    required: false,
+                    where: {
+                      pCodeRef: pCodeRef
+                    }
+                  }
+                ]
               }
             ]
           }
         ]
-      });
+      })
 
       // Convertimos a objetos planos
       const plainCarts = shoppingCarts.map(cart => {
@@ -129,14 +139,13 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
         return {
           ...cartData,
           products
-        };
-      });
-      console.log("🚀 ~ SequelizeShoppingCartRepository ~ getAllByRefCode ~ plainCarts:", plainCarts)
+        }
+      })
 
       return plainCarts
     } catch (e) {
-      if (e instanceof Error) throw new Error(e.message);
-      throw new Error(String(e));
+      if (e instanceof Error) throw new Error(e.message)
+      throw new Error(String(e))
     }
   }
 

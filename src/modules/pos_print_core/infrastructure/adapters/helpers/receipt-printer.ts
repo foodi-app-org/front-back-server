@@ -84,13 +84,15 @@ export class ReceiptPrinter {
 
       const tableComment = renderTable({ cols, totalWidth: 32, rows: rowComment });
 
+      // Extras
       const extras = prod.dataExtra || []
       if (Array.isArray(extras) && extras.length > 0) {
         this.printExtras(extras, cols);
       }
+      // Optional extras
       const optionalExtras = prod.dataOptional || []
       if (Array.isArray(optionalExtras) && optionalExtras.length > 0) {
-        this.printOptionalExtras(optionalExtras, cols);
+        this.printOptionalExtras(optionalExtras, cols)
       }
       if (shop.comments && shop.comments.length > 0) {
         this.printLine(tableComment);
@@ -113,44 +115,62 @@ export class ReceiptPrinter {
     }
   }
   /**
- * Prints the list of optional extra products with indentation and proper formatting.
- *
- * @param {Array<any>} optionalExtras - List of optional extras to print.
- * @param {ColDef[]} cols - Column definition for the ESC/POS table generator.
- * @returns {void}
- */
+   * Prints optional extras and their sub-optional items with indentation.
+   * @param {any[]} optionalExtras - Parent optional extras returned by Sequelize.
+   * @param {ColDef[]} cols - Column definition for fixed-width rendering.
+   * @returns {void}
+   */
   printOptionalExtras = (optionalExtras: any[], cols: ColDef[]): void => {
-    try {
-      if (!Array.isArray(optionalExtras)) {
-        this.printLine('⚠️ Invalid optional extras format');
-        return;
-      }
+    if (!Array.isArray(optionalExtras) || optionalExtras.length === 0) {
+      this.printLine('No extras');
+      return;
+    }
 
-      for (const extra of optionalExtras) {
-        // Defensive validation papu
-        const name = extra?.OptionalProName ?? 'Unknown extra'
-        // In your model these do NOT have price, so default: 0
-        const subtotal = this.formatMoney(0);
-
-        const rows: Row[] = [[
-          '',                              
-          `•${name}`,
-          subtotal
+    for (const extra of optionalExtras) {
+      try {
+        const parentName = extra?.OptionalProName ?? 'Unknown extra';
+        const rowsParent: Row[] = [[
+          '',
+          `•${parentName}`,
+          this.formatMoney(0)
         ]];
 
-        const tableStr = renderTable({
+        const parentTable = renderTable({
           cols,
           totalWidth: 32,
-          rows
+          rows: rowsParent
         });
 
-        this.printLine(tableStr);
+        this.printLine(parentTable);
+
+        // ---------- SUB OPTIONALS ----------
+        const subItems = extra?.ExtProductFoodsSubOptionalAll ?? [];
+
+        if (Array.isArray(subItems) && subItems.length > 0) {
+          for (const sub of subItems) {
+            const childName = sub?.OptionalSubProName ?? 'Unknown sub extra';
+            const rowsSub: Row[] = [[
+              '',
+              `- ${childName}`,
+              this.formatMoney(0)
+            ]];
+
+            const subTable = renderTable({
+              cols,
+              totalWidth: 32,
+              rows: rowsSub
+            });
+
+            this.printLine(subTable);
+          }
+        }
+
+      } catch (err: any) {
+        this.printLine(`Error printing extras: ${err?.message ?? 'unknown error'}`);
       }
-    } catch (err) {
-      this.printLine('🔥 Error printing optional extras');
-      console.error('printOptionalExtras error:', err);
     }
-  };
+  }
+
 
   printClient(sale: any) {
     printClientData(this.printer, sale);

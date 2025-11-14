@@ -183,7 +183,7 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
           ExtProductFoodsSubOptionalAll
         } = optional
         // For example:
-        await models.ProductOptionalExtraSold.schema(this.tenant).upsert({
+        const responseExtraOptional = await models.ProductOptionalExtraSold.schema(this.tenant).create({
           pId: String(pId),
           opExPid: uuiv4(),
           OptionalProName: String(OptionalProName),
@@ -196,12 +196,17 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
           originalExtraId: String(opExPid),
           createdAt: new Date(),
           updatedAt: new Date()
-        }, { transaction })
+        },
+          {
+            transaction
+          }
+        )
+        
         if (Array.isArray(ExtProductFoodsSubOptionalAll) && ExtProductFoodsSubOptionalAll.length > 0) {
           await Promise.all(ExtProductFoodsSubOptionalAll.map(async (subOptional) => {
             await models.ProductSubOptionalExtraSold.schema(this.tenant).upsert({
               pId: String(pId),
-              opExPid,
+              opExPid: responseExtraOptional.get({ plain: true }).opExPid,
               opSubExPid: uuiv4(),
               OptionalSubProName: subOptional.OptionalSubProName,
               exCodeOptionExtra: subOptional.exCodeOptionExtra,

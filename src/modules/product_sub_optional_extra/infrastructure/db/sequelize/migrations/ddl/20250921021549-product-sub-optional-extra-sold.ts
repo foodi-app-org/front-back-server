@@ -1,7 +1,7 @@
 import { QueryInterface, STRING } from 'sequelize'
 
 import { columnsProductSubOptionalExtraSold, PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL } from '../../models/sequelize-product-sub-optional-extra-sold.model'
-import { PRODUCT_OPTIONAL_EXTRA_MODEL } from '@modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra.model'
+import { PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL } from '@modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra-sold.model'
 
 
 /**
@@ -27,7 +27,7 @@ export const up = async (
                 allowNull: true,
                 references: {
                     model: {
-                        tableName: PRODUCT_OPTIONAL_EXTRA_MODEL,
+                        tableName: PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL,
                         schema: schemaName
                     },
                     key: 'opExPid'
