@@ -1,6 +1,7 @@
-import { QueryInterface } from 'sequelize'
+import { DataTypes, QueryInterface } from 'sequelize'
 
 import { columnsShoppingCart, SHOPPING_CART_MODEL } from '../../models/sequelize-shopping-cart.model'
+import { PRODUCT_MODEL_SOLD } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
 
 
 /**
@@ -19,7 +20,20 @@ export const up = async (
             tableName: SHOPPING_CART_MODEL,
             schema: schemaName
         },
-        columnsShoppingCart
+        {
+            ...columnsShoppingCart,
+            pId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: {
+                    model: {
+                        tableName: PRODUCT_MODEL_SOLD,
+                        schema: schemaName
+                    },
+                    key: 'pId'
+                }
+            }
+        },
     )
 }
 

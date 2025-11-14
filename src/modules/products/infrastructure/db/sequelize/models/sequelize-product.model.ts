@@ -16,6 +16,7 @@ import connect from '../../../../../../shared/infrastructure/db/sequelize/sequel
 const sequelize = connect()
 
 export const PRODUCT_MODEL = 'product_models'
+export const ASSOCIATION_PRODUCTS_NAME = 'products'
 
 export enum StateProduct {
   ACTIVE = 1,
@@ -135,11 +136,13 @@ export class SequelizeProductModel
 
 export const columnsProduct = {
   pId: {
-    type: STRING(36),
+    // type: STRING(36),
+    type: DataTypes.UUID,
     primaryKey: true,
     autoIncrement: false,
     defaultValue: UUIDV4,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   idStore: {
     type: STRING(36),

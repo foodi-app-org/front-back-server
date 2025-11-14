@@ -253,6 +253,7 @@ export const orderResolvers = {
         return createResponse
 
       } catch (e) {
+        console.log("🚀 ~ e:", e)
         await t.rollback()
         return {
           success: false,

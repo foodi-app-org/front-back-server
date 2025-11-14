@@ -36,8 +36,9 @@ export const printResolvers = {
           shoppingCartRefCode: ''
         }
 
+        const pCodeRef = saleId
         const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
-        const saleCart = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode))
+        const saleCart = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
         const servicesStore = StoreServicesTenantFactory(idStore)
         const servicesClient = ClientServicesTenantFactory(idStore)
         const store = await servicesStore.findById.execute(idStore)

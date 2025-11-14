@@ -7,7 +7,7 @@ import {
   columnsProductExtra,
   SequelizeProductExtra
 } from './sequelize-product-extra.model'
-import { SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
+import { PRODUCT_MODEL_SOLD } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
 
 const sequelize = connect()
 
@@ -42,9 +42,16 @@ export const columnsProductExtraSold = {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 1
-  }
+  },
+  pId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: PRODUCT_MODEL_SOLD,
+      key: 'pId',
+    }
+  },
 }
-
 
 /**
  * Init model with same columns but different table
@@ -54,10 +61,4 @@ SequelizeProductExtraSold.init(columnsProductExtraSold, {
   modelName: EXTRA_PRODUCT_MODEL_SOLD,
   freezeTableName: true,
   timestamps: false
-})
-
-SequelizeProductSold.hasMany(SequelizeProductExtraSold, { 
-  as: 'dataExtra',
-  foreignKey: 'pId', 
-  sourceKey: 'pId' 
 })

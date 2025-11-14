@@ -16,9 +16,8 @@ export class GetAllByCodeRefShoppingCartTypeUseCase {
    * @param input - store data
    * @returns The newly created Store or null if it already exists
    */
-  async execute(codeRef: string): Promise<ShoppingCart[] | null> {
-
-    const shopping = await this.shoppingCartRepository.getAllByRefCode(codeRef)
+  async execute(shoppingCartRefCode: string, pCodeRef: string): Promise<ShoppingCart[] | null> {
+    const shopping = await this.shoppingCartRepository.getAllByRefCode(shoppingCartRefCode, pCodeRef)
     if (!shopping) {
       return null
     }

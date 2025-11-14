@@ -18,7 +18,7 @@ export class ReceiptPrinter {
   printHeader(sale: any) {
     const store = sale.store ?? {};
     const {
-      storeName = "Comercio",
+      storeName = 'Comercio',
       description,
       addressStore,
       emailStore,
@@ -29,12 +29,12 @@ export class ReceiptPrinter {
 
     this.printer.feed();
     this.printer.justify(JustifyModes.justifyCenter);
-    this.printer.text("¡Gracias por su compra!");
+    this.printer.text('¡Gracias por su compra!');
     this.printer.feed(5);
 
     this.printer.justify(JustifyModes.justifyCenter);
     this.printer.selectPrintMode(PrinterModes.MODE_EMPHASIZED);
-   
+
     this.printer.text(storeName);
     this.printer.feed();
 
@@ -58,41 +58,44 @@ export class ReceiptPrinter {
   // -------------------------------------------------------------------
   printProducts(shopping: any[]) {
     const cols: ColDef[] = [
-      { width: 4, align: "left" },
-      { width: 18, align: "left" },
-      { width: 10, align: "right" },
+      { width: 4, align: 'left' },
+      { width: 18, align: 'left' },
+      { width: 10, align: 'right' },
     ];
 
     // Header
     this.printLine(
-      renderTable({ cols, totalWidth: 32, rows: [["CANT", "PRODUCTO", "SUBTOTAL"]] })
+      renderTable({ cols, totalWidth: 32, rows: [['CANT', 'PRODUCTO', 'SUBTOTAL']] })
     );
-    this.printLine("-".repeat(32));
+    this.printLine('-'.repeat(32));
 
     // Shopping products
     for (const shop of shopping) {
-      console.log("🚀 ~ ReceiptPrinter ~ printProducts ~ shop:", shop)
+
       const qty = Number(shop.cantProducts)
       const rowComment: Row[] = [['', shop.comments, '']];
       // Construimos las filas del producto con wrap
-      for (const prod of shop.products) {
-        const name = prod.pName
-        const subtotal = this.formatMoney(prod.ProPrice * qty);
-        const rows: Row[] = [[`(${qty})`, name, subtotal]]
-        const tableString = renderTable({ cols, totalWidth: 32, rows });
-        this.printLine(tableString)
+      const prod = shop.products
+      const name = prod.pName
+      const subtotal = this.formatMoney(prod.ProPrice * qty);
+      const rows: Row[] = [[`(${qty})`, name, subtotal]]
+      const tableString = renderTable({ cols, totalWidth: 32, rows });
+      this.printLine(tableString)
 
-        const tableComment = renderTable({ cols, totalWidth: 32, rows: rowComment });
+      const tableComment = renderTable({ cols, totalWidth: 32, rows: rowComment });
 
-        const extras = prod.dataExtra || []
-        if (Array.isArray(extras) && extras.length > 0) {
-          this.printExtras(extras, cols);
-        }
-        if (shop.comments && shop.comments.length > 0) {
-          this.printLine(tableComment);
-        }
+      const extras = prod.dataExtra || []
+      if (Array.isArray(extras) && extras.length > 0) {
+        this.printExtras(extras, cols);
       }
-      this.printLine("-".repeat(32));
+      const optionalExtras = prod.dataOptional || []
+      if (Array.isArray(optionalExtras) && optionalExtras.length > 0) {
+        this.printOptionalExtras(optionalExtras, cols);
+      }
+      if (shop.comments && shop.comments.length > 0) {
+        this.printLine(tableComment);
+      }
+      this.printLine('-'.repeat(32));
     }
   }
 
@@ -101,7 +104,7 @@ export class ReceiptPrinter {
     for (const ext of extras) {
       const extSubtotal = this.formatMoney(Number(ext.quantity) * ext.extraPrice);
       const rows: Row[] = [[
-        "", // CANT vacío
+        '', // CANT vacío
         `  +${ext.extraName} (${ext.quantity})`, // Producto con sangría + nombre
         extSubtotal
       ]];
@@ -109,6 +112,46 @@ export class ReceiptPrinter {
       this.printLine(tableString);
     }
   }
+  /**
+ * Prints the list of optional extra products with indentation and proper formatting.
+ *
+ * @param {Array<any>} optionalExtras - List of optional extras to print.
+ * @param {ColDef[]} cols - Column definition for the ESC/POS table generator.
+ * @returns {void}
+ */
+  printOptionalExtras = (optionalExtras: any[], cols: ColDef[]): void => {
+    try {
+      if (!Array.isArray(optionalExtras)) {
+        this.printLine('⚠️ Invalid optional extras format');
+        return;
+      }
+
+      for (const extra of optionalExtras) {
+        // Defensive validation papu
+        const name = extra?.OptionalProName ?? 'Unknown extra'
+        // In your model these do NOT have price, so default: 0
+        const subtotal = this.formatMoney(0);
+
+        const rows: Row[] = [[
+          '',                              
+          `•${name}`,
+          subtotal
+        ]];
+
+        const tableStr = renderTable({
+          cols,
+          totalWidth: 32,
+          rows
+        });
+
+        this.printLine(tableStr);
+      }
+    } catch (err) {
+      this.printLine('🔥 Error printing optional extras');
+      console.error('printOptionalExtras error:', err);
+    }
+  };
+
   printClient(sale: any) {
     printClientData(this.printer, sale);
     this.printer.feed();
@@ -124,31 +167,31 @@ export class ReceiptPrinter {
     this.printLine(`Fecha factura: ${new Date().toLocaleDateString()}`);
     if (sale.pCodeRef) this.printLine(`Venta N°: ${sale.pCodeRef}`);
 
-    this.printLine("-".repeat(32));
+    this.printLine('-'.repeat(32));
     this.printer.feed();
   }
 
 
   printTotals(sale: any) {
     const cols: ColDef[] = [
-      { width: 20, align: "right" },
-      { width: 12, align: "right" }
+      { width: 20, align: 'right' },
+      { width: 12, align: 'right' }
     ];
 
-    this.printLine("-".repeat(32));
+    this.printLine('-'.repeat(32));
 
     const rows: Row[] = [];
-    rows.push(["Subtotal:", this.formatMoney(sale.total)]);
+    rows.push(['Subtotal:', this.formatMoney(sale.total)]);
 
     if (sale.discount && sale.discount.price > 0) {
-      rows.push(["Descuento:", "-" + this.formatMoney(sale.discount.price)]);
+      rows.push(['Descuento:', '-' + this.formatMoney(sale.discount.price)]);
     }
 
-    rows.push(["Total a pagar:", this.formatMoney(sale.total)]);
-    rows.push(["Su pago:", sale.paymentMethod]);
+    rows.push(['Total a pagar:', this.formatMoney(sale.total)]);
+    rows.push(['Su pago:', sale.paymentMethod]);
 
-    if (sale.change !== "" && sale.change !== null) {
-      rows.push(["Su cambio:", this.formatMoney(Number(sale.change))]);
+    if (sale.change !== '' && sale.change !== null) {
+      rows.push(['Su cambio:', this.formatMoney(Number(sale.change))]);
     }
 
     this.printLine(renderTable({ cols, totalWidth: 32, rows }));
@@ -159,13 +202,13 @@ export class ReceiptPrinter {
     this.printer.feed();
     this.printer.qrCode(`${pCodeRef}`, 6);
     this.printer.feed();
-    this.printer.text("¡Gracias por su compra!");
+    this.printer.text('¡Gracias por su compra!');
     this.printer.feed(5);
   }
   // Línea helper
   printLine(text: string) {
     // el printer espera cada línea
-    for (const line of text.split("\n")) {
+    for (const line of text.split('\n')) {
       this.printer.text(line);
       this.printer.feed();
     }

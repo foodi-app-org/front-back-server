@@ -6,6 +6,8 @@ import { ShoppingCart } from '../../domain/entities/shopping.entity'
 import { ShoppingCartRepository } from '../../domain/repositories/shopping.repository'
 import { v4 as uuidv4 } from 'uuid'
 import { IShoppingCartWithProducts } from '../db/sequelize/models/sequelize-shopping-cart.model'
+import { ASSOCIATION_PRODUCTS_NAME } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+
 export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   private readonly tenant: string
 
@@ -92,20 +94,28 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     }
   }
 
-  async getAllByRefCode(shoppingCartRefCode: string): Promise<any[] | null> {
-    try {    
+  async getAllByRefCode(shoppingCartRefCode: string, pCodeRef: string): Promise<any[] | null> {
+    try {
       const shoppingCarts = await models.ShoppingCart.schema(this.tenant).findAll({
         where: { shoppingCartRefCode },
         include: [
           {
             model: models.ProductSold.schema(this.tenant),
-            as: 'products',
+            as: ASSOCIATION_PRODUCTS_NAME,
             required: true,
             include: [
               {
                 model: models.ProductExtraSold.schema(this.tenant),
                 as: 'dataExtra',
                 required: false
+              },
+              {
+                model: models.ProductOptionalExtraSold.schema(this.tenant),
+                as: 'dataOptional',
+                required: false,
+                where: {
+                  pCodeRef: pCodeRef
+                }
               }
             ]
           }
@@ -116,14 +126,12 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
       const plainCarts = shoppingCarts.map(cart => {
         const { products, ...cartData } = (cart.get({ plain: true })) as IShoppingCartWithProducts
 
-        // Aplanamos los productos
-        const plainProducts = (products || []).map(p => ({ ...p }));
-
         return {
           ...cartData,
-          products: plainProducts
+          products
         };
       });
+      console.log("🚀 ~ SequelizeShoppingCartRepository ~ getAllByRefCode ~ plainCarts:", plainCarts)
 
       return plainCarts
     } catch (e) {

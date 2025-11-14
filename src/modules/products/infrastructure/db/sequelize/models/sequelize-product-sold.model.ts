@@ -4,9 +4,11 @@ import { DataTypes,STRING } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import {
+  ASSOCIATION_PRODUCTS_NAME,
   columnsProduct,
   SequelizeProductModel
 } from './sequelize-product.model'
+import { SequelizeProductExtraSold } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 
 const sequelize = connect()
 
@@ -15,7 +17,7 @@ export const PRODUCT_MODEL_SOLD = 'product_models_sold'
 /**
  * Sequelize model definition for sold optional sub extras
  */
-export class SequelizeProductSold extends SequelizeProductModel { 
+export class SequelizeProductSold extends SequelizeProductModel {
   declare pCodeRef: string
 }
 
@@ -44,3 +46,18 @@ SequelizeProductSold.init(columnsProductSold, {
   freezeTableName: true,
   timestamps: false
 })
+
+
+SequelizeProductSold.hasMany(SequelizeProductExtraSold, {
+  as: 'dataExtra',
+  foreignKey: 'pId',
+  sourceKey: 'pId'
+})
+
+SequelizeProductExtraSold.belongsTo(SequelizeProductSold, {
+  as: ASSOCIATION_PRODUCTS_NAME,
+  foreignKey: 'pId',
+  targetKey: 'pId'
+})
+
+

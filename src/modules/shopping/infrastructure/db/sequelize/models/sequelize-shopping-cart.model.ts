@@ -9,7 +9,8 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
+import { PRODUCT_MODEL_SOLD, SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
+import { ASSOCIATION_PRODUCTS_NAME } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 
 const sequelize = connect()
 
@@ -56,8 +57,7 @@ export type IStatusOrderStoreCreationAttributes =
  */
 export class SequelizeShoppingOrderModel
   extends Model<IStatusOrderStoreAttributes, IStatusOrderStoreCreationAttributes>
-  implements IStatusOrderStoreAttributes 
-{
+  implements IStatusOrderStoreAttributes {
   shoppingCartId?: string
   id?: string
   idUser?: string
@@ -96,7 +96,11 @@ export const columnsShoppingCart = {
   },
   pId: {
     type: DataTypes.UUID,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: PRODUCT_MODEL_SOLD,
+      key: 'pId',
+    }
   },
   idStore: {
     type: DataTypes.UUID,
@@ -147,17 +151,18 @@ SequelizeShoppingOrderModel.init(
   }
 )
 
-// // Asociación uno a muchos
-// SequelizeShoppingOrderModel.hasMany(SequelizeProductSold, {
-//   foreignKey: 'pId',           // columna de ProductSold
-//   sourceKey: 'pId',            // columna de ShoppingCart
-//   as: 'products',              // alias usado en include
-// });
+// ShoppingCart belongs to ONE ProductSold
+SequelizeShoppingOrderModel.belongsTo(SequelizeProductSold, {
+  foreignKey: 'pId',
+  targetKey: 'pId',
+  as: ASSOCIATION_PRODUCTS_NAME
+})
 
-// SequelizeProductSold.belongsTo(SequelizeShoppingOrderModel, {
-//   foreignKey: 'pId',           // columna de ProductSold
-//   targetKey: 'pId',            // columna de ShoppingCart
-//   as: 'shoppingCart',
-// });
+// ProductSold has ONE ShoppingCart
+SequelizeProductSold.hasMany(SequelizeShoppingOrderModel, {
+  foreignKey: 'pId',
+  sourceKey: 'pId',
+  as: SHOPPING_CART_MODEL
+})
 
 export default SequelizeShoppingOrderModel

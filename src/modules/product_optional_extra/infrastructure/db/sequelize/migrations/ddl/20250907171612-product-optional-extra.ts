@@ -1,6 +1,7 @@
-import { QueryInterface } from 'sequelize'
+import { DataTypes, QueryInterface } from 'sequelize'
 
 import { columnsProductOptionalExtra, PRODUCT_OPTIONAL_EXTRA_MODEL } from '../../models/sequelize-product-optional-extra.model'
+import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 
 
 /**
@@ -19,7 +20,20 @@ export const up = async (
             tableName: PRODUCT_OPTIONAL_EXTRA_MODEL,
             schema: schemaName
         },
-        columnsProductOptionalExtra
+        {
+            ...columnsProductOptionalExtra,
+            pId: {
+                type: DataTypes.UUID,
+                allowNull: false,
+                references: {
+                    model: {
+                        tableName: PRODUCT_MODEL,
+                        schema: schemaName
+                    },
+                    key: 'pId'
+                }
+            }
+        }
     )
 }
 

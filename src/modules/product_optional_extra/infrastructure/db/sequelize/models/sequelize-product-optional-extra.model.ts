@@ -8,6 +8,7 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 
 const sequelize = connect()
 
@@ -80,8 +81,12 @@ export const columnsProductOptionalExtra = {
     allowNull: false
   },
   pId: {
-    type: STRING(36),
-    allowNull: true
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: PRODUCT_MODEL,
+      key: 'pId',
+    }
   },
   idStore: {
     type: STRING(36),

@@ -8,6 +8,7 @@ import {
 } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import { PRODUCT_OPTIONAL_EXTRA_MODEL } from '@modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra.model'
 
 const sequelize = connect()
 
@@ -89,7 +90,11 @@ export const columnsProductSubOptionalExtra = {
   },
   opExPid: {
     type: STRING(36),
-    allowNull: true
+    allowNull: true,
+    references: {
+      model: PRODUCT_OPTIONAL_EXTRA_MODEL,
+      key: 'opExPid'
+    }
   },
   OptionalSubProName: {
     type: STRING,
