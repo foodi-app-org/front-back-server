@@ -106,8 +106,8 @@ export class ReceiptPrinter {
     for (const ext of extras) {
       const extSubtotal = this.formatMoney(Number(ext.quantity) * ext.extraPrice);
       const rows: Row[] = [[
-        '', // CANT vacío
-        `  +${ext.extraName} (${ext.quantity})`, // Producto con sangría + nombre
+        `(${ext.quantity})`, // CANT vacío
+        `+${ext.extraName} `, // Producto con sangría + nombre
         extSubtotal
       ]];
       const tableString = renderTable({ cols, totalWidth: 32, rows });
@@ -151,7 +151,7 @@ export class ReceiptPrinter {
             const childName = sub?.OptionalSubProName ?? 'Unknown sub extra';
             const rowsSub: Row[] = [[
               '',
-              `- ${childName}`,
+              `-${childName}`,
               this.formatMoney(0)
             ]];
 
@@ -185,38 +185,98 @@ export class ReceiptPrinter {
     this.printer.selectPrintMode(PrinterModes.MODE_FONT_A);
     this.printLine(`Fecha: ${sale.date}`);
     this.printLine(`Fecha factura: ${new Date().toLocaleDateString()}`);
-    if (sale.pCodeRef) this.printLine(`Venta N°: ${sale.pCodeRef}`);
-
+    // bold
+    this.printer.selectPrintMode(PrinterModes.MODE_EMPHASIZED);
+    if (sale?.info?.pCodeRef) this.printLine(`Venta N°: ${sale.info.pCodeRef}`);
+    this.printer.selectPrintMode(PrinterModes.MODE_FONT_A);
     this.printLine('-'.repeat(32));
     this.printer.feed();
   }
 
 
-  printTotals(sale: any) {
-    const cols: ColDef[] = [
-      { width: 20, align: 'right' },
-      { width: 12, align: 'right' }
-    ];
+  /**
+   * Prints sale totals (subtotal, extras, VAT, discounts, grand total).
+   * Safely validates incoming data and formats numeric fields.
+   * @param {any} sale - Sale object containing calculated totals.
+   * @returns {void}
+   */
+  printTotals = (sale: any = {}): void => {
+    try {
+      const {
+        subtotal = 0,
+        totalExtras = 0,
+        totalVat = 0,
+        totalDiscounts = 0,
+        grandTotal = 0,
+        paymentMethod = 'N/A',
+        change = null
+      } = sale;
 
-    this.printLine('-'.repeat(32));
+      const cols: ColDef[] = [
+        { width: 20, align: 'right' },
+        { width: 12, align: 'right' }
+      ];
 
-    const rows: Row[] = [];
-    rows.push(['Subtotal:', this.formatMoney(sale.total)]);
+      this.printLine('-'.repeat(32));
 
-    if (sale.discount && sale.discount.price > 0) {
-      rows.push(['Descuento:', '-' + this.formatMoney(sale.discount.price)]);
+      const rows: Row[] = [];
+
+      // --- Subtotal ---
+      rows.push([
+        'Subtotal:',
+        `${this.formatMoney(subtotal)}`
+      ]);
+
+      // --- Extras (solo si hay) ---
+      if (Number(totalExtras) > 0) {
+        rows.push([
+          'Extras:',
+          `${this.formatMoney(totalExtras)}`
+        ]);
+      }
+
+      // --- VAT (solo si hay) ---
+      rows.push([
+        'IVA:',
+        `${this.formatMoney(totalVat)}`
+      ]);
+
+      // --- Discounts (solo si hay) ---
+      if (Number(totalDiscounts) > 0) {
+        rows.push([
+          'Descuentos:',
+          `-${this.formatMoney(totalDiscounts)}`
+        ]);
+      }
+
+      // --- Total final ---
+      rows.push([
+        'Total a pagar:',
+        `${this.formatMoney(grandTotal)}`
+      ]);
+
+      // --- Payment method ---
+      rows.push([
+        'Método pago:',
+        paymentMethod
+      ]);
+
+      // --- Change ---
+      if (change !== null && change !== '' && !isNaN(Number(change))) {
+        rows.push([
+          'Cambio:',
+          `${this.formatMoney(Number(change))}`
+        ]);
+      }
+
+      this.printLine(renderTable({ cols, totalWidth: 32, rows }));
+      this.printer.feed(2);
+
+    } catch (err: any) {
+      this.printLine(`Error printing totals: ${err?.message ?? 'unknown error'}`);
     }
+  };
 
-    rows.push(['Total a pagar:', this.formatMoney(sale.total)]);
-    rows.push(['Su pago:', sale.paymentMethod]);
-
-    if (sale.change !== '' && sale.change !== null) {
-      rows.push(['Su cambio:', this.formatMoney(Number(sale.change))]);
-    }
-
-    this.printLine(renderTable({ cols, totalWidth: 32, rows }));
-    this.printer.feed(2);
-  }
   printFooter(pCodeRef: string) {
     this.printer.justify(JustifyModes.justifyCenter);
     this.printer.feed();

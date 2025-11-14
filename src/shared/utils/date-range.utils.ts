@@ -82,7 +82,6 @@ export class DateRange {
       end: this.formatUTC(endDate)
     }
   }
-
   /**
    * Format a UTC Date as string.
    * Example: "YYYY-MM-DD HH:mm:ss.SSS +00:00"

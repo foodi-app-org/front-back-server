@@ -39,6 +39,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
           where: { pCodeRef },
           raw: true
         })
+      console.log("🚀 ~ SequelizeStatusOrderRepository ~ findCodeRef ~ status:", status)
       return status
     } catch (e: any) {
       throw new Error(e.message || String(e));

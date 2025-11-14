@@ -1,9 +1,11 @@
 import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
+import { computeCartTotals } from '@modules/pos_print_core/domain/services'
 import { EscposNetworkPrinterAdapter } from '@modules/pos_print_core/infrastructure/adapters/escpos-usb-printer.adapter'
 import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
 import { StatusOrderServicesTenantFactory } from '@modules/status_order/infrastructure/services'
 import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
 import { GraphQLContext } from '@shared/types/context'
+import { convertTimezone } from '@shared/utils/convert-time-zone'
 
 const printer = new EscposNetworkPrinterAdapter()
 
@@ -42,12 +44,19 @@ export const printResolvers = {
         const servicesStore = StoreServicesTenantFactory(idStore)
         const servicesClient = ClientServicesTenantFactory(idStore)
         const store = await servicesStore.findById.execute(idStore)
-        const client = await servicesClient.findById.execute(String(clientId))
+        const client =  await servicesClient.findById.execute(String(clientId || idStore))
+        const totals = computeCartTotals(saleCart as any[], {
+          rounding: 2
+        })
         const sale = {
-          date: createdAt,
+          date: convertTimezone(createdAt as Date),
           store,
           client: client?.data,
-          products: saleCart
+          products: saleCart,
+          totals,
+          info: {
+            pCodeRef
+          }
         }
         await printer.print(sale)
         return {

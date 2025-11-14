@@ -74,6 +74,7 @@ export const orderResolvers = {
   },
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
+      console.log("🚀 ~ args:", args)
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()

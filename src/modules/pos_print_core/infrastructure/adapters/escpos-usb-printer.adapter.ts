@@ -16,8 +16,9 @@ export class EscposNetworkPrinterAdapter implements PrinterPort {
       receipt.printClient(sale)
       receipt.printSaleInfo(sale)
       receipt.printProducts(sale.products)
-      receipt.printTotals(sale)
+      receipt.printTotals(sale.totals)
       receipt.printFooter(sale.pCodeRef)
+
 
       printer.cut()
       printer.close()
