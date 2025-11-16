@@ -44,7 +44,7 @@ export class CreateIShoppingCartTypeUseCase {
     // sum price of product by cantProducts
     const newIShoppingCart = new ShoppingCart({
       ...input,
-      priceProduct: (product?.ProPrice ?? 0) * (input.cantProducts ?? 1),
+      priceProduct: product.ProPrice ?? 0,
       pId: String(product.pId),
       cantProducts: input.cantProducts
     })

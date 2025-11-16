@@ -166,31 +166,6 @@ export function renderTable(params: {
   return outLines.join("\n");
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Ejemplo de uso (32 caracteres totales)
-if (require.main === module) {
-  const cols: ColDef[] = [
-    { width: 4, align: "left", name: "CANT" },
-    { width: 18, align: "left", name: "PRODUCTO" },
-    { width: 10, align: "right", name: "SUBTOTAL" },
-  ];
-
-  const rows: Row[] = [
-    // header
-    ["CANT", "PRODUCTO", "SUBTOTAL"],
-    // producto corto
-    [2, "Jugo de Naranja", "12.50"],
-    // producto con nombre largo para wrap
-    [1, "Sándwich de jamón, queso, lechuga, tomate y mayonesa especial", "25.00"],
-    // extra (mostramos con sangría manual en la columna producto)
-    ["", "  +Azúcar morena", "0.50"],
-    // total
-    ["", "TOTAL", "37.00"],
-  ];
-
-  console.log(renderTable({ cols, totalWidth: 32, gap: 1, rows }));
-}
-
 /*
 Salida esperada (aprox):
 

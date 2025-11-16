@@ -6,5 +6,5 @@ export interface PrinterPort {
     // // open/close connection lifecycle
     // connect(): Promise<void>
     // close(): Promise<void>
-    print(buffer: string): Promise<void>
+    print(buffer: string): Promise<boolean>
 }

@@ -56,7 +56,7 @@ export const statusOrderSchema = Joi.object({
 
   valueDelivery: Joi.number().optional().allow(null, 0).integer().min(0).default(0),
   locationUser: Joi.string().allow(null, ''),
-  discount: Joi.number().integer().min(0).allow(null),
+  discount: Joi.number().integer().min(0).max(100).default(0),
   tip: Joi.number().integer().min(0).default(0),
   change: Joi.number().allow(null, 0).integer().min(0).default(0),
 

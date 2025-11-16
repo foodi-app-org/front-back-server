@@ -195,10 +195,19 @@ export class ReceiptPrinter {
 
 
   /**
-   * Prints sale totals (subtotal, extras, VAT, discounts, grand total).
-   * Safely validates incoming data and formats numeric fields.
-   * @param {any} sale - Sale object containing calculated totals.
+   * Prints the sale totals section in a clean, well-aligned table format.
+   *
+   * @param {object} sale - Sale totals and metadata.
+   * @param {number} [sale.subtotal=0] - Subtotal before extras, VAT, and discounts.
+   * @param {number} [sale.totalExtras=0] - Additional charges applied to the sale.
+   * @param {number} [sale.totalVat=0] - VAT total.
+   * @param {number} [sale.totalDiscounts=0] - Total discounts applied per item.
+   * @param {number} [sale.globalDiscountValue=0] - Value discounted globally (e.g. 5%).
+   * @param {number} [sale.grandTotalAfterGlobalDiscount=0] - Final total after global discount.
+   * @param {string} [sale.paymentMethod='N/A'] - Payment method description.
+   * @param {number|string|null} [sale.change=null] - Change given to the customer.
    * @returns {void}
+   * @throws {Error} If printing or formatting fails.
    */
   printTotals = (sale: any = {}): void => {
     try {
@@ -207,7 +216,9 @@ export class ReceiptPrinter {
         totalExtras = 0,
         totalVat = 0,
         totalDiscounts = 0,
-        grandTotal = 0,
+        globalDiscountPercent = 0,
+        globalDiscountValue = 0,
+        grandTotalAfterGlobalDiscount = 0,
         paymentMethod = 'N/A',
         change = null
       } = sale;
@@ -221,27 +232,35 @@ export class ReceiptPrinter {
 
       const rows: Row[] = [];
 
-      // --- Subtotal ---
+      /** -----------------------------
+       *  Subtotal
+       * ----------------------------- */
       rows.push([
         'Subtotal:',
-        `${this.formatMoney(subtotal)}`
+        this.formatMoney(subtotal)
       ]);
 
-      // --- Extras (solo si hay) ---
+      /** -----------------------------
+       *  Extras (optional)
+       * ----------------------------- */
       if (Number(totalExtras) > 0) {
         rows.push([
           'Extras:',
-          `${this.formatMoney(totalExtras)}`
+          this.formatMoney(totalExtras)
         ]);
       }
 
-      // --- VAT (solo si hay) ---
+      /** -----------------------------
+       *  VAT
+       * ----------------------------- */
       rows.push([
         'IVA:',
-        `${this.formatMoney(totalVat)}`
+        this.formatMoney(totalVat)
       ]);
 
-      // --- Discounts (solo si hay) ---
+      /** -----------------------------
+       *  Item Discounts
+       * ----------------------------- */
       if (Number(totalDiscounts) > 0) {
         rows.push([
           'Descuentos:',
@@ -249,33 +268,74 @@ export class ReceiptPrinter {
         ]);
       }
 
-      // --- Total final ---
-      rows.push([
-        'Total a pagar:',
-        `${this.formatMoney(grandTotal)}`
-      ]);
+      // % APLICADO:
+      if (globalDiscountPercent && globalDiscountPercent > 0) {
+        rows.push([
+          'Descuento aplicado (%):',
+          `${(globalDiscountPercent ?? 0)}%`
+        ])
+      }
 
-      // --- Payment method ---
+      /** -----------------------------
+       *  Global Discount (5% for example)
+       * ----------------------------- */
+      if (Number(globalDiscountValue) > 0) {
+        rows.push([
+          'Descuento global:',
+          `-${this.formatMoney(globalDiscountValue)}`
+        ])
+      }
+
+
+
+      /** -----------------------------
+       *  Payment Method
+       * ----------------------------- */
       rows.push([
         'Método pago:',
         paymentMethod
       ]);
 
-      // --- Change ---
+      /** -----------------------------
+       *  Change (optional)
+       * ----------------------------- */
       if (change !== null && change !== '' && !isNaN(Number(change))) {
         rows.push([
           'Cambio:',
-          `${this.formatMoney(Number(change))}`
+          this.formatMoney(Number(change))
         ]);
       }
+
+      /** -----------------------------
+       *  Savings (optional)
+       * ----------------------------- */
+      if (Number(globalDiscountValue) > 0 || Number(totalDiscounts) > 0) {
+        const totalSavings = Number(globalDiscountValue) + Number(totalDiscounts);
+        rows.push([
+          '¡Usted ahorró!:',
+          this.formatMoney(totalSavings)
+        ]);
+      }
+
+      /** -----------------------------
+ *  Total to Pay
+ * ----------------------------- */
+      rows.push([
+        'Total a pagar:',
+        this.formatMoney(grandTotalAfterGlobalDiscount)
+      ]);
+
 
       this.printLine(renderTable({ cols, totalWidth: 32, rows }));
       this.printer.feed(2);
 
     } catch (err: any) {
-      this.printLine(`Error printing totals: ${err?.message ?? 'unknown error'}`);
+      this.printLine(
+        `Error printing totals: ${err?.message ?? 'unknown error'}`
+      );
     }
   };
+
 
   printFooter(pCodeRef: string) {
     this.printer.justify(JustifyModes.justifyCenter);

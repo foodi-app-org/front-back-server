@@ -16,6 +16,7 @@ export const printResolvers = {
         const idStore = context.restaurant ?? ''
         const services = StatusOrderServicesTenantFactory(idStore)
         const response = await services.getOneByCodeRef.execute(saleId)
+        console.log("🚀 ~ response:", response)
         const {
           success,
           message,
@@ -31,7 +32,8 @@ export const printResolvers = {
         const {
           id: clientId,
           createdAt,
-          shoppingCartRefCode
+          shoppingCartRefCode,
+          discount
         } = data ?? {
           id: null,
           createdAt: null,
@@ -40,25 +42,45 @@ export const printResolvers = {
 
         const pCodeRef = saleId
         const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
-        const saleCart = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
+        const shopping = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
         const servicesStore = StoreServicesTenantFactory(idStore)
         const servicesClient = ClientServicesTenantFactory(idStore)
         const store = await servicesStore.findById.execute(idStore)
-        const client =  await servicesClient.findById.execute(String(clientId || idStore))
-        const totals = computeCartTotals(saleCart as any[], {
-          rounding: 2
+        const client = await servicesClient.findById.execute(String(clientId || idStore))
+
+        const totals = computeCartTotals(shopping as any[], {
+          currencySymbol: '$',
+          includeExtras: true,
+          globalDiscountPercent: discount ?? 0,
         })
+        try {
+          const { mkdir, writeFile } = await import('fs/promises')
+          const { join } = await import('path')
+          const outDir = join(process.cwd(), 'tmp', 'pos_print_core')
+          await mkdir(outDir, { recursive: true })
+          const filePath = join(outDir, `sale-totals-${pCodeRef}.json`)
+          await writeFile(filePath, JSON.stringify(shopping, null, 2), 'utf8')
+        } catch {
+          // ignore file save errors
+        }
         const sale = {
           date: convertTimezone(createdAt as Date),
           store,
           client: client?.data,
-          products: saleCart,
+          products: shopping,
           totals,
           info: {
             pCodeRef
           }
         }
-        await printer.print(sale)
+        const successPrinted = await printer.print(sale)
+        if (!successPrinted) {
+          return {
+            success: false,
+            message: 'Error al imprimir el ticket',
+            data: null
+          }
+        }
         return {
           success: true,
           message: 'Ticket enviado a imprimir correctamente',

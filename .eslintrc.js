@@ -22,22 +22,39 @@ module.exports = {
   ignorePatterns: ['dist/', 'node_modules/'],
   rules: {
     // 💣 Clean code
-    'no-console': 'warn',
+    'no-console': 'warn', // console -> warning
     'no-debugger': 'error',
     semi: ['error', 'never'],
     quotes: ['error', 'single'],
     'comma-dangle': ['error', 'never'],
 
+    // Whitespace & blank lines (strict)
+    'no-trailing-spaces': ['error', { skipBlankLines: false, ignoreComments: false }],
+    'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 0, maxBOF: 0 }],
+    'no-irregular-whitespace': 'error',
+    'no-multi-spaces': ['error', { ignoreEOLComments: false }],
+    'eol-last': ['error', 'always'],
+    'object-curly-spacing': ['error', 'always'],
+    'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: false }],
+    'padding-line-between-statements': [
+      'error',
+      // blank line before return
+      { blankLine: 'always', prev: '*', next: 'return' },
+      // group variable declarations
+      { blankLine: 'always', prev: ['const', 'let', 'var'], next: '*' },
+      { blankLine: 'never', prev: ['const', 'let', 'var'], next: ['const', 'let', 'var'] }
+    ],
+
     // 🚀 TypeScript
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-
-    // 🔥 Remove garbage
-    'no-unused-vars': 'off', // disable native rule
     '@typescript-eslint/no-unused-vars': [
       'error',
       { vars: 'all', args: 'after-used', argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
     ],
+
+    // 🔥 Remove garbage
+    'no-unused-vars': 'off',
     'unused-imports/no-unused-imports': 'error',
 
     // 🧹 Import sorting
@@ -60,6 +77,15 @@ module.exports = {
         ImportDeclaration: { minProperties: 3, multiline: true, consistent: true }
       }
     ],
+
+    // Best practices
+    'prefer-const': 'error',
+    'prefer-arrow-callback': 'error',
+    'arrow-body-style': ['error', 'as-needed'],
+    'consistent-return': 'error',
+    'no-var': 'error',
+    'prefer-rest-params': 'error',
+    'prefer-spread': 'error',
 
     // 🧠 Hexagonal: avoid cross imports
     'no-restricted-imports': [
@@ -160,7 +186,7 @@ module.exports = {
       node: { extensions: ['.js', '.ts'] },
       typescript: {
         alwaysTryTypes: true,
-        project: './tsconfig.json' // 👈 muy importante
+        project: './tsconfig.json'
       }
     },
     'boundaries/elements': [

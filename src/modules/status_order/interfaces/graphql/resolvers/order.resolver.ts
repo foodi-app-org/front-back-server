@@ -74,7 +74,6 @@ export const orderResolvers = {
   },
   Mutation: {
     registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
-      console.log("🚀 ~ args:", args)
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()
@@ -250,7 +249,6 @@ export const orderResolvers = {
         return createResponse
 
       } catch (e) {
-        console.log("🚀 ~ e:", e)
         await t.rollback()
         return {
           success: false,

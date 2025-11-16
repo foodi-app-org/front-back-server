@@ -3,7 +3,7 @@ import { PrinterPort } from '@modules/pos_print_core/domain/ports/printer.port'
 import { ReceiptPrinter } from './helpers/receipt-printer'
 
 export class EscposNetworkPrinterAdapter implements PrinterPort {
-  async print(sale: any): Promise<void> {
+  async print(sale: any): Promise<boolean> {
     try {
       const printer = new Printer()
       const printerList = await printer.getPrinters()
@@ -19,12 +19,16 @@ export class EscposNetworkPrinterAdapter implements PrinterPort {
       receipt.printTotals(sale.totals)
       receipt.printFooter(sale.pCodeRef)
 
-
       printer.cut()
       printer.close()
-      await printer.print()
+      const { success } = await printer.print()
+      if (!success) {
+        return false
+      }
+      return success
     } catch (error) {
       console.error('Error printing receipt:', error)
+      return false
     }
   }
 }

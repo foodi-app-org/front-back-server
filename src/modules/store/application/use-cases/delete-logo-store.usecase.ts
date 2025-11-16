@@ -42,7 +42,6 @@ export class DeleteLogoUseCase {
       if (!storeData) {
         return { success: false, message: 'Store not found' }
       }
-      console.log("🚀 ~ userDataPath:", userDataPath)
 
       if (!storeData.Image) {
         return { success: false, message: 'Store logo does not exist' }

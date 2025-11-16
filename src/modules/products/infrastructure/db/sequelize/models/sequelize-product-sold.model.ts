@@ -1,6 +1,6 @@
 // models/productOptionalExtraSold.model.ts
 
-import { DataTypes,STRING } from 'sequelize'
+import { DataTypes, STRING } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import {
@@ -35,6 +35,16 @@ export const columnsProductSold = {
     type: STRING(100),
     unique: false,
     allowNull: false
+  },
+  discount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 0.0,
+    comment: 'Discount applied to the sold product',
+    validate: {
+      min: 0,
+      max: 100
+    }
   }
 }
 /**
