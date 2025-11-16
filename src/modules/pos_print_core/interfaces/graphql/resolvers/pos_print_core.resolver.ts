@@ -1,5 +1,5 @@
 import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
-import { computeCartTotals } from '@modules/pos_print_core/domain/services'
+import { computeCartTotals } from 'exact-cart-totals'
 import { EscposNetworkPrinterAdapter } from '@modules/pos_print_core/infrastructure/adapters/escpos-usb-printer.adapter'
 import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
 import { StatusOrderServicesTenantFactory } from '@modules/status_order/infrastructure/services'
@@ -16,7 +16,7 @@ export const printResolvers = {
         const idStore = context.restaurant ?? ''
         const services = StatusOrderServicesTenantFactory(idStore)
         const response = await services.getOneByCodeRef.execute(saleId)
-        console.log("🚀 ~ response:", response)
+        console.log('🚀 ~ response:', response)
         const {
           success,
           message,

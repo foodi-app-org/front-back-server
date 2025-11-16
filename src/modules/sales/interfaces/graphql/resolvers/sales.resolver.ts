@@ -13,6 +13,7 @@ export const salesResolvers = {
     getSalesAmountToday: async (_: GraphQLResolveInfo, __: any, context: GraphQLContext) => {
       const services = SalesServicesFactory(context?.restaurant ?? '')
       const total = await services.getSalesAmountToday.execute(new Date(), new Date())
+      console.log("🚀 ~ total:", total)
       return {
         success: true,
         total: 0,
