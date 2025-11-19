@@ -4,6 +4,7 @@ type SubModule {
   smPath: String
   view: String
   smState: Int
+  smIcon: String
 }
 
 type Module {
@@ -12,7 +13,7 @@ type Module {
   mName: String
   mPriority: Float
   view: String
-  mIcon: Int
+  mIcon: String
   subModules: [SubModule]
 }
 
@@ -28,7 +29,7 @@ input ModuleInput {
   mPath: String
   mName: String
   mPriority: Float
-  mIcon: Int
+  mIcon: String
   subModules: [SubModuleInput]
 }
 

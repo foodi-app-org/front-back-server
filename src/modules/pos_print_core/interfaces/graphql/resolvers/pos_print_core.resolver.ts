@@ -16,7 +16,6 @@ export const printResolvers = {
         const idStore = context.restaurant ?? ''
         const services = StatusOrderServicesTenantFactory(idStore)
         const response = await services.getOneByCodeRef.execute(saleId)
-        console.log('🚀 ~ response:', response)
         const {
           success,
           message,

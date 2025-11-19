@@ -1,3 +1,8 @@
+type OrderTotals {
+  name: String
+  value: Float
+}
+
 # Stores
 type StoreOrders {
   pdpId: ID
@@ -17,12 +22,13 @@ type StoreOrders {
   getUser: User
   shoppingCartRefCode: String
   locationUser: String
-  # productFoodsOne: ProductFood
-  # getStoreOrders: [StoreOrders]
-  # getStatusOrderType: OrderStatusType
-  # getAllShoppingCard: ShoppingCard
-  # salesExtProductFoodOptional: [saleExtProductFoodOptional]
+  date: DateTime
+  store: Store
+  shoppingCarts: [ShoppingCart]
+  client: Clients
   getOneStore: Store
+  totals: [OrderTotals]
+  statusOrder: OrderStatusType
 }
 type OrderPapu {
   id: String

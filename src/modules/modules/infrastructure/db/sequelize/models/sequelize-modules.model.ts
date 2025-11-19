@@ -38,8 +38,7 @@ export type IModuleCreationAttributes = Optional<
  */
 export class SequelizeModuleModel
   extends Model<IModuleAttributes, IModuleCreationAttributes>
-  implements IModuleAttributes
-{
+  implements IModuleAttributes {
   declare mId: string
   declare mName: string
   declare view: string
@@ -75,12 +74,16 @@ export const ModuleColumns = {
     allowNull: false
   },
   mIcon: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(50),
     allowNull: false
   },
   mState: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  globalConfig: {
+    type: DataTypes.JSONB,
+    defaultValue: {}
   },
   createdAt: {
     type: DataTypes.DATE,

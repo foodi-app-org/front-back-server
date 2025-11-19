@@ -15,7 +15,7 @@ type ShoppingCart {
   createdAt: DateTime
   updatedAt: DateTime
   getStore: Store
-  # productFood: ProductFood
+  products: ProductFood
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
   # ExtProductFoodsAll: [ExtProductFood]
 }

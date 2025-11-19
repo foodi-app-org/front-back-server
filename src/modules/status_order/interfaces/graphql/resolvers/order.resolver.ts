@@ -18,6 +18,10 @@ import { v4 as uuiv4 } from 'uuid'
 import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
 import { StatusTypeOrder } from '@shared/constants/statusTypeOrder'
 import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
+import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
+import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
+import { convertTimezone } from '@shared/utils/convert-time-zone'
+import { computeCartTotals } from 'exact-cart-totals'
 
 export const orderResolvers = {
   Type: {
@@ -35,7 +39,8 @@ export const orderResolvers = {
   },
   Query: {
     getOneSalesStore: async (_: GraphQLResolveInfo, args: { pCodeRef: string }, context: GraphQLContext) => {
-      if (!args.pCodeRef) {
+      const pCodeRef = args.pCodeRef
+      if (!pCodeRef) {
         return {
           success: false,
           message: 'Code sale reference is required',
@@ -54,6 +59,7 @@ export const orderResolvers = {
       }
       const idStore = context.restaurant ?? ''
       const services = StatusOrderServicesTenantFactory(idStore)
+      const servicesStatusTypes = StatusOrderTypesServicesTenantFactory(idStore)
       if (!idStore) {
         return {
           success: false,
@@ -62,11 +68,93 @@ export const orderResolvers = {
         }
       }
       const response = await services.getOneByCodeRef.execute(args.pCodeRef)
-      return response
+      console.log("🚀 ~ response:", response)
+      const statusOrderType = await servicesStatusTypes.findById.execute(response?.data?.idStatus ?? '')
+      const {
+        success,
+        message,
+        data
+      } = response ?? {
+        success: false,
+        message: 'Error al obtener la venta',
+        data: null
+      }
+      if (success === false) {
+        throw new Error(message)
+      }
+
+      const {
+        id: clientId,
+        createdAt,
+        shoppingCartRefCode,
+        discount
+      } = data ?? {
+        id: null,
+        createdAt: null,
+        shoppingCartRefCode: ''
+      }
+      const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
+      const shopping = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
+      const servicesStore = StoreServicesTenantFactory(idStore)
+      const servicesClient = ClientServicesTenantFactory(idStore)
+      const store = await servicesStore.findById.execute(idStore)
+      const client = await servicesClient.findById.execute(String(clientId || idStore))
+
+      const shoppingResponse = shopping?.map(cart => {
+        return {
+          ...cart,
+          // @ts-ignore
+          products: {
+            // @ts-ignore
+            ...cart.products,
+            // @ts-ignore
+            ExtProductFoodsAll: cart.products?.dataExtra?.map((extras: any) => {
+              return {
+                ...extras,
+              }
+            }),
+            // @ts-ignore
+            ExtProductFoodOptional: cart.products?.dataOptional?.map((optionals: any) => {
+              return {
+                ...optionals,
+              }
+            })
+          }
+        }
+      })
+      const totals = computeCartTotals(shopping as any[], {
+        currencySymbol: '$',
+        includeExtras: true,
+        globalDiscountPercent: discount ?? 0,
+      })
+      const totalsArray = Object.entries(totals).map(([key, value]) => ({
+        name: key,
+        value: typeof value === 'number' ? value : 0
+      }))
+
+      const sale = {
+        createdAt: convertTimezone(createdAt as Date),
+        store,
+        client: client?.data,
+        shoppingCarts: shoppingResponse,
+        pCodeRef,
+        shoppingCartRefCode,
+        info: {
+          pCodeRef
+        },
+        statusOrder: statusOrderType ?? null,
+        discount,
+        totals: totalsArray
+      }
+      return {
+        success: true,
+        message,
+        data: sale
+      }
     },
+
     getAllSalesStore: async (_: GraphQLResolveInfo, _args: Record<string, unknown>, context: GraphQLContext) => {
       const idStore = context.restaurant ?? ''
-
       const services = StatusOrderServicesTenantFactory(idStore)
       const response = await services.getAllByStatusType.execute()
       return response?.data ?? []

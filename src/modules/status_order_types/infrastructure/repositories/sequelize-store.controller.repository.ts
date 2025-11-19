@@ -46,7 +46,6 @@ export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderType
     }
   }
 
-
   async getAll(idStore: string): Promise<StatusOrderTypesPagination | null> {
     try {
       const result = await this.genericService.getAll({
@@ -57,6 +56,24 @@ export class SequelizeStatusOrderTypesRepository implements StatusTypesOrderType
 
       return result
     } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async findById(id: string): Promise<StatusOrderTypes | null> {
+    try {
+      const data = await models.StatusOrderTypes
+        .schema(this.tenant)
+        .findOne({
+          where: { idStatus: String(id) },
+          raw: true,
+        })
+      return data
+    }
+    catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)
       }

@@ -73,6 +73,10 @@ export const SubmoduleColumns = {
     type: DataTypes.STRING(50),
     allowNull: false
   },
+  smIcon: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
   smPriority: {
     type: DataTypes.INTEGER,
     allowNull: false
