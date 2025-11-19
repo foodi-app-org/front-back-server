@@ -255,7 +255,7 @@ export const deleteOneItem = async (root, args, context, _info) => {
  * @param {string} args.idStore - ID of the store.
  * @param {Number} args.change - Change amount.
  * @param {string} args.pCodeRef - Reference code for the order.
- * @param {string} args.payMethodPState - Payment method.
+ * @param {string} args.payId - Payment method.
  * @param {Number} args.valueDelivery - Delivery value.
  * @param {Object} context - The context object.
  * @returns {Promise<Object>} The result object containing success status and message.
@@ -272,7 +272,7 @@ export const registerSalesStore = async (
     idStore,
     change,
     pCodeRef,
-    payMethodPState,
+    payId,
     tableId,
     valueDelivery
   },
@@ -450,7 +450,7 @@ export const registerSalesStore = async (
           generateSales: true,
           id: clientId || id,
           idStore: context?.restaurant?.replace(/["']/g, ''),
-          payMethodPState,
+          payId,
           pCodeRef,
           pickUp,
           pPRecoger: null,
@@ -474,7 +474,7 @@ export const registerSalesStore = async (
       id: clientId ? deCode(clientId) : deCode(id),
       idStore: idStore ? deCode(idStore) : deCode(context.restaurant),
       locationUser: null,
-      payMethodPState,
+      payId,
       tableId,
       pCodeRef,
       pickUp,

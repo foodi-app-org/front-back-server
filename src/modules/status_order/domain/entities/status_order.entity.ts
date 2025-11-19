@@ -24,7 +24,7 @@ export interface IStatusOrder {
   change?: number
   pCodeRef: string
   totalProductsPrice: number
-  payMethodPState?: number
+  payId?: string
   pickUp?: number
   channel?: number
   createdAt: Date
@@ -50,7 +50,7 @@ export class StatusOrder {
   public change?: number
   public pCodeRef: string = ''
   public totalProductsPrice: number = 0
-  public payMethodPState?: number
+  public payId?: string
   public pickUp?: number
   public channel?: number
   public createdAt: Date = new Date()

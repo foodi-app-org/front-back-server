@@ -22,6 +22,7 @@ import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factor
 import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
 import { convertTimezone } from '@shared/utils/convert-time-zone'
 import { computeCartTotals } from 'exact-cart-totals'
+import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
 
 export const orderResolvers = {
   Type: {
@@ -68,7 +69,6 @@ export const orderResolvers = {
         }
       }
       const response = await services.getOneByCodeRef.execute(args.pCodeRef)
-      console.log("🚀 ~ response:", response)
       const statusOrderType = await servicesStatusTypes.findById.execute(response?.data?.idStatus ?? '')
       const {
         success,
@@ -99,7 +99,8 @@ export const orderResolvers = {
       const servicesClient = ClientServicesTenantFactory(idStore)
       const store = await servicesStore.findById.execute(idStore)
       const client = await servicesClient.findById.execute(String(clientId || idStore))
-
+      const { getOneById } = PaymentMethodServicesFactory(context?.restaurant ?? '')
+      const paymentMethod = await getOneById.execute(String(data?.payId))
       const shoppingResponse = shopping?.map(cart => {
         return {
           ...cart,
@@ -131,7 +132,7 @@ export const orderResolvers = {
         name: key,
         value: typeof value === 'number' ? value : 0
       }))
-
+      
       const sale = {
         createdAt: convertTimezone(createdAt as Date),
         store,
@@ -142,6 +143,7 @@ export const orderResolvers = {
         info: {
           pCodeRef
         },
+        paymentMethod,
         statusOrder: statusOrderType ?? null,
         discount,
         totals: totalsArray
@@ -261,7 +263,7 @@ export const orderResolvers = {
           change,
           discount,
           valueDelivery,
-          payMethodPState,
+          payId,
           shoppingCartRefCode,
           pCodeRef,
           tip = 0
@@ -284,7 +286,7 @@ export const orderResolvers = {
           change,
           pCodeRef,
           totalProductsPrice: response?.data,
-          payMethodPState,
+          payId,
           pickUp: PickUpMethod.inStorePickup,
           channel: Channel.store,
           createdAt: new Date(),

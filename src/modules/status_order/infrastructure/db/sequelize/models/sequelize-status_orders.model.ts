@@ -31,7 +31,7 @@ export interface IStatusOrderStoreAttributes {
   change?: number
   pCodeRef: string
   totalProductsPrice: number
-  payMethodPState?: number
+  payId?: string
   pickUp?: number
   channel?: number
   pPDate?: Date
@@ -62,7 +62,7 @@ export class SequelizeStatusOrderModel extends Model<IStatusOrderStoreAttributes
   declare change?: number
   declare pCodeRef: string
   declare totalProductsPrice: number
-  declare payMethodPState?: number
+  declare payId?: string
   declare pickUp?: number
   declare channel?: number
   declare pPDate?: Date
@@ -134,9 +134,9 @@ export const columnsStatusOrdersStore = {
     type: DECIMAL(1000, 2),
     allowNull: false
   },
-  payMethodPState: {
-    type: INTEGER,
-    defaultValue: 1
+  payId: {
+    type: STRING(36),
+    allowNull: true
   },
   pickUp: {
     type: INTEGER,

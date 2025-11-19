@@ -25,7 +25,7 @@ export const createOnePedidoStore = async (_, { input }, context) => {
     idStore,
     ShoppingCard,
     pCodeRef,
-    payMethodPState,
+    payId,
     pPRecoger
   } = input || {}
   try {
@@ -37,7 +37,7 @@ export const createOnePedidoStore = async (_, { input }, context) => {
       ShoppingCard: deCode(ShoppingCard),
       pCodeRef,
       pPRecoger,
-      payMethodPState
+      payId
     })
     return {
       success: true,
@@ -161,7 +161,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
     change,
     pickUp,
     pCodeRef,
-    payMethodPState,
+    payId,
     pPRecoger,
     totalProductsPrice,
     locationUser
@@ -174,7 +174,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
       pSState: 1,
       pCodeRef,
       change,
-      payMethodPState,
+      payId,
       pickUp,
       totalProductsPrice
     })
@@ -189,7 +189,7 @@ const createMultipleOrderStore = async (_, { input }, ctx) => {
           change,
           pickUp,
           pCodeRef,
-          payMethodPState,
+          payId,
           pPRecoger
         }
       }, ctx)

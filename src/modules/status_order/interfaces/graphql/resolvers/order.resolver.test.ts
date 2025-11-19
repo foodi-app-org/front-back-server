@@ -123,7 +123,7 @@
 //             change: 0,
 //             discount: 0,
 //             valueDelivery: 0,
-//             payMethodPState: 'cash',
+//             payId: 'cash',
 //             pCodeRef: 'code',
 //             tip: 0
 //         }
@@ -153,7 +153,7 @@
 //             change: 0,
 //             discount: 0,
 //             valueDelivery: 0,
-//             payMethodPState: 'cash',
+//             payId: 'cash',
 //             pCodeRef: 'code',
 //             tip: 0
 //         }
@@ -182,7 +182,7 @@
 //             change: 0,
 //             discount: 0,
 //             valueDelivery: 0,
-//             payMethodPState: 'cash',
+//             payId: 'cash',
 //             pCodeRef: 'code',
 //             tip: 0
 //         }

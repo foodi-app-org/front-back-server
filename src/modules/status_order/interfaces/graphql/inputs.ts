@@ -85,7 +85,7 @@ interface ShoppingCartItem {
  * @property {string} idStore - Store UUID
  * @property {string} pCodeRef - Promotion code reference
  * @property {number} change - Change amount
- * @property {number} payMethodPState - Payment method state
+ * @property {string} payId - Payment method state
  * @property {number} pickUp - Pick-up status (0 or 1)
  * @property {number} totalProductsPrice - Total price of products
  * @property {number} valueDelivery - Delivery cost
@@ -101,7 +101,7 @@ export interface RegisterSalesStoreInput {
   idStore: string
   pCodeRef: string
   change: number
-  payMethodPState: number
+  payId: string
   pickUp: number
   totalProductsPrice: number
   valueDelivery: number

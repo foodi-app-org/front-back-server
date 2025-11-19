@@ -25,6 +25,7 @@ import { SequelizeTableModel, STORE_TABLES } from '../../../../../modules/tables
 import { SequelizeTagProductModel, TAGS_PRODUCT_MODEL_NAME } from '../../../../../modules/tags/infrastructure/db/sequelize/models/sequelize-tags.model'
 import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infrastructure/db/sequelize/models/sequelize-user.model'
 import { SequelizeProductExtraSold, EXTRA_PRODUCT_MODEL_SOLD } from '../../../../../modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
+import SequelizePaymentMethod from '@modules/payment_method/infrastructure/db/sequelize/models/sequelize-payment_method.model'
 
 export const models = {
   User: SequelizeUserModel,
@@ -53,7 +54,10 @@ export const models = {
   ProductOptionalExtraSold: SequelizeProductOptionalExtraSold,
   ProductSubOptionalExtraSold: SequelizeProductSubOptionalExtraSold,
   ProductExtraSold: SequelizeProductExtraSold,
-  ProductSold: SequelizeProductSold
+  ProductSold: SequelizeProductSold,
+
+  // PaymentMethod
+  PaymentMethod: SequelizePaymentMethod,
 
 }
 

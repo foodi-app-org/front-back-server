@@ -76,7 +76,7 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     type: DECIMAL(1000, 2),
     allowNull: false
   },
-  payMethodPState: {
+  payId: {
     type: INTEGER,
     defaultValue: 1
   },

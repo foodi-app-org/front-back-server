@@ -130,7 +130,7 @@ type Mutation {
     idStore: ID
     pCodeRef: String
     change: Float # Asegúrate de que change sea de tipo Float aquí
-    payMethodPState: Int
+    payId: String
     pickUp: Int
     totalProductsPrice: Float
     valueDelivery: Float

@@ -14,7 +14,7 @@ type StoreOrders {
   pCodeRef: String
   status: String
   pSState: ID
-  payMethodPState: Int
+  payId: ID
   totalProductsPrice: Float
   unidProducts: Int
   createdAt: DateTime
@@ -29,6 +29,7 @@ type StoreOrders {
   getOneStore: Store
   totals: [OrderTotals]
   statusOrder: OrderStatusType
+  paymentMethod: PaymentMethod
 }
 type OrderPapu {
   id: String

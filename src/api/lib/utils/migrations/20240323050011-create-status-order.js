@@ -77,9 +77,9 @@ exports.up = async (queryInterface, schemaName) => {
       type: DECIMAL(1000, 2),
       allowNull: false
     },
-    payMethodPState: {
-      type: INTEGER,
-      defaultValue: 1
+    payId: {
+      type: STRING(36),
+      allowNull: true
     },
     pickUp: {
       type: INTEGER,

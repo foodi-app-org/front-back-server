@@ -61,9 +61,9 @@ const pedidosModel = sequelize.define(ORDER_MODEL, {
     type: INTEGER,
     defaultValue: 0
   },
-  payMethodPState: {
-    type: INTEGER,
-    defaultValue: 0
+  payId: {
+    type: STRING(36),
+    allowNull: true
   },
   pPRecoger: {
     type: INTEGER,

@@ -65,7 +65,7 @@ export const statusOrderSchema = Joi.object({
 
   totalProductsPrice: Joi.number().precision(2).required(),
 
-  payMethodPState: Joi.number().integer(),
+  payId: Joi.string().optional().allow(null, ''),
   pickUp: Joi.number().integer().default(0),
   channel: Joi.number().integer().default(0),
 

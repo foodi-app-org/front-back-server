@@ -10,7 +10,7 @@ type Mutation {
     pCodeRef: String
     change: Float
     shoppingCartRefCode: String
-    payMethodPState: Int
+    payId: ID
     pickUp: Int
     totalProductsPrice: Float
     valueDelivery: Float
