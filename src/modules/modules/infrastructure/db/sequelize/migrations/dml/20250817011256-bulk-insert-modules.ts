@@ -4,12 +4,23 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { MODULES_MODEL } from '../../models/sequelize-modules.model'
 import { SUB_MODULES_MODEL } from '../../models/sequelize-sub-modules.model'
+import { removeTenantPrefix } from '@shared/utils/tenant.utils'
+import { STORE_MODEL } from '@modules/store/infrastructure/db/sequelize/models/sequelize-model'
+import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 /**
  * Unified migration: modules array contains submodules so migration can be executed in one pass.
  */
 export const up = async (queryInterface: QueryInterface, schemaName: string): Promise<void> => {
-  const storeName = 'remo-comidas'
+  const [store] = (await queryInterface.sequelize.query(
+    `
+      SELECT REPLACE("storeName", ' ', '-') AS "storeName"
+      FROM "${MigrationFolder.Public}.${STORE_MODEL}"
+      WHERE "idStore" = '${removeTenantPrefix(schemaName)}';
+    `
+  )) as [{ storeName: string }[], unknown]
+  const [{ storeName }] = store
+
 
   // Modules with nested submodules
   const modulesWithNested = [
@@ -42,7 +53,7 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
     {
       mName: 'Perfil',
       view: 'dashboard',
-      mPath: `dashboard/${storeName}/${schemaName ?? ''}`,
+      mPath: `dashboard/${storeName}/${removeTenantPrefix(schemaName) ?? ''}`,
       mPriority: 3,
       mIcon: 'IconStore',
       globalConfig: {},
