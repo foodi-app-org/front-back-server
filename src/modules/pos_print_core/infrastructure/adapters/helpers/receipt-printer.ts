@@ -65,7 +65,7 @@ export class ReceiptPrinter {
 
     // Header
     this.printLine(
-      renderTable({ cols, totalWidth: 32, rows: [['CANT', 'PRODUCTO', 'SUBTOTAL']] })
+      renderTable({ cols, totalWidth: 32, rows: [['CANT', 'PRODUCTO', 'TOTAL']] })
     );
     this.printLine('-'.repeat(32));
 
@@ -110,8 +110,8 @@ export class ReceiptPrinter {
         `+${ext.extraName} `, // Producto con sangría + nombre
         extSubtotal
       ]];
-      const tableString = renderTable({ cols, totalWidth: 32, rows });
-      this.printLine(tableString);
+      const tableString = renderTable({ cols, totalWidth: 32, rows })
+      this.printLine(tableString)
     }
   }
   /**
@@ -122,8 +122,8 @@ export class ReceiptPrinter {
    */
   printOptionalExtras = (optionalExtras: any[], cols: ColDef[]): void => {
     if (!Array.isArray(optionalExtras) || optionalExtras.length === 0) {
-      this.printLine('No extras');
-      return;
+      this.printLine('No extras')
+      return
     }
 
     for (const extra of optionalExtras) {

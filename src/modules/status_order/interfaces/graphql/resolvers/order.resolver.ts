@@ -123,6 +123,8 @@ export const orderResolvers = {
           }
         }
       })
+      console.log("🚀 ~ shoppingResponse:", shoppingResponse)
+
       const totals = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
         includeExtras: true,
@@ -132,7 +134,7 @@ export const orderResolvers = {
         name: key,
         value: typeof value === 'number' ? value : 0
       }))
-      
+
       const sale = {
         createdAt: convertTimezone(createdAt as Date),
         store,

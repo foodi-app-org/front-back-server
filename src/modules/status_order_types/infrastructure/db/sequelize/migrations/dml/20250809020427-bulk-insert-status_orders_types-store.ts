@@ -1,7 +1,8 @@
-import { Op,QueryInterface } from 'sequelize'
+import { Op, QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
 import { ORDER_STATUS_TYPE_MODEL } from '../../models/sequelize-status_orders_types.model'
+import { StatusTypeOrder } from '@shared/constants/statusTypeOrder'
 
 /**
  * Default order status states for the system.
@@ -11,9 +12,11 @@ const DEFAULT_ORDER_STATES = [
     active: true,
     editable: false,
     state: 1,
-    name: 'ACCEPT',
-    color: '#ffffff',
-    backgroundColor: '#ffd500c7',
+    name: StatusTypeOrder.ACCEPT,
+    color: '#3F3F3F',              // gris oscuro para buena legibilidad
+    backgroundColor: '#FFF4C2',    // amarillo pastel profesional
+    borderColor: '#E8D77A',
+    hoverBorderColor: '#D6C56F',
     priority: 1,
     description: 'La orden fue marcada como aceptada'
   },
@@ -21,41 +24,49 @@ const DEFAULT_ORDER_STATES = [
     active: true,
     editable: false,
     state: 2,
-    name: 'PROCESSING',
-    color: '#ffffff',
-    backgroundColor: '#e07c00',
+    name: StatusTypeOrder.PROCESSING,
+    color: '#FFFFFF',              // blanco
+    backgroundColor: '#F29E4C',    // naranja moderno
     priority: 2,
-    description: 'La orden fue marcada como en proceso'
+    description: 'La orden fue marcada como en proceso',
+    borderColor: '#D87C28',
+    hoverBorderColor: '#C56F22'
   },
   {
     active: true,
     editable: false,
     state: 3,
-    name: 'READY',
-    color: '#ffffff',
-    backgroundColor: '#CC870F',
+    name: StatusTypeOrder.READY,
+    color: '#FFFFFF',
+    backgroundColor: '#D8A635',    // amarillo tostado elegante
     priority: 3,
-    description: 'La orden fue marcada como lista'
+    description: 'La orden fue marcada como lista',
+    borderColor: '#BA8A27',
+    hoverBorderColor: '#A97B22'
   },
   {
     active: true,
     editable: false,
     state: 4,
-    name: 'CONCLUDES',
-    color: '#63ba3c',
-    backgroundColor: '#c0f9aa',
+    name: StatusTypeOrder.CONCLUDES,
+    color: '#1F7A39',              // verde oscuro profesional
+    backgroundColor: '#CFF8DA',    // verde éxito suave
     priority: 4,
-    description: 'La orden fue pagada con éxito por el cliente (Concluida)'
+    description: 'La orden fue pagada con éxito por el cliente (Concluida)',
+    borderColor: '#98DCAA',
+    hoverBorderColor: '#86C79A'
   },
   {
     active: true,
     editable: false,
-    state: 4,
-    name: 'REJECTED',
-    color: '#ffffff',
-    backgroundColor: '#FFC2C2',
+    state: 5,
+    name: StatusTypeOrder.REJECTED,
+    color: '#A43535',              // rojo profesional
+    backgroundColor: '#F9D5D5',    // rojo pastel
     priority: 5,
-    description: 'Orden rechazada'
+    description: 'Orden rechazada',
+    borderColor: '#E2A5A5',
+    hoverBorderColor: '#D38E8E'
   }
 ]
 

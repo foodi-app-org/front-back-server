@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { PRODUCT_MODEL } from '../../models/sequelize-product.model'
 
-const TOTAL_PRODUCTS = 100000
+const TOTAL_PRODUCTS = 100
 const CHUNK_SIZE = 5000
 
 /**
@@ -64,24 +64,19 @@ const generateProducts = (count: number) => {
 /**
  * Insert 100k products in chunks
  */
-export const up = async (
-  queryInterface: QueryInterface,
-  schemaName: string
-): Promise<void> => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Skipping product seeding in development environment')
-    for (let inserted = 0; inserted < TOTAL_PRODUCTS; inserted += CHUNK_SIZE) {
-      const products = generateProducts(
-        Math.min(CHUNK_SIZE, TOTAL_PRODUCTS - inserted)
-      )
-      await queryInterface.bulkInsert(
-        { tableName: PRODUCT_MODEL, schema: schemaName },
-        products
-      )
-      console.log(`Inserted ${inserted + products.length}/${TOTAL_PRODUCTS}`)
-    }
+export const up = async (queryInterface, schemaName) => {
+  for (let inserted = 0; inserted < TOTAL_PRODUCTS; inserted += CHUNK_SIZE) {
+    const products = generateProducts(
+      Math.min(CHUNK_SIZE, TOTAL_PRODUCTS - inserted)
+    )
+    await queryInterface.bulkInsert(
+      { tableName: PRODUCT_MODEL, schema: schemaName },
+      products
+    )
+    console.log(`Inserted ${inserted + products.length}/${TOTAL_PRODUCTS}`)
   }
 }
+
 
 /**
  * Remove seeded products

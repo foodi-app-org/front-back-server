@@ -18,6 +18,33 @@ import routes from './shared/infrastructure/res/routes'
 import morgan from 'morgan'
 import { context } from './shared/infrastructure/graphql/context'
 import { PubSub } from 'graphql-subscriptions'
+import fs from 'node:fs';
+import path from 'node:path'
+
+const FLAG_PATH = path.join(__dirname, '.url_opened')
+
+const cleanup = () => {
+  if (fs.existsSync(FLAG_PATH)) {
+    fs.unlinkSync(FLAG_PATH);
+    console.log('🧹 Limpieza: flag eliminado.');
+  }
+}
+
+// Eventos comunes de salida
+process.on('exit', cleanup);
+process.on('SIGINT', () => {
+  cleanup();
+  process.exit();
+});
+process.on('SIGTERM', () => {
+  cleanup();
+  process.exit();
+});
+process.on('uncaughtException', (err) => {
+  console.error('❌ Error no capturado:', err);
+  cleanup();
+  process.exit(1);
+});
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -25,6 +52,7 @@ const isProd = process.env.NODE_ENV === 'production'
 
 const app = express()
 const httpServer = createServer(app)
+
 
 const server = new ApolloServer({
   schema,
@@ -46,136 +74,148 @@ const server = new ApolloServer({
       }), // 👈 Apollo Sandbox en dev
   ],
 })
-; 
+  ;
 
 (async () => {
-    const pubsub = new PubSub();
-    await server.start()
-    // 🌐 CORS
-    const allowedOrigins = new Set([
-      process.env.WEB_CLIENT,
-      process.env.WEB_ADMIN_STORE,
-      'http://localhost:3000',
-      'http://localhost:4000',
-      'http://localhost:8080',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3003',
-      'http://localhost:30011',
-      'https://clientesfoodi.netlify.app',
-      'https://foodistore.netlify.app',
-      'https://app-foodi-store.vercel.app',
-      'https://front-back-server.onrender.com',
-      'https://app-foodi-admin.vercel.app',
-      'https://studio.apollographql.com'
-    ].filter(Boolean))
+  const pubsub = new PubSub();
+  await server.start()
+  // 🌐 CORS
+  const allowedOrigins = new Set([
+    process.env.WEB_CLIENT,
+    process.env.WEB_ADMIN_STORE,
+    'http://localhost:3000',
+    'http://localhost:4000',
+    'http://localhost:8080',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
+    'http://localhost:30011',
+    'https://clientesfoodi.netlify.app',
+    'https://foodistore.netlify.app',
+    'https://app-foodi-store.vercel.app',
+    'https://front-back-server.onrender.com',
+    'https://app-foodi-admin.vercel.app',
+    'https://studio.apollographql.com'
+  ].filter(Boolean))
 
-    app.use(
-      cors({
-        origin: (origin, callback) => {
-          if (!origin || allowedOrigins.has(origin)) {
-            callback(null, true)
-          } else {
-            callback(new Error('Not allowed by CORS'))
-          }
-        },
-        credentials: true,
-        methods: ['GET', 'POST']
-      })
-    )
-    app.use(express.json())
-    app.use('/api', routes)
-    app.use(morgan('dev'))
-    // Root simple
-    app.use(
-      helmet({
-        crossOriginEmbedderPolicy: false,
-        contentSecurityPolicy: {
-          directives: {
-            defaultSrc: ["'self'", "https:", "http:"],
-            imgSrc: ["'self'", "data:", "apollo-server-landing-page.cdn.apollographql.com"],
-            scriptSrc: ["'self'", "https:", "'unsafe-inline'"],
-            styleSrc: ["'self'", "https:", "'unsafe-inline'"],
-            frameSrc: ["'self'", "sandbox.embed.apollographql.com"],
-          },
-        },
-      })
-    )
-
-    // GraphQL endpoint manual (sin expressMiddleware)
-    app.use('/graphql', express.json(), async (req, res, next) => {
-      try {
-        const headers = new HeaderMap(
-          Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v ?? ''])
-        )
-
-        const response = await server.executeHTTPGraphQLRequest({
-          httpGraphQLRequest: {
-            method: req.method,
-            headers,
-            search: new URL(req.url, `http://${req.headers.host}`).search,
-            body: req.body,
-          },
-          context: () => context({ req, res, pubsub }),
-        })
-
-        // Copiar headers de Apollo al response
-        response.headers.forEach((value, key) => res.setHeader(key, value))
-
-        // Devuelve JSON limpio
-        let body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
-        if (body?.string) body = JSON.parse(body.string)
-
-        return res.status(response.status || 200).json(body)
-      } catch (err) {
-        next(err)
-        return
-      }
-    })
-
-
-
-
-    // WebSocket para subscriptions
-    const wsServer = new WebSocketServer({
-      server: httpServer,
-      path: '/graphql',
-    })
-
-    interface ConnectionParams {
-      authorization?: string;
-      restaurant?: string;
-      deviceid?: string;
-    }
-
-    useServer({
-      schema: wsSchema,
-      context: async (ctx) => {
-        const params = ctx.connectionParams as ConnectionParams
-        console.log("🔌 WS context", params)
-
-        // Aquí validas el token
-        // if (!params?.authorization) throw new Error("Unauthorized")
-
-        return { pubsub }
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.has(origin)) {
+          callback(null, true)
+        } else {
+          callback(new Error('Not allowed by CORS'))
+        }
       },
-      onConnect: (ctx) => {
-        console.log('🎉 Cliente conectado a la suscripción', ctx.connectionParams)
+      credentials: true,
+      methods: ['GET', 'POST']
+    })
+  )
+  app.use(express.json())
+  app.use('/api', routes)
+  app.use(morgan('dev'))
+  // Root simple
+  app.use(
+    helmet({
+      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'", "https:", "http:"],
+          imgSrc: ["'self'", "data:", "apollo-server-landing-page.cdn.apollographql.com"],
+          scriptSrc: ["'self'", "https:", "'unsafe-inline'"],
+          styleSrc: ["'self'", "https:", "'unsafe-inline'"],
+          frameSrc: ["'self'", "sandbox.embed.apollographql.com"],
+        },
       },
-      onDisconnect: (_ctx, code, reason) => {
-        console.log('❌ Cliente desconectado', code, reason)
-      }
-    }, wsServer)
+    })
+  )
 
-
-    const PORT = process.env.PORT || 4000
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 Query/Mutation at http://localhost:${PORT}/graphql`)
-      console.log(`🔌 Subscriptions at ws://localhost:${PORT}/graphql`)
-      console.log(
-        `🛠 Sandbox: http://localhost:${PORT}/graphql (solo en desarrollo)`
+  // GraphQL endpoint manual (sin expressMiddleware)
+  app.use('/graphql', express.json(), async (req, res, next) => {
+    try {
+      const headers = new HeaderMap(
+        Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v ?? ''])
       )
-      console.log(`✅ 🛠 Sandbox: https://studio.apollographql.com/sandbox/explorer`)
 
-    })
-  })()
+      const response = await server.executeHTTPGraphQLRequest({
+        httpGraphQLRequest: {
+          method: req.method,
+          headers,
+          search: new URL(req.url, `http://${req.headers.host}`).search,
+          body: req.body,
+        },
+        context: () => context({ req, res, pubsub }),
+      })
+
+      // Copiar headers de Apollo al response
+      response.headers.forEach((value, key) => res.setHeader(key, value))
+
+      // Devuelve JSON limpio
+      let body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
+      if (body?.string) body = JSON.parse(body.string)
+
+      return res.status(response.status || 200).json(body)
+    } catch (err) {
+      next(err)
+      return
+    }
+  })
+
+
+
+
+  // WebSocket para subscriptions
+  const wsServer = new WebSocketServer({
+    server: httpServer,
+    path: '/graphql',
+  })
+
+  interface ConnectionParams {
+    authorization?: string;
+    restaurant?: string;
+    deviceid?: string;
+  }
+
+  useServer({
+    schema: wsSchema,
+    context: async (ctx) => {
+      const params = ctx.connectionParams as ConnectionParams
+      console.log("🔌 WS context", params)
+
+      // Aquí validas el token
+      // if (!params?.authorization) throw new Error("Unauthorized")
+
+      return { pubsub }
+    },
+    onConnect: (ctx) => {
+      console.log('🎉 Cliente conectado a la suscripción', ctx.connectionParams)
+    },
+    onDisconnect: (_ctx, code, reason) => {
+      console.log('❌ Cliente desconectado', code, reason)
+    }
+  }, wsServer)
+
+
+  const PORT = process.env.PORT || 4000
+
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Query/Mutation at http://localhost:${PORT}/graphql`);
+    console.log(`🔌 Subscriptions at ws://localhost:${PORT}/graphql`);
+    console.log(`🛠 Sandbox: http://localhost:${PORT}/graphql (solo en desarrollo)`);
+
+
+    // 👉 Leer si ya se abrió la URL
+    const alreadyOpened = fs.existsSync(FLAG_PATH);
+    const url = `https://studio.apollographql.com/sandbox/explorer`
+
+    if (!alreadyOpened) {
+      // Marcar como abierto
+      fs.writeFileSync(FLAG_PATH, true.toString(), 'utf8');
+      console.log('🌐 Abriendo sandbox Apollo por primera vez...');
+
+      import('node:child_process').then(({ exec }) => exec(`start ${url}`));
+    } else {
+      console.log('ℹ️ Sandbox ya fue abierto previamente. No se abre otra vez.');
+    }
+  });
+})()

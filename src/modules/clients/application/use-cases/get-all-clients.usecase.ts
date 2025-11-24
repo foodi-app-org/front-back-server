@@ -7,7 +7,7 @@ import { ClientsRepository } from '../../domain/repositories/clients.repository'
 interface CreateClientResponse {
   success: boolean;
   message: string;
-  data: Clients[];
+  data: Clients[] | null;
 }
 
 /**

@@ -3,6 +3,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { Clients } from '@modules/clients/domain'
 import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
+import { ResponseClientResolvers } from 'generated/graphql'
 
 export const clientResolvers = {
   /**
@@ -15,7 +16,7 @@ export const clientResolvers = {
     }
   },
   Mutation: {
-    createClients: async (_: GraphQLResolveInfo, args: { input: Clients }, _context: GraphQLContext) => {
+    createClients: async (_: GraphQLResolveInfo, args: { input: Clients }, _context: GraphQLContext): Promise<ResponseClientResolvers | null> => {
       const {
         clientName,
         clientLastName,
@@ -32,7 +33,8 @@ export const clientResolvers = {
         ccClient: ccClient ?? null,
         gender: gender ?? 0
       } as unknown as Clients
-      return await services.create.execute(payload)
+      const result = await services.create.execute(payload)
+      return result as unknown as ResponseClientResolvers
     }
   }
 }
