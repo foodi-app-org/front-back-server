@@ -35,6 +35,12 @@ export const orderResolvers = {
       getOneStore: async (parent: { dataValues: { idStore: string } }, _args: Record<string, unknown>, _context: GraphQLContext) => {
         if (!parent?.dataValues?.idStore) return null
         return await StoreServicesPublic.findById.execute(parent.dataValues.idStore)
+      },
+      statusOrder: async (parent: { status: string }, _args: Record<string, unknown>, context: GraphQLContext) => {
+        const idStore = context.restaurant ?? ''
+        const servicesStatusTypes = StatusOrderTypesServicesTenantFactory(idStore)
+        if (!parent?.status) return null
+        return await servicesStatusTypes.findByName.execute(parent.status)
       }
     }
   },
