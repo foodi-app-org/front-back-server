@@ -46,8 +46,7 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
         options: ['Table', 'Grid', 'Columns']
       },
       submodules: [
-        { smName: 'Pendientes', view: 'orders', smPath: 'orders/pending', smPriority: 1, smIcon: 'IconInformationProduct' },
-        { smName: 'Completados', view: 'orders', smPath: 'orders/completed', smPriority: 2, smIcon: 'IconTicket' }
+        { smName: 'Pedidos', view: 'orders', smPath: 'orders', smPriority: 2, smIcon: 'IconTicket' }
       ]
     },
     {
