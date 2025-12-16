@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { PRODUCT_MODEL } from '../../models/sequelize-product.model'
 
-const TOTAL_PRODUCTS = 100
+const TOTAL_PRODUCTS = 10000
 const CHUNK_SIZE = 5000
 
 /**
