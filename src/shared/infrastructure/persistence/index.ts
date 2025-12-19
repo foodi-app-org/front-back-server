@@ -1,1 +1,1 @@
-export *  from './generic.service'
+export *  from './generic-service/generic.service'

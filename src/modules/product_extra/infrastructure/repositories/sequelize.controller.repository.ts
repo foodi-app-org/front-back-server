@@ -60,7 +60,6 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
           exState: { [Op.gt]: StateProductExtra.ACTIVE }
         }
       })
-
       return result
     } catch (e) {
       if (e instanceof Error) {

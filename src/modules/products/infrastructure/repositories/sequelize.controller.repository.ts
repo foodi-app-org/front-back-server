@@ -57,10 +57,11 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
 
-  async getAll(idStore: string): Promise<ProductPagination | null> {
+  async getAll(idStore: string, pagination: { page: number; max: number }): Promise<ProductPagination | null> {
     try {
       const result = await this.genericService.getAll({
         searchFields: ['pName', 'pId'],
+        pagination,
         idStore,
         where: {
           pState: { [Op.gt]: 0 }

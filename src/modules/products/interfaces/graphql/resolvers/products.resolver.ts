@@ -4,6 +4,7 @@ import { GraphQLContext } from '../../../../../shared/types/context'
 import { productSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
 import { CreateStatusTypeOrderInput } from '../inputs'
+import { QueryProductFoodsAllArgs } from 'generated/graphql'
 
 export const productResolvers = {
   Query: {
@@ -27,11 +28,19 @@ export const productResolvers = {
         }
       }
     },
-    productFoodsAll: async (_: GraphQLResolveInfo, __: any, context: GraphQLContext) => {
+    productFoodsAll: async (_: GraphQLResolveInfo, args: QueryProductFoodsAllArgs, context: GraphQLContext) => {
       try {
+        const {
+          page,
+          max
+        } = args ?? {}
+        const pagination = {
+          max, // Máximo número de registros por página
+          page // Página actual
+        } as { page: number; max: number }
         const store = context.restaurant ?? ''
         const services = ProductServicesTenantFactory(store)
-        return await services.productFoodsAll.execute(store)
+        return await services.productFoodsAll.execute(store, pagination)
       } catch (err) {
         return {
           success: false,

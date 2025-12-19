@@ -15,9 +15,9 @@ export class GetAllProductsAllUseCase {
    * @param input - store data
    * @returns The newly created Store or null if it already exists
    */
-  async execute(idStore: string): Promise<ProductPagination | null> {
+  async execute(idStore: string, pagination: { page: number; max: number }): Promise<ProductPagination | null> {
 
-    const created = await this.productRepository.getAll(idStore)
+    const created = await this.productRepository.getAll(idStore, pagination)
     return created
   }
 }
