@@ -13,6 +13,7 @@ import {
 import { ProductRepository } from '../../domain/repositories/products.repository'
 import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
 import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
+import { QueryProductFoodsAllArgs } from 'generated/graphql'
 export class SequelizeProductRepository implements ProductRepository {
   private readonly genericService: GenericService<SequelizeProductModel>
   private readonly tenant: string
@@ -57,22 +58,63 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
 
-  async getAll(idStore: string, pagination: { page: number; max: number }): Promise<ProductPagination | null> {
+  async getAll(
+    idStore: string,
+    pagination: { page: number; max: number } | undefined,
+    search?: QueryProductFoodsAllArgs['search']
+  ): Promise<ProductPagination> {
     try {
       const result = await this.genericService.getAll({
         searchFields: ['pName', 'pId'],
-        pagination,
+        pagination: pagination ?? { page: 1, max: 100 },
         idStore,
         where: {
-          pState: { [Op.gt]: 0 }
+          pState: { [Op.gt]: 0 },
+          ...(search ? { search: String(search) } : {})
         }
       })
-      return result ?? null
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
+      // ensure shape expected by GraphQL (same fallback logic que antes)
+      if (!result || typeof result !== 'object') {
+        const fallbackMeta = {
+          totalRecords: 0,
+          totalPages: 0,
+          currentPage: pagination?.page ?? 1,
+          pageSize: pagination?.max ?? 0,
+          mode: (pagination as any)?.mode ?? 'offset'
+        }
+        return {
+          success: false,
+          message: 'No data',
+          data: [],
+          pagination: fallbackMeta
+        } as unknown as ProductPagination
       }
-      throw new Error(String(e))
+
+      if ((result as any).pagination == null) {
+        (result as any).pagination = {
+          totalRecords: 0,
+          totalPages: 0,
+          currentPage: pagination?.page ?? 1,
+          pageSize: pagination?.max ?? 0,
+          mode: (pagination as any)?.mode ?? 'offset'
+        }
+      }
+
+      return result as ProductPagination
+    } catch (e) {
+      const fallbackMeta = {
+        totalRecords: 0,
+        totalPages: 0,
+        currentPage: pagination?.page ?? 1,
+        pageSize: pagination?.max ?? 0,
+        mode: (pagination as any)?.mode ?? 'offset'
+      }
+      return {
+        success: false,
+        message: e instanceof Error ? e.message : 'Unknown error',
+        data: [],
+        pagination: fallbackMeta
+      } as unknown as ProductPagination
     }
   }
 

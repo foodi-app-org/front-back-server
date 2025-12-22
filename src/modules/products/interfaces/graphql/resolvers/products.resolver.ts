@@ -32,7 +32,8 @@ export const productResolvers = {
       try {
         const {
           page,
-          max
+          max,
+          search
         } = args ?? {}
         const pagination = {
           max, // Máximo número de registros por página
@@ -40,7 +41,11 @@ export const productResolvers = {
         } as { page: number; max: number }
         const store = context.restaurant ?? ''
         const services = ProductServicesTenantFactory(store)
-        return await services.productFoodsAll.execute(store, pagination)
+        return await services.productFoodsAll.execute(
+          store,
+          pagination,
+          search
+        )
       } catch (err) {
         return {
           success: false,
