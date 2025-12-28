@@ -20,6 +20,7 @@ import { context } from './shared/infrastructure/graphql/context'
 import { PubSub } from 'graphql-subscriptions'
 import fs from 'node:fs';
 import path from 'node:path'
+import { LogInfo } from '@shared/utils/logger.utils'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -192,7 +193,17 @@ const server = new ApolloServer({
     },
     onDisconnect: (_ctx, code, reason) => {
       console.log('❌ Cliente desconectado', code, reason)
-    }
+    },
+    onError: (_ctx, msg, errors) => {
+      console.error('⚠️ Error en suscripción', msg, errors)
+    },
+    onOperation(_ctx, message, args, result) {
+      LogInfo('Nueva operación de suscripción iniciada');
+      LogInfo(`info', 'Nueva operación de suscripción: ${message.payload.operationName}`);
+      LogInfo(`info', 'Mensaje completo: ${JSON.stringify(message)}`);
+      LogInfo(`info', 'Args: ${JSON.stringify(args)}`);
+      return result;
+    },
   }, wsServer)
 
 

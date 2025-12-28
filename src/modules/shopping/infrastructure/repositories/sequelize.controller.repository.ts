@@ -43,6 +43,7 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
       })
 
       if (!product) {
+        await transaction?.rollback()
         throw new Error(`Product with pId=${data.pId} not found`)
       }
 

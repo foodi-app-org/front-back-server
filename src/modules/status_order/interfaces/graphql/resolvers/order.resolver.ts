@@ -10,7 +10,6 @@ import { UserServices } from '../../../../user/main/factories/user-services.fact
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
-import { NEW_STORE_ORDER } from '../../../../../ws-schema'
 import { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
 import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
@@ -23,6 +22,10 @@ import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-
 import { convertTimezone } from '@shared/utils/convert-time-zone'
 import { computeCartTotals } from 'exact-cart-totals'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
+import { Maybe, ResponseSalesStore } from 'generated/graphql'
+import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
+import { StockServicesTenantFactory } from '@modules/stock/main/factories/stock.factory'
+import { SocketEvents } from '@shared/constants/socket-events'
 
 export const orderResolvers = {
   Type: {
@@ -129,7 +132,6 @@ export const orderResolvers = {
           }
         }
       })
-      console.log("🚀 ~ shoppingResponse:", shoppingResponse)
 
       const totals = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
@@ -171,12 +173,16 @@ export const orderResolvers = {
     }
   },
   Mutation: {
-    registerSalesStore: async (_: GraphQLResolveInfo, args: RegisterSalesStoreInput, context: GraphQLContext) => {
+    registerSalesStore: async (
+      _: GraphQLResolveInfo,
+      args: RegisterSalesStoreInput,
+      context: GraphQLContext
+    ): Promise<Maybe<ResponseSalesStore>> => {
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()
       const t = await sequelize.transaction()
-
+      const stockServices = StockServicesTenantFactory(idStore, context.pubsub)
       try {
         // 1. Validaciones iniciales
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
@@ -215,9 +221,20 @@ export const orderResolvers = {
                 path: e.path,
                 type: e.type,
                 context: e.context
-              }))
+              }) as any)
             }
           }
+          const qty = Number(item.cantProducts ?? 0)
+          if (qty <= 0) {
+            await t.rollback()
+            return {
+              success: false,
+              data: null,
+              message: `Invalid quantity for pId=${item.pId}`,
+              errors: []
+            }
+          }
+          await stockServices.decrement(item.pId, qty, idStore, t) 
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -242,6 +259,7 @@ export const orderResolvers = {
               errors: []
             }
           }
+
           const extras = item.dataExtra || []
           const dataOptional = item.dataOptional || []
           const soldPid = response?.data?.pId ?? ''
@@ -299,7 +317,7 @@ export const orderResolvers = {
           channel: Channel.store,
           createdAt: new Date(),
           updatedAt: new Date()
-        }
+        } as any
 
         const { error, value } = statusOrderSchema.validate(mockSalesStore, { abortEarly: false })
         if (error) {
@@ -313,7 +331,7 @@ export const orderResolvers = {
               path: e.path,
               type: e.type,
               context: e.context
-            }))
+            }) as any)
           }
         }
         const createResponse = await StatusOrderServices.create.execute(value, t)
@@ -321,12 +339,12 @@ export const orderResolvers = {
           const end = Date.now()
           const durationMs = end - start
           const time = (durationMs / 1000).toFixed(2)
-          console.log('🚀 ~ time:', time)
+          LogWarning(`RegisterSalesStore executed in ${time} seconds for store ${idStore}`)
           await t.rollback()
           return {
             success: false,
             message: createResponse.message,
-            data: createResponse.data ?? null,
+            data: createResponse.data as any,
             errors: []
           }
         }
@@ -335,18 +353,19 @@ export const orderResolvers = {
         const end = Date.now()
         const durationMs = end - start
         const time = (durationMs / 1000).toFixed(2)
-        console.log('🚀 ~ time:', time)
+        LogInfo(`RegisterSalesStore executed in ${time} seconds for store ${idStore}`)
         const newOrder = {
           id: createResponse?.data?.id ?? '',
           idStore: idStore,
           pCodeRef: createResponse?.data?.pCodeRef ?? ''
         }
         if (context.pubsub) {
-          context.pubsub.publish(NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
+          context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
         }
-        return createResponse
+        return createResponse as Maybe<ResponseSalesStore>
 
       } catch (e) {
+        LogDanger(`Error in registerSalesStore: ${e instanceof Error ? e.message : String(e)}`)
         await t.rollback()
         return {
           success: false,
@@ -362,7 +381,7 @@ export const orderResolvers = {
         pCodeRef: Math.random().toString(36).substring(2, 15),
       }
       // Publicar el nuevo pedido en el canal correspondiente
-      pubsub.publish(NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
+      pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
       return newOrder
     }
   }

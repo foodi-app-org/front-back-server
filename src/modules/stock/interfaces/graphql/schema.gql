@@ -1,0 +1,12 @@
+type StockUpdatedByIdPayload {
+  pId: String!
+  newStock: Int!
+  previousStock: Int!
+  event: String!
+  meta: JSON
+}
+
+type Subscription {
+  StockUpdatedById(pId: String): StockUpdatedByIdPayload!
+  StockUpdatedAll(idStore: String): StockUpdatedByIdPayload
+}

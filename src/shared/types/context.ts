@@ -18,5 +18,5 @@ export interface GraphQLContext {
   setHeaders?: string[]
   User?: User | null
   restaurant?: string | null
-  pubsub?: PubSub
+  pubsub: PubSub
 }

@@ -5,7 +5,7 @@ import { IStockMovementRepository } from '../../domain/repositories/roles.reposi
 /**
  * Role use cases with business logic orchestration.
  */
-export class RoleUseCase {
+export class StockCreateUseCase {
   constructor(private readonly stockRepository: IStockMovementRepository) {}
 
   async execute(data: StockMovement): Promise<StockMovement | null> {
