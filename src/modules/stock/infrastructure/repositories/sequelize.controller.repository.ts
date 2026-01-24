@@ -2,7 +2,7 @@
 import { Transaction } from 'sequelize'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { StockMovement } from '../../domain/entities/stock.entity'
-import { IStockMovementRepository } from '../../domain/repositories/roles.repository'
+import { IStockMovementRepository } from '../../domain/repositories/stock.repository'
 import { ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
 

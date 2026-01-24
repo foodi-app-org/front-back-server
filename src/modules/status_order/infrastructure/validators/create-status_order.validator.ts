@@ -41,6 +41,19 @@ const dataOptionalSchema = Joi.object({
   ExtProductFoodsSubOptionalAll: Joi.array().items(subOptionalSchema).required()
 })
 
+/**
+ * @title Discount Input Example
+ * @description Example of a discount input object
+ * @example
+ * {
+ *     "type": "PERCENT",
+ *     "value": 10
+ * }
+ */
+export const discountSchema = Joi.object({
+  type: Joi.string().valid('PERCENT', 'AMOUNT').required(),
+  value: Joi.number().integer().min(0).required()
+})
 
 // Define as neededG
 /**
@@ -56,7 +69,7 @@ export const statusOrderSchema = Joi.object({
 
   valueDelivery: Joi.number().optional().allow(null, 0).integer().min(0).default(0),
   locationUser: Joi.string().allow(null, ''),
-  discount: Joi.number().integer().min(0).max(100).default(0),
+  discount: discountSchema.optional().allow(null),
   tip: Joi.number().integer().min(0).default(0),
   change: Joi.number().allow(null, 0).integer().min(0).default(0),
 

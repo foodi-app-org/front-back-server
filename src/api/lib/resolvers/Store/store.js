@@ -509,7 +509,6 @@ export const registerSalesStore = async (
     if (e instanceof Error) {
       message = e.message
     }
-    // console.log(e)
     if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
       message = 'Token expired'
     }

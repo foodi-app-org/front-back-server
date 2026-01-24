@@ -23,9 +23,14 @@ import { convertTimezone } from '@shared/utils/convert-time-zone'
 import { computeCartTotals } from 'exact-cart-totals'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
 import { Maybe, ResponseSalesStore } from 'generated/graphql'
-import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
+import {
+  LogDanger,
+  LogInfo,
+  LogWarning
+} from '@shared/utils/logger.utils'
 import { StockServicesTenantFactory } from '@modules/stock/main/factories/stock.factory'
 import { SocketEvents } from '@shared/constants/socket-events'
+import { numberFormat } from '../../../../../shared/utils/number-format'
 
 export const orderResolvers = {
   Type: {
@@ -133,15 +138,15 @@ export const orderResolvers = {
         }
       })
 
-      const totals = computeCartTotals(shopping as any[], {
+      const { totals } = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
         includeExtras: true,
         globalDiscountPercent: discount ?? 0,
+        includeBreakdownByStore: false,
+        includeLines: false,
+        formatNumbers: true,
+        lang: 'es'
       })
-      const totalsArray = Object.entries(totals).map(([key, value]) => ({
-        name: key,
-        value: typeof value === 'number' ? value : 0
-      }))
 
       const sale = {
         createdAt: convertTimezone(createdAt as Date),
@@ -156,7 +161,11 @@ export const orderResolvers = {
         paymentMethod,
         statusOrder: statusOrderType ?? null,
         discount,
-        totals: totalsArray
+        totals: totals.map(t => ({
+          key: t.key,
+          name: t.name,
+          value: t.key === 'globalDiscountPercent' ? (`${t.value} %`) : numberFormat(t.value)
+        }))
       }
       return {
         success: true,
@@ -188,12 +197,21 @@ export const orderResolvers = {
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
         if (!storeExists) {
           await t.rollback()
-          return { success: false, message: 'Store not found', errors: [] }
+          return {
+            success: false,
+            message: 'Store not found',
+            errors: []
+          }
         }
 
         if (!Array.isArray(args.input) || args.input.length === 0) {
           await t.rollback()
-          return { success: false, message: 'No products to add', data: null, errors: [] }
+          return {
+            success: false,
+            message: 'No products to add',
+            data: null,
+            errors: []
+          }
         }
 
         // 2. Instanciar servicios una sola vez
@@ -201,7 +219,6 @@ export const orderResolvers = {
         const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
         const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
         const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
-
 
         for (const item of args.input) {
           const newItem = {
@@ -234,7 +251,7 @@ export const orderResolvers = {
               errors: []
             }
           }
-          await stockServices.decrement(item.pId, qty, idStore, t) 
+          await stockServices.decrement(item.pId, qty, idStore, t)
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -360,11 +377,13 @@ export const orderResolvers = {
           pCodeRef: createResponse?.data?.pCodeRef ?? ''
         }
         if (context.pubsub) {
+          console.log('HELLO')
           context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
         }
         return createResponse as Maybe<ResponseSalesStore>
 
       } catch (e) {
+        console.log("🚀 ~ e:", e)
         LogDanger(`Error in registerSalesStore: ${e instanceof Error ? e.message : String(e)}`)
         await t.rollback()
         return {

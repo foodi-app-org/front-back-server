@@ -1,7 +1,7 @@
 import { QueryInterface } from 'sequelize'
 
 import { removeTenantPrefix } from '../../../../../../../shared/utils/tenant.utils'
-import { CLIENTS_TABLE, IClientAttributes } from '../../models/sequelize-table.model'
+import { CLIENTS_TABLE, defaultEnum, IClientAttributes } from '../../models/sequelize-table.model'
 
 export enum clientEnum {
   legal_id = '1234567890',
@@ -25,6 +25,7 @@ export const up = async (
 ): Promise<void> => {
   try {
     const idStore = removeTenantPrefix(schemaName)
+    const now = new Date()
     const clientsDefault: IClientAttributes[] = [
       {
         cliId: idStore,
@@ -38,8 +39,9 @@ export const up = async (
         clientLastName: 'Doe',
         ccClient: clientEnum.legal_id,
         email: clientEnum.email,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        default: defaultEnum.TRUE === 1,
+        createdAt: now,
+        updatedAt: now
       }
     ]
 

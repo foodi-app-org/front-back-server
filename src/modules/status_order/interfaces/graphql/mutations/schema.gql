@@ -1,3 +1,17 @@
+
+enum typeDiscount {
+  PERCENT
+  AMOUNT
+}
+# {
+#     "type": "PERCENT",
+#     "value": 10
+# }
+input DiscountInput {
+  type: typeDiscount
+  value: Int
+}
+
 # Mutations
 type Mutation {
   # sales store
@@ -5,7 +19,7 @@ type Mutation {
     input: [IShoppingCart]
     id: ID
     tableId: ID
-    discount: Int
+    discount: DiscountInput
     idStore: ID
     pCodeRef: String
     change: Float

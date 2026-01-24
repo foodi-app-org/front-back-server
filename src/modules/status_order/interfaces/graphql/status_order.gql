@@ -1,6 +1,7 @@
 type OrderTotals {
+  key: String
   name: String
-  value: Float
+  value: String
 }
 
 # Stores

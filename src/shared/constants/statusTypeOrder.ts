@@ -1,4 +1,5 @@
 export enum StatusTypeOrder {
+    WAITING = 'ESPERA',
     PENDING = 'PENDIENTE',
     ACCEPT = 'ACEPTADA',
     PROCESSING = 'EN PROCESO',

@@ -10,6 +10,7 @@ type Clients {
     gender: Int
     clientLastName: String
     clientName: String
+    default: Boolean
     createAt: DateTime
     updateAt: DateTime
 }
@@ -26,6 +27,7 @@ input IClients {
     ccClient: String
     clientLastName: String
     clientName: String
+    default: Boolean
     createAt: DateTime
     updateAt: DateTime
 }

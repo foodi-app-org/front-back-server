@@ -25,6 +25,10 @@ export enum ClientsStateEnum {
   OCCUPIED = 2,
   DELETED = -1
 }
+export enum defaultEnum {
+  FALSE = 0,
+  TRUE = 1
+}
 
 /**
  * Interface that defines the attributes stored in DB
@@ -39,6 +43,7 @@ export interface IClientAttributes {
   clientAddress: string | null
   clientNumber: string | null
   clientName: string | null
+  default: boolean | null
   clientLastName: string | null
   ccClient: string | null
   createdAt: Date
@@ -68,6 +73,7 @@ export class SequelizeClientModel
   declare clientAddress: string | null
   declare clientNumber: string | null
   declare clientName: string | null
+  declare default: boolean | null
   declare clientLastName: string | null
   declare ccClient: string | null
   declare readonly createdAt: Date
@@ -146,6 +152,11 @@ export const columnsClient = {
   clientName: {
     type: STRING,
     allowNull: true
+  },
+  default: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: false
   },
   clientLastName: {
     type: STRING,

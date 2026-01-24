@@ -21,6 +21,9 @@ import { PubSub } from 'graphql-subscriptions'
 import fs from 'node:fs';
 import path from 'node:path'
 import { LogInfo } from '@shared/utils/logger.utils'
+import { config } from 'configs/app.config'
+import type { Request, Response, NextFunction } from 'express'
+import { bodyToString } from '@shared/utils/body-to-string'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -82,21 +85,7 @@ const server = new ApolloServer({
   await server.start()
   // 🌐 CORS
   const allowedOrigins = new Set([
-    process.env.WEB_CLIENT,
-    process.env.WEB_ADMIN_STORE,
-    'http://localhost:3000',
-    'http://localhost:4000',
-    'http://localhost:8080',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3003',
-    'http://localhost:30011',
-    'https://clientesfoodi.netlify.app',
-    'https://foodistore.netlify.app',
-    'https://app-foodi-store.vercel.app',
-    'https://front-back-server.onrender.com',
-    'https://app-foodi-admin.vercel.app',
-    'https://studio.apollographql.com'
+    ...config.cors.origins
   ].filter(Boolean))
 
   app.use(
@@ -131,44 +120,102 @@ const server = new ApolloServer({
     })
   )
 
-  // GraphQL endpoint manual (sin expressMiddleware)
-  app.use('/graphql', express.json(), async (req, res, next) => {
+
+  /**
+   * GraphQL HTTP handler that delegates to ApolloServer.executeHTTPGraphQLRequest
+   * and returns the appropriate content-type to the client.
+   *
+   * - Preserves headers returned by Apollo
+   * - Sends HTML when the landing page is returned (prevents `Unexpected token '<'`)
+   * - Sends JSON when response is JSON-like
+   * - Falls back to text/plain for other payloads
+   */
+  app.use('/graphql', express.json(), async (req: Request, res: Response, next: NextFunction) => {
     try {
       const headers = new HeaderMap(
         Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v ?? ''])
       )
 
+      // ensure search is built even if host missing
+      const host = req.headers.host ?? `${config.server.HOST}:${config.server.port}`
+      const search = new URL(req.url, `http://${host}`).search
+
       const response = await server.executeHTTPGraphQLRequest({
         httpGraphQLRequest: {
           method: req.method,
           headers,
-          search: new URL(req.url, `http://${req.headers.host}`).search,
+          search,
           body: req.body,
         },
         context: () => context({ req, res, pubsub }),
       })
 
-      // Copiar headers de Apollo al response
-      response.headers.forEach((value, key) => res.setHeader(key, value))
+      // Copy headers returned by Apollo to the express response (best-effort)
+      // Apollo HeaderMap may implement forEach or be a plain object
+      if (typeof response.headers?.forEach === 'function') {
+        response.headers.forEach((value: string, key: string) => {
+          if (key.toLowerCase() === 'content-length') return
+          res.setHeader(key, value)
+        })
+      } else if (response.headers && typeof response.headers === 'object') {
+        Object.entries(response.headers).forEach(([k, v]) => {
+          if (k.toLowerCase() === 'content-length') return
+          res.setHeader(k, String(v))
+        })
+      }
 
-      // Devuelve JSON limpio
-      let body = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
-      if (body?.string) body = JSON.parse(body.string)
+      const raw = await bodyToString(response.body)
 
-      return res.status(response.status || 200).json(body)
+      // Determine content type from returned headers or content heuristics
+      const ctCandidate = (() => {
+        try {
+          if (typeof response.headers?.get === 'function') {
+            return response.headers.get('content-type') as string
+          }
+          if (response.headers && typeof response.headers === 'object') {
+            // header keys may be lowercase or original-case
+            return (response.headers['content-type'] ?? response.headers['Content-Type']) as string | undefined
+          }
+          return undefined
+        } catch {
+          return undefined
+        }
+      })()
+
+      const contentType = ctCandidate?.toLowerCase()
+
+      // If server says JSON or content looks like JSON -> send JSON
+      if (contentType?.includes('application/json') || raw.trim().startsWith('{') || raw.trim().startsWith('[')) {
+        try {
+          const parsed = raw.length ? JSON.parse(raw) : {}
+          return res.status(response.status || 200).json(parsed)
+        } catch {
+          // Couldn't parse as JSON: send raw text (safe)
+          LogInfo('GraphQL: failed JSON.parse; sending raw text')
+          res.type('text/plain')
+          return res.status(response.status || 200).send(raw)
+        }
+      }
+
+      // If it's HTML (landing page / sandbox), return as text/html
+      if (contentType?.includes('text/html') || raw.trim().startsWith('<')) {
+        res.type('text/html')
+        return res.status(response.status || 200).send(raw)
+      }
+
+      // Default fallback: text/plain
+      res.type('text/plain')
+      return res.status(response.status || 200).send(raw)
     } catch (err) {
-      next(err)
-      return
+      LogInfo('Error forwarding GraphQL request: ' + (err as Error).message)
+      return next(err)
     }
   })
-
-
-
 
   // WebSocket para subscriptions
   const wsServer = new WebSocketServer({
     server: httpServer,
-    path: '/graphql',
+    path: config.server.graphqlPath,
   })
 
   interface ConnectionParams {
@@ -207,24 +254,26 @@ const server = new ApolloServer({
   }, wsServer)
 
 
-  const PORT = process.env.PORT || 4000
+  const PORT = process.env.PORT ?? config.server.port
 
   httpServer.listen(PORT, () => {
-    console.log(`🚀 Query/Mutation at http://localhost:${PORT}/graphql`);
-    console.log(`🔌 Subscriptions at ws://localhost:${PORT}/graphql`);
-    console.log(`🛠 Sandbox: http://localhost:${PORT}/graphql (solo en desarrollo)`);
+    LogInfo(config.WEBSOCKET_ENDPOINT)
+    console.log(`🚀 Query/Mutation at http://${config.server.HOST}:${PORT}${config.server.graphqlPath}`);
+    console.log(`🔌 Subscriptions at ws://${config.server.HOST}:${PORT}${config.server.graphqlPath}`);
+    console.log(`🛠 Sandbox: http://${config.server.HOST}:${PORT}${config.server.graphqlPath} (solo en desarrollo)`);
 
 
     // 👉 Leer si ya se abrió la URL
-    const alreadyOpened = fs.existsSync(FLAG_PATH);
-    const url = `https://studio.apollographql.com/sandbox/explorer`
-
+    const alreadyOpened = fs.existsSync(FLAG_PATH)
     if (!alreadyOpened) {
       // Marcar como abierto
       fs.writeFileSync(FLAG_PATH, true.toString(), 'utf8');
-      console.log('🌐 Abriendo sandbox Apollo por primera vez...');
+      console.log('🌐 Abriendo sandbox Apollo por primera vez...')
 
-      import('node:child_process').then(({ exec }) => exec(`start ${url}`));
+      import('node:child_process').then(({ exec }) => {
+        exec(`start ${config.GRAPHQL_ENDPOINT}`)
+
+      });
     } else {
       console.log('ℹ️ Sandbox ya fue abierto previamente. No se abre otra vez.');
     }

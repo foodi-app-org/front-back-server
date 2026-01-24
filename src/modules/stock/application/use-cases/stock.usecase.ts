@@ -1,5 +1,5 @@
 import { StockMovement } from '../../domain/entities/stock.entity'
-import { IStockMovementRepository } from '../../domain/repositories/roles.repository'
+import { IStockMovementRepository } from '../../domain/repositories/stock.repository'
 
 
 /**

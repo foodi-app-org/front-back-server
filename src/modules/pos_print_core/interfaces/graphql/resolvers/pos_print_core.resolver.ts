@@ -12,7 +12,7 @@ const printer = new EscposNetworkPrinterAdapter()
 export const printResolvers = {
   Mutation: {
     printSaleTicket: async (_: any, { saleId }: { saleId: string }, context: GraphQLContext) => {
-      try {
+      try { 
         const idStore = context.restaurant ?? ''
         const services = StatusOrderServicesTenantFactory(idStore)
         const response = await services.getOneByCodeRef.execute(saleId)

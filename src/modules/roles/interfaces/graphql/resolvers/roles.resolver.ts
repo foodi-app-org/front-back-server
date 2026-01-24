@@ -27,6 +27,7 @@ export const storeResolvers = {
   },
   Mutation: {
     createRoleMutation: async (_: GraphQLResolveInfo, _args: NewRoleArgs) => {
+      console.log("🚀 ~ _args:", _args)
       // return await ShoppingTypesServices.create.execute(args.input)
     }
   }

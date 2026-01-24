@@ -11,6 +11,18 @@ const DEFAULT_ORDER_STATES = [
   {
     active: true,
     editable: false,
+    state: 0,
+    name: StatusTypeOrder.WAITING,
+    color: '#000000',
+    backgroundColor: '#E0E0E0',    // gris claro profesional
+    priority: 0,
+    description: 'La orden fue creada y está en espera de ser aceptada',
+    borderColor: '#C6C6C6',
+    hoverBorderColor: '#B0B0B0'
+  },
+  {
+    active: true,
+    editable: false,
     state: 1,
     name: StatusTypeOrder.ACCEPT,
     color: '#3F3F3F',              // gris oscuro para buena legibilidad
