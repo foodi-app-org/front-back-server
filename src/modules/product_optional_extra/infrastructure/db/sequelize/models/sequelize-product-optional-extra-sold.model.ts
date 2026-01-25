@@ -55,11 +55,11 @@ SequelizeProductOptionalExtraSold.init(columnsProductOptionalExtraSold, {
 })
 
 // Establish associations between sold products and sold optional extras
-SequelizeProductSold.hasMany(SequelizeProductOptionalExtraSold, {
-  as: 'dataOptional',
-  foreignKey: 'pId',
-  sourceKey: 'pId'
-})
+// SequelizeProductSold.hasMany(SequelizeProductOptionalExtraSold, {
+//   as: 'dataOptional',
+//   foreignKey: 'pId',
+//   sourceKey: 'pId'
+// })
 
 SequelizeProductOptionalExtraSold.belongsTo(SequelizeProductSold, {
   as: ASSOCIATION_PRODUCTS_NAME,

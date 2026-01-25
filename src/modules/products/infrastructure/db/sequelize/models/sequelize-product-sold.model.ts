@@ -4,11 +4,11 @@ import { DataTypes, STRING } from 'sequelize'
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import {
-  ASSOCIATION_PRODUCTS_NAME,
+  // ASSOCIATION_PRODUCTS_NAME,
   columnsProduct,
   SequelizeProductModel
 } from './sequelize-product.model'
-import { SequelizeProductExtraSold } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
+// import { SequelizeProductExtraSold } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 
 const sequelize = connect()
 
@@ -58,16 +58,16 @@ SequelizeProductSold.init(columnsProductSold, {
 })
 
 
-SequelizeProductSold.hasMany(SequelizeProductExtraSold, {
-  as: 'dataExtra',
-  foreignKey: 'pId',
-  sourceKey: 'pId'
-})
+// SequelizeProductSold.hasMany(SequelizeProductExtraSold, {
+//   as: 'dataExtra',
+//   foreignKey: 'pId',
+//   sourceKey: 'pId'
+// })
 
-SequelizeProductExtraSold.belongsTo(SequelizeProductSold, {
-  as: ASSOCIATION_PRODUCTS_NAME,
-  foreignKey: 'pId',
-  targetKey: 'pId'
-})
+// SequelizeProductExtraSold.belongsTo(SequelizeProductSold, {
+//   as: ASSOCIATION_PRODUCTS_NAME,
+//   foreignKey: 'pId',
+//   targetKey: 'pId'
+// })
 
 

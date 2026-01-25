@@ -30,7 +30,6 @@ import {
 } from '@shared/utils/logger.utils'
 import { StockServicesTenantFactory } from '@modules/stock/main/factories/stock.factory'
 import { SocketEvents } from '@shared/constants/socket-events'
-import { numberFormat } from '../../../../../shared/utils/number-format'
 
 export const orderResolvers = {
   Type: {
@@ -138,7 +137,7 @@ export const orderResolvers = {
         }
       })
 
-      const { totals } = computeCartTotals(shopping as any[], {
+      const totals  = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
         includeExtras: true,
         globalDiscountPercent: discount ?? 0,
@@ -161,11 +160,7 @@ export const orderResolvers = {
         paymentMethod,
         statusOrder: statusOrderType ?? null,
         discount,
-        totals: totals.map(t => ({
-          key: t.key,
-          name: t.name,
-          value: t.key === 'globalDiscountPercent' ? (`${t.value} %`) : numberFormat(t.value)
-        }))
+        totals
       }
       return {
         success: true,

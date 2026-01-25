@@ -10,7 +10,7 @@ import {
 
 import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { PRODUCT_MODEL_SOLD, SequelizeProductSold } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
-import { ASSOCIATION_PRODUCTS_NAME } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+// import { ASSOCIATION_PRODUCTS_NAME } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 
 const sequelize = connect()
 
@@ -152,17 +152,17 @@ SequelizeShoppingOrderModel.init(
 )
 
 // ShoppingCart belongs to ONE ProductSold
-SequelizeShoppingOrderModel.belongsTo(SequelizeProductSold, {
-  foreignKey: 'pId',
-  targetKey: 'pId',
-  as: ASSOCIATION_PRODUCTS_NAME
-})
+// SequelizeShoppingOrderModel.belongsTo(SequelizeProductSold, {
+//   foreignKey: 'pId',
+//   targetKey: 'pId',
+//   as: ASSOCIATION_PRODUCTS_NAME
+// })
 
-// ProductSold has ONE ShoppingCart
-SequelizeProductSold.hasMany(SequelizeShoppingOrderModel, {
-  foreignKey: 'pId',
-  sourceKey: 'pId',
-  as: SHOPPING_CART_MODEL
-})
+// // ProductSold has ONE ShoppingCart
+// SequelizeProductSold.hasMany(SequelizeShoppingOrderModel, {
+//   foreignKey: 'pId',
+//   sourceKey: 'pId',
+//   as: SHOPPING_CART_MODEL
+// })
 
 export default SequelizeShoppingOrderModel

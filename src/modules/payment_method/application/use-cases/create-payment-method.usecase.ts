@@ -1,5 +1,5 @@
-import { Module } from '../../domain/entities/payment-method.entity'
-import { ModuleRepository } from '../../domain/repositories/module.repository'
+import { Module } from '@modules/modules/domain/entities/modules.entity'
+import { ModuleRepository } from '@modules/modules/domain/repositories/module.repository'
 
 /**
  * Input DTO to create a new Module
