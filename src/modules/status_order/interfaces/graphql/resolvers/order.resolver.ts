@@ -28,8 +28,10 @@ import {
   LogInfo,
   LogWarning
 } from '@shared/utils/logger.utils'
-import { StockServicesTenantFactory } from '@modules/stock/main/factories/stock.factory'
 import { SocketEvents } from '@shared/constants/socket-events'
+import { eventBus } from '@shared/infrastructure/event-bus'
+import { DomainEvent } from '@shared/domain/EventBus'
+import { eventBusConstants } from '@shared/infrastructure/persistence/event-bus/constants'
 
 export const orderResolvers = {
   Type: {
@@ -137,7 +139,7 @@ export const orderResolvers = {
         }
       })
 
-      const totals  = computeCartTotals(shopping as any[], {
+      const totals = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
         includeExtras: true,
         globalDiscountPercent: discount ?? 0,
@@ -182,11 +184,11 @@ export const orderResolvers = {
       args: RegisterSalesStoreInput,
       context: GraphQLContext
     ): Promise<Maybe<ResponseSalesStore>> => {
+      const eventsToPublish: DomainEvent[] = []
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
       const sequelize = connect()
       const t = await sequelize.transaction()
-      const stockServices = StockServicesTenantFactory(idStore, context.pubsub)
       try {
         // 1. Validaciones iniciales
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
@@ -246,7 +248,12 @@ export const orderResolvers = {
               errors: []
             }
           }
-          await stockServices.decrement(item.pId, qty, idStore, t)
+          // build the event and collect it (DO NOT publish now)
+          eventsToPublish.push({
+            name: eventBusConstants.CHANGE_STOCK_SUBSCRIBER,
+            occurredOn: new Date(),
+            payload: { pId: item.pId, quantity: qty, idStore, transaction: t }
+          })
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -362,6 +369,12 @@ export const orderResolvers = {
         }
 
         await t.commit()
+
+        // now publish events after commit (safer for consistency)
+        for (const ev of eventsToPublish) {
+          try { eventBus.publish(ev) } catch (err) { console.error('[EventBus publish error]', err) }
+        }
+
         const end = Date.now()
         const durationMs = end - start
         const time = (durationMs / 1000).toFixed(2)
@@ -372,7 +385,6 @@ export const orderResolvers = {
           pCodeRef: createResponse?.data?.pCodeRef ?? ''
         }
         if (context.pubsub) {
-          console.log('HELLO')
           context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
         }
         return createResponse as Maybe<ResponseSalesStore>

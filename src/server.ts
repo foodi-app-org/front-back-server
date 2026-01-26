@@ -24,6 +24,7 @@ import { LogInfo } from '@shared/utils/logger.utils'
 import { config } from 'configs/app.config'
 import type { Request, Response, NextFunction } from 'express'
 import { bodyToString } from '@shared/utils/body-to-string'
+import { ProductChangeStockSubscriber } from '@modules/stock/infrastructure/subscribers'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -82,6 +83,8 @@ const server = new ApolloServer({
 
 (async () => {
   const pubsub = new PubSub();
+  // event subscribers rxjs
+  ProductChangeStockSubscriber(pubsub)
   await server.start()
   // 🌐 CORS
   const allowedOrigins = new Set([
@@ -147,7 +150,11 @@ const server = new ApolloServer({
           search,
           body: req.body,
         },
-        context: () => context({ req, res, pubsub }),
+        context: () => context({
+          req,
+          res,
+          pubsub
+        }),
       })
 
       // Copy headers returned by Apollo to the express response (best-effort)
