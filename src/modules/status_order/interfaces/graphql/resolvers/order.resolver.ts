@@ -248,12 +248,12 @@ export const orderResolvers = {
               errors: []
             }
           }
-          // build the event and collect it (DO NOT publish now)
           eventsToPublish.push({
             name: eventBusConstants.CHANGE_STOCK_SUBSCRIBER,
             occurredOn: new Date(),
-            payload: { pId: item.pId, quantity: qty, idStore, transaction: t }
+            payload: { pId: item.pId, quantity: qty, idStore }
           })
+
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -372,7 +372,12 @@ export const orderResolvers = {
 
         // now publish events after commit (safer for consistency)
         for (const ev of eventsToPublish) {
-          try { eventBus.publish(ev) } catch (err) { console.error('[EventBus publish error]', err) }
+          try {
+            eventBus.publish(ev)
+          } catch (err) {
+            t.rollback()
+            LogDanger(`Failed to publish event ${ev.name}: ${err instanceof Error ? err.message : String(err)}`)
+          }
         }
 
         const end = Date.now()

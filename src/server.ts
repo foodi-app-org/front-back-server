@@ -24,7 +24,8 @@ import { LogInfo } from '@shared/utils/logger.utils'
 import { config } from 'configs/app.config'
 import type { Request, Response, NextFunction } from 'express'
 import { bodyToString } from '@shared/utils/body-to-string'
-import { ProductChangeStockSubscriber } from '@modules/stock/infrastructure/subscribers'
+import { eventBus } from '@shared/infrastructure/event-bus'
+import { registerSubscribersFromModules } from '@shared/infrastructure/event-bus/registry'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -36,20 +37,24 @@ const cleanup = () => {
 }
 
 // Eventos comunes de salida
-process.on('exit', cleanup);
+process.on('exit', cleanup)
+
 process.on('SIGINT', () => {
-  cleanup();
-  process.exit();
-});
+  cleanup()
+  process.exit()
+})
+
 process.on('SIGTERM', () => {
-  cleanup();
-  process.exit();
-});
+  cleanup()
+  eventBus.unsubscribeAll()
+  process.exit()
+})
+
 process.on('uncaughtException', (err) => {
-  console.error('❌ Error no capturado:', err);
-  cleanup();
-  process.exit(1);
-});
+  console.error('❌ Error no capturado:', err)
+  cleanup()
+  process.exit(1)
+})
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 
@@ -82,9 +87,9 @@ const server = new ApolloServer({
   ;
 
 (async () => {
-  const pubsub = new PubSub();
+  const pubsub = new PubSub()
   // event subscribers rxjs
-  ProductChangeStockSubscriber(pubsub)
+  registerSubscribersFromModules(path.resolve(__dirname, '..'), pubsub)
   await server.start()
   // 🌐 CORS
   const allowedOrigins = new Set([
@@ -255,7 +260,7 @@ const server = new ApolloServer({
       LogInfo('Nueva operación de suscripción iniciada');
       LogInfo(`info', 'Nueva operación de suscripción: ${message.payload.operationName}`);
       LogInfo(`info', 'Mensaje completo: ${JSON.stringify(message)}`);
-      LogInfo(`info', 'Args: ${JSON.stringify(args)}`);
+      LogInfo(`info', 'Args: ${JSON.stringify(args)?.slice(0, 10)}`); // Limitar tamaño en logs
       return result;
     },
   }, wsServer)

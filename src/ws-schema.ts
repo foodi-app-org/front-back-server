@@ -65,7 +65,7 @@ export const wsSchema = new GraphQLSchema({
         subscribe: withFilter(
           (_: any, __: any, context: { pubsub: PubSub<Record<string, never>> } | undefined) => {
             if (!context?.pubsub) throw new Error('pubsub not available')
-            console.log('🚀 Subscriptor registrado')
+            console.log('[newStoreOrder] - 🚀 Subscriptor registrado')
             return context.pubsub.asyncIterableIterator(SocketEvents.NEW_STORE_ORDER)
           },
           (payload, variables) => {
