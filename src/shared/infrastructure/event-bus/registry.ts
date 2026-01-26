@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { eventBus } from './RxjsEventBus'
 import type { DomainSubscriber } from '../../domain/EventBus'
-import { PubSub } from "graphql-subscriptions"
+import { PubSub } from 'graphql-subscriptions'
 
 
 /**

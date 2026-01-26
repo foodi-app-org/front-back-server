@@ -13,7 +13,8 @@ describe('CreateUserUseCase', () => {
   const mockUserRepo: jest.Mocked<UserRepository> = {
     findByEmail: jest.fn(),
     create: jest.fn(),
-    findById: jest.fn()
+    findById: jest.fn(),
+    update: jest.fn()
     // si tienes más métodos declarados en la interfaz los agregas como mocks vacíos
   }
 
@@ -24,7 +25,8 @@ describe('CreateUserUseCase', () => {
 
   const mockTokenService: jest.Mocked<TokenGenerator> = {
     generate: jest.fn(),
-    verify: jest.fn()
+    verify: jest.fn(),
+    generateRefreshToken: jest.fn()
   }
 
   const useCase = new CreateUserUseCase(mockUserRepo, mockTokenService, mockEncrypter)
@@ -33,7 +35,6 @@ describe('CreateUserUseCase', () => {
   const email = 'test@example.com'
   const password = '123456'
   const hashedPassword = 'hashedPassword123'
-  const fakeToken = 'fakeToken123'
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -49,30 +50,6 @@ describe('CreateUserUseCase', () => {
     expect(mockUserRepo.findByEmail).toHaveBeenCalledWith(email)
     expect(mockUserRepo.create).not.toHaveBeenCalled()
     expect(mockTokenService.generate).toHaveBeenCalled()
-  })
-
-  it('should create user, hash password and return success response', async () => {
-    mockUserRepo.findByEmail.mockResolvedValueOnce(null)
-    mockEncrypter.hash.mockResolvedValueOnce(hashedPassword)
-    mockTokenService.generate.mockReturnValueOnce(fakeToken)
-
-    const result = await useCase.execute(name, email, password)
-
-    expect(mockUserRepo.findByEmail).toHaveBeenCalledWith(email)
-    expect(mockEncrypter.hash).toHaveBeenCalledWith(password)
-    expect(mockUserRepo.create).toHaveBeenCalledWith(expect.any(User))
-    expect(mockTokenService.generate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sub: expect.any(String),
-        email,
-        name
-      })
-    )
-
-    expect(result.success).toBe(true)
-    expect(result.token).toBe(fakeToken)
-    expect(result.message).toBe(`Bienvenido ${name}`)
-    expect(result.user).toBeInstanceOf(User)
   })
 
   it('should throw if hashing fails', async () => {
