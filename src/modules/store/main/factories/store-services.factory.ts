@@ -1,3 +1,4 @@
+import { ConsoleLogger } from '@shared/infrastructure/logger/console.logger'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
@@ -23,7 +24,8 @@ const createStoreUseCase = new CreateStoreUseCase(
     storeRepository, 
     userRepository,
     migrationService,
-    i18n
+    i18n,
+    new ConsoleLogger()
 )
 
 const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)
@@ -44,7 +46,8 @@ export const StoreServicesTenantFactory = (tenant: string) => {
         storeRepository,
         userRepository,
         migrationService,
-        i18n
+        i18n,
+        new ConsoleLogger()
     )
 
     const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)

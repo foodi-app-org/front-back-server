@@ -12,7 +12,7 @@ export class SequelizeMigrationService implements MigrationService {
   private readonly logger = new ConsoleLogger()
 
   // Example usage in methods:
-  async execute(schemaName: string, type?: MigrationType, customMigrationFiles?: string[]): Promise<void> {
+  async execute(schemaName: string, type: MigrationType, customMigrationFiles?: string[]): Promise<void> {
     this.logger.info('Starting migration...')
     this.logger.info(`Connected to database for schema: ${schemaName}`)
     try {
@@ -20,6 +20,7 @@ export class SequelizeMigrationService implements MigrationService {
       const umzug = await createUmzugMigrator(schemaName as MigrationFolder, type, customMigrationFiles)
       await umzug.up()
     } catch (error) {
+      console.log("🚀 ~ SequelizeMigrationService ~ execute ~ error:", error)
       this.logger.error(`Error executing migrations for schema ${schemaName}:`)
       this.logger.error(error instanceof Error ? error.message : String(error))
       throw error

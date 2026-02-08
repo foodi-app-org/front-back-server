@@ -27,6 +27,10 @@ import { SequelizeUserModel, USER_MODEL } from '../../../../../modules/user/infr
 import { SequelizeProductExtraSold, EXTRA_PRODUCT_MODEL_SOLD } from '../../../../../modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 import SequelizePaymentMethod from '@modules/payment_method/infrastructure/db/sequelize/models/sequelize-payment_method.model'
 import SequelizeStockHistory from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
+import { SequelizeCitiesModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-cities.model'
+import { SequelizeCountriesModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-countries.model'
+import { SequelizeDepartmentsModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-deparments.model'
+
 
 export const models = {
   User: SequelizeUserModel,
@@ -61,6 +65,11 @@ export const models = {
   PaymentMethod: SequelizePaymentMethod,
 
   StockHistory: SequelizeStockHistory,
+  
+  // Countries: SequelizeCountriesModel
+  Countries: SequelizeCountriesModel,
+  Cities: SequelizeCitiesModel,
+  Departments: SequelizeDepartmentsModel
 
 }
 

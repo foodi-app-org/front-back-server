@@ -1,13 +1,21 @@
 
-// import { SequelizeProductRepository } from '../../../products/infrastructure/repositories/sequelize.controller.repository'
-// // import { CreateIShoppingCartTypeUseCase } from '../../application/use-cases/create_shopping.usecase'
-// // import { SumPriceShoppingCartUseCase } from '../../application/use-cases/sum-price-shopping.usecase'
-// import { SequelizeStatusOrderRepository } from '../repositories/sequelize.controller.repository'
+import { GetAllICountriesUseCase } from "@modules/geolocations/application/use-cases/get-all-countries.usecase"
+import { SequelizeCountriesRepository } from "../repositories/sequelize.counties.controller.repository"
+import type { CountriesRepository } from "@modules/geolocations/domain/repositories/countries.repository"
+import { MigrationFolder } from "@shared/infrastructure/db/sequelize/migrations/umzug.config"
+import { DepartmentsRepository } from "@modules/geolocations/domain/repositories/department.repository"
+import { GetAllDepartmentsByCountryUseCase } from "@modules/geolocations/application/use-cases/get-departments-by-country.usecase"
+import { SequelizeDepartmentsRepository } from "../repositories/sequelize.departments.controller.repository"
+import { GetAllCitiesByDepartmentUseCase } from "@modules/geolocations/application/use-cases/get-cities-by-department.usecase"
+import { CitiesRepository } from "@modules/geolocations/domain/repositories/cities.repository"
+import { SequelizeCitiesRepository } from "../repositories/sequelize.cities.controller.repository"
 
-// const shoppingRepository = new SequelizeStatusOrderRepository()
-// const productRepository = new SequelizeProductRepository()
+const countriesRepository: CountriesRepository = new SequelizeCountriesRepository(MigrationFolder.Public)
+const departmentsRepository: DepartmentsRepository = new SequelizeDepartmentsRepository(MigrationFolder.Public)
+const citiesRepository: CitiesRepository = new SequelizeCitiesRepository(MigrationFolder.Public)
 
-// export const ShoppingTypesServices = {
-//     // create: new CreateIShoppingCartTypeUseCase(shoppingRepository, productRepository),
-//     // sumPrice: new SumPriceShoppingCartUseCase(shoppingRepository)
-// }
+export const GeolocationServices = {
+    getAllCountries: new GetAllICountriesUseCase(countriesRepository),
+    getAllDepartmentsByCountryId: new GetAllDepartmentsByCountryUseCase(departmentsRepository),
+    getAllCitiesByDepartmentId:  new GetAllCitiesByDepartmentUseCase(citiesRepository)
+}

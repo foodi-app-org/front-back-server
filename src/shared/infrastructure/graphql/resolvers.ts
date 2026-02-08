@@ -24,6 +24,7 @@ import { clientResolvers } from '../../../modules/clients/interfaces/graphql/res
 
 import { printResolvers } from '@modules/pos_print_core/interfaces/graphql/resolvers/pos_print_core.resolver'
 import { paymentMethodResolvers } from '@modules/payment_method/interfaces/graphql/resolvers/payment-method.resolver'
+import { geolocationsResolvers } from '@modules/geolocations/interfaces/graphql/resolvers/geolocations.resolver'
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
 function incrementNumber () {
@@ -63,6 +64,7 @@ export default {
         ...productAvailableResolvers.Query,
         ...clientResolvers.Query,
         ...paymentMethodResolvers.Query,
+        ...geolocationsResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)
@@ -94,7 +96,8 @@ export default {
         ...productAvailableResolvers.Mutation,
         ...printResolvers.Mutation,
         ...paymentMethodResolvers.Mutation,
-        ...clientResolvers.Mutation
+        ...clientResolvers.Mutation,
+        ...geolocationsResolvers.Mutation
     },
     Subscription: {
      numberIncremented: {

@@ -31,11 +31,19 @@ export class SequelizeStoreRepository implements StoreRepository {
    * @returns {Promise<Store | null>} The store if found, or null.
    */
   async findByEmail(email: string): Promise<Store | null> {
-    const store = await models.Store.findOne({
-      where: { emailStore: email }
-    })
+    try {
+      const store = await models.Store.schema(this.tenant).findOne({
+        where: { emailStore: String(email) },
+        raw: true
+      })
 
-    return store ? store.toJSON() as Store : null
+      return store ? store as Store : null
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
   }
   /**
  * Finds a store by its email.

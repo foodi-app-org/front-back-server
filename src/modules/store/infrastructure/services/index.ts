@@ -1,3 +1,4 @@
+import { ConsoleLogger } from '@shared/infrastructure/logger/console.logger'
 import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/sequelize/migrations/services/SequelizeMigrationService'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
@@ -8,16 +9,18 @@ import { FindStoreByUserIdUseCase } from '../../application/use-cases/find-by-us
 import { SequelizeStoreRepository } from '../repositories/sequelize-store.controller.repository'
 
 
-const userRepository = new SequelizeUserRepository()
+const userRepository = new SequelizeUserRepository(MigrationFolder.Public)
 const storeRepository = new SequelizeStoreRepository(MigrationFolder.Public)
 const migrationService = new SequelizeMigrationService()
 const i18n = new I18nAdapter('es', 'store')
+const logger = new ConsoleLogger()
 
 const createStoreUseCase = new CreateStoreUseCase(
     storeRepository, 
     userRepository,
     migrationService,
-    i18n
+    i18n,
+    logger
 )
 
 const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)

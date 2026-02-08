@@ -5,8 +5,8 @@ type Country {
     cCalCod: String
     cState: Int
     # client: Product
-    cDatCre: DateTime
-    cDatMod: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
 }
 
 # Inputs    

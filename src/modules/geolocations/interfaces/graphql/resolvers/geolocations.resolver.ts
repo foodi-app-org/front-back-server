@@ -1,26 +1,23 @@
-// import { GraphQLResolveInfo } from 'graphql'
+import { GraphQLResolveInfo } from "graphql";
+import { GeolocationServices } from '../../../infrastructure/services'
 
-// import { GraphQLContext } from '../../../../../shared/types/context'
-// import { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
-// import { StoreServicesPublic } from '../../../infrastructure/services'
-
-
-// interface NewRegisterStoreArgs {
-//   input: CreateStoreDTO
-// }
-
-export const storeResolvers = {
-  /**
-   * Query to get store details by ID
-   */
+export const geolocationsResolvers = {
   Query: {
-    // getStore: async (_: GraphQLResolveInfo, args: { id: string }, context: GraphQLContext) => {
-    //   // return await StoreServicesPublic.findById.execute(args.id ?? context.restaurant ?? '')
-    // }
+    countries: async (_: GraphQLResolveInfo) => {
+      const data = await GeolocationServices.getAllCountries.execute()
+      return data?.data ?? null
+    },
+    getAllDepartments: async (_: GraphQLResolveInfo, args: { cId: string }) => {
+      const { cId } = args
+      const data = await GeolocationServices.getAllDepartmentsByCountryId.execute(cId)
+      return data?.data ?? null
+    },
+    getAllCities: async (_: GraphQLResolveInfo, args: { dId: string }) => {
+      const { dId } = args
+      const data = await GeolocationServices.getAllCitiesByDepartmentId.execute(dId)
+      return data?.data ?? null
+    }
   },
   Mutation: {
-    // newRegisterStore: async (_: GraphQLResolveInfo, args: NewRegisterStoreArgs) => {
-    //   return await StoreServicesPublic.create.execute(args.input)
-    // }
   }
 }

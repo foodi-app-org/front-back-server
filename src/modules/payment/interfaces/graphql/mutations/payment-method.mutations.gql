@@ -1,5 +1,0 @@
-type Mutation {
-  createPaymentMethod(input: CreatePaymentMethodInput!): PaymentMethod!
-  updatePaymentMethod(payId: ID!, input: UpdatePaymentMethodInput!): PaymentMethod!
-  deletePaymentMethod(payId: ID!): Boolean!
-}

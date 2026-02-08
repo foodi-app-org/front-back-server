@@ -25,27 +25,43 @@ export enum MigrationFolder {
 export enum MigrationType {
   All = 'all',
   DDL = 'ddl',
-  DML = 'dml'
+  DML = 'dml',
+  PUBLIC = 'public',
 }
 
 /**
  * Get migration paths for all modules by type (ddl or dml).
  *
- * @param type - Migration type: 'ddl' | 'dml'
+ * @param type - Migration type: 'ddl' | 'dml' | 'public'
  * @returns {Promise<string[]>} List of absolute migration paths
  */
-const getMigrationPaths = async (type: MigrationType): Promise<string[]> => {
-  const pattern = path.resolve(
-    __dirname,
-    `../../../../../modules/**/infrastructure/db/sequelize/migrations/${type}/*.ts`
-  )
+export const getMigrationPaths = async (type: MigrationType): Promise<string[]> => {
+  const normalize = (p: string) => p.replace(/\\/g, '/')
+  const resolvePattern = (segment: string) =>
+    path.resolve(__dirname, `../../../../../modules/**/infrastructure/db/sequelize/migrations/${segment}/*.ts`)
 
   if (type === MigrationType.All) {
-    const ddlMigrations = await getMigrationPaths(MigrationType.DDL)
-    const dmlMigrations = await getMigrationPaths(MigrationType.DML)
-    return [...ddlMigrations, ...dmlMigrations]
+    // concat DDL + DML
+    const [ddl, dml] = await Promise.all([
+      getMigrationPaths(MigrationType.DDL),
+      getMigrationPaths(MigrationType.DML),
+    ])
+    return [...ddl, ...dml]
   }
-  return glob(pattern.replace(/\\/g, '/')) // normalize for Windows
+
+  if (type === MigrationType.PUBLIC) {
+    // public/ddl + public/dml
+    const patterns = [
+      resolvePattern(`${MigrationType.PUBLIC}/${MigrationType.DDL}`),
+      resolvePattern(`${MigrationType.PUBLIC}/${MigrationType.DML}`),
+    ].map(normalize)
+
+    const results = await Promise.all(patterns.map(p => glob(p)))
+    return results.flat()
+  }
+
+  // DDL or DML (u otros tipos futuros)
+  return glob(normalize(resolvePattern(type)))
 }
 
 /**

@@ -31,6 +31,7 @@ type Query {
     "Consulta todos departamentos de un país"
     department: [Department]
     getOneDepartment(dId: ID): Department
+    getAllDepartments(cId: ID!): [Department]
 }
 
 # Mutations

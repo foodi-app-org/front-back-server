@@ -128,7 +128,7 @@
     "postbuild:copy:gql": "cpy \"src/graphql/**/*.{gql,graphql}\" build/graphql --parents",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
-    "migration:run:public": "npm run babel-node src/api/lib/db/migrations/migrations.public.js up",
+    "migration:run:public": "node -r ts-node/register -r tsconfig-paths/register src/shared/infrastructure/db/sequelize/migrations/public/cli.ts",
     "migration:tenants:run": "npm run babel-node src/api/lib/utils/migrate-tenants.js",
     "migration:down": "npx sequelize-cli db:migrate:undo",
     "lint": "eslint . --ext .ts",
@@ -146,7 +146,6 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:clear": "jest --clearCache",
-    "migrate:up": "ts-node src/infrastructure/db/sequelize/migrations/cli.ts up",
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "build": {
