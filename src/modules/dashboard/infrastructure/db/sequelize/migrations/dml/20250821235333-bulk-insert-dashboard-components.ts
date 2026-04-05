@@ -23,7 +23,7 @@ const defaultItems = [
   },
   {
     w: 3,
-    h: 8,
+    h: 5,
     x: 3,
     y: 0,
     id: 'Goal',
@@ -35,8 +35,8 @@ const defaultItems = [
   },
   {
     w: 3,
-    h: 8,
-    x: 6,
+    h: 5,
+    x: 12,
     y: 0,
     id: 'QrCode',
     name: 'QrCode',
@@ -47,9 +47,9 @@ const defaultItems = [
   },
   {
     w: 3,
-    h: 3,
+    h: 2,
     x: 0,
-    y: 2.6,
+    y: 3,
     id: 'SalesDay',
     name: 'SalesDay',
     moved: false,
@@ -59,7 +59,7 @@ const defaultItems = [
   },
   {
     w: 3,
-    h: 8,
+    h: 5,
     x: 9,
     y: 0,
     id: 'TeamStore',
@@ -71,9 +71,9 @@ const defaultItems = [
   },
   {
     w: 3,
-    h: 8,
-    x: 0,
-    y: 5.6,
+    h: 5,
+    x: 6,
+    y: 0,
     id: 'Devices',
     name: 'Devices',
     moved: false,
@@ -82,10 +82,10 @@ const defaultItems = [
     mobile: true
   },
   {
-    w: 9,
-    h: 7,
+    w: 12,
+    h: 14,
     x: 3,
-    y: 8,
+    y: 5,
     id: 'ChatStatistic',
     name: 'ChatStatistic',
     moved: false,
@@ -94,6 +94,7 @@ const defaultItems = [
     mobile: false
   }
 ]
+
 
 /**
  * Inserts default dashboard components into the `dashboard_components` table.
