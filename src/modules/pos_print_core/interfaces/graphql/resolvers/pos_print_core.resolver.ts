@@ -9,6 +9,63 @@ import { convertTimezone } from '@shared/utils/convert-time-zone'
 
 const printer = new EscposNetworkPrinterAdapter()
 
+/**
+ * Coerces a value into a finite number for totals computation.
+ * Returns the provided fallback when the value is an object, null,
+ * empty or otherwise not parseable (e.g. a corrupted '[object Object]').
+ */
+const toSafeNumber = (value: unknown, fallback: number): number => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : fallback
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value.replace(/[, ]+/g, ''))
+    return Number.isFinite(parsed) ? parsed : fallback
+  }
+  return fallback
+}
+
+/**
+ * Normalizes the numeric fields consumed by computeCartTotals
+ * (extraPrice, quantity on extras; discount on the product) so that
+ * corrupted or non-numeric values do not break ticket printing.
+ */
+const sanitizeShoppingNumbers = (carts: any[]): any[] => {
+  if (!Array.isArray(carts)) {
+    return carts
+  }
+  return carts.map((cart) => {
+    const products = cart?.products
+    if (!products || typeof products !== 'object') {
+      return cart
+    }
+    const sanitizeExtras = (extras: unknown): unknown => {
+      if (!Array.isArray(extras)) {
+        return extras
+      }
+      return extras.map((extra) => {
+        if (!extra || typeof extra !== 'object') {
+          return extra
+        }
+        return {
+          ...extra,
+          extraPrice: toSafeNumber((extra as any).extraPrice, 0),
+          quantity: toSafeNumber((extra as any).quantity, 1)
+        }
+      })
+    }
+    return {
+      ...cart,
+      products: {
+        ...products,
+        discount: toSafeNumber(products.discount, 0),
+        dataExtra: sanitizeExtras(products.dataExtra),
+        dataOptional: sanitizeExtras(products.dataOptional)
+      }
+    }
+  })
+}
+
 export const printResolvers = {
   Mutation: {
     printSaleTicket: async (_: any, { saleId }: { saleId: string }, context: GraphQLContext) => {
@@ -47,10 +104,12 @@ export const printResolvers = {
         const store = await servicesStore.findById.execute(idStore)
         const client = await servicesClient.findById.execute(String(clientId || idStore))
 
-        const totals = computeCartTotals(shopping as any[], {
+        const safeShopping = sanitizeShoppingNumbers(shopping as any[])
+
+        const totals = computeCartTotals(safeShopping, {
           currencySymbol: '$',
           includeExtras: true,
-          globalDiscountPercent: discount ?? 0,
+          globalDiscountPercent: toSafeNumber(discount, 0),
         })
         try {
           const { mkdir, writeFile } = await import('fs/promises')
@@ -58,7 +117,7 @@ export const printResolvers = {
           const outDir = join(process.cwd(), 'tmp', 'pos_print_core')
           await mkdir(outDir, { recursive: true })
           const filePath = join(outDir, `sale-totals-${pCodeRef}.json`)
-          await writeFile(filePath, JSON.stringify(shopping, null, 2), 'utf8')
+          await writeFile(filePath, JSON.stringify(safeShopping, null, 2), 'utf8')
         } catch {
           // ignore file save errors
         }
@@ -66,7 +125,7 @@ export const printResolvers = {
           date: convertTimezone(createdAt as Date),
           store,
           client: client?.data,
-          products: shopping,
+          products: safeShopping,
           totals,
           info: {
             pCodeRef

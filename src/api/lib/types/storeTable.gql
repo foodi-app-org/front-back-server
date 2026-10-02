@@ -1,54 +1,44 @@
-# Tipo para representar una mesa en el restaurante
+enum TableState {
+  UNAVAILABLE
+  ACTIVE
+  OCCUPIED
+}
+
 type StoreTable {
   tableId: ID!
   tableName: String!
-  seats: Int
-  section: String
-  tableState: Int
-  createdAt: String!
-  updatedAt: String!
+  seats: Int!
+  section: String!
+  tableState: TableState!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
-# Tipo para las respuestas de creación y actualización
 type TableResponse {
-  success: Boolean
-  message: String
+  success: Boolean!
+  message: String!
   errors: [errors]
   data: StoreTable
 }
 
-# Consultas para obtener las mesas
 type Query {
-  # Obtener todas las mesas
-  storeTables: [StoreTable]
-
-  # Obtener una mesa por su ID
+  storeTables: [StoreTable!]!
   storeTable(tableId: ID!): StoreTable
 }
 
-# Mutaciones para modificar las mesas
 type Mutation {
-  # Crear una nueva mesa
-  storeTable(
+  storeTableCreate(
     tableName: String!
-    seats: Int
-    section: String
-    tableState: Int
-  ): TableResponse
+    seats: Int!
+    section: String!
+    tableState: TableState
+  ): TableResponse!
 
-  # Actualizar una mesa existente
   updateStoreTable(
     tableId: ID!
     tableName: String
     seats: Int
     section: String
-    tableState: Int
-  ): TableResponse
-
-  storeTableCreate(
-    tableName: String!
-    seats: Int
-    section: String
-    tableState: Int
-  ): TableResponse
+    tableState: TableState
+  ): TableResponse!
 }

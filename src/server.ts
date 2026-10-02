@@ -26,6 +26,7 @@ import type { Request, Response, NextFunction } from 'express'
 import { bodyToString } from '@shared/utils/body-to-string'
 import { eventBus } from '@shared/infrastructure/event-bus'
 import { registerSubscribersFromModules } from '@shared/infrastructure/event-bus/registry'
+import { runPublicMigrations } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -88,6 +89,14 @@ const server = new ApolloServer({
 
 (async () => {
   const pubsub = new PubSub()
+  // Ensure the `public.*` tables and their seed data exist before serving
+  // requests. Idempotent: only pending migrations are applied. A failure here
+  // is logged but does not prevent the server from starting.
+  try {
+    await runPublicMigrations()
+  } catch (error) {
+    LogInfo('Public migrations failed on bootstrap: ' + (error as Error).message)
+  }
   // event subscribers rxjs
   registerSubscribersFromModules(path.resolve(__dirname, '..'), pubsub)
   await server.start()

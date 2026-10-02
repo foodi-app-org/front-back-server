@@ -1,43 +1,64 @@
+import {
+  Table,
+  TableStateEnum
+} from '../../domain/entities/tables.entity'
 
-import { Table } from '../../domain/entities/tables.entity'
-import { TableRepository } from '../../domain/repositories/shopping.repository'
+import {
+  TableRepository
+} from '../../domain/repositories/shopping.repository'
 
+interface CreateTableInput {
+  tableName: string
+  seats: number
+  section: string
+  tableState?: TableStateEnum
+}
 
-interface CreateTableResponse {
-  success: boolean;
-  message: string;
-  data: Table | null;
+export interface CreateTableResponse {
+  success: boolean
+  message: string
+  data: Table
 }
 
 /**
- * Use case responsible for creating a ShoppingCart.
+ * Use case responsible for creating a restaurant table.
  */
 export class CreateTableUseCase {
   constructor(
-    private readonly shoppingCartRepository: TableRepository
-  ) { }
+    private readonly tableRepository: TableRepository
+  ) {}
 
   /**
-   * Executes the use case to create a ShoppingCart.
-   * @param input - store data
-   * @returns The newly created Store or null if it already exists
+   * Creates a new restaurant table.
+   *
+   * @param input - Data required to create the table.
+   * @returns The newly created table.
    */
-  async execute(input: Table): Promise<CreateTableResponse | null> {
+  async execute(
+    input: CreateTableInput
+  ): Promise<CreateTableResponse> {
     const table = new Table(
-      input.tableId,
-      input.tableName,
+      undefined,
+      input.tableName.trim(),
       input.seats,
-      input.section,
-      input.tableState,
-      new Date(),
-      new Date()
+      input.section.trim(),
+      input.tableState ??
+        TableStateEnum.ACTIVE
     )
-    const created = await this.shoppingCartRepository.create(table)
+
+    const createdTable =
+      await this.tableRepository.create(table)
+
+    if (!createdTable) {
+      throw new Error(
+        'Table could not be created'
+      )
+    }
 
     return {
       success: true,
       message: 'Table created successfully',
-      data: created
+      data: createdTable
     }
   }
 }

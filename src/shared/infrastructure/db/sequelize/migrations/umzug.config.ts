@@ -151,3 +151,23 @@ export const runMigrations = async (
 
   console.log('✅ All migrations completed successfully!')
 }
+
+/**
+ * Applies the pending `public` migrations (public/ddl + public/dml) on the
+ * default schema. Idempotent: Umzug tracks applied migrations in its meta
+ * table, so tables/seeds are created only when missing. Intended to be called
+ * at application bootstrap so the `public.*` tables and their seed data exist
+ * without running the migration CLI manually.
+ */
+export const runPublicMigrations = async (): Promise<void> => {
+  const customMigrationFiles = await getMigrationPaths(MigrationType.PUBLIC)
+  if (customMigrationFiles.length === 0) {
+    return
+  }
+  const umzug = await createUmzugMigrator(
+    MigrationFolder.Public,
+    MigrationType.PUBLIC,
+    customMigrationFiles
+  )
+  await umzug.up()
+}

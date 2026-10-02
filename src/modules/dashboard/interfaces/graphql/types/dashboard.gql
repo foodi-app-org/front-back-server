@@ -29,6 +29,7 @@ type Query {
 type ResponseDashboardComponent {
     success: Boolean
     message: String
+    id: ID
     data: DashboardComponent
     errors: [errors]
 }

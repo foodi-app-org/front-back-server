@@ -48,7 +48,13 @@ const connectConfig: Options = useSQLITE
       dialect: 'sqlite',
       storage: sqliteDatabasePath,
       logging: false,
-      // schema solo aplica a Postgres, puedes quitarlo aquí
+      // The domain logic queries tables under the `public` schema
+      // (e.g. Model.schema('public')). SQLite has no native schemas, so we set
+      // it as the default schema: sync() then creates tables as `public.<table>`
+      // and `.schema('public')` queries resolve correctly.
+      define: {
+        schema: 'public'
+      },
       dialectOptions: {
         useUTC: false
       }

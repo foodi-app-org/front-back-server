@@ -96,6 +96,38 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
   }
 
   async getAllByRefCode(shoppingCartRefCode: string, pCodeRef: string): Promise<any[] | null> {
+    if (!models.ShoppingCart.associations[ASSOCIATION_PRODUCTS_NAME]) {
+      models.ShoppingCart.belongsTo(models.ProductSold, {
+        foreignKey: 'pId',
+        targetKey: 'pId',
+        as: ASSOCIATION_PRODUCTS_NAME
+      })
+    }
+
+    if (!models.ProductSold.associations.dataExtra) {
+      models.ProductSold.hasMany(models.ProductExtraSold, {
+        foreignKey: 'pId',
+        sourceKey: 'pId',
+        as: 'dataExtra'
+      })
+    }
+
+    if (!models.ProductSold.associations.dataOptional) {
+      models.ProductSold.hasMany(models.ProductOptionalExtraSold, {
+        foreignKey: 'pId',
+        sourceKey: 'pId',
+        as: 'dataOptional'
+      })
+    }
+
+    if (!models.ProductOptionalExtraSold.associations.ExtProductFoodsSubOptionalAll) {
+      models.ProductOptionalExtraSold.hasMany(models.ProductSubOptionalExtraSold, {
+        foreignKey: 'opExPid',
+        sourceKey: 'opExPid',
+        as: 'ExtProductFoodsSubOptionalAll'
+      })
+    }
+
     try {
       const shoppingCarts = await models.ShoppingCart.schema(this.tenant).findAll({
         where: { shoppingCartRefCode },

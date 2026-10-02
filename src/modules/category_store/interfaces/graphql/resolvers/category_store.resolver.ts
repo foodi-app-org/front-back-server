@@ -4,7 +4,6 @@ import { Services } from '../../../infrastructure/services'
 import { CreateCategoryStoreInput } from '../inputs'
 
 export const categoryStoreResolvers = {
-  
   Query: {
     getAllCatStore: async (_: GraphQLResolveInfo) => {
       return await Services.getAll.execute()

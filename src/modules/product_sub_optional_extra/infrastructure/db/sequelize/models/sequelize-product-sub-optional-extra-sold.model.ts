@@ -2,12 +2,12 @@
 
 import { STRING, UUIDV4 } from 'sequelize'
 
-// import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
+import connect from '../../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { columnsProductSubOptionalExtra, SequelizeProductSubOptionalExtra } from './sequelize-product-sub-optional-extra.model'
 import { PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL } from '@modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra-sold.model'
 // import SequelizeProductOptionalExtraSold, { PRODUCT_OPTIONAL_EXTRA_SOLD_MODEL } from '@modules/product_optional_extra/infrastructure/db/sequelize/models/sequelize-product-optional-extra-sold.model'
 
-// const sequelize = connect()
+const sequelize = connect()
 
 export const PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL = 'products_sub_optional_extras_sold'
 
@@ -43,12 +43,12 @@ export const columnsProductSubOptionalExtraSold = {
 /**
  * Init model with same columns but different table
  */
-// SequelizeProductSubOptionalExtraSold.init(columnsProductSubOptionalExtraSold, {
-//   sequelize,
-//   modelName: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
-//   freezeTableName: true,
-//   timestamps: false
-// })
+SequelizeProductSubOptionalExtraSold.init(columnsProductSubOptionalExtraSold, {
+  sequelize,
+  modelName: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
+  freezeTableName: true,
+  timestamps: false
+})
 
 // OPTIONAL EXTRA SOLD → MANY SUB OPTIONAL EXTRAS SOLD
 // SequelizeProductOptionalExtraSold.hasMany(SequelizeProductSubOptionalExtraSold, {

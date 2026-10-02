@@ -166,8 +166,8 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       mIcon: 'IconPlusUser',
       globalConfig: {},
       submodules: [
-        { smName: 'Usuarios', view: 'roles', smPath: 'management/users', smPriority: 1, smIcon: 'IconPlusUser' },
-        { smName: 'Roles', view: 'roles', smPath: 'management/roles', smPriority: 2, smIcon: 'IconPlusUser' }
+        { smName: 'Usuarios', view: 'roles', smPath: 'management', smPriority: 1, smIcon: 'IconPlusUser' },
+        { smName: 'Roles', view: 'roles', smPath: 'management', smPriority: 2, smIcon: 'IconPlusUser' }
       ]
     },
     {

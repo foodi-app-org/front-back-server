@@ -41,7 +41,12 @@ const connectConfig = useSQLITE
     dialect: 'sqlite',
     storage: sqliteDatabasePath,
     logging: false,
-    schema: 'public',
+    // SQLite has no native schemas; set `public` as the default schema so
+    // tables are created as `public.<table>` and `.schema('public')` queries
+    // resolve correctly (matches the original public-schema logic).
+    define: {
+      schema: 'public'
+    },
     dialectOptions: {
       useUTC: false
     }

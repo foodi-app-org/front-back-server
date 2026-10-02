@@ -7,7 +7,10 @@ import { models } from '../../../../shared/infrastructure/db/sequelize/orm/model
 import {
   DashboardComponents, DashboardComponentUpdateInput
 } from '../../domain/entities/dashboard-components.entity'
-import { DashboardComponentsRepository } from '../../domain/repositories/dashboard-components.repository'
+import {
+  DashboardComponentCreateInput,
+  DashboardComponentsRepository
+} from '../../domain/repositories/dashboard-components.repository'
 
 
 export class SequelizeDashboardComponentsRepository implements DashboardComponentsRepository {
@@ -72,6 +75,62 @@ export class SequelizeDashboardComponentsRepository implements DashboardComponen
         }
       })
       return updatedComponents
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+  async create(input: DashboardComponentCreateInput): Promise<DashboardComponents | null> {
+    try {
+      const coords = input.coordinates ?? {}
+      // The `name` column stores the component key (e.g. "Goal", "Devices"),
+      // which is how `update`/`delete` and the frontend mapper identify it.
+      const name = coords.name ?? coords.id ?? input.title ?? ''
+
+      const created = await models.DashboardComponents.schema(this.tenant).create({
+        idStore: input.idStore ?? '',
+        title: input.title ?? coords.title ?? '',
+        name,
+        state: 1,
+        coordinates: {
+          x: coords.x ?? 0,
+          y: coords.y ?? 0,
+          w: coords.w ?? 3,
+          h: coords.h ?? 4,
+          name,
+          id: name,
+          title: input.title ?? coords.title ?? '',
+          moved: coords.moved ?? false,
+          static: coords.static ?? false
+        }
+      } as never)
+
+      return created as unknown as DashboardComponents
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+  async delete(id: string): Promise<{ success: boolean; message?: string; id?: string }> {
+    try {
+      // The instance id sent by the client is stored in the `name` column
+      // (mirrors how `update` matches components by `name`). Fall back to the
+      // primary key `id` for records that were stored that way.
+      const deletedCount = await models.DashboardComponents.schema(this.tenant).destroy({
+        where: {
+          [Op.or]: [{ name: id }, { id }]
+        }
+      })
+
+      if (deletedCount === 0) {
+        return { success: false, message: 'Dashboard component not found', id }
+      }
+
+      return { success: true, message: 'Dashboard component deleted', id }
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

@@ -1,6 +1,5 @@
 import {
   DataTypes,
-  literal,
   Model,
   Optional,
   SMALLINT,
@@ -41,7 +40,7 @@ export interface ITableAttributes {
  */
 export type ITableCreationAttributes = Optional<
   ITableAttributes,
-  'createdAt' | 'updatedAt'
+  'tableId' | 'createdAt' | 'updatedAt'
 >
 
 /**
@@ -100,12 +99,12 @@ export const columnsTable = {
   },
   createdAt: {
     type: DataTypes.DATE,
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: DataTypes.NOW,
     allowNull: false
   },
   updatedAt: {
     type: DataTypes.DATE,
-    defaultValue: literal('CURRENT_TIMESTAMP'),
+    defaultValue: DataTypes.NOW,
     allowNull: false
   }
 }

@@ -2,7 +2,9 @@
 
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
+import { AddDashboardComponentUseCase } from '../../application/use-cases/add-dashboard-component.usecase'
 import { GetAllDashboardComponentsUseCase } from '../../application/use-cases/create-dashboard-components.usecase'
+import { DeleteDashboardComponentsUseCase } from '../../application/use-cases/delete-dashboard-components.usecase'
 import { GetLocalBackendIpUseCase } from '../../application/use-cases/get-local-ip.usecase'
 import { UpdateDashboardComponentsUseCase } from '../../application/use-cases/update-dashboard-components.usecase'
 import { SequelizeDashboardComponentsRepository } from '../repositories/sequelize.controller.repository'
@@ -19,7 +21,9 @@ export const DashboardComponentsServicesFactory = (tenant: string) => {
 
     return {
         getAll: new GetAllDashboardComponentsUseCase(moduleRepository),
+        create: new AddDashboardComponentUseCase(moduleRepository),
         update: new UpdateDashboardComponentsUseCase(moduleRepository),
+        delete: new DeleteDashboardComponentsUseCase(moduleRepository),
         getLocalBackendIp: new GetLocalBackendIpUseCase(moduleRepository)
     }
 }
