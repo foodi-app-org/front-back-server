@@ -37,10 +37,6 @@ export class Table {
       )
     }
 
-    if (!this.section?.trim()) {
-      throw new Error('Table section is required')
-    }
-
     if (
       !Object.values(TableStateEnum).includes(
         this.tableState
