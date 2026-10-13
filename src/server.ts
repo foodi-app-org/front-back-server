@@ -15,6 +15,7 @@ import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import { wsSchema } from './ws-schema'
 import cors from 'cors'
 import routes from './shared/infrastructure/res/routes'
+import { createPushNotificationsModule } from '@modules/push_notifications'
 import morgan from 'morgan'
 import { context } from './shared/infrastructure/graphql/context'
 import { PubSub } from 'graphql-subscriptions'
@@ -120,6 +121,9 @@ const server = new ApolloServer({
   )
   app.use(express.json())
   app.use('/api', routes)
+  // Web Push mini-hexagon. Mounted at the root because the frontend hook calls
+  // the subscription endpoints directly on the API base (e.g. POST /subscription2).
+  app.use(createPushNotificationsModule())
   app.use(morgan('dev'))
   // Root simple
   app.use(
