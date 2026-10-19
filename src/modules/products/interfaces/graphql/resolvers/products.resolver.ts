@@ -3,8 +3,9 @@ import { GraphQLResolveInfo } from 'graphql'
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { productSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
-import { CreateStatusTypeOrderInput } from '../inputs'
+import { CreateMultipleProducts, CreateStatusTypeOrderInput } from '../inputs'
 import { QueryProductFoodsAllArgs } from 'generated/graphql'
+import { IProduct } from '@modules/products/domain'
 
 export const productResolvers = {
   Query: {
@@ -94,6 +95,39 @@ export const productResolvers = {
           data: null
         }
       }
-    }
+    },
+    updateMultipleProducts: async (_: GraphQLResolveInfo, args: { input: CreateMultipleProducts[] }, context: GraphQLContext) => {
+      const services = ProductServicesTenantFactory(context.restaurant ?? '')
+      const productsSucess: IProduct[] = []
+      const products = args.input
+      for (const product of products) {
+        const { error, value } = productSchema.validate({
+          ...product,
+          idStore: context.restaurant ?? ''
+        }, {
+          abortEarly: true
+        })
+        if (error) {
+          return {
+            success: false,
+            data: null,
+            message: 'Error de validación',
+            errors: error?.details.map(e => ({
+              message: e.message,
+              path: e.path,
+              type: e.type,
+              context: e.context
+            }))
+          }
+        }
+        const response = await services.create.execute(value)
+        console.log(response)
+        const { success, data } = response || {}
+        if (success && data) {
+          productsSucess.push(data)
+        }
+      }
+      return productsSucess
+    },
   }
 }

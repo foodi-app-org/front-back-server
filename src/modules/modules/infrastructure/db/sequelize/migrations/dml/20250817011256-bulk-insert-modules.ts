@@ -194,6 +194,14 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
         { smName: 'Entradas', view: 'inventory', smPath: 'inventory/entries', smPriority: 2, smIcon: 'IconInventory' },
         { smName: 'Salidas', view: 'inventory', smPath: 'inventory/outputs', smPriority: 3, smIcon: 'IconInventory' }
       ]
+    },
+    {
+      mName: 'WhatsApp',
+      view: 'whatsapp',
+      mPath: 'whatsapp',
+      mPriority: 14,
+      mIcon: 'IconWhatsApp',
+      globalConfig: {}
     }
   ]
 
