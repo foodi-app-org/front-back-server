@@ -1,4 +1,5 @@
 import { GraphQLResolveInfo } from 'graphql'
+import { validate as uuidValidate } from 'uuid'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
 import { productOptionalExtraSchema } from '../../../infrastructure/validators/product-optional-extra.validator'
@@ -41,6 +42,14 @@ export const productOptionalExtraResolvers = {
   Mutation: {
     updateExtProductOptional: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
       const values = { ...args.input }
+      // The frontend uses a short `code` as `opExPid` for brand-new optionals
+      // (see the `isCustomOpExPid` convention). `opExPid` is the server-generated
+      // GUID, so any value that is not a valid UUID means "create". Clear it
+      // before validation and before the use case's create/update branching,
+      // which keys off the truthiness of `opExPid` (falsy => create, truthy => update).
+      if (!uuidValidate(values.opExPid)) {
+        delete values.opExPid
+      }
       const { error, value } = productOptionalExtraSchema.validate({
         ...values,
         idStore: context.restaurant ?? ''

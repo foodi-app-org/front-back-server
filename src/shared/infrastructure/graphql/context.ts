@@ -24,6 +24,20 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
     const token = req.headers['authorization']?.split(' ')[1] ?? null
     const restaurant = req.headers['restaurant'] ?? null
 
+    // Block all tenant-scoped requests that arrive without a restaurant header.
+    // IntrospectionQuery is allowed through (no restaurant required).
+    const operationName = (req.body as { operationName?: string })?.operationName
+    const isIntrospection = operationName === 'IntrospectionQuery'
+
+    if (!restaurant && !isIntrospection) {
+      throw new GraphQLError('Restaurant header is required', {
+        extensions: {
+          code: 'UNAUTHENTICATED',
+          http: { status: 401 }
+        }
+      })
+    }
+
     const { message } = await getUserFromToken(token)
 
     if (message === 'Session expired, refresh needed') {
@@ -71,6 +85,10 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
       restaurant: restaurant as string
     }
   } catch (err: unknown) {
+    if (err instanceof GraphQLError) {
+      throw err
+    }
+
     if (err instanceof Error && err.message === 'jwt expired') {
       throw new GraphQLError('Token expired', {
         extensions: {
