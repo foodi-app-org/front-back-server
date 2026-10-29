@@ -6,6 +6,8 @@ type FilterValue {
   description: String!
   value: String
   imageUrn: String
+  "Nombre del ícono del mapa Icons de pkg-components (ej. 'IconStar')."
+  icon: String
 }
 
 """
@@ -21,6 +23,8 @@ type FilterGroup {
   selectionMode: String
   "Fuente dinámica de valores (ej. 'PRODUCT_CATEGORIES'). Si está presente, los valores se cargan en runtime."
   source: String
+  "Ícono por defecto aplicado a los valores del grupo que no definan uno propio."
+  icon: String
   values: [FilterValue!]!
 }
 
@@ -59,6 +63,7 @@ input FilterValueInput {
   description: String!
   value: String
   imageUrn: String
+  icon: String
 }
 
 input FilterGroupInput {
@@ -68,6 +73,7 @@ input FilterGroupInput {
   queryKey: String
   selectionMode: String
   source: String
+  icon: String
   values: [FilterValueInput!]!
 }
 

@@ -1,0 +1,22 @@
+"""
+Response returned after permanently deleting a store (tenant).
+"""
+type DeleteStorePayload {
+  success: Boolean
+  message: String
+  idStore: ID
+  storesDeleted: Int
+  usersDeleted: Int
+}
+
+type Mutation {
+  """
+  Permanently deletes a store/tenant: drops its schema (all tables and records)
+  and removes the store and its associated user from the public schema, so the
+  commerce can be registered again from scratch.
+
+  Destructive and irreversible. Requires an authenticated session. If `idStore`
+  is omitted, the store bound to the current session (restaurant header) is used.
+  """
+  deleteStore(idStore: ID): DeleteStorePayload
+}

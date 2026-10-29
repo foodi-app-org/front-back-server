@@ -5,6 +5,7 @@ import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { SequelizeUserRepository } from '../../../user/infrastructure/repositories/sequelize-user.controller.repository'
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'
+import { DeleteStoreUseCase } from '../../application/use-cases/delete-store.usecase'
 import { DeleteBannerUseCase } from '../../application/use-cases/delete-banner.usecase'
 import { DeleteLogoUseCase } from '../../application/use-cases/delete-logo-store.usecase'
 import { FindStoreUseCase } from '../../application/use-cases/find-by-id-store.usecase'
@@ -30,11 +31,13 @@ const createStoreUseCase = new CreateStoreUseCase(
 
 const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)
 const findByUserIdStoreUseCase = new FindStoreByUserIdUseCase(storeRepository)
+const deleteStoreUseCase = new DeleteStoreUseCase(storeRepository, new ConsoleLogger())
 
 export const StoreServicesPublic = {
     create: createStoreUseCase,
     findById: findByIdStoreUseCase,
-    findByUserId: findByUserIdStoreUseCase
+    findByUserId: findByUserIdStoreUseCase,
+    delete: deleteStoreUseCase
 }
 
 export const StoreServicesTenantFactory = (tenant: string) => {

@@ -9,6 +9,7 @@ type FilterValue = {
   description: string
   value?: string | number | null
   imageUrn?: string | null
+  icon?: string | null
 }
 
 type FilterGroup = {
@@ -18,6 +19,7 @@ type FilterGroup = {
   queryKey?: string | null
   selectionMode?: string | null
   source?: string | null
+  icon?: string | null
   values: FilterValue[]
 }
 
@@ -29,19 +31,30 @@ type FilterTab = {
 
 /**
  * Loads the store's real product categories as filter values.
+ * Each value inherits `defaultIcon` when the category has no image.
  * Returns an empty list when the store has no categories or on error.
  */
 async function loadProductCategoryValues(
-  restaurant?: string
+  restaurant?: string,
+  defaultIcon?: string | null
 ): Promise<FilterValue[]> {
   if (!restaurant) return []
   try {
     const services = CategoryProductRepositoryServicesTenantFactory(restaurant)
     const result = await services.getAll.execute()
-    const data = (result?.data ?? []) as Array<{ carProId?: string; pName?: string }>
+    const data = (result?.data ?? []) as Array<{
+      carProId?: string
+      pName?: string
+      ProImage?: string
+    }>
     return data
       .filter((c) => c?.carProId && c?.pName)
-      .map((c) => ({ id: String(c.carProId), description: String(c.pName) }))
+      .map((c) => ({
+        id: String(c.carProId),
+        description: String(c.pName),
+        imageUrn: c.ProImage ?? null,
+        icon: defaultIcon ?? null
+      }))
   } catch {
     return []
   }
@@ -56,12 +69,12 @@ async function hydrateDynamicGroups(
   tabs: FilterTab[],
   restaurant?: string
 ): Promise<FilterTab[]> {
-  const needsCategories = tabs.some((t) =>
-    t.filterGroups?.some((g) => g.source === 'PRODUCT_CATEGORIES')
-  )
+  const categoryGroup = tabs
+    .flatMap((t) => t.filterGroups ?? [])
+    .find((g) => g.source === 'PRODUCT_CATEGORIES')
 
-  const categoryValues = needsCategories
-    ? await loadProductCategoryValues(restaurant)
+  const categoryValues = categoryGroup
+    ? await loadProductCategoryValues(restaurant, categoryGroup.icon)
     : []
 
   return tabs.map((tab) => ({

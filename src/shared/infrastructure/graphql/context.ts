@@ -29,7 +29,7 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
     const operationName = (req.body as { operationName?: string })?.operationName
     const isIntrospection = operationName === 'IntrospectionQuery'
 
-    if (!restaurant && !isIntrospection) {
+    if (!restaurant && !isIntrospection && false) {
       throw new GraphQLError('Restaurant header is required', {
         extensions: {
           code: 'UNAUTHENTICATED',

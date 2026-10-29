@@ -4,6 +4,7 @@ import { SequelizeMigrationService } from '../../../../shared/infrastructure/db/
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { SequelizeUserRepository } from '../../../user/infrastructure/repositories/sequelize-user.controller.repository'
 import { CreateStoreUseCase } from '../../application/use-cases/create-store.usecase'
+import { DeleteStoreUseCase } from '../../application/use-cases/delete-store.usecase'
 import { FindStoreUseCase } from '../../application/use-cases/find-by-id-store.usecase'
 import { FindStoreByUserIdUseCase } from '../../application/use-cases/find-by-user-id-store.usecase'
 import { SequelizeStoreRepository } from '../repositories/sequelize-store.controller.repository'
@@ -25,9 +26,11 @@ const createStoreUseCase = new CreateStoreUseCase(
 
 const findByIdStoreUseCase = new FindStoreUseCase(storeRepository)
 const findByUserIdStoreUseCase = new FindStoreByUserIdUseCase(storeRepository)
+const deleteStoreUseCase = new DeleteStoreUseCase(storeRepository, logger)
 
 export const StoreServicesPublic = {
     create: createStoreUseCase,
     findById: findByIdStoreUseCase,
-    findByUserId: findByUserIdStoreUseCase
+    findByUserId: findByUserIdStoreUseCase,
+    delete: deleteStoreUseCase
 }

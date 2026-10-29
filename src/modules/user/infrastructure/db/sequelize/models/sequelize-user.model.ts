@@ -27,6 +27,7 @@ export interface IUserAttributes {
   ULocation?: string
   upLat?: string
   uState?: number
+  idStore?: string
   upLon?: string
   upIdeDoc?: string
   siteWeb?: string

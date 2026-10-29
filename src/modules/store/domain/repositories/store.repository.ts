@@ -42,6 +42,18 @@ export interface StoreRepository {
 
 
   update(id: string, updateData: Partial<Store>): Promise<Store | null>;
+
+  /**
+   * Permanently deletes a store (tenant) and all of its data.
+   *
+   * This drops the tenant PostgreSQL schema (all tables + records) and removes
+   * the store row and its associated user from the public schema, so the
+   * commerce can be registered again from scratch.
+   *
+   * @param idStore - UUID of the store/tenant to delete.
+   * @returns The number of public rows removed (stores + users).
+   */
+  deleteStoreCompletely(idStore: string): Promise<{ storesDeleted: number; usersDeleted: number }>;
   // /**
   //  * Retrieves all stores.
   //  * @returns Array of Store entities.

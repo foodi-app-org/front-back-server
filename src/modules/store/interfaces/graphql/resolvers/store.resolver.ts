@@ -63,6 +63,35 @@ export const storeResolvers = {
     deleteALogoStore: async (_: GraphQLResolveInfo, { idStore }: { idStore: string }, context: GraphQLContext) => {
       const services = StoreServicesTenantFactory(context.restaurant ?? '')
       return await services.deleteALogoStore.execute({ idStore: idStore ?? context.restaurant ?? '' })
+    },
+
+    /**
+     * Permanently deletes a store/tenant (schema + public store & user rows).
+     * Destructive and irreversible. Requires an authenticated session.
+     */
+    deleteStore: async (_: GraphQLResolveInfo, { idStore }: { idStore?: string }, context: GraphQLContext) => {
+      if (!context.User?.id) {
+        return {
+          success: false,
+          message: 'No autorizado. Debes iniciar sesión para eliminar un comercio.',
+          idStore: idStore ?? context.restaurant ?? '',
+          storesDeleted: 0,
+          usersDeleted: 0
+        }
+      }
+
+      const targetStore = idStore ?? context.restaurant ?? ''
+      if (!targetStore) {
+        return {
+          success: false,
+          message: 'idStore es requerido para eliminar el comercio.',
+          idStore: '',
+          storesDeleted: 0,
+          usersDeleted: 0
+        }
+      }
+
+      return await StoreServicesPublic.delete.execute(targetStore)
     }
   }
 }
