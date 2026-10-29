@@ -30,6 +30,7 @@ import SequelizeStockHistory from '@modules/stock/infrastructure/db/sequelize/mo
 import { SequelizeCitiesModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-cities.model'
 import { SequelizeCountriesModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-countries.model'
 import { SequelizeDepartmentsModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-deparments.model'
+import { FILTER_CONFIG_MODEL, SequelizeFilterConfigModel } from '../../../../../modules/filter_config/infrastructure/repositories/sequelize-filter-config.model'
 
 
 export const models = {
@@ -69,7 +70,10 @@ export const models = {
   // Countries: SequelizeCountriesModel
   Countries: SequelizeCountriesModel,
   Cities: SequelizeCitiesModel,
-  Departments: SequelizeDepartmentsModel
+  Departments: SequelizeDepartmentsModel,
+
+  // FilterConfig
+  FilterConfig: SequelizeFilterConfigModel
 
 }
 
@@ -100,4 +104,5 @@ export const models_names = {
   ProductSubOptionalExtraSold: PRODUCT_SUB_OPTIONAL_EXTRA_SOLD_MODEL,
   ProductSold: PRODUCT_MODEL_SOLD,
   ExtraProductSold: EXTRA_PRODUCT_MODEL_SOLD,
+  FilterConfig: FILTER_CONFIG_MODEL,
 }

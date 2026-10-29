@@ -29,12 +29,25 @@ export const productResolvers = {
         }
       }
     },
-    productFoodsAll: async (_: GraphQLResolveInfo, args: QueryProductFoodsAllArgs, context: GraphQLContext) => {
+    productFoodsAll: async (
+      _: GraphQLResolveInfo,
+      args: QueryProductFoodsAllArgs & {
+        priceMin?: number | null
+        priceMax?: number | null
+        orderBy?: Array<string | null> | null
+      },
+      context: GraphQLContext
+    ) => {
       try {
         const {
           page,
           max,
-          search
+          search,
+          categories,
+          pState,
+          priceMin,
+          priceMax,
+          orderBy
         } = args ?? {}
         const pagination = {
           max, // Máximo número de registros por página
@@ -45,7 +58,14 @@ export const productResolvers = {
         return await services.productFoodsAll.execute(
           store,
           pagination,
-          search
+          search,
+          {
+            categories: (categories ?? []).filter(Boolean) as string[],
+            pState: typeof pState === 'number' ? pState : undefined,
+            priceMin: typeof priceMin === 'number' ? priceMin : undefined,
+            priceMax: typeof priceMax === 'number' ? priceMax : undefined,
+            orderBy: (orderBy ?? []).filter(Boolean) as string[]
+          }
         )
       } catch (err) {
         return {

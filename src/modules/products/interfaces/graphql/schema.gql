@@ -146,6 +146,12 @@ type Query {
     categories: [ID]
     fromDate: DateTime
     toDate: DateTime
+    "Precio mínimo del producto (ProPrice >=)"
+    priceMin: Float
+    "Precio máximo del producto (ProPrice <=)"
+    priceMax: Float
+    "Orden dinámico, formato 'CAMPO:ASC' o 'CAMPO:DESC' (ej. 'ProPrice:ASC')"
+    orderBy: [String]
   ): ProductFoodsResultAll
   productFoodsLogis(
     pId: ID

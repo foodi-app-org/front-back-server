@@ -3,6 +3,23 @@ import { AvailableProduct } from '../entities/available_product.entity'
 import { Product, ProductPagination } from '../entities/products.entity'
 
 /**
+ * Structured, reusable filters for listing products.
+ * All fields are optional so the same contract powers any filter combination.
+ */
+export interface ProductListFilters {
+  /** Category ids to match against `carProId`. */
+  categories?: string[]
+  /** Product state (`pState`). */
+  pState?: number
+  /** Minimum price (`ProPrice >=`). */
+  priceMin?: number
+  /** Maximum price (`ProPrice <=`). */
+  priceMax?: number
+  /** Dynamic sort list in 'FIELD:ASC' | 'FIELD:DESC' format. */
+  orderBy?: string[]
+}
+
+/**
  * Repository contract for StatusTypesOrderTypesRepository operations
  */
 export interface ProductRepository {
@@ -10,9 +27,10 @@ export interface ProductRepository {
   findCode(pCodeRef: string): Promise<Product | null>
   findByProBarCode(ProBarCode: string): Promise<Product | null>
   getAll(
-    idStore: string, 
+    idStore: string,
     pagination: { page: number; max: number },
-    search?: QueryProductFoodsAllArgs['search']
+    search?: QueryProductFoodsAllArgs['search'],
+    filters?: ProductListFilters
   ): Promise<ProductPagination | null>
   findById(id: string): Promise<Product | null>
   getAllByCategoryId(categoryId: string): Promise<Product[] | null>

@@ -10,7 +10,10 @@ import {
   ProductPagination,
   StateProduct
 } from '../../domain/entities/products.entity'
-import { ProductRepository } from '../../domain/repositories/products.repository'
+import {
+  ProductRepository,
+  ProductListFilters
+} from '../../domain/repositories/products.repository'
 import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
 import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
 import { QueryProductFoodsAllArgs } from 'generated/graphql'
@@ -58,19 +61,84 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
 
+  /**
+   * Whitelist of columns allowed in dynamic `orderBy` to avoid SQL injection
+   * through arbitrary field names. Add new sortable columns here as needed.
+   */
+  private static readonly SORTABLE_FIELDS = new Set<string>([
+    'ProPrice',
+    'ProStar',
+    'ProQuantity',
+    'pName',
+    'createdAt',
+    'updatedAt',
+    'ValueDelivery'
+  ])
+
+  /**
+   * Translates a reusable filter object into a Sequelize `where` fragment and
+   * an ordered `orderFields` list consumed by the GenericService.
+   */
+  private buildFilterClauses(filters?: ProductListFilters): {
+    where: Record<string, unknown>
+    orderFields: Array<{ field: string; direction: 'ASC' | 'DESC' }>
+  } {
+    const where: Record<string, unknown> = {}
+    const orderFields: Array<{ field: string; direction: 'ASC' | 'DESC' }> = []
+
+    if (!filters) return { where, orderFields }
+
+    // Categories → carProId IN (...)
+    if (Array.isArray(filters.categories) && filters.categories.length > 0) {
+      where.carProId = { [Op.in]: filters.categories }
+    }
+
+    // Explicit state override (otherwise the caller default applies)
+    if (typeof filters.pState === 'number') {
+      where.pState = filters.pState
+    }
+
+    // Price range on ProPrice
+    const priceClause: Record<symbol, number> = {}
+    if (typeof filters.priceMin === 'number') priceClause[Op.gte] = filters.priceMin
+    if (typeof filters.priceMax === 'number') priceClause[Op.lte] = filters.priceMax
+    if (Object.getOwnPropertySymbols(priceClause).length > 0) {
+      where.ProPrice = priceClause
+    }
+
+    // Dynamic ordering: 'FIELD:ASC' | 'FIELD:DESC'
+    if (Array.isArray(filters.orderBy)) {
+      for (const raw of filters.orderBy) {
+        if (!raw || typeof raw !== 'string') continue
+        const [field, dirRaw] = raw.split(':')
+        if (!SequelizeProductRepository.SORTABLE_FIELDS.has(field)) continue
+        const direction = String(dirRaw).toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+        orderFields.push({ field, direction })
+      }
+    }
+
+    return { where, orderFields }
+  }
+
   async getAll(
     idStore: string,
     pagination: { page: number; max: number } | undefined,
-    search?: QueryProductFoodsAllArgs['search']
+    search?: QueryProductFoodsAllArgs['search'],
+    filters?: ProductListFilters
   ): Promise<ProductPagination> {
     try {
+      const { where: filterWhere, orderFields } = this.buildFilterClauses(filters)
+
       const result = await this.genericService.getAll({
         searchFields: ['pName', 'pId'],
         pagination: pagination ?? { page: 1, max: 100 },
         idStore,
+        ...(orderFields.length > 0 ? { orderFields } : {}),
         where: {
+          // Default: only active/positive-state products, unless a filter overrides pState
           pState: { [Op.gt]: 0 },
-          ...(search ? { search: String(search) } : {})
+          ...(search ? { search: String(search) } : {}),
+          ...filterWhere
         }
       })
       // ensure shape expected by GraphQL (same fallback logic que antes)

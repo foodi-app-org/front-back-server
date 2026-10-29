@@ -1,10 +1,13 @@
 
 import { QueryProductFoodsAllArgs } from 'generated/graphql';
 import { ProductPagination } from '../../domain/entities/products.entity'
-import { ProductRepository } from '../../domain/repositories/products.repository'
+import {
+  ProductRepository,
+  ProductListFilters
+} from '../../domain/repositories/products.repository'
 
 /**
- * Use case responsible for creating a new store
+ * Use case responsible for listing products with optional filters.
  */
 export class GetAllProductsAllUseCase {
   constructor(
@@ -12,21 +15,26 @@ export class GetAllProductsAllUseCase {
   ) { }
 
   /**
-   * Executes the use case to create a new Store
-   * @param input - store data
-   * @returns The newly created Store or null if it already exists
+   * Lists products for a store applying search + dynamic filters.
+   *
+   * @param idStore - Store identifier (tenant/schema).
+   * @param pagination - Page + page size.
+   * @param search - Optional free-text search.
+   * @param filters - Optional structured filters (categories, price range, state, order).
+   * @returns Paginated product result or null.
    */
   async execute(
-    idStore: string, 
+    idStore: string,
     pagination: { page: number; max: number },
-    search?: QueryProductFoodsAllArgs['search']
+    search?: QueryProductFoodsAllArgs['search'],
+    filters?: ProductListFilters
   ): Promise<ProductPagination | null> {
-    // clean search = input.search?.trim() ?? undefined
     const value = search?.trim() ?? undefined
     const created = await this.productRepository.getAll(
-      String(idStore), 
+      String(idStore),
       pagination,
-      value
+      value,
+      filters
     )
     return created
   }

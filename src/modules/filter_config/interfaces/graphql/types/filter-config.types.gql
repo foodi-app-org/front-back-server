@@ -1,0 +1,90 @@
+"""
+A single selectable value within a filter group (e.g. "Entrega", "Grátis").
+"""
+type FilterValue {
+  id: String
+  description: String!
+  value: String
+  imageUrn: String
+}
+
+"""
+A logical group of filter values within a tab (e.g. "Ordenar por").
+"""
+type FilterGroup {
+  id: String!
+  description: String!
+  displayType: String!
+  "Variable de la query a la que se mapea este grupo (ej. 'categories', 'orderBy', 'priceRange', 'pState')."
+  queryKey: String
+  "Modo de selección: 'single' o 'multi'."
+  selectionMode: String
+  "Fuente dinámica de valores (ej. 'PRODUCT_CATEGORIES'). Si está presente, los valores se cargan en runtime."
+  source: String
+  values: [FilterValue!]!
+}
+
+"""
+A top-level filter tab (BASIC | CATEGORY | PAYMENT).
+"""
+type FilterTab {
+  id: String!
+  name: String!
+  filterGroups: [FilterGroup!]!
+}
+
+"""
+A persisted filter-config record. `filterTabs` is the parsed JSON column.
+"""
+type FilterConfig {
+  id: ID!
+  idStore: ID
+  filterTabs: [FilterTab!]!
+  active: Boolean!
+  priority: Int!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type Query {
+  """Returns active filter configs, optionally scoped to a store."""
+  filterConfigs(idStore: String): [FilterConfig!]!
+
+  """Returns a single filter-config by its primary key."""
+  filterConfig(id: ID!): FilterConfig
+}
+
+input FilterValueInput {
+  id: String
+  description: String!
+  value: String
+  imageUrn: String
+}
+
+input FilterGroupInput {
+  id: String!
+  description: String!
+  displayType: String!
+  queryKey: String
+  selectionMode: String
+  source: String
+  values: [FilterValueInput!]!
+}
+
+input FilterTabInput {
+  id: String!
+  name: String!
+  filterGroups: [FilterGroupInput!]!
+}
+
+input CreateFilterConfigInput {
+  idStore: String
+  filterTabs: [FilterTabInput!]!
+  active: Boolean
+  priority: Int
+}
+
+type Mutation {
+  """Creates a new filter-config record."""
+  createFilterConfig(input: CreateFilterConfigInput!): FilterConfig!
+}
