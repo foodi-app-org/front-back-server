@@ -6,6 +6,16 @@ type StockUpdatedByIdPayload {
   meta: JSON
 }
 
+type ProductMovement {
+  productName: String!
+  totalMovements: Int!
+  idProduct: ID
+}
+
+type Query {
+  getTopProductsMovements: [ProductMovement]
+}
+
 type Subscription {
   StockUpdatedById(pId: String): StockUpdatedByIdPayload!
   StockUpdatedAll(idStore: String): StockUpdatedByIdPayload

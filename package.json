@@ -126,7 +126,7 @@
     "babel-node": "babel-node --presets=@babel/preset-env",
     "build": "tsc --project .",
     "prepare-build": "npm run build && npm run postbuild:copy:gql",
-    "postbuild:copy:gql": "cpy \"src/graphql/**/*.{gql,graphql}\" build/graphql --parents",
+    "postbuild:copy:gql": "cpy \"src/**/*.{gql,graphql}\" build --parents",
     "clean-install": "rm -rf node_modules && npm install",
     "commitlint": "commitlint -E HUSKY_GIT_PARAMS",
     "migration:run:public": "node -r ts-node/register -r tsconfig-paths/register src/shared/infrastructure/db/sequelize/migrations/public/cli.ts",

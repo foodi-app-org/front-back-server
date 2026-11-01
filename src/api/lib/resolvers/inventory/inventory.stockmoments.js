@@ -1,9 +1,7 @@
 import crypto from 'crypto'
-import sequelize from 'sequelize'
 
 import connect from '../../db'
-import stockMovement, { movementTypes, STOCK_MOVEMENT_NAME } from '../../models/inventory/stockMovement'
-import { PRODUCT_FOOD_MODEL } from '../../models/product/productFood'
+import stockMovement from '../../models/inventory/stockMovement'
 import { STATUS_ORDER_MODEL } from '../../models/Store/statusPedidoFinal'
 import { LogDanger, LogInfo } from '../../utils/logs'
 import {
@@ -12,6 +10,19 @@ import {
   getTenantName
 } from '../../utils/util'
 import { StockMovementInputSchema } from './schema'
+
+// Real table names created by the stock module (freezeTableName).
+// Kept local to avoid coupling this legacy resolver to modular model init.
+const PRODUCT_MODELS_TABLE = 'product_models'
+const STOCK_HISTORY_TABLE = 'stock_history'
+const STOCK_HISTORY_DECREMENT = 'DECREMENT'
+
+// Order status mapping. In the modular sales flow the real order state lives in
+// `orders_statuses.idStatus` (a UUID pointing to `order_status_types`), NOT in
+// `pSState` (which is only the ACTIVE/INACTIVE flag). A completed sale is the
+// status type whose numeric `state` is 4 (name 'CONCLUIDA').
+const ORDER_STATUS_TYPES_TABLE = 'order_status_types'
+const ORDER_STATE_CONCLUDED = 4
 
 /**
  * Obtener todos los movimientos de stock
@@ -29,17 +40,22 @@ const getStockMovements = async (_root, _args, context, info) => {
 }
 const getStockMovementsByDay = async (_root, _args, context, _info) => {
   try {
-    const data = await stockMovement.schema(getTenantName(context?.restaurant)).findAll({
-      attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'IN\' THEN quantity ELSE 0 END')), 'total_in'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'OUT\' THEN quantity ELSE 0 END')), 'total_out'],
-        [sequelize.fn('SUM', sequelize.literal('CASE WHEN movementType = \'ADJUSTMENT\' THEN quantity ELSE 0 END')), 'total_adjustment']
-      ],
-      group: ['date'],
-      order: [[sequelize.literal('date'), 'ASC']],
-      raw: true
-    })
+    const tenant = getTenantName(context?.restaurant)
+    const sequelize = connect()
+    // Daily IN/OUT/ADJUSTMENT totals derived from `stock_history`.
+    // Negative-delta DECREMENT rows represent outgoing stock (sales),
+    // positive-delta RESTOCK rows represent incoming stock.
+    const query = `
+      SELECT
+        DATE(h."createdAt") AS "date",
+        COALESCE(SUM(CASE WHEN h."type" = 'RESTOCK' THEN h."delta" ELSE 0 END), 0) AS "total_in",
+        COALESCE(SUM(CASE WHEN h."type" = '${STOCK_HISTORY_DECREMENT}' THEN -h."delta" ELSE 0 END), 0) AS "total_out",
+        COALESCE(SUM(CASE WHEN h."type" = 'ADJUST' THEN h."delta" ELSE 0 END), 0) AS "total_adjustment"
+      FROM "${tenant}.${STOCK_HISTORY_TABLE}" h
+      GROUP BY "date"
+      ORDER BY "date" ASC;
+    `
+    const data = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
     return data
   } catch (e) {
     LogDanger(`Error in getStockMovementsByDay: ${e}`)
@@ -51,15 +67,21 @@ const getTopProductsMovements = async (_root, _args, context) => {
   try {
     const tenant = getTenantName(context?.restaurant)
     const sequelize = connect()
+    // The sales flow (modular registerSalesStore -> CHANGE_STOCK_SUBSCRIBER ->
+    // decrementStock) records every consumption in `stock_history` as a
+    // negative-delta DECREMENT row. It does NOT write to `stock_movements`,
+    // so the ranking must read from `stock_history` to reflect real sales.
     const query = `
       SELECT 
         p."pName" AS "productName", 
-        COALESCE(SUM(sm."quantity"), 0) AS "totalMovements",
+        COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
         p."pId" AS "idProduct"
-      FROM "${tenant}.${PRODUCT_FOOD_MODEL}" p
-      INNER JOIN "${tenant}.${STOCK_MOVEMENT_NAME}" sm ON p.pId = sm.productId
-      AND sm."movementType" = '${movementTypes.OUT}'
-      GROUP BY sm.id, p."pName"
+      FROM "${tenant}.${PRODUCT_MODELS_TABLE}" p
+      INNER JOIN "${tenant}.${STOCK_HISTORY_TABLE}" h
+        ON p."pId" = h."pId"
+        AND h."type" = '${STOCK_HISTORY_DECREMENT}'
+      GROUP BY p."pId", p."pName"
+      HAVING SUM(-h."delta") > 0
       ORDER BY "totalMovements" DESC
       LIMIT 10;
     `
@@ -75,20 +97,21 @@ const getMonthlySales = async (_root, _args, context) => {
   try {
     const tenant = getTenantName(context?.restaurant)
     const sequelize = connect()
+    // Sales consumption lives in `stock_history` as negative-delta DECREMENT rows.
     const query = `
       SELECT 
-      strftime('%Y-%m', sm."createdAt") AS "month",
-      COALESCE(SUM(sm."quantity"), 0) AS "totalSales"
-      FROM "${tenant}.${STOCK_MOVEMENT_NAME}" sm
-      WHERE sm."movementType" = '${movementTypes.OUT}'
+      strftime('%Y-%m', h."createdAt") AS "month",
+      COALESCE(SUM(-h."delta"), 0) AS "totalSales"
+      FROM "${tenant}.${STOCK_HISTORY_TABLE}" h
+      WHERE h."type" = '${STOCK_HISTORY_DECREMENT}'
       GROUP BY "month"
       ORDER BY "month" DESC;
     `
     const results = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT })
     return results
   } catch (e) {
-    LogInfo(`Error in getTopProductsMovements: ${e.message}`)
-    throw new Error('Error al obtener los movimientos de los productos')
+    LogInfo(`Error in getMonthlySales: ${e.message}`)
+    throw new Error('Error al obtener las ventas mensuales')
   }
 }
 /**
@@ -281,7 +304,7 @@ const getTotalProductsInStock = async (_root, _args, context) => {
     const result = await sequelize.query(
       `
       SELECT SUM("stock") AS "totalProductsInStock"
-      FROM "${tenant}.${PRODUCT_FOOD_MODEL}"
+      FROM "${tenant}.${PRODUCT_MODELS_TABLE}"
       WHERE "stock" > 0 AND "manageStock" = true;
       `,
       { type: sequelize.QueryTypes.SELECT }
@@ -301,9 +324,12 @@ const totalSales = async (_root, _args, context) => {
 
     const result = await sequelize.query(
       `
-      SELECT SUM("totalProductsPrice") AS "totalSales"
-      FROM "${tenant}.${STATUS_ORDER_MODEL}"
-      WHERE "pSState" = '4' AND "totalProductsPrice" IS NOT NULL;
+      SELECT COALESCE(SUM(o."totalProductsPrice"), 0) AS "totalSales"
+      FROM "${tenant}.${STATUS_ORDER_MODEL}" o
+      INNER JOIN "${tenant}.${ORDER_STATUS_TYPES_TABLE}" t
+        ON o."idStatus" = t."idStatus"
+      WHERE t."state" = ${ORDER_STATE_CONCLUDED}
+        AND o."totalProductsPrice" IS NOT NULL;
       `,
       { type: sequelize.QueryTypes.SELECT }
     )
@@ -330,8 +356,10 @@ const getTotalSalesSold = async (_root, _args, context) => {
     const result = await sequelize.query(
       `
       SELECT COUNT(*) AS "totalProductsSold"
-      FROM "${tenant}.${STATUS_ORDER_MODEL}"
-      WHERE "pSState" = '4';
+      FROM "${tenant}.${STATUS_ORDER_MODEL}" o
+      INNER JOIN "${tenant}.${ORDER_STATUS_TYPES_TABLE}" t
+        ON o."idStatus" = t."idStatus"
+      WHERE t."state" = ${ORDER_STATE_CONCLUDED};
       `,
       { type: sequelize.QueryTypes.SELECT }
     )
@@ -350,9 +378,9 @@ const getTotalProductsSold = async (_root, _args, context) => {
 
     const result = await sequelize.query(
       `
-      SELECT SUM(sm."quantity") AS "totalProductsSold"
-      FROM "${tenant}.${STOCK_MOVEMENT_NAME}" sm
-      WHERE sm."movementType" = '${movementTypes.OUT}';
+      SELECT COALESCE(SUM(-h."delta"), 0) AS "totalProductsSold"
+      FROM "${tenant}.${STOCK_HISTORY_TABLE}" h
+      WHERE h."type" = '${STOCK_HISTORY_DECREMENT}';
       `,
       { type: sequelize.QueryTypes.SELECT }
     )
@@ -373,8 +401,8 @@ const getStockMovementWeeklyComparison = async (_root, _args, context) => {
       WITH weekly_data AS (
         SELECT 
           DATE("createdAt", 'weekday 0', '-6 days') AS week_start,
-          SUM(CASE WHEN "movementType" = 'OUT' THEN quantity ELSE 0 END) AS total_out
-        FROM "${tenant}.${STOCK_MOVEMENT_NAME}"
+          SUM(CASE WHEN "type" = '${STOCK_HISTORY_DECREMENT}' THEN -"delta" ELSE 0 END) AS total_out
+        FROM "${tenant}.${STOCK_HISTORY_TABLE}"
         GROUP BY week_start
         ORDER BY week_start
       )

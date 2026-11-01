@@ -1,10 +1,15 @@
 
-import { Transaction } from 'sequelize'
+import { QueryTypes, Transaction } from 'sequelize'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { StockMovement } from '../../domain/entities/stock.entity'
-import { IStockMovementRepository } from '../../domain/repositories/stock.repository'
+import { IStockMovementRepository, TopProductMovement } from '../../domain/repositories/stock.repository'
+import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+import { STOCK_HISTORY_MODEL } from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
 import { ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
+
+// Negative-delta DECREMENT rows in `stock_history` represent outgoing stock (sales).
+const STOCK_HISTORY_DECREMENT = 'DECREMENT'
 
 export class SequelizeStockRepository implements IStockMovementRepository {
   private readonly tenant: string
@@ -76,5 +81,44 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     })
     if (!row) return null
     return Number(row.get('stock'))
+  }
+
+  findTopProductsMovements = async (limit = 10): Promise<TopProductMovement[]> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) {
+      throw new Error('Sequelize instance is not available')
+    }
+
+    // Sales consumption is recorded in `stock_history` as negative-delta
+    // DECREMENT rows (the modular sales flow never writes to `stock_movements`),
+    // so the ranking must read from `stock_history` to reflect real sales.
+    const query = `
+      SELECT
+        p."pName" AS "productName",
+        COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
+        p."pId" AS "idProduct"
+      FROM "${this.tenant}.${PRODUCT_MODEL}" p
+      INNER JOIN "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+        ON p."pId" = h."pId"
+        AND h."type" = :decrementType
+      GROUP BY p."pId", p."pName"
+      HAVING SUM(-h."delta") > 0
+      ORDER BY "totalMovements" DESC
+      LIMIT :limit;
+    `
+
+    const rows = await sequelize.query<{ productName: string; totalMovements: number | string; idProduct: string | null }>(
+      query,
+      {
+        type: QueryTypes.SELECT,
+        replacements: { decrementType: STOCK_HISTORY_DECREMENT, limit }
+      }
+    )
+
+    return rows.map((row) => ({
+      productName: row.productName,
+      totalMovements: Number(row.totalMovements ?? 0),
+      idProduct: row.idProduct ?? null
+    }))
   }
 }
