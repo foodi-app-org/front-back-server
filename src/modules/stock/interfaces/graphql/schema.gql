@@ -12,8 +12,34 @@ type ProductMovement {
   idProduct: ID
 }
 
+type TotalSalesResult {
+  success: Boolean!
+  message: String!
+  totalSales: Float
+}
+
+type StockMovementSummary {
+  date: String
+  total_in: Int
+  total_out: Int
+  total_adjustment: Int
+}
+
+type WeeklyStockChange {
+  weekStart: String
+  totalOut: Int
+  prevTotalOut: Int
+  percentageChange: Float
+}
+
 type Query {
   getTopProductsMovements: [ProductMovement]
+  totalSales: TotalSalesResult!
+  getTotalSalesSold: Int!
+  getTotalProductsSold: Int!
+  getTotalProductsInStock: Int!
+  getStockMovementsByDay: [StockMovementSummary!]!
+  getStockMovementWeeklyComparison: [WeeklyStockChange]
 }
 
 type Subscription {

@@ -5,11 +5,21 @@ import { StockMovement } from '../../domain/entities/stock.entity'
 import { IStockMovementRepository, TopProductMovement } from '../../domain/repositories/stock.repository'
 import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 import { STOCK_HISTORY_MODEL } from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
+import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
+import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
 import { ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
+import {
+  StockMovementSummary,
+  TotalSalesResult,
+  WeeklyStockChange
+} from '../../domain/repositories/stock.repository'
 
 // Negative-delta DECREMENT rows in `stock_history` represent outgoing stock (sales).
 const STOCK_HISTORY_DECREMENT = 'DECREMENT'
+// The real order state lives in `orders_statuses.idStatus` (UUID -> order_status_types),
+// NOT in `pSState` (only an ACTIVE/INACTIVE flag). A completed sale has state = 4.
+const ORDER_STATE_CONCLUDED = 4
 
 export class SequelizeStockRepository implements IStockMovementRepository {
   private readonly tenant: string
@@ -119,6 +129,154 @@ export class SequelizeStockRepository implements IStockMovementRepository {
       productName: row.productName,
       totalMovements: Number(row.totalMovements ?? 0),
       idProduct: row.idProduct ?? null
+    }))
+  }
+
+  findTotalSales = async (): Promise<TotalSalesResult> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    try {
+      const rows = await sequelize.query<{ totalSales: number | string | null }>(
+        `
+        SELECT COALESCE(SUM(o."totalProductsPrice"), 0) AS "totalSales"
+        FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
+        INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t
+          ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded
+          AND o."totalProductsPrice" IS NOT NULL;
+        `,
+        { type: QueryTypes.SELECT, replacements: { concluded: ORDER_STATE_CONCLUDED } }
+      )
+
+      return {
+        success: true,
+        message: 'Total sales calculated successfully',
+        totalSales: Number(rows[0]?.totalSales ?? 0)
+      }
+    } catch {
+      return {
+        success: false,
+        message: 'An error occurred while calculating total sales.',
+        totalSales: null
+      }
+    }
+  }
+
+  findTotalSalesSold = async (): Promise<number> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    const rows = await sequelize.query<{ totalProductsSold: number | string }>(
+      `
+      SELECT COUNT(*) AS "totalProductsSold"
+      FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
+      INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t
+        ON o."idStatus" = t."idStatus"
+      WHERE t."state" = :concluded;
+      `,
+      { type: QueryTypes.SELECT, replacements: { concluded: ORDER_STATE_CONCLUDED } }
+    )
+
+    return Number(rows[0]?.totalProductsSold ?? 0)
+  }
+
+  findTotalProductsSold = async (): Promise<number> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    // Total units that left inventory (sum of negative-delta DECREMENT rows).
+    const rows = await sequelize.query<{ totalProductsSold: number | string | null }>(
+      `
+      SELECT COALESCE(SUM(-h."delta"), 0) AS "totalProductsSold"
+      FROM "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+      WHERE h."type" = :decrementType;
+      `,
+      { type: QueryTypes.SELECT, replacements: { decrementType: STOCK_HISTORY_DECREMENT } }
+    )
+
+    return Number(rows[0]?.totalProductsSold ?? 0)
+  }
+
+  findTotalProductsInStock = async (): Promise<number> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    const rows = await sequelize.query<{ totalProductsInStock: number | string | null }>(
+      `
+      SELECT SUM("stock") AS "totalProductsInStock"
+      FROM "${this.tenant}.${PRODUCT_MODEL}"
+      WHERE "stock" > 0 AND "manageStock" = true;
+      `,
+      { type: QueryTypes.SELECT }
+    )
+
+    return Number(rows[0]?.totalProductsInStock ?? 0)
+  }
+
+  findStockMovementsByDay = async (): Promise<StockMovementSummary[]> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    // Daily IN/OUT/ADJUSTMENT totals derived from `stock_history`.
+    const rows = await sequelize.query<{ date: string; total_in: number | string; total_out: number | string; total_adjustment: number | string }>(
+      `
+      SELECT
+        DATE(h."createdAt") AS "date",
+        COALESCE(SUM(CASE WHEN h."type" = 'RESTOCK' THEN h."delta" ELSE 0 END), 0) AS "total_in",
+        COALESCE(SUM(CASE WHEN h."type" = :decrementType THEN -h."delta" ELSE 0 END), 0) AS "total_out",
+        COALESCE(SUM(CASE WHEN h."type" = 'ADJUST' THEN h."delta" ELSE 0 END), 0) AS "total_adjustment"
+      FROM "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+      GROUP BY "date"
+      ORDER BY "date" ASC;
+      `,
+      { type: QueryTypes.SELECT, replacements: { decrementType: STOCK_HISTORY_DECREMENT } }
+    )
+
+    return rows.map((row) => ({
+      date: row.date,
+      total_in: Number(row.total_in ?? 0),
+      total_out: Number(row.total_out ?? 0),
+      total_adjustment: Number(row.total_adjustment ?? 0)
+    }))
+  }
+
+  findStockMovementWeeklyComparison = async (): Promise<WeeklyStockChange[]> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    const rows = await sequelize.query<{ week_start: string; total_out: number | string; prev_total_out: number | string | null; percentage_change: number | string | null }>(
+      `
+      WITH weekly_data AS (
+        SELECT
+          DATE("createdAt", 'weekday 0', '-6 days') AS week_start,
+          SUM(CASE WHEN "type" = :decrementType THEN -"delta" ELSE 0 END) AS total_out
+        FROM "${this.tenant}.${STOCK_HISTORY_MODEL}"
+        GROUP BY week_start
+        ORDER BY week_start
+      )
+      SELECT
+        week_start,
+        total_out,
+        LAG(total_out) OVER (ORDER BY week_start) AS prev_total_out,
+        CASE
+          WHEN LAG(total_out) OVER (ORDER BY week_start) IS NULL THEN NULL
+          WHEN LAG(total_out) OVER (ORDER BY week_start) = 0 THEN 100
+          ELSE ROUND(
+            ((total_out - LAG(total_out) OVER (ORDER BY week_start)) /
+            CAST(LAG(total_out) OVER (ORDER BY week_start) AS FLOAT)) * 100, 2
+          )
+        END AS percentage_change
+      FROM weekly_data;
+      `,
+      { type: QueryTypes.SELECT, replacements: { decrementType: STOCK_HISTORY_DECREMENT } }
+    )
+
+    return rows.map((row) => ({
+      weekStart: row.week_start ?? null,
+      totalOut: row.total_out === null || row.total_out === undefined ? null : Number(row.total_out),
+      prevTotalOut: row.prev_total_out === null || row.prev_total_out === undefined ? null : Number(row.prev_total_out),
+      percentageChange: row.percentage_change === null || row.percentage_change === undefined ? null : Number(row.percentage_change)
     }))
   }
 }
