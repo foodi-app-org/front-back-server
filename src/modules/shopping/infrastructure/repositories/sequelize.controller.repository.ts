@@ -201,7 +201,14 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     try {
       const result = await models.ShoppingCart.schema(this.tenant).findOne({
         attributes: [
-          [models.ShoppingCart.sequelize!.fn('SUM', models.ShoppingCart.sequelize!.col('priceProduct')), 'priceProduct']
+          // Multiply unit price by quantity so multi-unit items are summed correctly.
+          [
+            models.ShoppingCart.sequelize!.fn(
+              'SUM',
+              models.ShoppingCart.sequelize!.literal('"priceProduct" * "cantProducts"')
+            ),
+            'priceProduct'
+          ]
         ],
         where: { shoppingCartRefCode },
         raw: true

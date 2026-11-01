@@ -4,7 +4,7 @@ import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { ShoppingServicesTenantFactory, ShoppingTypesServices } from '../../../../shopping/infrastructure/services'
+import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
@@ -301,7 +301,10 @@ export const orderResolvers = {
           })), t)
         }
         // Resto del flujo (sumPrice, statusOrder, etc.)
-        const response = await ShoppingTypesServices.sumPrice.execute(args.shoppingCartRefCode)
+        // Use the tenant-scoped service: the global ShoppingTypesServices targets
+        // the `public` schema (empty), so its sumPrice always returned 0 and the
+        // order was persisted with totalProductsPrice = 0.
+        const response = await ShoppingServices.sumPrice.execute(args.shoppingCartRefCode)
         const {
           id,
           tableId,
