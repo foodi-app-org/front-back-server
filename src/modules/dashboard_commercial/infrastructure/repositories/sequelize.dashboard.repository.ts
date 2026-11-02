@@ -10,6 +10,7 @@ import { ORDER_STATUS_TYPE_MODEL } from '../../../status_order_types/infrastruct
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import {
+  enumerateBuckets,
   getBucketKey,
   getPreviousPeriodRange,
   resolveGranularity,
@@ -186,8 +187,17 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
     rows: OrderRow[],
     filter: DashboardFilter
   ): { points: TrendPoint[]; granularity: SalesTrend['granularity'] } {
-    const granularity = resolveGranularity({ startAt: filter.startAt, endAt: filter.endAt })
+    const range = { startAt: filter.startAt, endAt: filter.endAt }
+    const granularity = resolveGranularity(range)
+
+    // Pre-seed every bucket in the range with zero so the series is continuous
+    // across the whole period (e.g. all 15 days) and the chart/sparkline draw a
+    // line even when sales land on a single day. Zero here means "no sales",
+    // which is the correct meaning for an empty bucket.
     const map = new Map<string, TrendPoint>()
+    for (const key of enumerateBuckets(range, granularity, filter.timezone)) {
+      map.set(key, { bucket: key, revenue: 0, orders: 0 })
+    }
 
     for (const row of rows) {
       const key = getBucketKey(row.createdAt, granularity, filter.timezone)

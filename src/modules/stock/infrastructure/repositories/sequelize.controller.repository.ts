@@ -9,11 +9,24 @@ import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequ
 import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
 import { ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { toStoredUtcFormat } from '@shared/utils/period-range.utils'
 import {
   StockMovementSummary,
   TotalSalesResult,
   WeeklyStockChange
 } from '../../domain/repositories/stock.repository'
+
+/**
+ * Normalizes an ISO UTC bound into the DB-stored text format, or returns null
+ * when the value is missing/invalid so callers can skip the date filter.
+ *
+ * @param value - ISO UTC string (or null/undefined).
+ * @returns Stored-format UTC string, or null.
+ */
+const normalizeStoredUtc = (value?: string | null): string | null => {
+  if (typeof value !== 'string' || value.trim() === '') return null
+  return toStoredUtcFormat(value)
+}
 
 // Negative-delta DECREMENT rows in `stock_history` represent outgoing stock (sales).
 const STOCK_HISTORY_DECREMENT = 'DECREMENT'
@@ -214,9 +227,20 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     return Number(rows[0]?.totalProductsInStock ?? 0)
   }
 
-  findStockMovementsByDay = async (): Promise<StockMovementSummary[]> => {
+  findStockMovementsByDay = async (
+    range?: { startAt?: string | null; endAt?: string | null }
+  ): Promise<StockMovementSummary[]> => {
     const sequelize = models.Product.sequelize
     if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    // Optional half-open date filter [startAt, endAt). Bounds are normalized to
+    // the DB's stored UTC text shape so lexicographic comparison on the text
+    // `createdAt` column is correct across SQLite (dev) and PostgreSQL (prod).
+    const startAt = normalizeStoredUtc(range?.startAt)
+    const endAt = normalizeStoredUtc(range?.endAt)
+    const dateFilter = startAt && endAt
+      ? 'AND h."createdAt" >= :startAt AND h."createdAt" < :endAt'
+      : ''
 
     // Daily IN/OUT/ADJUSTMENT totals derived from `stock_history`.
     const rows = await sequelize.query<{ date: string; total_in: number | string; total_out: number | string; total_adjustment: number | string }>(
@@ -227,10 +251,17 @@ export class SequelizeStockRepository implements IStockMovementRepository {
         COALESCE(SUM(CASE WHEN h."type" = :decrementType THEN -h."delta" ELSE 0 END), 0) AS "total_out",
         COALESCE(SUM(CASE WHEN h."type" = 'ADJUST' THEN h."delta" ELSE 0 END), 0) AS "total_adjustment"
       FROM "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+      WHERE 1 = 1 ${dateFilter}
       GROUP BY "date"
       ORDER BY "date" ASC;
       `,
-      { type: QueryTypes.SELECT, replacements: { decrementType: STOCK_HISTORY_DECREMENT } }
+      {
+        type: QueryTypes.SELECT,
+        replacements: {
+          decrementType: STOCK_HISTORY_DECREMENT,
+          ...(startAt && endAt ? { startAt, endAt } : {})
+        }
+      }
     )
 
     return rows.map((row) => ({

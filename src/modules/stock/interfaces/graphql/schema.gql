@@ -38,7 +38,7 @@ type Query {
   getTotalSalesSold: Int!
   getTotalProductsSold: Int!
   getTotalProductsInStock: Int!
-  getStockMovementsByDay: [StockMovementSummary!]!
+  getStockMovementsByDay(filter: DashboardFilterInput): [StockMovementSummary!]!
   getStockMovementWeeklyComparison: [WeeklyStockChange]
 }
 

@@ -1,4 +1,5 @@
 import {
+  enumerateBuckets,
   getBucketKey,
   getPeriodRange,
   getPreviousPeriodRange,
@@ -147,6 +148,28 @@ describe('period-range.utils', () => {
     it('week for a long custom range', () => {
       const r = getPeriodRange({ preset: 'custom', from: '2026-01-01', to: '2026-04-01', timezone: BOGOTA })
       expect(resolveGranularity(r)).toBe('week')
+    })
+  })
+
+  describe('enumerateBuckets', () => {
+    it('lists 15 day buckets for a 15-day range (inclusive of the last day)', () => {
+      const range = getPeriodRange({ preset: '15-days', referenceDate: '2026-11-01', timezone: BOGOTA })
+      const keys = enumerateBuckets(range, 'day', BOGOTA)
+      expect(keys).toHaveLength(15)
+      expect(keys[0]).toBe('2026-10-18')
+      expect(keys[14]).toBe('2026-11-01')
+    })
+
+    it('lists 24 hour buckets for a single day', () => {
+      const range = getPeriodRange({ preset: 'day', referenceDate: '2026-02-15', timezone: BOGOTA })
+      const keys = enumerateBuckets(range, 'hour', BOGOTA)
+      expect(keys).toHaveLength(24)
+      expect(keys[0]).toBe('2026-02-15T00:00')
+      expect(keys[23]).toBe('2026-02-15T23:00')
+    })
+
+    it('returns [] for an invalid range', () => {
+      expect(enumerateBuckets({ startAt: 'nope', endAt: 'nope' }, 'day', BOGOTA)).toEqual([])
     })
   })
 

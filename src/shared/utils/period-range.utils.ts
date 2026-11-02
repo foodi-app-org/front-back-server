@@ -266,3 +266,50 @@ export const getBucketKey = (
       return dt.startOf('day').toFormat('yyyy-MM-dd')
   }
 }
+
+/**
+ * Enumerates every bucket key in a half-open UTC range at the given
+ * granularity, expressed in the business timezone. Used to build a continuous
+ * zero-filled trend series so the chart/sparkline always spans the full period
+ * (e.g. 15 day-buckets for a 15-day range) even when sales land on a single
+ * day. Keys match {@link getBucketKey}'s format exactly.
+ *
+ * @param range - Half-open UTC range `[startAt, endAt)`.
+ * @param granularity - Bucketing unit.
+ * @param timezone - IANA business timezone.
+ * @returns Ordered list of bucket keys covering the range.
+ */
+export const enumerateBuckets = (
+  range: UtcRange,
+  granularity: TrendGranularity,
+  timezone: string
+): string[] => {
+  const start = DateTime.fromISO(range.startAt, { zone: 'utc' }).setZone(timezone)
+  const end = DateTime.fromISO(range.endAt, { zone: 'utc' }).setZone(timezone)
+  if (!start.isValid || !end.isValid) return []
+
+  const unit = granularity === 'hour' ? 'hour' : granularity === 'week' ? 'week' : 'day'
+  const keys: string[] = []
+  // Cap the number of buckets to avoid pathological ranges producing huge
+  // arrays (e.g. an accidental multi-year hourly request).
+  const MAX_BUCKETS = 400
+
+  let cursor = start.startOf(unit)
+  const limit = end // exclusive upper bound
+  while (cursor < limit && keys.length < MAX_BUCKETS) {
+    switch (granularity) {
+      case 'hour':
+        keys.push(cursor.toFormat("yyyy-MM-dd'T'HH:00"))
+        break
+      case 'week':
+        keys.push(cursor.toFormat('yyyy-MM-dd'))
+        break
+      case 'day':
+      default:
+        keys.push(cursor.toFormat('yyyy-MM-dd'))
+    }
+    cursor = cursor.plus({ [`${unit}s`]: 1 })
+  }
+
+  return keys
+}

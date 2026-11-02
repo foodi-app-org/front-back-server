@@ -57,8 +57,11 @@ export interface IStockMovementRepository extends IProductRepository {
   findTotalProductsSold(): Promise<number>
   /** Total managed units currently in stock. */
   findTotalProductsInStock(): Promise<number>
-  /** Daily aggregated IN/OUT/ADJUSTMENT movements. */
-  findStockMovementsByDay(): Promise<StockMovementSummary[]>
+  /**
+   * Daily aggregated IN/OUT/ADJUSTMENT movements, optionally restricted to a
+   * half-open UTC range `[startAt, endAt)`.
+   */
+  findStockMovementsByDay(range?: { startAt?: string | null; endAt?: string | null }): Promise<StockMovementSummary[]>
   /** Week-over-week outgoing stock comparison. */
   findStockMovementWeeklyComparison(): Promise<WeeklyStockChange[]>
 }
