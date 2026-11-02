@@ -27,6 +27,7 @@ import { paymentMethodResolvers } from '@modules/payment_method/interfaces/graph
 import { geolocationsResolvers } from '@modules/geolocations/interfaces/graphql/resolvers/geolocations.resolver'
 import { filterConfigResolvers } from '../../../modules/filter_config/interfaces/graphql/resolvers/filter-config.resolver'
 import { stockResolvers } from '../../../modules/stock/interfaces/graphql/resolvers/stock.resolver'
+import { dashboardCommercialResolvers } from '../../../modules/dashboard_commercial/interfaces/graphql/resolvers/dashboard-commercial.resolver'
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
 function incrementNumber () {
@@ -69,6 +70,7 @@ export default {
         ...geolocationsResolvers.Query,
         ...filterConfigResolvers.Query,
         ...stockResolvers.Query,
+        ...dashboardCommercialResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)

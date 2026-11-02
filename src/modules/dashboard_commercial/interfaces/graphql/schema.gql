@@ -1,0 +1,110 @@
+"""
+Shared, validated filter input for all commercial dashboard queries.
+Dates are calendar dates in the business timezone; the server converts them to
+a half-open UTC interval [startAt, endAt).
+"""
+input DashboardFilterInput {
+  "day | 15-days | month | custom"
+  preset: String
+  "Anchor calendar date (ISO) for day/15-days/month."
+  referenceDate: String
+  "Inclusive start calendar date for custom ranges."
+  from: String
+  "Inclusive end calendar date for custom ranges."
+  to: String
+  "IANA business timezone (defaults to America/Bogota)."
+  timezone: String
+  categoryIds: [String]
+  productIds: [String]
+  search: String
+  page: Int
+  pageSize: Int
+  "Allowlisted: createdAt | total (recent orders) | revenue | unitsSold (top products)."
+  sortBy: String
+  "ASC | DESC"
+  sortDirection: String
+}
+
+type DashboardKpiMetric {
+  value: Float!
+  previousValue: Float
+  percentageChange: Float
+  "up | down | flat | unknown"
+  trend: String!
+}
+
+type DashboardRange {
+  startAt: String!
+  endAt: String!
+  timezone: String!
+}
+
+type DashboardSummary {
+  revenue: DashboardKpiMetric!
+  orders: DashboardKpiMetric!
+  products: DashboardKpiMetric!
+  activeCustomers: DashboardKpiMetric!
+  revenueSparkline: [Float!]!
+  ordersSparkline: [Float!]!
+  range: DashboardRange!
+}
+
+type DashboardTrendPoint {
+  bucket: String!
+  revenue: Float!
+  orders: Int!
+}
+
+type DashboardSalesTrend {
+  "hour | day | week"
+  granularity: String!
+  points: [DashboardTrendPoint!]!
+  totalRevenue: Float!
+  totalOrders: Int!
+}
+
+type DashboardCategorySlice {
+  categoryId: String
+  categoryName: String!
+  revenue: Float!
+  units: Int!
+  percentage: Float!
+}
+
+type DashboardSalesByCategory {
+  slices: [DashboardCategorySlice!]!
+  totalRevenue: Float!
+}
+
+type DashboardTopProduct {
+  idProduct: ID
+  productName: String!
+  image: String
+  unitsSold: Int!
+  revenue: Float!
+}
+
+type DashboardRecentOrder {
+  orderId: ID!
+  code: String!
+  productSummary: String!
+  extraItems: Int!
+  createdAt: String!
+  statusState: Int!
+  total: Float!
+}
+
+type DashboardRecentOrdersPage {
+  rows: [DashboardRecentOrder!]!
+  total: Int!
+  page: Int!
+  pageSize: Int!
+}
+
+type Query {
+  getDashboardSummary(filter: DashboardFilterInput): DashboardSummary!
+  getDashboardSalesTrend(filter: DashboardFilterInput): DashboardSalesTrend!
+  getDashboardSalesByCategory(filter: DashboardFilterInput): DashboardSalesByCategory!
+  getDashboardTopProducts(filter: DashboardFilterInput): [DashboardTopProduct!]!
+  getDashboardRecentOrders(filter: DashboardFilterInput): DashboardRecentOrdersPage!
+}
