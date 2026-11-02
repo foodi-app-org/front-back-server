@@ -40,6 +40,22 @@ export interface StoreRepository {
    */
   updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null>;
 
+  /**
+   * Updates the delivery time (in minutes) of a store.
+   * @param id - UUID of the store.
+   * @param minutes - Delivery time in minutes.
+   * @returns Updated Store or null if not found.
+   */
+  updateDeliveryTime(id: string, minutes: number): Promise<Store | null>;
+
+  /**
+   * Updates the daily sales goal of a store.
+   * @param id - UUID of the store.
+   * @param dailyGoal - Daily goal amount.
+   * @returns Updated Store or null if not found.
+   */
+  updateDailyGoal(id: string, dailyGoal: number): Promise<Store | null>;
+
 
   update(id: string, updateData: Partial<Store>): Promise<Store | null>;
 

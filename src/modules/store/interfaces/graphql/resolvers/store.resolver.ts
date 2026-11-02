@@ -46,6 +46,28 @@ export const storeResolvers = {
         errors: null
       }
     },
+    createDeliveryTime: async (_: GraphQLResolveInfo, { minutes }: { minutes: number }, context: GraphQLContext) => {
+      if (!context.restaurant) {
+        return {
+          success: false,
+          message: 'No se pudo crear el tiempo de entrega'
+        }
+      }
+      const services = StoreServicesTenantFactory(context.restaurant)
+      return await services.updateDeliveryTime.execute(context.restaurant, minutes)
+    },
+    upsertGoal: async (_: GraphQLResolveInfo, { input }: { input: { idStore?: string, dailyGoal: number } }, context: GraphQLContext) => {
+      const storeId = context.restaurant ?? input?.idStore ?? ''
+      if (!storeId) {
+        return {
+          success: false,
+          message: 'No se pudo actualizar la meta del día',
+          data: null
+        }
+      }
+      const services = StoreServicesTenantFactory(storeId)
+      return await services.upsertGoal.execute(storeId, Number(input?.dailyGoal))
+    },
 
     registerBanner: async (_: GraphQLResolveInfo, { input }: { input: BannerInput }, context: GraphQLContext) => {
       const services = StoreServicesTenantFactory(context.restaurant ?? '')

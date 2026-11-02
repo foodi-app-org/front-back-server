@@ -12,7 +12,9 @@ import { FindStoreUseCase } from '../../application/use-cases/find-by-id-store.u
 import { FindStoreByUserIdUseCase } from '../../application/use-cases/find-by-user-id-store.usecase'
 import { RegisterBannerUseCase } from '../../application/use-cases/register-banner-store.usecase'
 import { RegisterLogoUseCase } from '../../application/use-cases/register-logo-store.usecase'
+import { UpdateDeliveryTimeUseCase } from '../../application/use-cases/update-delivery-time.usecase'
 import { UpdateStoreScheduleOpenAllUseCase } from '../../application/use-cases/update-store-schedule-open-all.usecase'
+import { UpsertGoalUseCase } from '../../application/use-cases/upsert-goal.usecase'
 import { SequelizeStoreRepository } from '../../infrastructure/repositories/sequelize-store.controller.repository'
 
 
@@ -60,6 +62,8 @@ export const StoreServicesTenantFactory = (tenant: string) => {
         findById: findByIdStoreUseCase,
         findByUserId: findByUserIdStoreUseCase,
         updateScheduleOpenAll: new UpdateStoreScheduleOpenAllUseCase(storeRepository),
+        updateDeliveryTime: new UpdateDeliveryTimeUseCase(storeRepository),
+        upsertGoal: new UpsertGoalUseCase(storeRepository),
         registerBanner: new RegisterBannerUseCase(storeRepository),
         deleteOneBanner: new DeleteBannerUseCase(storeRepository),
         registerLogo: new RegisterLogoUseCase(storeRepository),

@@ -79,6 +79,14 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   async getAllByStatusType(): Promise<any[] | null> {
     try {
       const sequelize = connect()
+      // Per-order revenue prefers the header total `orders_statuses.totalProductsPrice`,
+      // but falls back to the sum of the order's line items (`shopping_carts`)
+      // when the header is 0 or null. Some order-creation flows leave the header
+      // at 0 while still writing priced line items, which made consumers (e.g.
+      // the sales-by-month chart) show $0 even though the sale existed.
+      //
+      // `pDatCre` is exposed as an alias of `createdAt` because the GraphQL
+      // `StoreOrders` type and its clients read `pDatCre`, not `createdAt`.
       const query = `
             SELECT 
         ost.name AS status,
@@ -86,9 +94,19 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
         os.idStatus,
         os.pCodeRef,
         os.pSState,
-        os.totalProductsPrice,
+        COALESCE(
+          NULLIF(os.totalProductsPrice, 0),
+          (
+            SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
+            FROM "${this.tenant}.shopping_carts" AS sc
+            WHERE sc."shoppingCartRefCode" = os."shoppingCartRefCode"
+          ),
+          0
+        ) AS "totalProductsPrice",
         os.createdAt,
-        os.updatedAt
+        os.createdAt AS "pDatCre",
+        os.updatedAt,
+        os.updatedAt AS "pDatMod"
       FROM "${this.tenant}.order_status_types" AS ost
       INNER JOIN "${this.tenant}.orders_statuses" AS os
       ON os.idStatus = ost.idStatus
@@ -101,7 +119,9 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
         pSState: string
         totalProductsPrice: number
         createdAt: Date | string
+        pDatCre: Date | string
         updatedAt: Date | string
+        pDatMod: Date | string
       }
       const results = await sequelize.query<StatusRow>(query, {
         type: QueryTypes.SELECT

@@ -1,0 +1,22 @@
+# Metas del día (daily goal) del comercio
+
+input CreateGoalInput {
+  idStore: ID
+  dailyGoal: Float!
+}
+
+type GoalData {
+  idStore: ID
+  dailyGoal: Float
+}
+
+"Respuesta de la petición de la meta del día"
+type ResponseGoal {
+  success: Boolean
+  message: String
+  data: GoalData
+}
+
+type Mutation {
+  upsertGoal(input: CreateGoalInput!): ResponseGoal
+}

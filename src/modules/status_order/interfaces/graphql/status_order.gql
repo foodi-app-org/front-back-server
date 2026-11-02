@@ -20,6 +20,8 @@ type StoreOrders {
   unidProducts: Int
   createdAt: DateTime
   updatedAt: DateTime
+  pDatCre: DateTime
+  pDatMod: DateTime
   getUser: User
   shoppingCartRefCode: String
   locationUser: String

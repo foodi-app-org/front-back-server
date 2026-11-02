@@ -1,0 +1,4 @@
+# Define la mutación para registrar el tiempo de entrega del comercio
+type Mutation {
+  createDeliveryTime(minutes: Int!): Response
+}

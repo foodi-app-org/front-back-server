@@ -107,6 +107,36 @@ export class SequelizeStoreRepository implements StoreRepository {
     }
   }
 
+  async updateDeliveryTime(id: string, minutes: number): Promise<Store | null> {
+    try {
+      const [updated] = await models.Store.schema(this.tenant).update(
+        { deliveryTimeMinutes: minutes },
+        { where: { idStore: id } }
+      )
+      return updated ? (await this.findById(id)) : null
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  async updateDailyGoal(id: string, dailyGoal: number): Promise<Store | null> {
+    try {
+      const [updated] = await models.Store.schema(this.tenant).update(
+        { dailyGoal },
+        { where: { idStore: id } }
+      )
+      return updated ? (await this.findById(id)) : null
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
   /**
    * Permanently deletes a store (tenant) and all of its data.
    *
