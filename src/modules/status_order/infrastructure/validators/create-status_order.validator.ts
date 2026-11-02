@@ -10,7 +10,14 @@ const dataExtraItemSchema = Joi.object({
   createdAt: Joi.date().optional().allow(null),
   updatedAt: Joi.date().optional().allow(null),
   quantity: Joi.number().integer().min(1).required(),
-  newExtraPrice: Joi.number().optional()
+  newExtraPrice: Joi.number().optional(),
+  // Inventory flags for complementos. Optional so extras without stock and
+  // historical sales keep validating. `stock` is allowed to be null when the
+  // extra does not manage inventory (null/undefined != out of stock). The
+  // actual decrement is handled by the backend ExtraStock service, which
+  // bypasses when manageStock is false.
+  manageStock: Joi.boolean().optional(),
+  stock: Joi.number().integer().optional().allow(null)
 })
 
 

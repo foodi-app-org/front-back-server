@@ -32,10 +32,30 @@ export class SetImageProductUseCase {
     args: { pId: string; image: any }
   ): Promise<any> {
     const { pId, image } = args
-   
 
     try {
-      const fileData = await image.promise
+      if (!image) {
+        return {
+          success: false,
+          message: 'No image provided',
+          data: null
+        }
+      }
+
+      // graphql-upload resolves the Upload value as a promise that yields
+      // { filename, mimetype, encoding, createReadStream }. Depending on the
+      // middleware version the scalar arrives either as an `Upload` instance
+      // (exposing a `.promise`) or already as that promise. Support both shapes.
+      const fileData = await (image.promise ?? image)
+
+      if (!fileData || typeof fileData.createReadStream !== 'function') {
+        return {
+          success: false,
+          message: 'Invalid upload payload',
+          data: null
+        }
+      }
+
       const { filename, mimetype, createReadStream } = fileData
 
       // Validate product existence

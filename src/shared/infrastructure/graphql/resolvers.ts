@@ -1,5 +1,6 @@
 import { PubSub } from 'graphql-subscriptions'
 import { dateTimeScalar } from './scalars/date-time.scalar'
+import { uploadScalar } from './scalars/upload.scalar'
 import { authResolvers } from '../../../modules/auth/interfaces/graphql/resolvers/auth.resolver'
 import { categoryProductResolvers } from '../../../modules/category_products/interfaces/graphql/resolvers/category_products.resolver'
 import { categoryStoreResolvers } from '../../../modules/category_store/interfaces/graphql/resolvers/category_store.resolver'
@@ -114,5 +115,6 @@ export default {
         subscribe: () => (pubsub as any).asyncIterator(['NUMBER_INCREMENTED'])
     }
     },
-    DateTime: dateTimeScalar
+    DateTime: dateTimeScalar,
+    Upload: uploadScalar
 }

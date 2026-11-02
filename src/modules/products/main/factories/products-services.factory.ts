@@ -7,6 +7,7 @@ import { SequelizeCategoryProductRepository } from '../../../category_products/i
 import { RegisterAvailableProductUseCase } from '../../application/use-cases/create-available-product.usecase'
 import { SetImageProductUseCase } from '../../application/use-cases/create-image-product.usecase'
 import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
+import { EditProductUseCase } from '../../application/use-cases/edit-products.usecase'
 import { FindProductByIdUseCase } from '../../application/use-cases/find-products-by-id.usecase'
 import { GetAllProductsAllUseCase } from '../../application/use-cases/get-all-products-all.usecase'
 import { GetAllProductsByCategoryIdUseCase } from '../../application/use-cases/get-all-products-by-category.usecase'
@@ -28,6 +29,7 @@ export const ProductServicesTenantFactory = (tenant: string) => {
 
     return {
         create: new CreateProductTypeUseCase(productRepository, categoryProductsRepository),
+        edit: new EditProductUseCase(productRepository),
         findById: new FindProductByIdUseCase(productRepository),
         getAllProductsByCategoryId: new GetAllProductsByCategoryIdUseCase(productRepository),
         setImageProduct: new SetImageProductUseCase(productRepository),

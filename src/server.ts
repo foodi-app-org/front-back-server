@@ -10,6 +10,7 @@ import { useServer } from 'graphql-ws/lib/use/ws';
 import { createServer } from 'node:http'
 import { WebSocketServer } from 'ws'
 import helmet from 'helmet';
+import { graphqlUploadExpress } from 'graphql-upload-ts'
 import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import { wsSchema } from './ws-schema'
@@ -123,8 +124,13 @@ const server = new ApolloServer({
       methods: ['GET', 'POST']
     })
   )
-  app.use(express.json())
-  app.use('/api', routes)
+  // NOTE: do NOT apply express.json() globally. The GraphQL file-upload
+  // endpoint (`setImageProducts`) sends `multipart/form-data`, and letting the
+  // JSON body-parser run first leaves `req.body` empty for those requests,
+  // which makes Apollo throw:
+  //   "POST body missing, invalid Content-Type, or JSON object has no keys."
+  // JSON parsing is applied per-router/route where it is actually needed.
+  app.use('/api', express.json(), routes)
   // Web Push mini-hexagon. Mounted at the root because the frontend hook calls
   // the subscription endpoints directly on the API base (e.g. POST /subscription2).
   app.use(createPushNotificationsModule())
@@ -155,10 +161,40 @@ const server = new ApolloServer({
    * - Sends JSON when response is JSON-like
    * - Falls back to text/plain for other payloads
    */
-  app.use('/graphql', express.json(), async (req: Request, res: Response, next: NextFunction) => {
+  // Conditional body parsing for /graphql:
+  //  - multipart/form-data  -> graphqlUploadExpress consumes the stream and
+  //    populates req.body with the GraphQL operation + Upload promises.
+  //  - everything else       -> standard JSON body parser.
+  // This lets both normal queries/mutations and file uploads share one endpoint.
+  const graphqlJson = express.json()
+  const graphqlUpload = graphqlUploadExpress({
+    maxFileSize: 10 * 1024 * 1024, // 10 MB per file
+    maxFiles: 5
+  })
+
+  const graphqlBodyParser = (req: Request, res: Response, next: NextFunction) => {
+    const contentType = req.headers['content-type'] ?? ''
+    if (contentType.includes('multipart/form-data')) {
+      return graphqlUpload(req, res, next)
+    }
+    return graphqlJson(req, res, next)
+  }
+
+  app.use('/graphql', graphqlBodyParser, async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const isMultipart = (req.headers['content-type'] ?? '').includes('multipart/form-data')
+
       const headers = new HeaderMap(
-        Object.entries(req.headers).map(([k, v]) => [k, Array.isArray(v) ? v.join(',') : v ?? ''])
+        Object.entries(req.headers).map(([k, v]) => {
+          // After graphqlUploadExpress runs, the body is already parsed into a
+          // plain object. Apollo v5 inspects Content-Type to decide how to read
+          // the body, and would reject the original multipart type. Tell Apollo
+          // the (already-parsed) body is JSON so it uses req.body as-is.
+          if (isMultipart && k.toLowerCase() === 'content-type') {
+            return [k, 'application/json']
+          }
+          return [k, Array.isArray(v) ? v.join(',') : v ?? '']
+        })
       )
 
       // ensure search is built even if host missing

@@ -103,6 +103,32 @@ export const productResolvers = {
       const services = ProductServicesTenantFactory(context.restaurant ?? '')
       return await services.create.execute(value)
     },
+    editProductFoods: async (
+      _: GraphQLResolveInfo,
+      args: { input: CreateStatusTypeOrderInput & { pId?: string } },
+      context: GraphQLContext
+    ) => {
+      try {
+        const { pId, ...rest } = args.input ?? {}
+        if (!pId) {
+          return {
+            success: false,
+            message: 'El identificador del producto (pId) es requerido'
+          }
+        }
+        const services = ProductServicesTenantFactory(context.restaurant ?? '')
+        const result = await services.edit.execute({ pId, ...rest })
+        return {
+          success: result?.success ?? false,
+          message: result?.message ?? 'No se pudo actualizar el producto'
+        }
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : 'Error inesperado al actualizar el producto'
+        }
+      }
+    },
     setImageProducts: async (
       _: GraphQLResolveInfo,
       args: { input: { pId: string; image: any } },

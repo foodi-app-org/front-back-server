@@ -58,6 +58,13 @@ input ExtProductFoodInput {
   updatedAt: String
   quantity: Int
   newExtraPrice: Float
+  # Inventory flags for complementos (extras). A complemento manages its own
+  # stock independently from the parent product. These fields reflect the extra
+  # catalog state sent from the POS; the actual inventory decrement is driven by
+  # the backend using the extra's exPid (see registerSalesStore / ExtraStock).
+  # They are optional so historical sales and extras without stock keep working.
+  manageStock: Boolean
+  stock: Int
 }
 
 
