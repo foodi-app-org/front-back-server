@@ -51,5 +51,5 @@ type ResponseSalesStore {
 
 type Query {
   getOneSalesStore(pCodeRef: String): ResponseSalesStore
-  getAllSalesStore: [StoreOrders]
+  getAllSalesStore(idStore: ID, pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int, fromDate: String, toDate: String, channel: Int): [StoreOrders]
 }

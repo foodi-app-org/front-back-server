@@ -172,10 +172,29 @@ export const orderResolvers = {
       }
     },
 
-    getAllSalesStore: async (_: GraphQLResolveInfo, _args: Record<string, unknown>, context: GraphQLContext) => {
-      const idStore = context.restaurant ?? ''
+    getAllSalesStore: async (
+      _: GraphQLResolveInfo,
+      args: {
+        idStore?: string
+        search?: string
+        min?: number
+        max?: number
+        fromDate?: string
+        toDate?: string
+        channel?: number
+      },
+      context: GraphQLContext
+    ) => {
+      const idStore = context.restaurant ?? args?.idStore ?? ''
       const services = StatusOrderServicesTenantFactory(idStore)
-      const response = await services.getAllByStatusType.execute()
+      const response = await services.getAllByStatusType.execute({
+        search: args?.search,
+        min: args?.min,
+        max: args?.max,
+        fromDate: args?.fromDate,
+        toDate: args?.toDate,
+        channel: args?.channel
+      })
       return response?.data ?? []
     }
   },

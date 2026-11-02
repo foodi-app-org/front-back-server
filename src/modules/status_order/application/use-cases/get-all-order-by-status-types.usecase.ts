@@ -7,6 +7,15 @@ interface ResponseOrderStatusType {
     message: string
     data: StatusOrder[] | null
 }
+
+export interface GetAllSalesStoreFilters {
+    search?: string
+    min?: number
+    max?: number
+    fromDate?: string
+    toDate?: string
+    channel?: number
+}
 /**
  * Use case responsible for creating a new store
  */
@@ -17,13 +26,13 @@ export class GetAllByStatusTypeUseCase {
 
     /**
      * Executes the use case to fetch an order status by code reference
-     * @param pCodeRef - string code reference to search for
+     * @param filters - optional filters to narrow down the sales results
      * @returns An object indicating success, a message, and the found order status or null if not found
      */
-    async execute(): Promise<ResponseOrderStatusType | null> {
+    async execute(filters?: GetAllSalesStoreFilters): Promise<ResponseOrderStatusType | null> {
 
         try {
-            const order = await this.statusOrderRepository.getAllByStatusType()
+            const order = await this.statusOrderRepository.getAllByStatusType(filters)
             if (!order) {
                 return {
                     success: false,

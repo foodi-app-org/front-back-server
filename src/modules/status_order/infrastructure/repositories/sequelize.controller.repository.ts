@@ -4,7 +4,7 @@ import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { GenericService } from '../../../../shared/infrastructure/persistence'
 import { StatusOrder, StatusOrderPagination } from '../../domain/entities/status_order.entity'
-import { StatusOrderRepository } from '../../domain/repositories/status_order.repository'
+import { GetAllByStatusTypeFilters, StatusOrderRepository } from '../../domain/repositories/status_order.repository'
 import type { SequelizeStatusOrderModel } from '../db/sequelize/models/sequelize-status_orders.model'
 import { connect } from '../../../../shared/infrastructure/db'
 
@@ -76,7 +76,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       throw new Error(String(e))
     }
   }
-  async getAllByStatusType(): Promise<any[] | null> {
+  async getAllByStatusType(filters?: GetAllByStatusTypeFilters): Promise<any[] | null> {
     try {
       const sequelize = connect()
       // Per-order revenue prefers the header total `orders_statuses.totalProductsPrice`,
@@ -87,6 +87,28 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       //
       // `pDatCre` is exposed as an alias of `createdAt` because the GraphQL
       // `StoreOrders` type and its clients read `pDatCre`, not `createdAt`.
+      //
+      // Optional filters (search / date range) are applied with bind
+      // parameters to avoid SQL injection. Each filter is only added to the
+      // WHERE clause when a value is provided.
+      const conditions: string[] = []
+      const replacements: Record<string, unknown> = {}
+
+      if (filters?.search) {
+        conditions.push('os."pCodeRef" ILIKE :search')
+        replacements.search = `%${filters.search}%`
+      }
+      if (filters?.fromDate) {
+        conditions.push('os."createdAt" >= :fromDate')
+        replacements.fromDate = filters.fromDate
+      }
+      if (filters?.toDate) {
+        conditions.push('os."createdAt" <= :toDate')
+        replacements.toDate = filters.toDate
+      }
+
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
       const query = `
             SELECT 
         ost.name AS status,
@@ -110,6 +132,7 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
       FROM "${this.tenant}.order_status_types" AS ost
       INNER JOIN "${this.tenant}.orders_statuses" AS os
       ON os.idStatus = ost.idStatus
+      ${whereClause}
       `
       type StatusRow = {
         status: string
@@ -124,7 +147,8 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
         pDatMod: Date | string
       }
       const results = await sequelize.query<StatusRow>(query, {
-        type: QueryTypes.SELECT
+        type: QueryTypes.SELECT,
+        replacements
       })
       return results
     } catch (e) {
