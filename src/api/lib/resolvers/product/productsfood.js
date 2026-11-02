@@ -244,7 +244,6 @@ const updateProductFoods = async (_root, { input }, context) => {
     ValueDelivery,
     colorId,
     cId,
-    manageStock = false,
     dId,
     ctId,
     pId,
@@ -291,6 +290,7 @@ const updateProductFoods = async (_root, { input }, context) => {
           }
         })
       }
+      const stockValue = Number(input.stock) || 1
       const data = await productModelFood
         .schema(getTenantName(context?.restaurant))
         .create({
@@ -306,8 +306,9 @@ const updateProductFoods = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: lengthProduct + 1,
-          manageStock,
-          previousStock: Number(input.stock)
+          stock: stockValue,
+          manageStock: true,
+          previousStock: stockValue
         })
 
       return {

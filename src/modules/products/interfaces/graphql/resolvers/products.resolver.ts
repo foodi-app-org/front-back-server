@@ -78,7 +78,11 @@ export const productResolvers = {
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
-      const values = { ...args.input }
+      const values = {
+        ...args.input,
+        manageStock: true,
+        stock: Number((args.input as { stock?: number })?.stock) || 1
+      }
       const { error, value } = productSchema.validate({
         ...values,
         idStore: context.restaurant ?? ''
