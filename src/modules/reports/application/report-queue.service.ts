@@ -3,6 +3,7 @@ import { PubSub } from 'graphql-subscriptions'
 
 import { ReportJob } from '../domain/types'
 import { SequelizeReportJobRepository } from '../infrastructure/repositories/sequelize-report-job.repository'
+import { ReportStorageService } from '../infrastructure/storage/report-storage.service'
 import { ReportJobProcessor } from './report-job.processor'
 import { ReportNotificationService } from './report-notification.service'
 
@@ -14,6 +15,10 @@ const POLL_INTERVAL_MS = 1500
  * Maximum report jobs processed concurrently across all tenants.
  */
 const DEFAULT_CONCURRENCY = 2
+/**
+ * Minimum interval between expired-file cleanup sweeps.
+ */
+const CLEANUP_INTERVAL_MS = 60_000
 
 /**
  * In-process, database-backed job queue and worker. Behaves like a local SQS:
@@ -40,6 +45,8 @@ export class ReportQueueService {
   private running = 0
   private timer: NodeJS.Timeout | null = null
   private readonly concurrency: number
+  private readonly storage = new ReportStorageService()
+  private lastCleanupAt = 0
 
   private constructor(concurrency: number) {
     this.concurrency = concurrency
@@ -105,12 +112,34 @@ export class ReportQueueService {
       try {
         const repo = new SequelizeReportJobRepository(tenant)
         recovered += await repo.recoverInterrupted()
-        await repo.expireOverdue(new Date())
       } catch {
         // Ignore tenants whose table does not exist yet.
       }
     }
+    await this.cleanupExpired()
     return recovered
+  }
+
+  /**
+   * Expires overdue jobs across all known tenants and physically deletes their
+   * files. Throttled so it runs at most once per {@link CLEANUP_INTERVAL_MS}.
+   */
+  private async cleanupExpired(): Promise<void> {
+    const now = Date.now()
+    if (now - this.lastCleanupAt < CLEANUP_INTERVAL_MS) return
+    this.lastCleanupAt = now
+
+    for (const tenant of this.tenants) {
+      try {
+        const repo = new SequelizeReportJobRepository(tenant)
+        const expiredFiles = await repo.expireOverdue(new Date())
+        for (const fileName of expiredFiles) {
+          await this.storage.remove(fileName)
+        }
+      } catch {
+        // Ignore tenants whose table is not ready; retried next sweep.
+      }
+    }
   }
 
   /**
@@ -132,6 +161,8 @@ export class ReportQueueService {
    */
   private async tick(): Promise<void> {
     if (!this.pubsub) return
+    // Periodic (throttled) cleanup of expired jobs and their files.
+    void this.cleanupExpired()
     for (const tenant of this.tenants) {
       if (this.running >= this.concurrency) return
       try {
@@ -149,14 +180,14 @@ export class ReportQueueService {
   }
 
   private async runClaimed(
-    tenant: string,
+    _tenant: string,
     repo: SequelizeReportJobRepository,
     job: ReportJob
   ): Promise<void> {
+    // The processor emits `report:started` itself (and claimNextPending already
+    // set the row to PROCESSING), so we do not publish a duplicate event here.
     const processor = new ReportJobProcessor(repo, this.requireNotifier())
-    await this.requireNotifier().publish('report:started', job)
     await processor.process(job)
-    void tenant
   }
 
   private requireNotifier(): ReportNotificationService {

@@ -252,23 +252,34 @@ export class SequelizeReportJobRepository {
   }
 
   /**
-   * Marks COMPLETED jobs whose file has expired as EXPIRED.
+   * Marks COMPLETED jobs whose file has expired as EXPIRED and returns the
+   * physical file names that were detached, so the caller can delete them from
+   * disk (the row no longer references them afterwards).
    *
    * @param now - Current time.
-   * @returns Count of expired jobs.
+   * @returns The file names of the jobs that were just expired.
    */
-  async expireOverdue(now: Date): Promise<number> {
+  async expireOverdue(now: Date): Promise<string[]> {
     await this.ensureTable()
-    const [count] = await models.ReportJob.schema(this.tenant).update(
+    const where = {
+      status: 'COMPLETED',
+      expiresAt: { [Op.ne]: null, [Op.lt]: now }
+    }
+    // Capture file names first so they can be physically removed after the
+    // rows are detached from them.
+    const rows = await models.ReportJob.schema(this.tenant).findAll({
+      where,
+      attributes: ['fileName']
+    })
+    const fileNames = rows
+      .map((r) => r.get('fileName') as string | null)
+      .filter((name): name is string => typeof name === 'string' && name.length > 0)
+
+    await models.ReportJob.schema(this.tenant).update(
       { status: 'EXPIRED', fileName: null },
-      {
-        where: {
-          status: 'COMPLETED',
-          expiresAt: { [Op.ne]: null, [Op.lt]: now }
-        }
-      }
+      { where }
     )
-    return count
+    return fileNames
   }
 }
 

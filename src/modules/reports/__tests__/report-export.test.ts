@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { getCatalogGroupedByCategory, REPORT_DEFINITIONS } from '../domain/catalog/report-catalog'
-import { ReportTable } from '../domain/types'
+import { canTransition, ReportJobStatus, ReportTable } from '../domain/types'
 import { CsvExportService, escapeCsvField } from '../infrastructure/export/csv-export.service'
 import { XlsxExportService } from '../infrastructure/export/xlsx-export.service'
 import { createZip } from '../infrastructure/export/zip.util'
@@ -168,5 +168,81 @@ describe('export request validation', () => {
     const light = estimateWeight({ ...base })
     const heavy = estimateWeight({ ...base, reportIds: ['sales.summary', 'sales.detail'], endDate: '2026-03-31' })
     expect(heavy).toBeGreaterThan(light)
+  })
+
+  it('rejects an unknown report id', () => {
+    expect(() => validateExportRequest({ ...base, reportIds: ['does.not.exist'] })).toThrow(/desconocido/)
+  })
+
+  it('rejects a future start date', () => {
+    const future = '2999-01-01'
+    expect(() => validateExportRequest({ ...base, startDate: future, endDate: future })).toThrow(/futuro/)
+  })
+})
+
+describe('report job state machine', () => {
+  it('allows only valid transitions', () => {
+    expect(canTransition('PENDING', 'PROCESSING')).toBe(true)
+    expect(canTransition('PROCESSING', 'COMPLETED')).toBe(true)
+    expect(canTransition('COMPLETED', 'EXPIRED')).toBe(true)
+    expect(canTransition('FAILED', 'PENDING')).toBe(true)
+  })
+
+  it('rejects invalid transitions', () => {
+    expect(canTransition('PENDING', 'COMPLETED')).toBe(false)
+    expect(canTransition('COMPLETED', 'PROCESSING')).toBe(false)
+    expect(canTransition('CANCELLED', 'PENDING')).toBe(false)
+    expect(canTransition('EXPIRED', 'COMPLETED')).toBe(false)
+  })
+
+  it('never allows leaving a terminal cancelled/expired state', () => {
+    const terminal: ReportJobStatus[] = ['CANCELLED', 'EXPIRED']
+    const all: ReportJobStatus[] = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED']
+    for (const from of terminal) {
+      for (const to of all) {
+        expect(canTransition(from, to)).toBe(false)
+      }
+    }
+  })
+})
+
+describe('CSV formula injection with leading whitespace', () => {
+  const csv = new CsvExportService()
+
+  it('neutralizes dangerous characters even after a leading tab', () => {
+    expect(escapeCsvField('\t=1+1')).toBe("'\t=1+1")
+  })
+
+  it('does not alter legitimate numbers passed as numbers', () => {
+    // Numeric columns are emitted as numbers, never prefixed.
+    const table: ReportTable = {
+      reportId: 'x', name: 'N',
+      columns: [{ key: 'n', label: 'N', type: 'number' }],
+      rows: [{ n: -42.5 }]
+    }
+    const out = csv.render(table)
+    expect(out).toContain('-42.5')
+    expect(out).not.toContain("'-42.5")
+  })
+})
+
+describe('empty dataset export', () => {
+  const service = new ReportExportService()
+  const meta = { startDate: '2026-01-01', endDate: '2026-01-31', storeId: 's1', timezone: 'America/Bogota' }
+  const empty: ReportTable = {
+    reportId: 'e', name: 'Vacio',
+    columns: [{ key: 'a', label: 'A', type: 'string' }],
+    rows: []
+  }
+
+  it('produces a valid XLSX for a report with no rows', () => {
+    const file = service.generate({ format: 'XLSX', tables: [empty], meta })
+    expect(file.content.readUInt16LE(0)).toBe(0x4b50)
+  })
+
+  it('produces a valid CSV (headers only) for a report with no rows', () => {
+    const file = service.generate({ format: 'CSV', tables: [empty], meta })
+    const text = file.content.toString('utf8')
+    expect(text).toContain('A')
   })
 })

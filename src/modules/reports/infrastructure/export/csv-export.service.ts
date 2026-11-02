@@ -7,24 +7,42 @@ const BOM = '\uFEFF'
  * Escapes a value for safe CSV output and neutralizes CSV formula injection.
  *
  * Formula injection: spreadsheet apps execute cells beginning with `= + - @`
- * (and tab/CR). We prefix those with an apostrophe so the content is treated as
- * text. Standard CSV quoting handles commas, quotes and newlines.
+ * (optionally preceded by whitespace/tab/CR). We prefix such TEXT cells with an
+ * apostrophe so the content is treated as text. The guard is applied only to
+ * string values: numeric and boolean cells keep their native representation, so
+ * legitimate negative numbers (e.g. `-42.5`) are never altered. Standard CSV
+ * quoting handles commas, quotes and newlines.
  *
  * @param value - Raw cell value.
  * @returns A CSV-safe field.
  */
 export const escapeCsvField = (value: string | number | boolean | null): string => {
   if (value === null || value === undefined) return ''
+
+  // Numbers and booleans are not formulas; emit their native text unchanged
+  // (after CSV quoting). This avoids mangling legitimate negative numbers.
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return quoteIfNeeded(String(value))
+  }
+
   let str = String(value)
 
-  // Neutralize formula injection on leading dangerous characters.
-  if (/^[=+\-@\t\r]/.test(str)) {
+  // Neutralize formula injection on a leading dangerous character, allowing for
+  // leading whitespace/tab/CR that some apps strip before evaluating.
+  if (/^[\s\t\r]*[=+\-@]/.test(str)) {
     str = `'${str}`
   }
 
-  // Quote when the field contains a delimiter, quote or newline.
+  return quoteIfNeeded(str)
+}
+
+/**
+ * Wraps a field in double quotes (escaping inner quotes) when it contains a
+ * delimiter, quote or newline.
+ */
+const quoteIfNeeded = (str: string): string => {
   if (/[",\n\r]/.test(str)) {
-    str = `"${str.replace(/"/g, '""')}"`
+    return `"${str.replace(/"/g, '""')}"`
   }
   return str
 }
