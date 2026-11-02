@@ -31,6 +31,7 @@ import { SequelizeCitiesModel } from '@modules/geolocations/infrastructure/db/se
 import { SequelizeCountriesModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-countries.model'
 import { SequelizeDepartmentsModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-deparments.model'
 import { FILTER_CONFIG_MODEL, SequelizeFilterConfigModel } from '../../../../../modules/filter_config/infrastructure/repositories/sequelize-filter-config.model'
+import SequelizeReportJobModel, { REPORT_JOB_MODEL } from '../../../../../modules/reports/infrastructure/db/sequelize/models/sequelize-report-job.model'
 
 
 export const models = {
@@ -73,7 +74,10 @@ export const models = {
   Departments: SequelizeDepartmentsModel,
 
   // FilterConfig
-  FilterConfig: SequelizeFilterConfigModel
+  FilterConfig: SequelizeFilterConfigModel,
+
+  // Reports
+  ReportJob: SequelizeReportJobModel
 
 }
 
@@ -105,4 +109,5 @@ export const models_names = {
   ProductSold: PRODUCT_MODEL_SOLD,
   ExtraProductSold: EXTRA_PRODUCT_MODEL_SOLD,
   FilterConfig: FILTER_CONFIG_MODEL,
+  ReportJob: REPORT_JOB_MODEL,
 }

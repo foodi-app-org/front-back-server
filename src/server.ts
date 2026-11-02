@@ -28,6 +28,7 @@ import { bodyToString } from '@shared/utils/body-to-string'
 import { eventBus } from '@shared/infrastructure/event-bus'
 import { registerSubscribersFromModules } from '@shared/infrastructure/event-bus/registry'
 import { runPublicMigrations } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
+import { bootstrapReportWorker } from '@modules/reports/main/report-worker.bootstrap'
 
 const FLAG_PATH = path.join(__dirname, '.url_opened')
 
@@ -100,6 +101,9 @@ const server = new ApolloServer({
   }
   // event subscribers rxjs
   registerSubscribersFromModules(path.resolve(__dirname, '..'), pubsub)
+  // Start the report export worker (local DB-backed job queue) and recover any
+  // jobs interrupted by a previous shutdown. Non-blocking: failures are logged.
+  void bootstrapReportWorker(pubsub)
   await server.start()
   // 🌐 CORS
   const allowedOrigins = new Set([

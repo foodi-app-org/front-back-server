@@ -1,5 +1,6 @@
 export const enum SocketEvents {
   NEW_STORE_ORDER = 'newStoreOrder',
   STOCK_UPDATED_BY_ID = 'StockUpdatedById',
-  ALL_STOCK_UPDATED = 'StockUpdatedAll'
+  ALL_STOCK_UPDATED = 'StockUpdatedAll',
+  REPORT_JOB_UPDATED = 'reportJobUpdated'
 }

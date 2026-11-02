@@ -127,6 +127,41 @@ export const wsSchema = new GraphQLSchema({
             return payload[SocketEvents.ALL_STOCK_UPDATED].idStore === variables.idStore
           }
         )
+      },
+      /**
+       * Streams report job lifecycle events to the owning client. Clients
+       * subscribe with the jobId they created; the filter ensures a user only
+       * receives updates for the specific job they requested, enforcing
+       * authorization on the server.
+       */
+      reportJobUpdated: {
+        type: new GraphQLObjectType({
+          name: 'ReportJobUpdate',
+          fields: {
+            jobId: { type: GraphQLString },
+            idStore: { type: GraphQLString },
+            idUser: { type: GraphQLString },
+            status: { type: GraphQLString },
+            progress: { type: GraphQLInt },
+            stage: { type: GraphQLString },
+            fileName: { type: GraphQLString },
+            errorMessage: { type: GraphQLString },
+            event: { type: GraphQLString }
+          }
+        }),
+        args: {
+          jobId: { type: GraphQLString }
+        },
+        subscribe: withFilter(
+          (_: any, __: any, context: { pubsub: PubSub<Record<string, never>> } | undefined) => {
+            if (!context?.pubsub) throw new Error('pubsub not available')
+            return context.pubsub.asyncIterableIterator(SocketEvents.REPORT_JOB_UPDATED)
+          },
+          (payload: any, variables: any) => {
+            if (!variables?.jobId) return false
+            return payload[SocketEvents.REPORT_JOB_UPDATED].jobId === variables.jobId
+          }
+        )
       }
     }
   })

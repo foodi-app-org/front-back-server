@@ -1,0 +1,139 @@
+"""Export file format for a report request."""
+enum ReportFormat {
+  XLSX
+  CSV
+}
+
+"""A selectable value for a dynamic report filter."""
+type ReportFilterOption {
+  value: String!
+  label: String!
+}
+
+"""Definition of a dynamic filter available for a report."""
+type ReportFilterDefinition {
+  key: String!
+  label: String!
+  type: String!
+  multiple: Boolean!
+  options: [ReportFilterOption!]
+}
+
+"""Describes a column produced by a report."""
+type ReportFieldDefinition {
+  key: String!
+  label: String!
+  type: String!
+}
+
+"""A report available in the catalog."""
+type ReportDefinition {
+  id: ID!
+  name: String!
+  description: String!
+  category: String!
+  enabled: Boolean!
+  disabledReason: String
+  supportedFormats: [ReportFormat!]!
+  supportsMultipleSelection: Boolean!
+  filters: [ReportFilterDefinition!]!
+  availableFields: [ReportFieldDefinition!]!
+}
+
+"""A catalog category grouping its reports."""
+type ReportCatalogCategory {
+  category: String!
+  label: String!
+  reports: [ReportDefinition!]!
+}
+
+"""Response for the report catalog query."""
+type ReportCatalogResponse {
+  success: Boolean!
+  message: String
+  categories: [ReportCatalogCategory!]!
+}
+
+"""A persisted report job (one export request)."""
+type ReportJob {
+  id: ID!
+  reportIds: [String!]!
+  format: ReportFormat!
+  startDate: String!
+  endDate: String!
+  timezone: String!
+  status: String!
+  progress: Int!
+  stage: String
+  recordsProcessed: Int
+  fileName: String
+  fileSize: Int
+  mimeType: String
+  errorMessage: String
+  attempts: Int!
+  createdAt: String!
+  startedAt: String
+  finishedAt: String
+  durationMs: Int
+  expiresAt: String
+}
+
+"""Standard error entry (matches the project-wide shape)."""
+type ReportErrorEntry {
+  path: String
+  message: String
+  type: String
+}
+
+"""Response wrapping a single report job."""
+type ReportJobResponse {
+  success: Boolean!
+  message: String
+  errors: [ReportErrorEntry!]
+  job: ReportJob
+}
+
+"""Response listing recent report jobs."""
+type ReportJobListResponse {
+  success: Boolean!
+  message: String
+  jobs: [ReportJob!]!
+}
+
+"""Response resolving a downloadable report file."""
+type ReportDownloadResponse {
+  success: Boolean!
+  message: String
+  fileName: String
+  mimeType: String
+}
+
+"""Per-report filter values (JSON object keyed by report id)."""
+input ReportExportInput {
+  reportIds: [String!]!
+  format: ReportFormat!
+  startDate: String!
+  endDate: String!
+  timezone: String
+  filters: JSON
+}
+
+type Query {
+  """Returns the backend-owned, dynamic report catalog grouped by category."""
+  getAvailableReports: ReportCatalogResponse!
+  """Returns the most recent report requests for the authenticated user."""
+  getRecentReportRequests(limit: Int): ReportJobListResponse!
+  """Returns the current status of an owned report job."""
+  getReportJobStatus(jobId: ID!): ReportJobResponse!
+  """Resolves the downloadable file name for a completed, owned job."""
+  downloadReport(jobId: ID!): ReportDownloadResponse!
+}
+
+type Mutation {
+  """Validates and submits an export request (immediate or queued)."""
+  requestReportExport(input: ReportExportInput!): ReportJobResponse!
+  """Cancels an owned, unfinished report job."""
+  cancelReportJob(jobId: ID!): ReportJobResponse!
+  """Retries a failed owned report job as a new request."""
+  retryReportJob(jobId: ID!): ReportJobResponse!
+}
