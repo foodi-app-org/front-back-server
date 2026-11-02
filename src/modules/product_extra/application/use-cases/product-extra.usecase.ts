@@ -44,7 +44,10 @@ export class CreateProductOptionalUseCase {
           idStore,
           extraPrice: item.extraPrice,
           exState: StateProductExtra.ACTIVE,
-          required: item.required ?? 0
+          required: item.required ?? 0,
+          manageStock: item.manageStock ?? false,
+          stock: item.stock,
+          previousStock: item.previousStock
         })
         const updated = await this.repo.create(entity)
         if (updated) {

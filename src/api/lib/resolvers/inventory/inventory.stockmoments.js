@@ -14,6 +14,7 @@ import { StockMovementInputSchema } from './schema'
 // Real table names created by the stock module (freezeTableName).
 // Kept local to avoid coupling this legacy resolver to modular model init.
 const PRODUCT_MODELS_TABLE = 'product_models'
+const EXTRA_PRODUCTS_TABLE = 'products_extras'
 const STOCK_HISTORY_TABLE = 'stock_history'
 const STOCK_HISTORY_DECREMENT = 'DECREMENT'
 
@@ -71,17 +72,36 @@ const getTopProductsMovements = async (_root, _args, context) => {
     // decrementStock) records every consumption in `stock_history` as a
     // negative-delta DECREMENT row. It does NOT write to `stock_movements`,
     // so the ranking must read from `stock_history` to reflect real sales.
+    // Ranking unificado de productos y complementos (extras). Los movimientos de
+    // extras viven en la misma tabla stock_history (pId = exPid), por lo que se
+    // hace UNION de ambos orígenes para que el top refleje producto real + extra.
     const query = `
-      SELECT 
-        p."pName" AS "productName", 
-        COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
-        p."pId" AS "idProduct"
-      FROM "${tenant}.${PRODUCT_MODELS_TABLE}" p
-      INNER JOIN "${tenant}.${STOCK_HISTORY_TABLE}" h
-        ON p."pId" = h."pId"
-        AND h."type" = '${STOCK_HISTORY_DECREMENT}'
-      GROUP BY p."pId", p."pName"
-      HAVING SUM(-h."delta") > 0
+      SELECT "productName", "totalMovements", "idProduct"
+      FROM (
+        SELECT 
+          p."pName" AS "productName", 
+          COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
+          p."pId" AS "idProduct"
+        FROM "${tenant}.${PRODUCT_MODELS_TABLE}" p
+        INNER JOIN "${tenant}.${STOCK_HISTORY_TABLE}" h
+          ON p."pId" = h."pId"
+          AND h."type" = '${STOCK_HISTORY_DECREMENT}'
+        GROUP BY p."pId", p."pName"
+        HAVING SUM(-h."delta") > 0
+
+        UNION ALL
+
+        SELECT 
+          e."extraName" AS "productName", 
+          COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
+          e."exPid" AS "idProduct"
+        FROM "${tenant}.${EXTRA_PRODUCTS_TABLE}" e
+        INNER JOIN "${tenant}.${STOCK_HISTORY_TABLE}" h
+          ON e."exPid" = h."pId"
+          AND h."type" = '${STOCK_HISTORY_DECREMENT}'
+        GROUP BY e."exPid", e."extraName"
+        HAVING SUM(-h."delta") > 0
+      ) AS ranked
       ORDER BY "totalMovements" DESC
       LIMIT 10;
     `
@@ -301,11 +321,19 @@ const getTotalProductsInStock = async (_root, _args, context) => {
     const tenant = getTenantName(context?.restaurant)
     const sequelize = connect()
 
+    // Total de unidades gestionadas en stock: productos + complementos (extras).
     const result = await sequelize.query(
       `
-      SELECT SUM("stock") AS "totalProductsInStock"
-      FROM "${tenant}.${PRODUCT_MODELS_TABLE}"
-      WHERE "stock" > 0 AND "manageStock" = true;
+      SELECT
+        (
+          SELECT COALESCE(SUM("stock"), 0)
+          FROM "${tenant}.${PRODUCT_MODELS_TABLE}"
+          WHERE "stock" > 0 AND "manageStock" = true
+        ) + (
+          SELECT COALESCE(SUM("stock"), 0)
+          FROM "${tenant}.${EXTRA_PRODUCTS_TABLE}"
+          WHERE "stock" > 0 AND "manageStock" = true
+        ) AS "totalProductsInStock";
       `,
       { type: sequelize.QueryTypes.SELECT }
     )

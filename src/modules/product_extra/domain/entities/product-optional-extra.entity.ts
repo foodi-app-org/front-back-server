@@ -18,6 +18,9 @@ export class ProductExtra {
   public readonly extraPrice?: number
   public readonly exState?: StateProductExtra
   public readonly required: number
+  public readonly manageStock?: boolean
+  public readonly stock?: number
+  public readonly previousStock?: number
   public readonly createdAt?: Date
   public readonly updatedAt?: Date
   constructor(props: {
@@ -28,6 +31,9 @@ export class ProductExtra {
     extraPrice?: number
     exState?: StateProductExtra
     required?: number
+    manageStock?: boolean
+    stock?: number
+    previousStock?: number
     createdAt?: Date
     updatedAt?: Date
   }) {
@@ -38,6 +44,9 @@ export class ProductExtra {
     this.extraPrice = props.extraPrice
     this.exState = props.exState ?? StateProductExtra.ACTIVE
     this.required = props.required ?? 0
+    this.manageStock = props.manageStock ?? false
+    this.stock = this.manageStock ? (Number(props.stock) || 1) : 0
+    this.previousStock = props.previousStock ?? this.stock
     this.createdAt = props.createdAt ?? new Date()
     this.updatedAt = props.updatedAt ?? new Date()
   }

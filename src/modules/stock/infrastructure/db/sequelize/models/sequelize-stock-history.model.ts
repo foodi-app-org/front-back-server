@@ -25,7 +25,9 @@ export const columnsStockHistory = {
     defaultValue: DataTypes.UUIDV4
   },
   pId: {
-    type: DataTypes.STRING(32),
+    // 36 chars to also fit a product extra UUID (exPid) when the movement
+    // belongs to a complemento tracked as a real product.
+    type: DataTypes.STRING(36),
     allowNull: false
   },
   delta: {

@@ -5,6 +5,9 @@ type ExtProductFood {
 	exState: Int
 	extraName: String
 	extraPrice: Float
+	manageStock: Boolean
+	stock: Int
+	previousStock: Int
 	quantity: Int
 	newExtraPrice: Int
 	state: Int
@@ -70,6 +73,8 @@ input InputExtProductFood {
 	exState: Int
 	extraName: String
 	extraPrice: Float
+	manageStock: Boolean
+	stock: Int
 	state: Int
 	createdAt: DateTime
 	updatedAt: DateTime

@@ -12,6 +12,7 @@ import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructu
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
+import { ExtraStockServicesTenantFactory } from '../../../../product_extra/infrastructure/inventory/extra-stock.factory'
 import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
 import { v4 as uuiv4 } from 'uuid'
 import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
@@ -216,6 +217,7 @@ export const orderResolvers = {
         const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
         const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
         const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
+        const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
 
         for (const item of args.input) {
           const newItem = {
@@ -292,6 +294,20 @@ export const orderResolvers = {
             pId: soldPid,
             quantity: e.quantity
           })), t)
+
+          // OUT de inventario de complementos: descuenta el stock de cada extra
+          // vendido DENTRO de la misma transacción de la venta (atómico). El
+          // StockService hace bypass automático cuando el extra no maneja stock,
+          // por lo que es seguro invocarlo siempre. Se usa el exPid ORIGINAL del
+          // complemento (no el id del registro "sold") para afectar el inventario
+          // real. El descuento del producto padre se mantiene en su propio flujo
+          // (evento CHANGE_STOCK_SUBSCRIBER), evitando duplicidad.
+          for (const extra of extras) {
+            const originalExPid = extra?.exPid
+            const extraQty = Number(extra?.quantity ?? 0) || qty
+            if (!originalExPid || extraQty <= 0) continue
+            await extraStock.decrement(originalExPid, extraQty, idStore, t)
+          }
 
           await ProductOptionalServices.bulkCreateProductOptionalAndSubOptional.execute(dataOptional.map(op => ({
             ...op,

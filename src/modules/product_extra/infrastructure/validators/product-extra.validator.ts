@@ -40,5 +40,19 @@ export const productExtraSchema = Joi.object({
       'string.base': 'pId must be a string',
       'string.empty': 'pId is required',
       'any.required': 'pId is required'
+    }),
+  manageStock: Joi.boolean()
+    .allow(null)
+    .messages({
+      'boolean.base': 'manageStock must be a boolean'
+    }),
+  stock: Joi.number()
+    .integer()
+    .min(0)
+    .allow(null)
+    .messages({
+      'number.base': 'stock must be a number',
+      'number.integer': 'stock must be an integer',
+      'number.min': 'stock must be at least 0'
     })
 })

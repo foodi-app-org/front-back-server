@@ -1,4 +1,5 @@
 import {
+  BOOLEAN,
   INTEGER,
   STRING,
   literal,
@@ -57,6 +58,22 @@ const ExtraProductModel = sequelize.define(EXTRA_PRODUCT_MODEL, {
   extraPrice: {
     type: DECIMAL(1000, 2),
     allowNull: true
+  },
+  // Inventario del complemento (manejado como producto real)
+  manageStock: {
+    type: BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  stock: {
+    type: INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  previousStock: {
+    type: INTEGER,
+    allowNull: false,
+    defaultValue: 0
   },
   // state
   state: {

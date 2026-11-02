@@ -4,6 +4,7 @@ import { models } from '../../../../shared/infrastructure/db/sequelize/orm/model
 import { StockMovement } from '../../domain/entities/stock.entity'
 import { IStockMovementRepository, TopProductMovement } from '../../domain/repositories/stock.repository'
 import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
+import { EXTRA_PRODUCT_MODEL } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
 import { STOCK_HISTORY_MODEL } from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
 import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
@@ -115,17 +116,36 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     // Sales consumption is recorded in `stock_history` as negative-delta
     // DECREMENT rows (the modular sales flow never writes to `stock_movements`),
     // so the ranking must read from `stock_history` to reflect real sales.
+    // Unified ranking of products and extras. Extra movements live in the same
+    // stock_history table (pId = exPid), so both sources are UNIONed to reflect
+    // real product + extra consumption.
     const query = `
-      SELECT
-        p."pName" AS "productName",
-        COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
-        p."pId" AS "idProduct"
-      FROM "${this.tenant}.${PRODUCT_MODEL}" p
-      INNER JOIN "${this.tenant}.${STOCK_HISTORY_MODEL}" h
-        ON p."pId" = h."pId"
-        AND h."type" = :decrementType
-      GROUP BY p."pId", p."pName"
-      HAVING SUM(-h."delta") > 0
+      SELECT "productName", "totalMovements", "idProduct"
+      FROM (
+        SELECT
+          p."pName" AS "productName",
+          COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
+          p."pId" AS "idProduct"
+        FROM "${this.tenant}.${PRODUCT_MODEL}" p
+        INNER JOIN "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+          ON p."pId" = h."pId"
+          AND h."type" = :decrementType
+        GROUP BY p."pId", p."pName"
+        HAVING SUM(-h."delta") > 0
+
+        UNION ALL
+
+        SELECT
+          e."extraName" AS "productName",
+          COALESCE(SUM(-h."delta"), 0) AS "totalMovements",
+          e."exPid" AS "idProduct"
+        FROM "${this.tenant}.${EXTRA_PRODUCT_MODEL}" e
+        INNER JOIN "${this.tenant}.${STOCK_HISTORY_MODEL}" h
+          ON e."exPid" = h."pId"
+          AND h."type" = :decrementType
+        GROUP BY e."exPid", e."extraName"
+        HAVING SUM(-h."delta") > 0
+      ) AS ranked
       ORDER BY "totalMovements" DESC
       LIMIT :limit;
     `
@@ -215,11 +235,19 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     const sequelize = models.Product.sequelize
     if (!sequelize) throw new Error('Sequelize instance is not available')
 
+    // Managed units in stock across products + extras.
     const rows = await sequelize.query<{ totalProductsInStock: number | string | null }>(
       `
-      SELECT SUM("stock") AS "totalProductsInStock"
-      FROM "${this.tenant}.${PRODUCT_MODEL}"
-      WHERE "stock" > 0 AND "manageStock" = true;
+      SELECT
+        (
+          SELECT COALESCE(SUM("stock"), 0)
+          FROM "${this.tenant}.${PRODUCT_MODEL}"
+          WHERE "stock" > 0 AND "manageStock" = true
+        ) + (
+          SELECT COALESCE(SUM("stock"), 0)
+          FROM "${this.tenant}.${EXTRA_PRODUCT_MODEL}"
+          WHERE "stock" > 0 AND "manageStock" = true
+        ) AS "totalProductsInStock";
       `,
       { type: QueryTypes.SELECT }
     )

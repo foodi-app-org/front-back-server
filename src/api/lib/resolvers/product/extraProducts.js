@@ -1,14 +1,90 @@
 import { ApolloError, ForbiddenError } from 'apollo-server-express'
 import { Op } from 'sequelize'
+import { v4 as uuidv4 } from 'uuid'
 
+import connect from '../../db'
 import ExtraProductModel from '../../models/product/productExtras'
 import productsOptionalExtra from '../../models/product/productsOptionalExtra'
 import productsSubOptionalExtra from '../../models/product/productsSubOptionalExtra'
+import { LogDanger } from '../../utils/logs'
 import {
   deCode,
   getAttributes,
   getTenantName
 } from '../../utils/util'
+
+// Single source of truth for inventory: the `stock_history` kardex (same table
+// the dashboard reads and the modular sales flow writes). We DO NOT use the
+// legacy `stock_movements` table for extras to avoid a split/duplicated kardex.
+const STOCK_HISTORY_TABLE = 'stock_history'
+
+/**
+ * Maps an inventory movement intent to the `stock_history` row shape.
+ * IN -> RESTOCK (positive delta), OUT -> DECREMENT (negative delta),
+ * ADJUSTMENT -> ADJUST (signed delta = newStock - previousStock).
+ *
+ * @param {('IN'|'OUT'|'ADJUSTMENT')} movementType
+ * @param {number} quantity Positive quantity for IN/OUT.
+ * @param {number} previousStock
+ * @param {number} newStock
+ * @returns {{ type: string, delta: number }}
+ */
+const toHistoryRow = (movementType, quantity, previousStock, newStock) => {
+  if (movementType === 'IN') return { type: 'RESTOCK', delta: Math.abs(quantity) }
+  if (movementType === 'OUT') return { type: 'DECREMENT', delta: -Math.abs(quantity) }
+  return { type: 'ADJUST', delta: Number(newStock) - Number(previousStock) }
+}
+
+/**
+ * Registra un movimiento de inventario (IN / OUT / ADJUSTMENT) para un
+ * complemento (extra) en `stock_history`, tratándolo como un producto real.
+ * Guarda el exPid en `pId` y, en `meta`, marca kind=EXTRA + parentPId para
+ * trazabilidad y para distinguirlo de los productos en el dashboard.
+ *
+ * Tolerante a fallos: un error registrando el movimiento no tumba la
+ * creación/edición del complemento (se loguea y continúa).
+ *
+ * @param {Object} params
+ * @param {string} params.exPid Identificador del complemento.
+ * @param {string} [params.parentPId] Producto padre (auditoría).
+ * @param {('IN'|'OUT'|'ADJUSTMENT')} params.movementType Tipo de movimiento.
+ * @param {number} params.quantity Cantidad del movimiento.
+ * @param {number} params.previousStock Stock previo.
+ * @param {number} params.newStock Stock resultante.
+ * @param {Object} params.context Contexto GraphQL (para el tenant).
+ * @param {Object} [params.transaction] Transacción Sequelize opcional.
+ * @returns {Promise<void>}
+ */
+export const registerExtraStockMovement = async ({
+  exPid,
+  parentPId = null,
+  movementType,
+  quantity,
+  previousStock,
+  newStock,
+  context,
+  transaction
+}) => {
+  try {
+    if (!exPid) return
+    const tenant = getTenantName(context?.restaurant)
+    const sequelize = connect()
+    const { type, delta } = toHistoryRow(movementType, quantity, previousStock, newStock)
+    const meta = JSON.stringify({ kind: 'EXTRA', exPid, parentPId, movementType })
+    const now = new Date()
+    await sequelize.query(
+      `INSERT INTO "${tenant}.${STOCK_HISTORY_TABLE}" ("id","pId","delta","type","meta","createdAt","updatedAt")
+       VALUES (:id, :pId, :delta, :type, :meta, :createdAt, :updatedAt)`,
+      {
+        replacements: { id: uuidv4(), pId: exPid, delta, type, meta, createdAt: now, updatedAt: now },
+        type: sequelize.QueryTypes.INSERT,
+        transaction
+      }
+    )
+  } catch (e) {
+    LogDanger(`registerExtraStockMovement error: ${e?.message}`)
+  }
+}
 
 export const deleteExtraProduct = async (_root, { state, id }, context) => {
   try {
@@ -22,7 +98,7 @@ export const deleteExtraProduct = async (_root, { state, id }, context) => {
   }
 }
 
-const editExtraProductFoods = async (_root, { exPid, state, extraName, extraPrice }, context) => {
+const editExtraProductFoods = async (_root, { exPid, state, extraName, extraPrice, manageStock, stock }, context) => {
   try {
     if (!context.restaurant || !context?.User?.restaurant?.idStore) {
       return new ForbiddenError('Token expired')
@@ -30,14 +106,46 @@ const editExtraProductFoods = async (_root, { exPid, state, extraName, extraPric
 
     // Validaciones para asegurarse de que se proporcionen los datos necesarios
     if (!exPid) throw new ApolloError('Se requiere un identificador de producto.', 400)
-    if (!extraName && !extraPrice) throw new ApolloError('Se requiere al menos un campo para actualizar.', 400)
-    // Encuentra y actualiza el producto extra
-    await ExtraProductModel.update({
+    const hasStockUpdate = manageStock !== undefined || stock !== undefined
+    if (!extraName && !extraPrice && !hasStockUpdate) {
+      throw new ApolloError('Se requiere al menos un campo para actualizar.', 400)
+    }
+
+    const tenantSchema = ExtraProductModel.schema(getTenantName(context?.restaurant))
+
+    // Estado actual del complemento para calcular el ajuste de inventario.
+    const existing = await tenantSchema.findOne({ where: { exPid: deCode(exPid) } })
+    if (!existing) throw new ApolloError('El complemento no existe.', 404)
+
+    const manageStockValue = manageStock !== undefined ? Boolean(manageStock) : Boolean(existing.manageStock)
+    const previousStock = Number(existing.stock) || 0
+    const newStock = manageStockValue
+      ? (stock !== undefined ? (Number(stock) || 0) : previousStock)
+      : 0
+
+    // Encuentra y actualiza el complemento
+    await tenantSchema.update({
       ...(extraName && { extraName }), // Actualiza el nombre si se proporcionó
-      ...(extraPrice && { extraPrice }) // Actualiza el precio si se proporcionó
+      ...(extraPrice && { extraPrice }), // Actualiza el precio si se proporcionó
+      ...(manageStock !== undefined && { manageStock: manageStockValue }),
+      ...(hasStockUpdate && { stock: newStock, previousStock })
     }, {
       where: { exPid: deCode(exPid) }
     })
+
+    // Registra un AJUSTE de inventario si la cantidad cambió, igual que
+    // un producto real.
+    if (manageStockValue && hasStockUpdate && newStock !== previousStock) {
+      await registerExtraStockMovement({
+        exPid: deCode(exPid),
+        parentPId: existing?.pId ?? null,
+        movementType: 'ADJUSTMENT',
+        quantity: Math.abs(newStock - previousStock),
+        previousStock,
+        newStock,
+        context
+      })
+    }
 
     return {
       success: true,
@@ -238,32 +346,78 @@ export const updateMultipleExtProduct = async (_root, args, context) => {
     }
   }
   const { restaurant } = context || {}
+  const data = []
 
   for (const element of setData) {
     const {
       pId,
       exState,
       extraName,
-      extraPrice
+      extraPrice,
+      manageStock,
+      stock
     } = element
     try {
-      await updateExtraInProduct(null, { input: { pId, exState, extraName, extraPrice, idStore: restaurant } }, context)
+      const result = await updateExtraInProduct(
+        null,
+        {
+          input: {
+            pId,
+            exState,
+            extraName,
+            extraPrice,
+            manageStock,
+            stock,
+            idStore: restaurant
+          }
+        },
+        context
+      )
+      if (result?.data) data.push(result.data)
     } catch (e) {
       throw new ApolloError(GENERIC_ERROR_MESSAGE, '500')
     }
   }
+
+  return {
+    success: true,
+    message: 'Complementos actualizados correctamente',
+    data
+  }
 }
 
 export const updateExtraInProduct = async (_root, { input }, context) => {
-  const { pId, idStore } = input || {}
+  const { pId, idStore, manageStock, stock } = input || {}
 
   try {
-    await ExtraProductModel.schema(getTenantName(context?.restaurant)).create({
+    // Normaliza el inventario del complemento: si maneja stock, mínimo 1.
+    const manageStockValue = Boolean(manageStock)
+    const stockValue = manageStockValue ? (Number(stock) || 1) : 0
+
+    const created = await ExtraProductModel.schema(getTenantName(context?.restaurant)).create({
       ...input,
+      manageStock: manageStockValue,
+      stock: stockValue,
+      previousStock: stockValue,
       idStore: deCode(idStore),
       pId: deCode(pId)
     })
-    return { success: true, data: input }
+
+    // Registra el movimiento de inventario inicial (IN) cuando el
+    // complemento se maneja por stock, igual que un producto real.
+    if (manageStockValue && stockValue > 0) {
+      await registerExtraStockMovement({
+        exPid: created?.exPid,
+        parentPId: created?.pId ?? null,
+        movementType: 'IN',
+        quantity: stockValue,
+        previousStock: 0,
+        newStock: stockValue,
+        context
+      })
+    }
+
+    return { success: true, data: created }
   } catch (e) {
     return { success: false, message: 'Lo sentimos, ha ocurrido un error interno' }
   }

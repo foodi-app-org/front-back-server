@@ -33,6 +33,9 @@ export interface IProductExtraAttributes {
   exState?: StateProductExtra
   required?: number
   pCodeRef?: string
+  manageStock?: boolean
+  stock?: number
+  previousStock?: number
   createdAt?: Date
   updatedAt?: Date
 }
@@ -42,7 +45,7 @@ export interface IProductExtraAttributes {
  */
 export type IProductExtraCreationAttributes = Optional<
   IProductExtraAttributes,
-  'exPid' | 'createdAt' | 'updatedAt' | 'exState' | 'required'
+  'exPid' | 'createdAt' | 'updatedAt' | 'exState' | 'required' | 'manageStock' | 'stock' | 'previousStock'
 >
 
 /**
@@ -57,6 +60,9 @@ export class SequelizeProductExtra
   declare extraName: string
   declare exState: StateProductExtra
   declare required: number
+  declare manageStock?: boolean
+  declare stock?: number
+  declare previousStock?: number
   declare createdAt?: Date
   declare updatedAt?: Date
 }
@@ -101,6 +107,21 @@ export const columnsProductExtra = {
   extraPrice: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
+    defaultValue: 0
+  },
+  manageStock: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
+  stock: {
+    type: INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  previousStock: {
+    type: INTEGER,
+    allowNull: false,
     defaultValue: 0
   },
   createdAt: {

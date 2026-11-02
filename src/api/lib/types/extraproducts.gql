@@ -5,9 +5,14 @@ type ExtProductFood {
 	exState: Int
 	extraName: String
 	extraPrice: Float
+	manageStock: Boolean
+	stock: Int
+	previousStock: Int
 	quantity: Int
 	newExtraPrice: Int
 	state: Int
+	createdAt: DateTime
+	updatedAt: DateTime
 	pDatCre: DateTime
 	pDatMod: DateTime
 }
@@ -70,6 +75,8 @@ input InputExtProductFood {
 	exState: Int
 	extraName: String
 	extraPrice: Float
+	manageStock: Boolean
+	stock: Int
 	state: Int
 	pDatCre: DateTime
 	pDatMod: DateTime
@@ -122,7 +129,7 @@ type Mutation {
 	updateMultipleExtProduct(inputLineItems: ILineItemsExtraFinal): ExtProductFood
 	editExtProductFoods(input: InputExtProductFood!): Response
 	deleteExtraProduct(id: ID, state: Int): Response
-	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float): Response
+	editExtraProductFoods(exPid: ID, state: Int, extraName: String, extraPrice: Float, manageStock: Boolean, stock: Int): Response
 	DeleteExtProductFoodsOptional(opExPid: ID, state: Int isCustomOpExPid: Boolean): Response
 	"Registra un ExtProductFoodOptional"
 	updateExtProductOptional(input: InputExtProductFoodOptional): Response

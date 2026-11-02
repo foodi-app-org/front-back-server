@@ -7,6 +7,7 @@ import CatStore from '../../models/information/CategorieStore'
 import CitiesModel from '../../models/information/CitiesModel'
 import CountriesModel from '../../models/information/CountriesModel'
 import DepartmentsModel from '../../models/information/DepartmentsModel'
+import ExtraProductModel from '../../models/product/productExtras'
 import productModelFood from '../../models/product/productFood'
 import clients from '../../models/Store/clients'
 import FavoritesModel from '../../models/Store/FavoritesModel'
@@ -38,6 +39,7 @@ import {
 import { createClients } from '../clients/clients'
 import { updateStock } from '../inventory/inventory'
 import { createStockMovement } from '../inventory/inventory.stockmoments'
+import { registerExtraStockMovement } from '../product/extraProducts'
 import { createTenant } from '../tenant/tenant.resolver'
 import SaleDataExtra from './../../models/Store/sales/saleExtraProduct'
 import { createOnePedidoStore } from './orders'
@@ -261,6 +263,53 @@ export const deleteOneItem = async (root, args, context, _info) => {
  * @returns {Promise<Object>} The result object containing success status and message.
  * @throws {GraphQLError} Throws an error if the token has expired.
  */
+
+/**
+ * Descuenta el stock de los complementos (extras) vendidos que manejan stock,
+ * registrando un movimiento OUT (DECREMENT) en el kardex (stock_history).
+ *
+ * Idempotencia/no duplicidad: solo afecta `products_extras` por su exPid; el
+ * stock del producto padre se descuenta por separado (updateStock), por lo que
+ * producto y complemento nunca se descuentan dos veces entre sí.
+ *
+ * @param {Array<Object>} dataExtra Complementos vendidos ({ exPid, quantity, ... }).
+ * @param {Object} context Contexto GraphQL (tenant).
+ * @returns {Promise<void>}
+ */
+const decrementSoldExtrasStock = async (dataExtra, context) => {
+  const tenantSchema = ExtraProductModel.schema(getTenantName(context?.restaurant))
+  for (const extra of dataExtra) {
+    try {
+      const exPid = extra?.exPid
+      const qty = Number(extra?.quantity ?? 0)
+      if (!exPid || qty <= 0) continue
+
+      const existing = await tenantSchema.findOne({ where: { exPid: deCode(exPid) } })
+      if (!existing || !existing.manageStock) continue
+
+      const previousStock = Number(existing.stock) || 0
+      const newStock = Math.max(previousStock - qty, 0)
+
+      await tenantSchema.update(
+        { stock: newStock, previousStock },
+        { where: { exPid: deCode(exPid) } }
+      )
+
+      await registerExtraStockMovement({
+        exPid: deCode(exPid),
+        parentPId: existing.pId ?? null,
+        movementType: 'OUT',
+        quantity: qty,
+        previousStock,
+        newStock,
+        context
+      })
+    } catch (e) {
+      LogDanger(`decrementSoldExtrasStock error: ${e?.message}`)
+    }
+  }
+}
+
 export const registerSalesStore = async (
   root,
   {
@@ -397,6 +446,13 @@ export const registerSalesStore = async (
           shoppingCardId: deCode(resShoppingCard?.ShoppingCard),
           state: extra.state
         })))
+
+        // OUT de inventario de complementos: descuenta el stock de cada extra
+        // vendido que maneje stock y registra el movimiento (DECREMENT) en el
+        // kardex (stock_history), igual que un producto real. El descuento del
+        // producto padre ya se hizo arriba (updateStock), por lo que no hay
+        // duplicidad entre producto y complemento.
+        await decrementSoldExtrasStock(dataExtra, context)
       }
 
       if (Array.isArray(dataOptional) && dataOptional.length > 0) {

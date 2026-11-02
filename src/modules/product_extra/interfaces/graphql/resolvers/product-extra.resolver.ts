@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { ExtraStockServicesTenantFactory } from '../../../infrastructure/inventory/extra-stock.factory'
 import { productExtraSchema } from '../../../infrastructure/validators/product-extra.validator'
 import { ProductExtraServicesTenantFactory } from '../../../main/factories/product-extra-services.factory'
 
@@ -8,7 +9,9 @@ type CreateStatusTypeOrderInput = {
   extraPrice: number,
   exState: number,
   extraName: string,
-  pId: string
+  pId: string,
+  manageStock?: boolean,
+  stock?: number
 }
 
 export const productExtraResolvers = {
@@ -63,10 +66,22 @@ export const productExtraResolvers = {
       const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
       const result = await services.create.execute(values, context.restaurant ?? '')
       if (result.success) {
+        // Inventario: registra el movimiento inicial (IN) en el kardex
+        // (stock_history) por cada complemento creado que maneje stock,
+        // tratándolo como un producto real.
+        const createdExtras = Array.isArray(result.data) ? result.data : []
+        const extraStock = ExtraStockServicesTenantFactory(context.restaurant ?? '', context.pubsub)
+        await Promise.all(
+          createdExtras.map((extra: any) => {
+            const stockValue = Number(extra?.stock) || 0
+            if (!extra?.manageStock || stockValue <= 0 || !extra?.exPid) return null
+            return extraStock.registerInitialStock(extra.exPid, stockValue)
+          })
+        )
         return {
           success: result.success,
           message: result.message,
-          data: Array.isArray(result.data) ? result.data : []
+          data: createdExtras
         }
       }
       return {
