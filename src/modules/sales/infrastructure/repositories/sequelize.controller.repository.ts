@@ -4,6 +4,7 @@ import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/
 import { models } from '../../../../shared/infrastructure/db/sequelize/orm/models'
 import { DateRange } from '../../../../shared/utils/date-range.utils'
 import { SHOPPING_CART_MODEL } from '../../../shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
+import { EXTRA_PRODUCT_MODEL_SOLD } from '../../../product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 import { STATUS_ORDER_MODEL } from '../../../status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '../../../status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
 import { SalesRepository } from '../../domain/repositories/sales.repository'
@@ -44,12 +45,13 @@ export class SequelizeSalesRepository implements SalesRepository {
   /**
    * Sums today's revenue for concluded orders.
    *
-   * Per-order revenue prefers the header total `orders_statuses.totalProductsPrice`,
-   * but falls back to the sum of the order's line items (`shopping_carts`) when
-   * the header is 0 or null. Some order-creation flows leave the header at 0
-   * while still writing priced line items, which made this KPI show $0 even
-   * though the sale existed. This keeps it consistent with the commercial
-   * dashboard's Sales-by-Category / Revenue widgets.
+   * Per-order revenue = base product revenue (`shopping_carts.priceProduct`) +
+   * sold-extra revenue (`products_extras_sold.extraPrice * quantity`). The
+   * header `orders_statuses.totalProductsPrice` is NOT used because it is left
+   * at 0 for extra-only sales (the base product may cost 0 and all the value
+   * lives in the complementos), which made this KPI show $0. Base and extras
+   * are disjoint sources, so summing them never double-counts. Consistent with
+   * the commercial dashboard's Revenue/Sales-by-Category widgets.
    *
    * Only orders whose status type is CONCLUIDA (`state = 4`) are counted.
    */
@@ -67,15 +69,17 @@ export class SequelizeSalesRepository implements SalesRepository {
       const rows = await sequelize.query<{ total: number | string | null }>(
         `
         SELECT SUM(
-          COALESCE(
-            NULLIF(o."totalProductsPrice", 0),
-            (
-              SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
-              FROM ${table(SHOPPING_CART_MODEL)} sc
-              WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-            ),
-            0
-          )
+          COALESCE((
+            SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
+            FROM ${table(SHOPPING_CART_MODEL)} sc
+            WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
+          ), 0)
+          +
+          COALESCE((
+            SELECT SUM(es."extraPrice" * COALESCE(es."quantity", 1))
+            FROM ${table(EXTRA_PRODUCT_MODEL_SOLD)} es
+            WHERE es."pCodeRef" = o."pCodeRef"
+          ), 0)
         ) AS "total"
         FROM ${table(STATUS_ORDER_MODEL)} o
         INNER JOIN ${table(ORDER_STATUS_TYPE_MODEL)} t

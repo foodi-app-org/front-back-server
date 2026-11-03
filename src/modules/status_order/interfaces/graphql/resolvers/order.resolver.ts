@@ -283,11 +283,31 @@ export const orderResolvers = {
         const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
         const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
 
+        // Accumulate the order total in-flight (inside the transaction) instead
+        // of re-querying shopping_carts with sumPrice AFTER the loop. sumPrice
+        // ran outside the tx (never saw the just-inserted rows) and ignored
+        // extras, so the order was persisted with totalProductsPrice = 0/base.
+        // Here we compute total = base (priceProduct * cantProducts) + extras
+        // (sum of extraPrice * quantity for the selected complementos), which is
+        // O(1) per line and makes the header the single source of truth for all
+        // downstream sales metrics.
+        let computedTotalProductsPrice = 0
+
         for (const item of args.input) {
+          // Keep only the complementos that were actually selected (quantity >=
+          // 1). Unselected extras may arrive with quantity null/0 (they exist in
+          // the product's catalog list but were not added); including them makes
+          // the item validator reject the whole sale. Normalizing here is the
+          // backend guard that complements the frontend filter and keeps the
+          // persisted sale consistent with the real selection.
+          const selectedExtras = Array.isArray(item.dataExtra)
+            ? item.dataExtra.filter((ex) => Number(ex?.quantity) >= 1)
+            : item.dataExtra
+          const normalizedItem = { ...item, dataExtra: selectedExtras }
           const newItem = {
             ProPrice: 0,
             id: context?.User?.id ?? null,
-            ...item
+            ...normalizedItem
           }
           const { error } = shoppingCartItemSchema.validate(newItem, { abortEarly: false })
           if (error) {
@@ -345,7 +365,9 @@ export const orderResolvers = {
             }
           }
 
-          const extras = item.dataExtra || []
+          // Use the selected extras (quantity >= 1) so unselected complementos
+          // are never persisted as sold nor decremented from inventory.
+          const extras = selectedExtras || []
           const dataOptional = item.dataOptional || []
           const soldPid = response?.data?.pId ?? ''
           await ProductExtraServices.bulkCreateExtraSold.execute(extras.map(e => ({

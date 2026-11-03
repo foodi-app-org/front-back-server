@@ -4,6 +4,7 @@ import { CATEGORY_PRODUCT_MODEL } from '../../../category_products/infrastructur
 import { CLIENTS_TABLE } from '../../../clients/infrastructure/db/sequelize/models/sequelize-table.model'
 import { PRODUCT_MODEL } from '../../../products/infrastructure/db/sequelize/models/sequelize-product.model'
 import { PRODUCT_MODEL_SOLD } from '../../../products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
+import { EXTRA_PRODUCT_MODEL_SOLD } from '../../../product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 import { SHOPPING_CART_MODEL } from '../../../shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
 import { STATUS_ORDER_MODEL } from '../../../status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '../../../status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
@@ -106,14 +107,24 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       `
       SELECT
         o."createdAt" AS "createdAt",
-        COALESCE(
-          NULLIF(o."totalProductsPrice", 0),
-          (
+        (
+          -- Base product revenue (line items). priceProduct is the BASE price
+          -- only; it never includes extras.
+          COALESCE((
             SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
             FROM ${this.table(SHOPPING_CART_MODEL)} sc
             WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-          ),
-          0
+          ), 0)
+          +
+          -- Sold-extra revenue (extraPrice * quantity), linked by pCodeRef.
+          -- Extras live in a disjoint table, so adding them to the base never
+          -- double-counts. This fixes revenue/trend/summary showing $0 when the
+          -- product base price is 0 and all the value is in the complementos.
+          COALESCE((
+            SELECT SUM(es."extraPrice" * COALESCE(es."quantity", 1))
+            FROM ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
+            WHERE es."pCodeRef" = o."pCodeRef"
+          ), 0)
         ) AS "total"
       FROM ${this.table(STATUS_ORDER_MODEL)} o
       INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
@@ -268,31 +279,62 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       // Sold line items reference `product_models_sold` (a snapshot taken at the
       // moment of sale); only legacy/catalog rows match `product_models`. We join
       // both and COALESCE so the category resolves from whichever source has it.
+      // Revenue per category combines TWO disjoint sources so complementos
+      // (extras) are reflected even when the base product price is 0:
+      //  - base: shopping_carts.priceProduct (never includes extras)
+      //  - extras: products_extras_sold.extraPrice * quantity, attributed to the
+      //    category of the parent sold product (es.pId -> product_models_sold).
+      // Both are UNION-ed and then grouped, so no revenue is double-counted.
+      // Units count only base product units (extras are add-ons, not standalone
+      // category units) to keep the "units" meaning stable.
       `
-      SELECT
-        COALESCE(catSold."carProId", catCat."carProId") AS "categoryId",
-        COALESCE(catSold."pName", catCat."pName") AS "categoryName",
-        COALESCE(SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1)), 0) AS "revenue",
-        COALESCE(SUM(COALESCE(sc."cantProducts", 1)), 0) AS "units"
-      FROM ${this.table(STATUS_ORDER_MODEL)} o
-      INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-        ON o."idStatus" = t."idStatus"
-      INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
-        ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-      LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
-        ON ps."pId" = sc."pId"
-      LEFT JOIN ${this.table(PRODUCT_MODEL)} p
-        ON p."pId" = sc."pId"
-      LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} catSold
-        ON catSold."carProId" = ps."carProId"
-      LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} catCat
-        ON catCat."carProId" = p."carProId"
-      WHERE t."state" = :concluded
-        AND o."createdAt" >= :startAt
-        AND o."createdAt" < :endAt
-      GROUP BY
-        COALESCE(catSold."carProId", catCat."carProId"),
-        COALESCE(catSold."pName", catCat."pName");
+      SELECT "categoryId", "categoryName",
+             COALESCE(SUM("revenue"), 0) AS "revenue",
+             COALESCE(SUM("units"), 0) AS "units"
+      FROM (
+        SELECT
+          COALESCE(catSold."carProId", catCat."carProId") AS "categoryId",
+          COALESCE(catSold."pName", catCat."pName") AS "categoryName",
+          (sc."priceProduct" * COALESCE(sc."cantProducts", 1)) AS "revenue",
+          COALESCE(sc."cantProducts", 1) AS "units"
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
+          ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
+        LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
+          ON ps."pId" = sc."pId"
+        LEFT JOIN ${this.table(PRODUCT_MODEL)} p
+          ON p."pId" = sc."pId"
+        LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} catSold
+          ON catSold."carProId" = ps."carProId"
+        LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} catCat
+          ON catCat."carProId" = p."carProId"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+
+        UNION ALL
+
+        SELECT
+          cat."carProId" AS "categoryId",
+          cat."pName" AS "categoryName",
+          (es."extraPrice" * COALESCE(es."quantity", 1)) AS "revenue",
+          0 AS "units"
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        INNER JOIN ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
+          ON es."pCodeRef" = o."pCodeRef"
+        LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
+          ON ps."pId" = es."pId"
+        LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} cat
+          ON cat."carProId" = ps."carProId"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+      ) AS combined
+      GROUP BY "categoryId", "categoryName";
       `,
       {
         type: QueryTypes.SELECT,
@@ -326,10 +368,9 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
   async getTopProducts(filter: DashboardFilter): Promise<TopProductSale[]> {
     const sequelize = this.getSequelize()
 
-    // Category filter applies to whichever product source resolves the id.
-    const categoryClause = filter.categoryIds?.length
-      ? 'AND COALESCE(ps."carProId", p."carProId") IN (:categoryIds)'
-      : ''
+    // Category filter is applied on the combined (base + extras) set via the
+    // resolved parent category id (`catId`) in the outer query.
+    const categoryClause = filter.categoryIds?.length ? 'filter' : ''
 
     const rows = await sequelize.query<{
       idProduct: string | null
@@ -345,30 +386,63 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       // category id (as a tie-breaker so two distinct products that happen to
       // share a name are not merged). Name/image/id come from whichever product
       // source (sold snapshot or live catalog) has them.
+      // Product ranking combines base-product revenue/units with the revenue of
+      // the extras sold under each product (attributed to the parent product
+      // name), so a product whose value lives in its complementos still ranks.
+      // Base and extras are disjoint sources UNION-ed together; `unitsSold`
+      // counts only base product units (extras are add-ons, delta 0 units) so
+      // the units ranking keeps its meaning.
       `
       SELECT
-        MIN(sc."pId") AS "idProduct",
-        COALESCE(ps."pName", p."pName", 'Producto') AS "productName",
-        MAX(COALESCE(ps."ProImage", p."ProImage")) AS "image",
-        COALESCE(SUM(COALESCE(sc."cantProducts", 1)), 0) AS "unitsSold",
-        COALESCE(SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1)), 0) AS "revenue"
-      FROM ${this.table(STATUS_ORDER_MODEL)} o
-      INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-        ON o."idStatus" = t."idStatus"
-      INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
-        ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-      LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
-        ON ps."pId" = sc."pId"
-      LEFT JOIN ${this.table(PRODUCT_MODEL)} p
-        ON p."pId" = sc."pId"
-      WHERE t."state" = :concluded
-        AND o."createdAt" >= :startAt
-        AND o."createdAt" < :endAt
-        ${categoryClause}
-      GROUP BY
-        COALESCE(ps."pName", p."pName"),
-        COALESCE(ps."carProId", p."carProId")
-      HAVING SUM(COALESCE(sc."cantProducts", 1)) > 0
+        MIN("idProduct") AS "idProduct",
+        "productName",
+        MAX("image") AS "image",
+        COALESCE(SUM("units"), 0) AS "unitsSold",
+        COALESCE(SUM("revenue"), 0) AS "revenue"
+      FROM (
+        SELECT
+          sc."pId" AS "idProduct",
+          COALESCE(ps."pName", p."pName", 'Producto') AS "productName",
+          COALESCE(ps."ProImage", p."ProImage") AS "image",
+          COALESCE(sc."cantProducts", 1) AS "units",
+          (sc."priceProduct" * COALESCE(sc."cantProducts", 1)) AS "revenue",
+          COALESCE(ps."carProId", p."carProId") AS "catId"
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
+          ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
+        LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
+          ON ps."pId" = sc."pId"
+        LEFT JOIN ${this.table(PRODUCT_MODEL)} p
+          ON p."pId" = sc."pId"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+
+        UNION ALL
+
+        SELECT
+          es."pId" AS "idProduct",
+          COALESCE(ps."pName", 'Producto') AS "productName",
+          ps."ProImage" AS "image",
+          0 AS "units",
+          (es."extraPrice" * COALESCE(es."quantity", 1)) AS "revenue",
+          ps."carProId" AS "catId"
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        INNER JOIN ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
+          ON es."pCodeRef" = o."pCodeRef"
+        LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
+          ON ps."pId" = es."pId"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+      ) AS combined
+      WHERE 1 = 1 ${categoryClause ? 'AND "catId" IN (:categoryIds)' : ''}
+      GROUP BY "productName", "catId"
+      HAVING SUM("revenue") > 0 OR SUM("units") > 0
       ORDER BY "${filter.sortBy === 'revenue' ? 'revenue' : 'unitsSold'}" DESC
       LIMIT :limit;
       `,
