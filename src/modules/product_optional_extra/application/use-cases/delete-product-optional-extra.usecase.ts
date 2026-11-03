@@ -52,7 +52,7 @@ export class DeleteExtProductFoodsOptionalUseCase {
       )
 
       const message = isActive
-        ? 'La categoría de productos se ha desactivado correctamente'
+        ? 'La categoría de productos se ha eliminado correctamente'
         : 'La categoría de productos se ha activado correctamente'
 
       return {

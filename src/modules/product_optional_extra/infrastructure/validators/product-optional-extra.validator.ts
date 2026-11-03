@@ -6,7 +6,7 @@ import { StateProductOptionalExtra } from '../db/sequelize/models/sequelize-prod
  * Joi schema for validating ProductOptionalExtra
  */
 export const productOptionalExtraSchema = Joi.object({
-  opExPid: Joi.string().uuid().optional(),
+  opExPid: Joi.string().optional(),
 
   pId: Joi.string()
     .uuid()

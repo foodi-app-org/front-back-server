@@ -33,7 +33,15 @@ export class UpdateProductOptionalUseCase {
         idStore
       })
 
-      if (!input.opExPid) {
+      // The admin UI sends `opExPid` equal to the short `code` for both create
+      // and update. To tell them apart we look up an existing record by `code`:
+      // if none exists we create, otherwise we update. This keeps creation
+      // working even when `opExPid` is already populated by the client.
+      const existing = input.code
+        ? await this.repo.findByCode(String(input.code))
+        : null
+
+      if (!existing) {
         const created = await this.repo.create(entity)
 
         return {
@@ -43,25 +51,15 @@ export class UpdateProductOptionalUseCase {
         }
       }
 
-      const existing = await this.repo.findByCode(
-        String(input.code)
-      )
-
-      if (!existing) {
-        return {
-          success: false,
-          message: 'No existe una categoría de productos con ese código',
-          data: null
-        }
-      }
-
-      const updated = await this.repo.update(
+      // Update by `code` (the value we just matched on) rather than `opExPid`,
+      // since the stored primary key may differ from the short client code.
+      const updated = await this.repo.updateByCode(
         existing.code,
         {
           OptionalProName: input.OptionalProName,
           numbersOptionalOnly: input.numbersOptionalOnly,
           required: input.required,
-          createdAt: new Date()
+          updatedAt: new Date()
         }
       )
 
