@@ -242,11 +242,11 @@ export class SequelizeStockRepository implements IStockMovementRepository {
         (
           SELECT COALESCE(SUM("stock"), 0)
           FROM "${this.tenant}.${PRODUCT_MODEL}"
-          WHERE "stock" > 0 AND "manageStock" = true
+          WHERE "stock" > 0 AND "manageStock" = true AND "pState" = 1
         ) + (
           SELECT COALESCE(SUM("stock"), 0)
           FROM "${this.tenant}.${EXTRA_PRODUCT_MODEL}"
-          WHERE "stock" > 0 AND "manageStock" = true
+          WHERE "stock" > 0 AND "manageStock" = true AND "exState" = 1
         ) AS "totalProductsInStock";
       `,
       { type: QueryTypes.SELECT }

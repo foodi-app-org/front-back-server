@@ -9,6 +9,7 @@ import { QueryTypes } from 'sequelize'
 import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 import { PRODUCT_MODEL_SOLD } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product-sold.model'
 import { EXTRA_PRODUCT_MODEL } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
+import { EXTRA_PRODUCT_MODEL_SOLD } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
 import { SHOPPING_CART_MODEL } from '@modules/shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
 import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
@@ -20,6 +21,18 @@ import {
   ReportFilterValues,
   ReportTable
 } from '../../domain/types'
+import { combineSalesByProductRows, reportSql, ReportSqlModels } from './report-data.helpers'
+
+/** Model/table names passed to the shared SQL builders. */
+const SQL_MODELS: ReportSqlModels = {
+  PRODUCT_MODEL,
+  PRODUCT_MODEL_SOLD,
+  EXTRA_PRODUCT_MODEL,
+  EXTRA_PRODUCT_MODEL_SOLD,
+  SHOPPING_CART_MODEL,
+  STATUS_ORDER_MODEL,
+  ORDER_STATUS_TYPE_MODEL
+}
 
 /**
  * The data portion of a report produced by a query method: always carries
@@ -32,6 +45,13 @@ type ReportTableData = Pick<ReportTable, 'rows'> & Partial<Pick<ReportTable, 'su
 const ORDER_STATE_CONCLUDED = 4
 /** Default low-stock threshold for the low-stock report. */
 const LOW_STOCK_THRESHOLD = 5
+/**
+ * Active state shared by products (`pState`) and extras (`exState`).
+ * StateProduct.ACTIVE === StateProductExtra.ACTIVE === 1. Used by CURRENT
+ * inventory reports to exclude inactive/archived items (0 / -1). It is NOT
+ * applied to historical sales reports (see salesByProduct).
+ */
+const STATE_ACTIVE = 1
 
 /**
  * A resolved half-open UTC range expressed in the DB stored-text format so
@@ -288,38 +308,49 @@ export class ReportDataService {
   }
 
   private async salesByProduct(range: StoredRange, limit?: number): Promise<ReportTableData> {
-    // Join concluded order headers to their line items by the shared ref code,
-    // then to the sold-product snapshot for the name actually sold. Aggregating
-    // on the line items avoids double-counting header totals.
-    const limitClause = limit ? 'LIMIT :limit' : ''
-    const rows = await this.sequelize.query<{ product: string | null; units: number | string | null; total: number | string | null }>(
-      `
-      SELECT
-        COALESCE(ps."pName", 'Producto') AS "product",
-        COALESCE(SUM(sc."cantProducts"), 0) AS "units",
-        COALESCE(SUM(sc."priceProduct" * sc."cantProducts"), 0) AS "total"
-      FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
-      INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t ON o."idStatus" = t."idStatus"
-      INNER JOIN "${this.tenant}.${SHOPPING_CART_MODEL}" sc ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-      LEFT JOIN "${this.tenant}.${PRODUCT_MODEL_SOLD}" ps ON ps."pId" = sc."pId"
-      WHERE t."state" = :concluded
-        AND o."createdAt" >= :startAt AND o."createdAt" < :endAt
-      GROUP BY "product"
-      ORDER BY "units" DESC
-      ${limitClause};
-      `,
+    // HISTORICAL-sales semantics: this report reflects what was actually sold in
+    // the period. It must NOT be filtered by the CURRENT catalog active state,
+    // because a product/extra sold while active and later deactivated is still a
+    // valid historical sale. The queries join the SOLD snapshots
+    // (`product_models_sold`, `products_extras_sold`) — not the live catalog —
+    // so no current-state filter is applied here by design.
+    //
+    // Base products: join concluded order headers to their line items by the
+    // shared ref code, then to the sold-product snapshot for the name actually
+    // sold. `sc.priceProduct` is the BASE product price only; it does NOT
+    // include extras, so extra revenue is never double-counted here.
+    const productRows = await this.sequelize.query<{ product: string | null; units: number | string | null; total: number | string | null }>(
+      reportSql.salesByProductBase(this.tenant, SQL_MODELS),
       {
         type: QueryTypes.SELECT,
-        replacements: { concluded: ORDER_STATE_CONCLUDED, ...range, ...(limit ? { limit } : {}) }
+        replacements: { concluded: ORDER_STATE_CONCLUDED, ...range }
       }
     )
 
+    // Extras sold as INDEPENDENT lines. Revenue = extraPrice * quantity from the
+    // sold-extra snapshot (`products_extras_sold`), linked to concluded orders
+    // by pCodeRef. The parent product name is resolved via the sold product the
+    // extra belongs to. This revenue is NOT part of sc.priceProduct above, so
+    // adding these rows does not duplicate any income already counted.
+    const extraRows = await this.sequelize.query<{
+      product: string | null
+      parent: string | null
+      units: number | string | null
+      total: number | string | null
+    }>(
+      reportSql.salesByProductExtras(this.tenant, SQL_MODELS),
+      {
+        type: QueryTypes.SELECT,
+        replacements: { concluded: ORDER_STATE_CONCLUDED, ...range }
+      }
+    )
+
+    const rows = combineSalesByProductRows(productRows, extraRows, limit)
+
     return {
-      rows: rows.map((r) => ({
-        product: r.product ?? 'Producto',
-        units: Number(r.units ?? 0),
-        total: Number(r.total ?? 0)
-      }))
+      rows,
+      note:
+        'Los complementos se listan como líneas independientes (Tipo = Complemento). Su ingreso no está incluido en la fila del producto principal, por lo que no se duplica.'
     }
   }
 
@@ -363,76 +394,123 @@ export class ReportDataService {
       manageStock: boolean | number | null
       pState: number | string | null
     }>(
-      `
-      SELECT "pCode" AS "code", "pName" AS "name", "ProPrice" AS "price",
-             "vat" AS "vat", "stock" AS "stock", "manageStock" AS "manageStock", "pState" AS "pState"
-      FROM "${this.tenant}.${PRODUCT_MODEL}"
-      ORDER BY "pName" ASC;
-      `,
+      reportSql.catalogProducts(this.tenant, SQL_MODELS),
+      { type: QueryTypes.SELECT }
+    )
+
+    // All complementos (extras), regardless of manageStock, appear in the
+    // catalog as independent items. Extras have no VAT in the model (vat = 0)
+    // and their active flag is derived from exState = 1.
+    const extras = await this.sequelize.query<{
+      code: string | null
+      name: string | null
+      price: number | string | null
+      stock: number | string | null
+      manageStock: boolean | number | null
+      exState: number | string | null
+    }>(
+      reportSql.catalogExtras(this.tenant, SQL_MODELS),
       { type: QueryTypes.SELECT }
     )
 
     return {
-      rows: rows.map((r) => ({
-        code: r.code ?? '',
-        name: r.name ?? '',
-        price: Number(r.price ?? 0),
-        vat: Number(r.vat ?? 0),
-        stock: Number(r.stock ?? 0),
-        manageStock: Boolean(r.manageStock),
-        active: Number(r.pState ?? 0) === 1
-      }))
+      rows: [
+        ...rows.map((r) => ({
+          type: 'Producto',
+          code: r.code ?? '',
+          name: r.name ?? '',
+          price: Number(r.price ?? 0),
+          vat: Number(r.vat ?? 0),
+          stock: Number(r.stock ?? 0),
+          manageStock: Boolean(r.manageStock),
+          active: Number(r.pState ?? 0) === 1
+        })),
+        ...extras.map((r) => ({
+          type: 'Complemento',
+          code: r.code ?? '',
+          name: r.name ?? '',
+          price: Number(r.price ?? 0),
+          vat: 0,
+          stock: Number(r.stock ?? 0),
+          manageStock: Boolean(r.manageStock),
+          active: Number(r.exState ?? 0) === 1
+        }))
+      ]
     }
   }
 
   private async productsLowStock(): Promise<ReportTableData> {
     const rows = await this.sequelize.query<{ code: string | null; name: string | null; stock: number | string | null }>(
-      `
-      SELECT "pCode" AS "code", "pName" AS "name", "stock" AS "stock"
-      FROM "${this.tenant}.${PRODUCT_MODEL}"
-      WHERE "manageStock" = true AND "stock" <= :threshold
-      ORDER BY "stock" ASC;
-      `,
-      { type: QueryTypes.SELECT, replacements: { threshold: LOW_STOCK_THRESHOLD } }
+      reportSql.lowStockProducts(this.tenant, SQL_MODELS),
+      { type: QueryTypes.SELECT, replacements: { threshold: LOW_STOCK_THRESHOLD, active: STATE_ACTIVE } }
+    )
+
+    // Only ACTIVE complementos that manage stock can be "low stock"; extras with
+    // manageStock=false are not inventory-controlled, and inactive/archived
+    // extras are not current inventory, so neither must appear here.
+    const extras = await this.sequelize.query<{ code: string | null; name: string | null; stock: number | string | null }>(
+      reportSql.lowStockExtras(this.tenant, SQL_MODELS),
+      { type: QueryTypes.SELECT, replacements: { threshold: LOW_STOCK_THRESHOLD, active: STATE_ACTIVE } }
     )
 
     return {
-      rows: rows.map((r) => ({ code: r.code ?? '', name: r.name ?? '', stock: Number(r.stock ?? 0) })),
-      note: `Umbral de stock bajo: ${LOW_STOCK_THRESHOLD} unidades.`
+      rows: [
+        ...rows.map((r) => ({ type: 'Producto', code: r.code ?? '', name: r.name ?? '', stock: Number(r.stock ?? 0) })),
+        ...extras.map((r) => ({ type: 'Complemento', code: r.code ?? '', name: r.name ?? '', stock: Number(r.stock ?? 0) }))
+      ],
+      note: `Umbral de stock bajo: ${LOW_STOCK_THRESHOLD} unidades. Incluye complementos que gestionan inventario.`
     }
   }
 
   // ------------------------------------------------------------ INVENTORY
 
   private async inventoryCurrent(): Promise<ReportTableData> {
-    const rows = await this.sequelize.query<{
+    // Products managing stock. CURRENT-inventory semantics: only ACTIVE
+    // products (pState = 1) that manage stock count as available inventory.
+    // Inactive/archived products are excluded from current stock.
+    const products = await this.sequelize.query<{
       code: string | null
       name: string | null
       stock: number | string | null
       price: number | string | null
     }>(
-      `
-      SELECT "pCode" AS "code", "pName" AS "name", "stock" AS "stock", "ProPrice" AS "price"
-      FROM "${this.tenant}.${PRODUCT_MODEL}"
-      WHERE "manageStock" = true
-      ORDER BY "pName" ASC;
-      `,
-      { type: QueryTypes.SELECT }
+      reportSql.inventoryCurrentProducts(this.tenant, SQL_MODELS),
+      { type: QueryTypes.SELECT, replacements: { active: STATE_ACTIVE } }
     )
 
+    // Complementos (extras) that manage their own inventory. Extras have no
+    // `pCode`; the exPid is used as the identifying code. Only ACTIVE
+    // (exState = 1) extras with manageStock=true are real current inventory
+    // (manageStock=false are NOT stock-controlled; inactive are not available).
+    const extras = await this.sequelize.query<{
+      code: string | null
+      name: string | null
+      stock: number | string | null
+      price: number | string | null
+    }>(
+      reportSql.inventoryCurrentExtras(this.tenant, SQL_MODELS),
+      { type: QueryTypes.SELECT, replacements: { active: STATE_ACTIVE } }
+    )
+
+    const toRow = (type: string) => (r: { code: string | null; name: string | null; stock: number | string | null; price: number | string | null }) => {
+      const stock = Number(r.stock ?? 0)
+      const price = Number(r.price ?? 0)
+      return {
+        type,
+        code: r.code ?? '',
+        name: r.name ?? '',
+        stock,
+        price,
+        value: Math.round(stock * price * 100) / 100
+      }
+    }
+
     return {
-      rows: rows.map((r) => {
-        const stock = Number(r.stock ?? 0)
-        const price = Number(r.price ?? 0)
-        return {
-          code: r.code ?? '',
-          name: r.name ?? '',
-          stock,
-          price,
-          value: Math.round(stock * price * 100) / 100
-        }
-      }),
-      note: 'Valor estimado = stock × precio de venta (no es costo de adquisición).'
+      rows: [
+        ...products.map(toRow('Producto')),
+        ...extras.map(toRow('Complemento'))
+      ],
+      note: 'Valor estimado = stock × precio de venta (no es costo de adquisición). Incluye complementos que gestionan inventario.'
     }
   }
 

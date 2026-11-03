@@ -5,6 +5,8 @@ interface DeleteProductExtraInput {
     exPid: string
     extraName: string,
     extraPrice: number
+    manageStock?: boolean
+    stock?: number
 }
 
 interface DeleteProductUseCaseResponse<T = any> {
@@ -35,11 +37,32 @@ export class UpdateProductOptionalUseCase {
                 }
             }
 
-            const updated = await this.repo.update(String(existing.exPid), {
+            // Base catalog fields always updated.
+            const patch: Record<string, unknown> = {
                 updatedAt: new Date(),
                 extraName: String(input.extraName),
                 extraPrice: input.extraPrice
-            })
+            }
+
+            // manageStock is a catalog flag; persist it when provided so an
+            // operator can enable/disable inventory control for the complement.
+            const manageStockProvided = input.manageStock !== undefined
+            if (manageStockProvided) {
+                patch.manageStock = Boolean(input.manageStock)
+            }
+
+            // Stock is NOT written here directly. When the complement manages
+            // stock and a target `stock` is provided, the caller (resolver)
+            // applies the change via the inventory service so the stock column
+            // and the kardex (stock_history) stay consistent with exactly one
+            // movement. We only compute and surface the previous/target values.
+            const previousStock = Number(existing.stock ?? 0)
+            const willManageStock = manageStockProvided
+                ? Boolean(input.manageStock)
+                : Boolean(existing.manageStock)
+            const targetStock = input.stock !== undefined ? Number(input.stock) : undefined
+
+            const updated = await this.repo.update(String(existing.exPid), patch)
 
             if (!updated) {
                 return {
@@ -53,8 +76,15 @@ export class UpdateProductOptionalUseCase {
             return {
                 success: true,
                 message: 'Producto actualizado correctamente',
-                data: updated
-            }
+                data: updated,
+                // Inventory hint for the caller to apply the stock movement.
+                stockChange: {
+                    exPid: String(existing.exPid),
+                    manageStock: willManageStock,
+                    previousStock,
+                    targetStock
+                }
+            } as DeleteProductUseCaseResponse & { stockChange: unknown }
         } catch (err) {
             return {
                 success: false,

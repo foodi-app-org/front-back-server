@@ -122,7 +122,9 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
     supportsMultipleSelection: true,
     filters: [],
     availableFields: [
+      { key: 'type', label: 'Tipo', type: 'string' },
       { key: 'product', label: 'Producto', type: 'string' },
+      { key: 'parent', label: 'Producto principal', type: 'string' },
       { key: 'units', label: 'Unidades', type: 'number' },
       { key: 'total', label: 'Ingreso', type: 'currency' }
     ]
@@ -130,14 +132,16 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
   {
     id: 'sales.topProducts',
     name: 'Productos más vendidos',
-    description: 'Ranking de productos por unidades vendidas en el periodo.',
+    description: 'Ranking de productos y complementos por unidades vendidas en el periodo.',
     category: 'SALES',
     enabled: true,
     supportedFormats: BOTH_FORMATS,
     supportsMultipleSelection: true,
     filters: [],
     availableFields: [
+      { key: 'type', label: 'Tipo', type: 'string' },
       { key: 'product', label: 'Producto', type: 'string' },
+      { key: 'parent', label: 'Producto principal', type: 'string' },
       { key: 'units', label: 'Unidades', type: 'number' },
       { key: 'total', label: 'Ingreso', type: 'currency' }
     ]
@@ -165,13 +169,14 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
     id: 'products.catalog',
     name: 'Catálogo completo de productos',
     description:
-      'Listado de productos con precio, IVA, estado, stock actual y si gestionan inventario.',
+      'Listado de productos y complementos con precio, IVA, estado, stock actual y si gestionan inventario.',
     category: 'PRODUCTS',
     enabled: true,
     supportedFormats: BOTH_FORMATS,
     supportsMultipleSelection: true,
     filters: [],
     availableFields: [
+      { key: 'type', label: 'Tipo', type: 'string' },
       { key: 'code', label: 'Código', type: 'string' },
       { key: 'name', label: 'Nombre', type: 'string' },
       { key: 'price', label: 'Precio', type: 'currency' },
@@ -185,13 +190,14 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
     id: 'products.lowStock',
     name: 'Productos con stock bajo / agotados',
     description:
-      'Productos que gestionan inventario con existencias menores o iguales al umbral configurado.',
+      'Productos y complementos que gestionan inventario con existencias menores o iguales al umbral configurado.',
     category: 'PRODUCTS',
     enabled: true,
     supportedFormats: BOTH_FORMATS,
     supportsMultipleSelection: true,
     filters: [],
     availableFields: [
+      { key: 'type', label: 'Tipo', type: 'string' },
       { key: 'code', label: 'Código', type: 'string' },
       { key: 'name', label: 'Nombre', type: 'string' },
       { key: 'stock', label: 'Stock', type: 'number' }
@@ -210,6 +216,7 @@ export const REPORT_DEFINITIONS: ReportDefinition[] = [
     supportsMultipleSelection: true,
     filters: [],
     availableFields: [
+      { key: 'type', label: 'Tipo', type: 'string' },
       { key: 'code', label: 'Código', type: 'string' },
       { key: 'name', label: 'Nombre', type: 'string' },
       { key: 'stock', label: 'Stock', type: 'number' },

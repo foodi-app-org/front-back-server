@@ -113,13 +113,44 @@ export const productExtraResolvers = {
     },
     editExtraProductFoods: async (
       _: GraphQLResolveInfo,
-      args: { exPid: string; extraName: string; extraPrice: number },
+      args: { exPid: string; extraName: string; extraPrice: number; manageStock?: boolean; stock?: number },
       context: GraphQLContext
     ) => {
-      const { exPid, extraName, extraPrice } = args
+      const { exPid, extraName, extraPrice, manageStock, stock } = args
       try {
         const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
-        return await services.update.execute({ exPid, extraName, extraPrice })
+        // 1) Update catalog fields (name, price, manageStock flag). The stock
+        //    column itself is applied via the inventory service below so the
+        //    kardex stays consistent (single movement, no double counting).
+        const result = await services.update.execute({ exPid, extraName, extraPrice, manageStock, stock }) as any
+        if (!result?.success) {
+          return result
+        }
+
+        // 2) Apply the stock change through the inventory service when the
+        //    complement manages stock and a target stock was provided.
+        //    Raising the stock of an existing complement is an INVENTORY ENTRY,
+        //    so we register ONLY the positive difference as a RESTOCK (IN) move
+        //    via `restock(delta)`. `restock` adds exactly `delta` to the stock
+        //    and writes a single RESTOCK row to stock_history (meta.kind=EXTRA),
+        //    so the physical stock and the kardex stay consistent with no
+        //    duplicate movements. The edit UI already prevents lowering the
+        //    stock; we additionally guard here and never decrement from edit
+        //    (delta <= 0 produces no movement). Reservations, sales (DECREMENT)
+        //    and releases are untouched. When manageStock is false we do NOT
+        //    touch inventory (the extra is not stock-controlled).
+        const change = result?.stockChange
+        if (change?.manageStock && change?.targetStock !== undefined) {
+          const target = Number(change.targetStock)
+          const previous = Number(change.previousStock ?? 0)
+          const delta = target - previous
+          if (Number.isFinite(delta) && delta > 0) {
+            const extraStock = ExtraStockServicesTenantFactory(context.restaurant ?? '', context.pubsub)
+            await extraStock.restock(exPid, delta)
+          }
+        }
+
+        return result
       } catch (err) {
         return {
           success: false,

@@ -126,8 +126,17 @@ export const orderResolvers = {
             ...cart.products,
             // @ts-ignore
             ExtProductFoodsAll: cart.products?.dataExtra?.map((extras: any) => {
+              // The sold-extra snapshot persists unit `extraPrice` + `quantity`
+              // but not the line subtotal. Derive `newExtraPrice` here (read-path
+              // only) so the sale detail and invoice REPRINT show the per-extra
+              // subtotal, matching the live POS which computes it in the cart.
+              // Falls back to the stored value when present.
+              const unit = Number(extras?.extraPrice ?? 0)
+              const qty = Number(extras?.quantity ?? 0)
+              const derived = Number.isFinite(unit) && Number.isFinite(qty) ? unit * qty : 0
               return {
                 ...extras,
+                newExtraPrice: extras?.newExtraPrice ?? derived
               }
             }),
             // @ts-ignore
@@ -140,10 +149,41 @@ export const orderResolvers = {
         }
       })
 
+      // The `discount` column may hold a plain number, a numeric string, a
+      // DiscountInput object ({ type, value }) or a JSON string of it. Older
+      // rows persisted the object via String() coercion, producing the literal
+      // "[object Object]", which crashed computeCartTotals (it expects a
+      // number). Normalize to a safe numeric percent here (read-path only; the
+      // sales/write flow is untouched) so the sale detail and invoice never
+      // break for discounted sales.
+      const resolveDiscountPercent = (raw: unknown): number => {
+        if (raw == null) return 0
+        if (typeof raw === 'number') return Number.isFinite(raw) ? raw : 0
+        if (typeof raw === 'object') {
+          const value = (raw as { value?: unknown }).value
+          const n = Number(value)
+          return Number.isFinite(n) ? n : 0
+        }
+        if (typeof raw === 'string') {
+          const trimmed = raw.trim()
+          if (trimmed === '' || trimmed === '[object Object]') return 0
+          const direct = Number(trimmed)
+          if (Number.isFinite(direct)) return direct
+          try {
+            const parsed = JSON.parse(trimmed)
+            return resolveDiscountPercent(parsed)
+          } catch {
+            return 0
+          }
+        }
+        return 0
+      }
+      const discountPercent = resolveDiscountPercent(discount)
+
       const totals = computeCartTotals(shopping as any[], {
         currencySymbol: '$',
         includeExtras: true,
-        globalDiscountPercent: discount ?? 0,
+        globalDiscountPercent: discountPercent,
         includeBreakdownByStore: false,
         includeLines: false,
         formatNumbers: true,
@@ -163,7 +203,12 @@ export const orderResolvers = {
         paymentMethod,
         statusOrder: statusOrderType ?? null,
         discount,
-        totals
+        // The GraphQL `totals` field is `[OrderTotals]` (a list of
+        // { key, name, value }). `computeCartTotals` returns a summary object
+        // whose `.totals` property holds that list; expose the list so the
+        // field resolves correctly (it previously returned the object and threw
+        // "Expected Iterable" for StoreOrders.totals).
+        totals: Array.isArray((totals as any)?.totals) ? (totals as any).totals : []
       }
       return {
         success: true,
