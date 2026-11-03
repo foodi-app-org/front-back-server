@@ -42,11 +42,23 @@ export const productAvailableResolvers = {
           }
         }
       }
-      const services = ProductServicesTenantFactory(context.restaurant ?? '')
+      const idStore = context.restaurant ?? ''
+
+      if (!idStore) {
+        return {
+          success: false,
+          data: null,
+          message: 'Store ID is required',
+          errors: [{ message: 'Store ID is required', path: ['idStore'] }]
+        }
+      }
+
+      const services = ProductServicesTenantFactory(idStore)
       const mappedInput = args.input.map(item => ({
         ...item,
-        startDate: item.startDate,
-        endDate: item.endDate,
+        idStore,
+        startDate: item.startDate ?? '00:00',
+        endDate: item.endDate ?? '23:59',
         state: 1
       }))
       return await services.registerAvailableProduct.execute(mappedInput)

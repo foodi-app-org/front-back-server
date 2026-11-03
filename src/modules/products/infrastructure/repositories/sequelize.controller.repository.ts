@@ -226,8 +226,11 @@ export class SequelizeProductRepository implements ProductRepository {
    * @returns {Promise<Product[] | null>} - List of products or null if not found.
    */
   async getAllByCategoryId(categoryId: string): Promise<Product[] | null> {
-    models.Product.hasMany(models.AvailableProduct, { foreignKey: 'pId' })
-    models.AvailableProduct.belongsTo(models.Product, { foreignKey: 'pId' })
+    // `constraints: false` evita que Sequelize genere una llave foránea física
+    // cross-schema (pId -> public.product_models) que rompe el modelo multi-tenant
+    // por schema. La integridad referencial se valida en el use case de creación.
+    models.Product.hasMany(models.AvailableProduct, { foreignKey: 'pId', constraints: false })
+    models.AvailableProduct.belongsTo(models.Product, { foreignKey: 'pId', constraints: false })
     // 00:00 - 23:59 format
     try {
       const products = await models.Product.schema(this.tenant).findAll({

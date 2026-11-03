@@ -15,7 +15,7 @@ interface ResponseAvailableProduct {
   success: boolean
   message: string
   data: AvailableProduct | AvailableProduct[] | null
-  errors?: { message: string; path?: string }[]
+  errors?: { message: string; path?: string[] }[]
 }
 
 /**
@@ -38,7 +38,7 @@ export class RegisterAvailableProductUseCase {
           success: false,
           message: 'Input data is required',
           data: null,
-          errors: [{ message: 'No data provided', path: 'input' }]
+          errors: [{ message: 'No data provided', path: ['input'] }]
         }
       }
 
@@ -51,7 +51,7 @@ export class RegisterAvailableProductUseCase {
           success: true,
           message: 'No se registro el horario del producto',
           data: null,
-          errors: [{ message: 'No products provided', path: 'input' }]
+          errors: [{ message: 'No products provided', path: ['input'] }]
         }
       }
       for (const prod of products) {
@@ -67,11 +67,43 @@ export class RegisterAvailableProductUseCase {
               data: null,
               errors: [{
                 message: `Invalid time range: ${prod.startDate} - ${prod.endDate}`,
-                path: 'startDate/endDate'
+                path: ['startDate', 'endDate']
               }]
             }
           }
         }
+
+        // ✅ Validation: the referenced product must exist for this store.
+        // Avoids a raw "FOREIGN KEY constraint failed" crash and returns a clear message.
+        if (!prod.pId || !prod.idStore) {
+          return {
+            success: false,
+            message: 'pId and idStore are required to register availability',
+            data: null,
+            errors: [{
+              message: 'Missing pId or idStore',
+              path: ['pId', 'idStore']
+            }]
+          }
+        }
+
+        const existingProduct = await this.productRepository.findByProductAndStore(
+          prod.pId,
+          prod.idStore
+        )
+
+        if (!existingProduct) {
+          return {
+            success: false,
+            message: 'El producto no existe o no pertenece a esta tienda',
+            data: null,
+            errors: [{
+              message: `Product not found: pId=${prod.pId}, idStore=${prod.idStore}`,
+              path: ['pId']
+            }]
+          }
+        }
+
         // Create the AvailableProduct
         const created = await this.productRepository.createAvailableProduct(prod)
 
@@ -96,7 +128,7 @@ export class RegisterAvailableProductUseCase {
         success: false,
         message: 'Unexpected error while creating AvailableProduct(s)',
         data: null,
-        errors: [{ message: error.message, path: 'execute' }]
+        errors: [{ message: error.message, path: ['execute'] }]
       }
     }
   }
