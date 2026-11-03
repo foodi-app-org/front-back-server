@@ -14,6 +14,8 @@ import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
 import { ExtraStockServicesTenantFactory } from '../../../../product_extra/infrastructure/inventory/extra-stock.factory'
+import { StockServicesTenantFactory } from '../../../../stock/main/factories/stock.factory'
+import { InsufficientStockError, StockValidationError } from '../../../../stock/domain/errors/errors'
 import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
 import { v4 as uuiv4 } from 'uuid'
 import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
@@ -31,9 +33,6 @@ import {
   LogWarning
 } from '@shared/utils/logger.utils'
 import { SocketEvents } from '@shared/constants/socket-events'
-import { eventBus } from '@shared/infrastructure/event-bus'
-import { DomainEvent } from '@shared/domain/EventBus'
-import { eventBusConstants } from '@shared/infrastructure/persistence/event-bus/constants'
 
 export const orderResolvers = {
   Type: {
@@ -250,16 +249,12 @@ export const orderResolvers = {
       args: RegisterSalesStoreInput,
       context: GraphQLContext
     ): Promise<Maybe<ResponseSalesStore>> => {
-      const eventsToPublish: DomainEvent[] = []
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
-      const sequelize = connect()
-      const t = await sequelize.transaction()
-      try {
-        // 1. Validaciones iniciales
+
+        // 0. Validaciones previas (fuera de la transacción)
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
         if (!storeExists) {
-          await t.rollback()
           return {
             success: false,
             message: 'Store not found',
@@ -268,7 +263,6 @@ export const orderResolvers = {
         }
 
         if (!Array.isArray(args.input) || args.input.length === 0) {
-          await t.rollback()
           return {
             success: false,
             message: 'No products to add',
@@ -277,12 +271,46 @@ export const orderResolvers = {
           }
         }
 
-        // 2. Instanciar servicios una sola vez
-        const ShoppingServices = ShoppingServicesTenantFactory(idStore)
-        const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
-        const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
-        const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
-        const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
+      // 1. Instanciar servicios una sola vez
+      const ShoppingServices = ShoppingServicesTenantFactory(idStore)
+      const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
+      const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
+      const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
+      const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
+      // Servicio de stock para el producto PADRE: hace lock FOR UPDATE, valida
+      // `manageStock` (bypass cuando el producto no se maneja por inventario) y
+      // lanza InsufficientStockError cuando no hay existencias suficientes.
+      const parentStock = StockServicesTenantFactory(idStore, context.pubsub)
+
+      // 2. IDEMPOTENCIA: `pCodeRef` es la clave de negocio de la venta y la envía
+      // el cliente. Si ya existe una orden con ese código (reintento por red,
+      // doble click o retry del cliente) devolvemos la venta existente SIN
+      // reinsertar líneas ni volver a descontar stock. Esta comprobación va
+      // ANTES de abrir la transacción y de tocar inventario, de modo que un
+      // reintento es un no-op seguro. La columna `pCodeRef` está indexada y la
+      // lectura es O(1), por lo que no penaliza el camino de alta concurrencia.
+      const existingOrder = await StatusOrderServices.getOneByCodeRef.execute(args.pCodeRef)
+      if (existingOrder?.success && existingOrder?.data) {
+        LogInfo(`registerSalesStore: pCodeRef ${args.pCodeRef} ya existe, respuesta idempotente`)
+        return {
+          success: true,
+          message: 'Sale already registered',
+          data: existingOrder.data as any,
+          errors: []
+        }
+      }
+
+      const sequelize = connect()
+      const t = await sequelize.transaction()
+      // Punto ÚNICO de cierre de la transacción: el `finally` hace rollback a
+      // menos que la venta se haya confirmado (`committed = true`). Así es
+      // imposible llamar a rollback dos veces o hacer rollback después del
+      // commit (eso lanzaría "Transaction cannot be rolled back because it has
+      // been finished"). Las salidas tempranas y el catch solo hacen `return` /
+      // registran el error; el `finally` se encarga de liberar la transacción y
+      // los locks FOR UPDATE.
+      let committed = false
+      try {
 
         // Accumulate the order total in-flight (inside the transaction) instead
         // of re-querying shopping_carts with sumPrice AFTER the loop. sumPrice
@@ -312,7 +340,6 @@ export const orderResolvers = {
           }
           const { error } = shoppingCartItemSchema.validate(newItem, { abortEarly: false })
           if (error) {
-            await t.rollback()
             return {
               success: false,
               data: null,
@@ -327,7 +354,6 @@ export const orderResolvers = {
           }
           const qty = Number(item.cantProducts ?? 0)
           if (qty <= 0) {
-            await t.rollback()
             return {
               success: false,
               data: null,
@@ -335,11 +361,21 @@ export const orderResolvers = {
               errors: []
             }
           }
-          eventsToPublish.push({
-            name: eventBusConstants.CHANGE_STOCK_SUBSCRIBER,
-            occurredOn: new Date(),
-            payload: { pId: item.pId, quantity: qty, idStore }
-          })
+
+          // OUT de inventario del producto PADRE DENTRO de la transacción de la
+          // venta (atómico). Antes se publicaba un evento CHANGE_STOCK_SUBSCRIBER
+          // DESPUÉS del commit, por lo que la factura se creaba aunque el
+          // producto ya no tuviera stock y el descuento ocurría fuera de la
+          // transacción (sin lock ni bloqueo de la venta). Ahora el descuento:
+          //  - toma un lock FOR UPDATE sobre la fila del producto (serializa
+          //    ventas concurrentes del mismo producto y soporta escrituras
+          //    masivas sin sobreventa),
+          //  - hace bypass automático si el producto NO se maneja por stock
+          //    (manageStock = false), por lo que es seguro invocarlo siempre,
+          //  - lanza InsufficientStockError si falta inventario, lo que aborta
+          //    y revierte TODA la factura (no se crea la venta si al menos un
+          //    producto manejado por stock no tiene existencias).
+          await parentStock.decrement(item.pId, qty, idStore, t)
 
           // Accumulate this line's contribution to the order total using the
           // SAME definition the metrics reconstruct from the detail:
@@ -370,7 +406,6 @@ export const orderResolvers = {
             updatedAt: new Date()
           }, t)
           if (response?.success === false) {
-            await t.rollback()
             return {
               success: false,
               message: response.message,
@@ -400,8 +435,8 @@ export const orderResolvers = {
           // StockService hace bypass automático cuando el extra no maneja stock,
           // por lo que es seguro invocarlo siempre. Se usa el exPid ORIGINAL del
           // complemento (no el id del registro "sold") para afectar el inventario
-          // real. El descuento del producto padre se mantiene en su propio flujo
-          // (evento CHANGE_STOCK_SUBSCRIBER), evitando duplicidad.
+          // real. El producto padre ya se descontó antes en este mismo loop
+          // (parentStock.decrement), dentro de la misma transacción.
           for (const extra of extras) {
             const originalExPid = extra?.exPid
             const extraQty = Number(extra?.quantity ?? 0) || qty
@@ -460,7 +495,6 @@ export const orderResolvers = {
 
         const { error, value } = statusOrderSchema.validate(mockSalesStore, { abortEarly: false })
         if (error) {
-          await t.rollback()
           return {
             success: false,
             data: null,
@@ -479,7 +513,6 @@ export const orderResolvers = {
           const durationMs = end - start
           const time = (durationMs / 1000).toFixed(2)
           LogWarning(`RegisterSalesStore executed in ${time} seconds for store ${idStore}`)
-          await t.rollback()
           return {
             success: false,
             message: createResponse.message,
@@ -489,16 +522,12 @@ export const orderResolvers = {
         }
 
         await t.commit()
+        committed = true
 
-        // now publish events after commit (safer for consistency)
-        for (const ev of eventsToPublish) {
-          try {
-            eventBus.publish(ev)
-          } catch (err) {
-            t.rollback()
-            LogDanger(`Failed to publish event ${ev.name}: ${err instanceof Error ? err.message : String(err)}`)
-          }
-        }
+        // El descuento de inventario (producto padre + complementos) ya se
+        // realizó dentro de la transacción recién confirmada, por lo que no se
+        // publican eventos de stock post-commit (se eliminó el flujo
+        // CHANGE_STOCK_SUBSCRIBER para evitar un doble descuento).
 
         const end = Date.now()
         const durationMs = end - start
@@ -515,13 +544,105 @@ export const orderResolvers = {
         return createResponse as Maybe<ResponseSalesStore>
 
       } catch (e) {
-        console.log("🚀 ~ e:", e)
+        // No se hace rollback aquí: el `finally` revierte la transacción porque
+        // `committed` sigue en false. Esto garantiza un único punto de cierre y
+        // libera los locks FOR UPDATE tomados sobre las filas de producto.
+
+        // CARRERA CONCURRENTE: dos requests con el MISMO `pCodeRef` pueden
+        // pasar ambos el guard de idempotencia (lectura previa) y competir por
+        // el INSERT. El índice UNIQUE sobre `pCodeRef` hace que el segundo
+        // INSERT falle con un error de unicidad. Eso NO es un fallo real: la
+        // venta ya quedó registrada por el request ganador, así que releemos la
+        // orden existente y devolvemos una respuesta idempotente de éxito.
+        const errName = (e as { name?: string })?.name ?? ''
+        const errMsg = e instanceof Error ? e.message.toLowerCase() : String(e).toLowerCase()
+        const isUniqueViolation =
+          errName === 'SequelizeUniqueConstraintError' ||
+          errMsg.includes('unique') ||
+          errMsg.includes('duplicate')
+        if (isUniqueViolation) {
+          const winner = await StatusOrderServices.getOneByCodeRef.execute(args.pCodeRef)
+          if (winner?.success && winner?.data) {
+            LogInfo(`registerSalesStore: carrera resuelta por índice único, respuesta idempotente para pCodeRef ${args.pCodeRef}`)
+            return {
+              success: true,
+              message: 'Sale already registered',
+              data: winner.data as any,
+              errors: []
+            }
+          }
+        }
+
+        // Stock insuficiente de un producto manejado por inventario: la venta
+        // completa se bloquea y el front recibe un `errors[]` estructurado para
+        // informar al usuario exactamente qué producto se quedó sin stock
+        // (pId, cantidad pedida y disponible). Mismo contrato de error que el
+        // resto de validaciones (path/type/context) para que el cliente lo
+        // renderice de forma uniforme.
+        if (e instanceof InsufficientStockError) {
+          const { pId, requested, available } = e.payload
+          LogWarning(`registerSalesStore: stock insuficiente pId=${pId} pedido=${requested} disponible=${available}`)
+          return {
+            success: false,
+            data: null,
+            message: 'Insufficient stock',
+            errors: [
+              {
+                message: `Stock insuficiente para el producto ${pId}. Solicitado: ${requested}, disponible: ${available}.`,
+                path: ['input', 'pId'],
+                type: 'stock.insufficient',
+                context: {
+                  key: 'pId',
+                  label: 'pId',
+                  // `value` está tipado como `Int` en el schema GraphQL
+                  // (contextError.value: Int). El `pId` es un UUID string, así
+                  // que meterlo aquí hacía fallar la serialización con
+                  // "Int cannot represent non-integer value". Enviamos la
+                  // cantidad solicitada (un entero) en `value`, que es lo que
+                  // tiene sentido numérico; el pId sigue disponible en
+                  // message/key/label.
+                  value: requested,
+                  limit: available
+                }
+              }
+            ] as any
+          }
+        }
+
+        if (e instanceof StockValidationError) {
+          LogDanger(`registerSalesStore: error de validación de stock: ${e.message}`)
+          return {
+            success: false,
+            data: null,
+            message: e.message,
+            errors: [
+              {
+                message: e.message,
+                path: ['input', 'pId'],
+                type: 'stock.validation'
+              }
+            ] as any
+          }
+        }
+
         LogDanger(`Error in registerSalesStore: ${e instanceof Error ? e.message : String(e)}`)
-        await t.rollback()
         return {
           success: false,
           message: e instanceof Error ? e.message : String(e),
           errors: []
+        }
+      } finally {
+        // Punto ÚNICO de cierre: si la venta no se confirmó (salida temprana o
+        // excepción), revertimos. El guard `committed` evita hacer rollback
+        // sobre una transacción ya finalizada tras el commit. Se envuelve en
+        // try/catch para que un fallo del propio rollback no enmascare la
+        // respuesta que ya calculamos.
+        if (!committed) {
+          try {
+            await t.rollback()
+          } catch (rollbackError) {
+            LogDanger(`registerSalesStore: rollback falló: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`)
+          }
         }
       }
     },

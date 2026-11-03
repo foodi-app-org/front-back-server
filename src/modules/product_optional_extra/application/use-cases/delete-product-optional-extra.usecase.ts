@@ -1,48 +1,72 @@
 import { StateProductOptionalExtra } from '../../domain/entities/product-optional-extra.entity'
 import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
-
 interface DeleteProductOptionalInput {
-    code: string
-    state: StateProductOptionalExtra
+  code: string
+  state: StateProductOptionalExtra
 }
 
 export interface UseCaseResponse<T = any> {
-    success: boolean
-    message: string
-    data?: T | null
-    errors?: { message: string; path?: string }[]
+  success: boolean
+  message: string
+  data?: T | null
+  errors?: { message: string; path?: string }[]
 }
 
-
 /**
- * Use case for creating or updating optional product extras
+ * Use case for activating or deactivating product categories
  */
 export class DeleteExtProductFoodsOptionalUseCase {
-    constructor(
-        private readonly repo: IProductOptionalExtraRepo
-    ) { }
+  constructor(
+    private readonly repo: IProductOptionalExtraRepo
+  ) {}
 
-    async execute(input: DeleteProductOptionalInput): Promise<UseCaseResponse> {
-        try {
+  async execute(
+    input: DeleteProductOptionalInput
+  ): Promise<UseCaseResponse> {
+    try {
+      const existing = await this.repo.findByCode(
+        String(input.code)
+      )
 
-            const existing = await this.repo.findByCode(String(input.code))
-            if (!existing) {
-                return { success: false, message: 'No existe un producto con ese código', data: null }
-            }
-            
-            const active = StateProductOptionalExtra.ACTIVE
-
-            const updated = await this.repo.updateByCode(String(existing.code), {
-                updatedAt: new Date(),
-                state: input.state === active ? StateProductOptionalExtra.INACTIVE : active
-            })
-
-            const message = input.state === active ? 'Eliminado' : 'Activado'
-
-            return { success: true, message, data: updated }
-        } catch (err) {
-            return { success: false, message: err instanceof Error ? err.message : 'Unexpected error' }
+      if (!existing) {
+        return {
+          success: false,
+          message: 'No existe una categoría de productos con ese código',
+          data: null
         }
+      }
+
+      const active = StateProductOptionalExtra.ACTIVE
+
+      const isActive = input.state === active
+
+      const updated = await this.repo.updateByCode(
+        String(existing.code),
+        {
+          updatedAt: new Date(),
+          state: isActive
+            ? StateProductOptionalExtra.INACTIVE
+            : active
+        }
+      )
+
+      const message = isActive
+        ? 'La categoría de productos se ha desactivado correctamente'
+        : 'La categoría de productos se ha activado correctamente'
+
+      return {
+        success: true,
+        message,
+        data: updated
+      }
+    } catch (err) {
+      return {
+        success: false,
+        message: err instanceof Error
+          ? err.message
+          : 'Ha ocurrido un error inesperado'
+      }
     }
+  }
 }

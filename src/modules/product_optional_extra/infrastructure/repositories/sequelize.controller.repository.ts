@@ -144,7 +144,10 @@ export class SequelizeProductOptionalExtraRepository implements IProductOptional
       const products = await models.ProductOptionalExtra
         .schema(this.tenant)
         .findAll({
-          where: { pId },
+          where: { 
+            pId,
+            state: StateProductOptionalExtra.ACTIVE
+          },
           include: [
             {
               model: models.ProductSubOptionalExtra.schema(this.tenant),

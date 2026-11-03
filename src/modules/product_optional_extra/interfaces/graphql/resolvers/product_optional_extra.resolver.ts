@@ -18,7 +18,6 @@ type CreateStatusTypeOrderInput = {
 export const productOptionalExtraResolvers = {
   Query: {
     ExtProductFoodsOptionalAll: async (_: GraphQLResolveInfo, { pId }: { pId: string }, context: GraphQLContext) => {
-      console.log('🚀 ~ pId:', pId)
       try {
         const store = context.restaurant ?? ''
         const services = ProductOptionalServicesTenantFactory(store)

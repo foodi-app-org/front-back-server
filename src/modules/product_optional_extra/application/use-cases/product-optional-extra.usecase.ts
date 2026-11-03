@@ -1,8 +1,6 @@
 import { ProductOptionalExtra } from '../../domain/entities/product-optional-extra.entity'
 import { IProductOptionalExtraRepo } from '../../domain/repositories/product-optional-extra.repository'
 
-
-
 export type UpdateProductOptionalInput = Partial<ProductOptionalExtra>
 
 export interface UseCaseResponse<T = any> {
@@ -12,16 +10,18 @@ export interface UseCaseResponse<T = any> {
   errors?: { message: string; path?: string }[]
 }
 
-
 /**
- * Use case for creating or updating optional product extras
+ * Use case for creating or updating product categories
  */
 export class UpdateProductOptionalUseCase {
   constructor(
     private readonly repo: IProductOptionalExtraRepo
   ) {}
 
-  async execute(input: UpdateProductOptionalInput, idStore: string): Promise<UseCaseResponse> {
+  async execute(
+    input: UpdateProductOptionalInput,
+    idStore: string
+  ): Promise<UseCaseResponse> {
     try {
       const entity = new ProductOptionalExtra({
         opExPid: input.opExPid,
@@ -35,24 +35,48 @@ export class UpdateProductOptionalUseCase {
 
       if (!input.opExPid) {
         const created = await this.repo.create(entity)
-        return { success: true, message: 'Creado', data: created }
+
+        return {
+          success: true,
+          message: 'La categoría de productos se ha creado correctamente',
+          data: created
+        }
       }
 
-      const existing = await this.repo.findByCode(String(input.code))
+      const existing = await this.repo.findByCode(
+        String(input.code)
+      )
+
       if (!existing) {
-        return { success: false, message: 'No existe un producto con ese código', data: null }
+        return {
+          success: false,
+          message: 'No existe una categoría de productos con ese código',
+          data: null
+        }
       }
 
-      const updated = await this.repo.update(existing.code, {
-        OptionalProName: input.OptionalProName,
-        numbersOptionalOnly: input.numbersOptionalOnly,
-        required: input.required,
-        createdAt: new Date()
-      })
+      const updated = await this.repo.update(
+        existing.code,
+        {
+          OptionalProName: input.OptionalProName,
+          numbersOptionalOnly: input.numbersOptionalOnly,
+          required: input.required,
+          createdAt: new Date()
+        }
+      )
 
-      return { success: true, message: 'Actualizado', data: updated }
+      return {
+        success: true,
+        message: 'La categoría de productos se ha actualizado correctamente',
+        data: updated
+      }
     } catch (err) {
-      return { success: false, message: err instanceof Error ? err.message : 'Unexpected error' }
+      return {
+        success: false,
+        message: err instanceof Error
+          ? err.message
+          : 'Ha ocurrido un error inesperado'
+      }
     }
   }
 }
