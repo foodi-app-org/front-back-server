@@ -9,8 +9,6 @@ export function decodeToken(token: string): JwtPayload | string | null {
   return decode(token)
 }
 
-const now = Date.now().valueOf() / 1000
-
 /**
  * Evaluates the state of the JWT token.
  * @param {string} token - The JWT token to check.
@@ -25,6 +23,10 @@ export function getTokenState(token: string): { valid: boolean; needRefresh: boo
     const decoded = decode(token) as JwtPayload
     if (!decoded) return { valid: false, needRefresh: true }
 
+    // Evaluate expiration against the current time on every call. Previously a
+    // module-level `now` was captured once at import time, which made this
+    // check drift and eventually report every token as expired.
+    const now = Date.now() / 1000
     const exp = decoded.exp
     if (exp && exp < now) return { valid: true, needRefresh: true }
 

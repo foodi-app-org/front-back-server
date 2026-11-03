@@ -32,6 +32,7 @@ import { SequelizeCountriesModel } from '@modules/geolocations/infrastructure/db
 import { SequelizeDepartmentsModel } from '@modules/geolocations/infrastructure/db/sequelize/models/sequelize-deparments.model'
 import { FILTER_CONFIG_MODEL, SequelizeFilterConfigModel } from '../../../../../modules/filter_config/infrastructure/repositories/sequelize-filter-config.model'
 import SequelizeReportJobModel, { REPORT_JOB_MODEL } from '../../../../../modules/reports/infrastructure/db/sequelize/models/sequelize-report-job.model'
+import { REFRESH_TOKEN_MODEL, SequelizeRefreshTokenModel } from '../../../../../modules/auth/infrastructure/db/sequelize/models/sequelize-refresh-token.model'
 
 
 export const models = {
@@ -77,7 +78,10 @@ export const models = {
   FilterConfig: SequelizeFilterConfigModel,
 
   // Reports
-  ReportJob: SequelizeReportJobModel
+  ReportJob: SequelizeReportJobModel,
+
+  // Auth
+  RefreshToken: SequelizeRefreshTokenModel
 
 }
 
@@ -110,4 +114,5 @@ export const models_names = {
   ExtraProductSold: EXTRA_PRODUCT_MODEL_SOLD,
   FilterConfig: FILTER_CONFIG_MODEL,
   ReportJob: REPORT_JOB_MODEL,
+  RefreshToken: REFRESH_TOKEN_MODEL,
 }

@@ -6,6 +6,7 @@ import { ProductServicesTenantFactory } from '../../../main/factories/products-s
 import { CreateMultipleProducts, CreateStatusTypeOrderInput } from '../inputs'
 import { QueryProductFoodsAllArgs } from 'generated/graphql'
 import { IProduct } from '@modules/products/domain'
+import { ContextValidator } from '@shared/utils/context-validator'
 
 export const productResolvers = {
   Query: {
@@ -78,6 +79,8 @@ export const productResolvers = {
   },
   Mutation: {
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
       const values = {
         ...args.input,
         manageStock: true,
@@ -85,7 +88,7 @@ export const productResolvers = {
       }
       const { error, value } = productSchema.validate({
         ...values,
-        idStore: context.restaurant ?? ''
+        idStore: idStore ?? ''
       })
       if (error) {
         return {

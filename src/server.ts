@@ -15,6 +15,7 @@ import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import { wsSchema } from './ws-schema'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import routes from './shared/infrastructure/res/routes'
 import { createPushNotificationsModule } from '@modules/push_notifications'
 import morgan from 'morgan'
@@ -130,6 +131,9 @@ const server = new ApolloServer({
   // which makes Apollo throw:
   //   "POST body missing, invalid Content-Type, or JSON object has no keys."
   // JSON parsing is applied per-router/route where it is actually needed.
+  // Parse cookies so the auth refresh/logout endpoints can read the HttpOnly
+  // refresh-token cookie. Scoped-path cookie is only sent under /api/auth.
+  app.use(cookieParser())
   app.use('/api', express.json(), routes)
   // Web Push mini-hexagon. Mounted at the root because the frontend hook calls
   // the subscription endpoints directly on the API base (e.g. POST /subscription2).

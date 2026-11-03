@@ -40,6 +40,7 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
 
     const { message } = await getUserFromToken(token)
 
+    // Access token present but expired -> client should refresh, not re-login.
     if (message === 'Session expired, refresh needed') {
       throw new GraphQLError('Session expired', {
         extensions: {
@@ -89,11 +90,26 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
       throw err
     }
 
-    if (err instanceof Error && err.message === 'jwt expired') {
-      throw new GraphQLError('Token expired', {
+    // An expired access token is a refreshable condition: surface it as
+    // SESSION_EXPIRED (not FORBIDDEN) so the client triggers a token refresh
+    // and retries, instead of logging the user out.
+    if (err instanceof Error && (err.message === 'jwt expired' || err.message.includes('expired'))) {
+      throw new GraphQLError('Session expired', {
+        extensions: {
+          code: 'SESSION_EXPIRED',
+          http: { status: 401 },
+          message: 'Access token expired'
+        }
+      })
+    }
+
+    // Malformed/tampered token or invalid signature: not refreshable.
+    if (err instanceof Error && (err.message.includes('invalid') || err.message.includes('malformed') || err.message.includes('signature'))) {
+      throw new GraphQLError('Invalid authentication token', {
         extensions: {
           code: 'FORBIDDEN',
-          message: 'Token expired'
+          http: { status: 403 },
+          message: 'Invalid token'
         }
       })
     }
@@ -101,6 +117,7 @@ export const context = async ({ req, res, pubsub }: IContextParams): Promise<Gra
     throw new GraphQLError('Authentication error', {
       extensions: {
         code: 'UNAUTHENTICATED',
+        http: { status: 401 },
         message: err instanceof Error ? err.message : 'Unknown error'
       }
     })

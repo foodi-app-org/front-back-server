@@ -4,6 +4,7 @@ import { GraphQLContext } from '../../../../../shared/types/context'
 import { ExtraStockServicesTenantFactory } from '../../../infrastructure/inventory/extra-stock.factory'
 import { productExtraSchema } from '../../../infrastructure/validators/product-extra.validator'
 import { ProductExtraServicesTenantFactory } from '../../../main/factories/product-extra-services.factory'
+import { ContextValidator } from '@shared/utils/context-validator'
 
 type CreateStatusTypeOrderInput = {
   extraPrice: number,
@@ -39,9 +40,11 @@ export const productExtraResolvers = {
       args: { inputLineItems: { setData: CreateStatusTypeOrderInput[] } },
       context: GraphQLContext
     ) => {
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
       const values = args.inputLineItems.setData.map(item => ({
         ...item,
-        idStore: context.restaurant ?? ''
+        idStore: idStore ?? ''
       }))
       for (const val of values) {
         const { error } = productExtraSchema.validate(
@@ -96,12 +99,15 @@ export const productExtraResolvers = {
       args: { id: string, state: number },
       context: GraphQLContext
     ) => {
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+
       const { id, state } = args ?? {
         id: '',
         state: null
       }
       try {
-        const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
+        const services = ProductExtraServicesTenantFactory(idStore ?? '')
         return await services.delete.execute({ id, state })
       } catch (err) {
         return {

@@ -44,10 +44,10 @@ describe('context', () => {
         await expect(context({ req, res: mockRes, pubsub: mockPubSub }))
             .rejects.toThrow(GraphQLError)
         await expect(context({ req, res: mockRes, pubsub: mockPubSub }))
-            .rejects.toMatchObject({ extensions: { code: 'UNAUTHENTICATED' } })
+            .rejects.toMatchObject({ extensions: { code: 'SESSION_EXPIRED' } })
     })
 
-    it('should throw UNAUTHENTICATED when tokenService.verify returns no sub', async () => {
+    it('should throw FORBIDDEN when tokenService.verify returns no sub', async () => {
         (getUserFromToken as jest.Mock).mockResolvedValue({ message: '' })
         const verifyMock = jest.fn().mockReturnValue({})
             ; (JwtTokenService as any).mockImplementation(() => ({ verify: verifyMock }))
@@ -56,10 +56,13 @@ describe('context', () => {
 
         const promise = context({ req, res: mockRes, pubsub: mockPubSub })
 
-        // assert it's a GraphQLError and has the wrapped UNAUTHENTICATED code + message
+        // A token with a valid signature but no `sub` is malformed/tampered:
+        // not refreshable -> FORBIDDEN. The human message lives on the error
+        // itself; extensions only carries the standardized code.
         await expect(promise).rejects.toThrow(GraphQLError)
         await expect(promise).rejects.toMatchObject({
-            extensions: { code: 'UNAUTHENTICATED', message: 'Invalid token payload' },
+            message: 'Invalid token payload',
+            extensions: { code: 'FORBIDDEN' },
         })
     })
 
@@ -75,15 +78,17 @@ describe('context', () => {
         expect(result.userAgent).toBe('ua2')
     })
 
-    it('throws FORBIDDEN if tokenService.verify throws jwt expired', async () => {
+    it('throws SESSION_EXPIRED if tokenService.verify throws jwt expired', async () => {
         (getUserFromToken as jest.Mock).mockResolvedValue({ message: '' })
         const verifyMock = jest.fn(() => { throw new Error('jwt expired') })
             ; (JwtTokenService as any).mockImplementation(() => ({ verify: verifyMock }))
         const req = mockReq({ authorization: 'Bearer token', restaurant: 'rest5', 'user-agent': 'ua3' })
+        // An expired access token is refreshable -> SESSION_EXPIRED (not FORBIDDEN)
+        // so the client renews the token instead of logging out.
         await expect(context({ req, res: mockRes, pubsub: mockPubSub }))
             .rejects.toThrow(GraphQLError)
         await expect(context({ req, res: mockRes, pubsub: mockPubSub }))
-            .rejects.toMatchObject({ extensions: { code: 'FORBIDDEN', message: 'Token expired' } })
+            .rejects.toMatchObject({ extensions: { code: 'SESSION_EXPIRED', message: 'Access token expired' } })
     })
 
     it('throws UNAUTHENTICATED for unknown errors', async () => {
