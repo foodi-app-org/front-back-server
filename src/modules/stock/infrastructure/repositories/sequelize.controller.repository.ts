@@ -5,8 +5,6 @@ import { StockMovement } from '../../domain/entities/stock.entity'
 import { IStockMovementRepository, TopProductMovement } from '../../domain/repositories/stock.repository'
 import { PRODUCT_MODEL } from '@modules/products/infrastructure/db/sequelize/models/sequelize-product.model'
 import { EXTRA_PRODUCT_MODEL } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra.model'
-import { EXTRA_PRODUCT_MODEL_SOLD } from '@modules/product_extra/infrastructure/db/sequelize/models/sequelize-product-extra.model/sequelize-product-extra-sold.model'
-import { SHOPPING_CART_MODEL } from '@modules/shopping/infrastructure/db/sequelize/models/sequelize-shopping-cart.model'
 import { STOCK_HISTORY_MODEL } from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
 import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
@@ -210,35 +208,22 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     if (!sequelize) throw new Error('Sequelize instance is not available')
 
     try {
-      // Total revenue of concluded orders = base product revenue
-      // (shopping_carts.priceProduct) + sold-extra revenue
-      // (products_extras_sold.extraPrice * quantity). The header
-      // `totalProductsPrice` is unreliable (left at 0 for extra-only sales), so
-      // we compute from the line items. Base and extras are disjoint sources,
-      // so adding them never double-counts.
+      // Total revenue of concluded orders read directly from the persisted
+      // header `orders_statuses.totalProductsPrice`. That column is now the
+      // single source of truth: `registerSalesStore` computes it once at sale
+      // time as base (priceProduct * cantProducts) + extras (extraPrice *
+      // quantity) inside the sale transaction. Reading the header is O(1) per
+      // row and avoids the previous correlated subqueries that re-scanned
+      // shopping_carts and products_extras_sold for every order (O(N*M),
+      // unscalable for large histories). The INNER JOIN to order_status_types
+      // keeps the exact same "concluded" filter (state = 4) as before.
       const rows = await sequelize.query<{ totalSales: number | string | null }>(
         `
-        SELECT COALESCE(SUM("total"), 0) AS "totalSales"
-        FROM (
-          SELECT
-            (
-              COALESCE((
-                SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
-                FROM "${this.tenant}.${SHOPPING_CART_MODEL}" sc
-                WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-              ), 0)
-              +
-              COALESCE((
-                SELECT SUM(es."extraPrice" * COALESCE(es."quantity", 1))
-                FROM "${this.tenant}.${EXTRA_PRODUCT_MODEL_SOLD}" es
-                WHERE es."pCodeRef" = o."pCodeRef"
-              ), 0)
-            ) AS "total"
-          FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
-          INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t
-            ON o."idStatus" = t."idStatus"
-          WHERE t."state" = :concluded
-        ) AS per_order;
+        SELECT COALESCE(SUM(o."totalProductsPrice"), 0) AS "totalSales"
+        FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
+        INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t
+          ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded;
         `,
         { type: QueryTypes.SELECT, replacements: { concluded: ORDER_STATE_CONCLUDED } }
       )

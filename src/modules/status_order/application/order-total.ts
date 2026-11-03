@@ -1,0 +1,73 @@
+/**
+ * Pure helpers to compute a sale's `totalProductsPrice`.
+ *
+ * The total is the single source of truth persisted on the order header
+ * (`orders_statuses.totalProductsPrice`) at sale time and later read back by
+ * the sales metrics (`findTotalSales`, `countSalesAmountToday`). Keeping the
+ * math here, free of Sequelize/GraphQL, makes it unit-testable and guarantees
+ * the resolver and any backfill share the exact same definition:
+ *
+ *   total = base (priceProduct * cantProducts)
+ *         + extras (sum of extraPrice * quantity for the selected complementos)
+ *
+ * Discounts, tips and delivery are intentionally excluded: they live in their
+ * own columns and were never part of the historical `totalProductsPrice`.
+ */
+
+/** A sold extra contributing `extraPrice * quantity` to the line total. */
+export interface OrderExtraLike {
+  extraPrice?: number | string | null
+  quantity?: number | string | null
+}
+
+/** A sale line contributing base + its extras to the order total. */
+export interface OrderLineLike {
+  priceProduct?: number | string | null
+  cantProducts?: number | string | null
+  dataExtra?: OrderExtraLike[] | null
+}
+
+/** Coerces a value to a finite number, falling back to 0 for null/NaN/∞. */
+const toFiniteNumber = (value: unknown): number => {
+  const n = Number(value ?? 0)
+  return Number.isFinite(n) ? n : 0
+}
+
+/**
+ * Sum of `extraPrice * quantity` for the extras whose quantity is >= 1.
+ * Extras with missing/zero/negative quantity do not contribute (they were not
+ * actually selected), matching the resolver's `selectedExtras` filter.
+ */
+export const computeExtrasTotal = (extras?: OrderExtraLike[] | null): number => {
+  if (!Array.isArray(extras)) return 0
+  return extras.reduce((acc, extra) => {
+    const price = toFiniteNumber(extra?.extraPrice)
+    const qty = toFiniteNumber(extra?.quantity)
+    if (qty < 1) return acc
+    return acc + price * qty
+  }, 0)
+}
+
+/** Base revenue of a line: `priceProduct * cantProducts` (never negative). */
+export const computeLineBaseTotal = (line: OrderLineLike): number => {
+  const price = toFiniteNumber(line?.priceProduct)
+  const qty = toFiniteNumber(line?.cantProducts)
+  if (qty <= 0) return 0
+  return price * qty
+}
+
+/**
+ * Total for the whole order: sum over every line of base + extras.
+ *
+ * @param lines - The sale lines (each with its priceProduct/cantProducts and
+ *   its selected extras).
+ * @returns The order's `totalProductsPrice` (always a finite, non-negative
+ *   number).
+ */
+export const computeOrderTotal = (lines?: OrderLineLike[] | null): number => {
+  if (!Array.isArray(lines)) return 0
+  const total = lines.reduce((acc, line) => {
+    return acc + computeLineBaseTotal(line) + computeExtrasTotal(line?.dataExtra)
+  }, 0)
+  return Number.isFinite(total) && total > 0 ? total : 0
+}

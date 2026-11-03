@@ -8,6 +8,7 @@ import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructu
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
+import { computeExtrasTotal, computeLineBaseTotal } from '../../../application/order-total'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
@@ -340,6 +341,19 @@ export const orderResolvers = {
             payload: { pId: item.pId, quantity: qty, idStore }
           })
 
+          // Accumulate this line's contribution to the order total using the
+          // SAME definition the metrics reconstruct from the detail:
+          //   base  = priceProduct * cantProducts  (shopping_carts)
+          //   extra = sum(extraPrice * quantity)   (products_extras_sold)
+          // Discounts, tips and delivery are intentionally excluded (they have
+          // their own columns and were never part of `totalProductsPrice`). The
+          // math lives in a pure, unit-tested helper so the header always
+          // matches findTotalSales / countSalesAmountToday.
+          computedTotalProductsPrice += computeLineBaseTotal({
+            priceProduct: item.priceProduct,
+            cantProducts: qty
+          }) + computeExtrasTotal(selectedExtras)
+
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
@@ -402,11 +416,12 @@ export const orderResolvers = {
             pId: soldPid
           })), t)
         }
-        // Resto del flujo (sumPrice, statusOrder, etc.)
-        // Use the tenant-scoped service: the global ShoppingTypesServices targets
-        // the `public` schema (empty), so its sumPrice always returned 0 and the
-        // order was persisted with totalProductsPrice = 0.
-        const response = await ShoppingServices.sumPrice.execute(args.shoppingCartRefCode)
+        // Resto del flujo (statusOrder, etc.)
+        // The order total is now computed in-flight from the line items inside
+        // this transaction (base + extras), so it is always correct even for
+        // extra-only sales. The previous `ShoppingServices.sumPrice` call ran
+        // outside the tx (never saw the just-inserted rows) and ignored extras,
+        // which is why orders were persisted with totalProductsPrice = 0.
         const {
           id,
           tableId,
@@ -435,7 +450,7 @@ export const orderResolvers = {
           tip,
           change,
           pCodeRef,
-          totalProductsPrice: response?.data,
+          totalProductsPrice: computedTotalProductsPrice,
           payId,
           pickUp: PickUpMethod.inStorePickup,
           channel: Channel.store,
