@@ -32,6 +32,30 @@ type WeeklyStockChange {
   percentageChange: Float
 }
 
+input InputManageStock {
+  pId: ID
+  manageStock: Boolean
+}
+
+input InputRestockProduct {
+  pId: ID
+  "Target absolute stock. Only increases are applied (RESTOCK of the delta); it never lowers existing stock."
+  stock: Int
+}
+
+type ManageStockProduct {
+  pId: ID
+  manageStock: Boolean
+  stock: Int
+  previousStock: Int
+}
+
+type ResponseManageStock {
+  success: Boolean
+  message: String
+  data: ManageStockProduct
+}
+
 type Query {
   getTopProductsMovements: [ProductMovement]
   totalSales: TotalSalesResult!
@@ -40,6 +64,13 @@ type Query {
   getTotalProductsInStock: Int!
   getStockMovementsByDay(filter: DashboardFilterInput): [StockMovementSummary!]!
   getStockMovementWeeklyComparison: [WeeklyStockChange]
+}
+
+type Mutation {
+  "Enable/disable inventory control for a main product."
+  updateManageStock(input: InputManageStock): ResponseManageStock
+  "Increase a main product's stock to a target as an inventory ENTRY (RESTOCK). Never lowers existing stock."
+  restockProduct(input: InputRestockProduct): ResponseManageStock
 }
 
 type Subscription {

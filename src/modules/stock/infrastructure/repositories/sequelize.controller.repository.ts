@@ -42,6 +42,44 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     this.tenant = tenant ?? MigrationFolder.Public
   }
 
+  /**
+   * Enables/disables inventory control (`manageStock`) for a MAIN product.
+   *
+   * - Enabling: keeps the current stock (restoring `previousStock` if the
+   *   current is empty), so the product re-enters inventory with its last
+   *   known quantity.
+   * - Disabling: snapshots the current stock into `previousStock` and zeroes
+   *   `stock`, so the product stops counting as managed inventory without
+   *   losing the value to restore later.
+   *
+   * Operates on `product_models` (main products). Extras use their own edit
+   * flow (editExtraProductFoods). Returns the updated row or null when missing.
+   */
+  updateProductManageStock = async (
+    pId: string,
+    manageStock: boolean
+  ): Promise<{ pId: string; manageStock: boolean; stock: number; previousStock: number } | null> => {
+    const ProductModel = models.Product.schema(this.tenant)
+    const product: any = await ProductModel.findOne({ where: { pId } })
+    if (!product) return null
+
+    const currentStock = Number(product.get('stock') ?? 0)
+    const prevStock = Number(product.get('previousStock') ?? 0)
+
+    const patch = manageStock
+      ? { manageStock: true, stock: currentStock || prevStock || 0 }
+      : { manageStock: false, stock: 0, previousStock: currentStock }
+
+    await product.update(patch)
+
+    return {
+      pId: String(product.get('pId')),
+      manageStock: Boolean(product.get('manageStock')),
+      stock: Number(product.get('stock') ?? 0),
+      previousStock: Number(product.get('previousStock') ?? 0)
+    }
+  }
+
   async create(data: Omit<StockMovement, 'createdAt' | 'updatedAt'>): Promise<StockMovement | null> {
     try {
       const created = await models.StockMovement.create({
@@ -271,11 +309,18 @@ export class SequelizeStockRepository implements IStockMovementRepository {
       : ''
 
     // Daily IN/OUT/ADJUSTMENT totals derived from `stock_history`.
+    // Direction model used by the chart (IN / OUT / ADJUST):
+    //  - IN  = RESTOCK (entries/replenishment) + RELEASE (stock returned by a
+    //          reversal). Both add physical stock back, so both are inbound.
+    //  - OUT = DECREMENT (confirmed sale/consumption). RESERVE is a temporary
+    //          hold that later becomes a DECREMENT, so it is intentionally NOT
+    //          counted here to avoid double counting outbound movement.
+    //  - ADJUST = manual physical/administrative corrections.
     const rows = await sequelize.query<{ date: string; total_in: number | string; total_out: number | string; total_adjustment: number | string }>(
       `
       SELECT
         DATE(h."createdAt") AS "date",
-        COALESCE(SUM(CASE WHEN h."type" = 'RESTOCK' THEN h."delta" ELSE 0 END), 0) AS "total_in",
+        COALESCE(SUM(CASE WHEN h."type" IN ('RESTOCK', 'RELEASE') THEN h."delta" ELSE 0 END), 0) AS "total_in",
         COALESCE(SUM(CASE WHEN h."type" = :decrementType THEN -h."delta" ELSE 0 END), 0) AS "total_out",
         COALESCE(SUM(CASE WHEN h."type" = 'ADJUST' THEN h."delta" ELSE 0 END), 0) AS "total_adjustment"
       FROM "${this.tenant}.${STOCK_HISTORY_MODEL}" h

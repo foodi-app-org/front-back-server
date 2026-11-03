@@ -108,6 +108,7 @@ export default {
         ...clientResolvers.Mutation,
         ...geolocationsResolvers.Mutation,
         ...filterConfigResolvers.Mutation,
+        ...stockResolvers.Mutation,
         ...reportsResolvers.Mutation
     },
     Subscription: {
