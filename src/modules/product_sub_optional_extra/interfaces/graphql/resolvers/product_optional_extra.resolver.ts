@@ -1,8 +1,16 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
-import { productSubOptionalExtraSchema } from '../../../infrastructure/validators/product-sub-optional-extra.validator'
+import { productSubOptionalExtraSchema, UpdateproductSubOptionalExtraSchema } from '../../../infrastructure/validators/product-sub-optional-extra.validator'
 import { ProductSubOptionalServicesTenantFactory } from '../../../main/factories/product-optional-extra-services.factory'
+import { ContextValidator } from '@shared/utils/context-validator'
+
+type UpdateProductSubOptionalInput = {
+  opSubExPid: string
+  OptionalSubProName?: string
+  isCustomSubOpExPid?: boolean
+  exCodeOptionExtra?: string
+}
 
 type CreateProductSubOptionalInput = {
   exCode: string
@@ -13,10 +21,36 @@ type CreateProductSubOptionalInput = {
   state: number
 }
 
-export const productSubOptionalExtraResolvers = {
-  Query: {
+const executeUpdateProductSubOptional = async (
+  input: UpdateProductSubOptionalInput,
+  context: GraphQLContext
+) => {
+  const validator = new ContextValidator(context)
+  const idStore = validator.validateUserSession()
 
-  },
+  const { error, value } = UpdateproductSubOptionalExtraSchema.validate({
+    ...input,
+    idStore: idStore ?? ''
+  })
+
+  if (error) {
+    return {
+      success: false,
+      data: null,
+      message: 'Error de validación'
+
+    }
+  }
+
+  const services = ProductSubOptionalServicesTenantFactory(idStore ?? '')
+
+  return services.update.execute(value, idStore ?? '')
+}
+
+
+export const productSubOptionalExtraResolvers = {
+  Query: {},
+
   Mutation: {
     updateExtProductSubOptional: async (_: GraphQLResolveInfo, args: { input: CreateProductSubOptionalInput }, context: GraphQLContext) => {
       const values = { ...args.input }
@@ -40,13 +74,31 @@ export const productSubOptionalExtraResolvers = {
       const services = ProductSubOptionalServicesTenantFactory(context.restaurant ?? '')
       return await services.create.execute(value, context.restaurant ?? '')
     },
-    DeleteExtFoodSubsOptional: async (_: GraphQLResolveInfo, args: { opSubExPid: string, state: number }, context: GraphQLContext) => {
-      const services = ProductSubOptionalServicesTenantFactory(context.restaurant ?? '')
-      const { opSubExPid, state } = args ?? {
-        opSubExPid: '',
-        state: null
-      }
-      return await services.delete.execute({ code: opSubExPid, state })
+
+    editExtFoodSubsOptional: async (
+      _: GraphQLResolveInfo,
+      args: UpdateProductSubOptionalInput,
+      context: GraphQLContext
+    ) => {
+      return executeUpdateProductSubOptional(args, context)
+    },
+
+    DeleteExtFoodSubsOptional: async (
+      _: GraphQLResolveInfo,
+      args: { opSubExPid: string; state: number; isCustomSubOpExPid?: boolean },
+      context: GraphQLContext
+    ) => {
+      const services = ProductSubOptionalServicesTenantFactory(
+        context.restaurant ?? ''
+      )
+
+      const { opSubExPid, state, isCustomSubOpExPid } = args
+
+      return services.delete.execute({
+        code: opSubExPid,
+        state,
+        isCustomSubOpExPid: isCustomSubOpExPid ?? false
+      })
     }
   }
 }

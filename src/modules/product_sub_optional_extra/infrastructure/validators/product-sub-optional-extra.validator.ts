@@ -43,3 +43,31 @@ export const productSubOptionalExtraSchema = Joi.object({
   createdAt: Joi.date().optional(),
   updatedAt: Joi.date().optional()
 })
+
+export const UpdateproductSubOptionalExtraSchema = Joi.object({
+  opSubExPid: Joi.string().optional(),
+
+  isCustomSubOpExPid: Joi.boolean()
+    .messages({
+      'any.required': 'isCustomSubOpExPid es requerido'
+    }),
+
+  OptionalSubProName: Joi.string()
+    .min(2)
+    .max(255)
+    .required()
+    .messages({
+      'string.empty': 'El nombre del item no puede estar vacío',
+      'string.min': 'El nombre del item debe tener al menos 2 caracteres',
+      'string.max': 'El nombre del item debe tener como máximo 255 caracteres'
+    }),
+  idStore: Joi.string()
+    .uuid()
+    .required()
+    .messages({
+      'any.required': 'idStore es requerido'
+    }),
+  createdAt: Joi.date().optional(),
+  updatedAt: Joi.date().optional()
+})
+

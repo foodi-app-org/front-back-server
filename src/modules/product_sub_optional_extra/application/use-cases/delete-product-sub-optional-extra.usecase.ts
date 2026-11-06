@@ -5,6 +5,7 @@ import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-
 interface DeleteProductOptionalInput {
     code: string
     state: StateProductSubOptionalExtra
+    isCustomSubOpExPid?: boolean
 }
 
 export interface UseCaseResponse<T = unknown> {
@@ -25,18 +26,33 @@ export class DeleteExtFoodSubsOptionalUseCase {
 
     async execute(input: DeleteProductOptionalInput): Promise<UseCaseResponse> {
         try {
+            const code = String(input.code)
+            const isCustom = Boolean(input.isCustomSubOpExPid)
 
-            const existing = await this.repo.findByExCode(String(input.code))
+            // When the item is a custom sub-option, the frontend sends the record's
+            // opSubExPid; otherwise it sends the exCode. Look up accordingly.
+            const existing = isCustom
+                ? await this.repo.finByopSubExPid(code)
+                : await this.repo.findByExCode(code)
+
             if (!existing) {
                 return { success: false, message: 'No product exists with that code', data: null }
             }
 
             const active = StateProductSubOptionalExtra.ACTIVE
+            const nextState = input.state === active
+                ? StateProductSubOptionalExtra.INACTIVE
+                : active
 
-            const updated = await this.repo.updateByExCode(String(existing.exCode), {
-                updatedAt: new Date(),
-                state: input.state === active ? StateProductSubOptionalExtra.INACTIVE : active
-            })
+            const updated = isCustom
+                ? await this.repo.updateByOpSubExPid(String(existing.opSubExPid), {
+                    updatedAt: new Date(),
+                    state: nextState
+                })
+                : await this.repo.updateByExCode(String(existing.exCode), {
+                    updatedAt: new Date(),
+                    state: nextState
+                })
 
             const message = input.state === active ? 'Deleted' : 'Activated'
 

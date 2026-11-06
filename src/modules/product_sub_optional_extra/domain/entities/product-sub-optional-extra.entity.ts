@@ -8,9 +8,11 @@ export enum StateProductSubOptionalExtra {
  * Entity representing a SubOptionalExtra product.
  */
 export class ProductSubOptionalExtra {
-  public readonly exCode: string
-  public readonly exCodeOptionExtra: string
-  public readonly OptionalSubProName: string
+  public exCode: string
+  public exCodeOptionExtra: string
+  public isCustomSubOpExPid?: boolean
+  public opSubExPid?: string
+  public OptionalSubProName: string
   public readonly pId: string
   public readonly idStore: string
   public readonly state: StateProductSubOptionalExtra
@@ -23,11 +25,13 @@ export class ProductSubOptionalExtra {
     OptionalSubProName: string
     pId: string
     idStore: string
+    isCustomSubOpExPid?: boolean
     state?: number
     createdAt?: Date
     updatedAt?: Date
   }) {
     this.exCode = props.exCode
+    this.isCustomSubOpExPid = props.isCustomSubOpExPid
     this.exCodeOptionExtra = props.exCodeOptionExtra
     this.OptionalSubProName = props.OptionalSubProName
     this.pId = props.pId

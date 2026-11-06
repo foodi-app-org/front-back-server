@@ -4,7 +4,7 @@ import { IProductSubOptionalExtraRepo } from '../../domain/repositories/product-
 
 
 
-export type UpdateProductSubOptionalInput = Partial<ProductSubOptionalExtra>
+export type CreateProductSubOptionalInput = Partial<ProductSubOptionalExtra>
 
 export interface UseCaseResponse<T = any> {
   success: boolean
@@ -16,13 +16,13 @@ export interface UseCaseResponse<T = any> {
 /**
  * Use case for creating or updating sub optional product extras
  */
-export class UpdateProductSubOptionalUseCase {
+export class CreateProductSubOptionalUseCase {
   constructor(
     private readonly repo: IProductSubOptionalExtraRepo,
     private readonly productOptionalRepo: IProductOptionalExtraRepo
   ) { }
 
-  async execute(input: UpdateProductSubOptionalInput, idStore: string): Promise<UseCaseResponse> {
+  async execute(input: CreateProductSubOptionalInput, idStore: string): Promise<UseCaseResponse> {
     try {
       const entity = new ProductSubOptionalExtra({
         exCode: input.exCode ?? '',
@@ -37,9 +37,8 @@ export class UpdateProductSubOptionalUseCase {
 
       // verify limit of sub optional extras for the given optional extra
       const optionalExtra = await this.productOptionalRepo.findByCode(input.exCodeOptionExtra ?? '')
-
       const getAllSubOptionals = await this.repo.getAllByExtraCode(input.exCodeOptionExtra ?? '') ?? []
-
+      console.log({getAllSubOptionals})
       if (optionalExtra && optionalExtra.numbersOptionalOnly <= getAllSubOptionals.length) {
         const message = `El extra opcional  ${optionalExtra.OptionalProName ?? ''} ya tiene el número máximo de sub extras (${optionalExtra.numbersOptionalOnly}) permitidos.`
         return {
