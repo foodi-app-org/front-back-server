@@ -44,6 +44,18 @@ export interface ProductRepository {
    * has no explicit availability (interpreted as "available all week").
    */
   getAvailableProductsByProduct(pId: string, idStore?: string): Promise<AvailableProduct[]>
+  /**
+   * Replaces the whole availability schedule of a product with the given set.
+   * Implementations must reconcile the state: create the new day/range rows,
+   * update the ones that already exist, and remove the ones no longer present.
+   * Passing an empty list clears the schedule (product becomes "available all
+   * week"). Returns the resulting active schedule.
+   */
+  syncAvailableProductSchedule(
+    pId: string,
+    idStore: string,
+    input: Partial<AvailableProduct>[]
+  ): Promise<AvailableProduct[]>
 
   // sold products
   createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null>

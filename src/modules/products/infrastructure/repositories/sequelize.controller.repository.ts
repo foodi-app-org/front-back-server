@@ -370,6 +370,126 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+
+  /**
+   * Replaces the full availability schedule of a product with `input`.
+   * Reconciles per weekday (`dayAvailable`), which matches how the UI models
+   * a product's weekly schedule (one configurable row per day):
+   *   - day present in input and in DB  -> UPDATE its time range.
+   *   - day present in input but not DB  -> CREATE it.
+   *   - day in DB but not in input       -> DELETE it.
+   * Runs inside a transaction so the schedule never ends up half-applied.
+   * An empty `input` clears the schedule. Returns the resulting active rows.
+   */
+  async syncAvailableProductSchedule(
+    pId: string,
+    idStore: string,
+    input: Partial<AvailableProduct>[]
+  ): Promise<AvailableProduct[]> {
+    const model = models.AvailableProduct.schema(this.tenant)
+    const sequelize = model.sequelize
+
+    if (!sequelize) {
+      throw new Error('Sequelize instance is not available for AvailableProduct')
+    }
+
+    const transaction = await sequelize.transaction()
+
+    try {
+      // Desired state keyed by weekday. The last entry for a day wins so the
+      // reconciliation stays deterministic even with duplicated input.
+      const desiredByDay = new Map<number, Partial<AvailableProduct>>()
+      for (const item of input) {
+        const day = Number(item?.dayAvailable)
+        if (Number.isInteger(day) && day >= 0 && day <= 6) {
+          desiredByDay.set(day, item)
+        }
+      }
+
+      // Current active rows for this product/store.
+      const currentRows = await model.findAll({
+        where: {
+          pId,
+          idStore,
+          state: StateProductAvailable.ACTIVE
+        },
+        transaction
+      })
+
+      const currentByDay = new Map<number, typeof currentRows[number]>()
+      for (const row of currentRows) {
+        currentByDay.set(Number(row.dayAvailable), row)
+      }
+
+      // DELETE: days that are no longer desired.
+      const daysToRemove = [...currentByDay.keys()].filter(
+        (day) => !desiredByDay.has(day)
+      )
+      if (daysToRemove.length > 0) {
+        await model.destroy({
+          where: {
+            pId,
+            idStore,
+            dayAvailable: daysToRemove
+          },
+          transaction
+        })
+      }
+
+      // UPSERT: create missing days, update the time range of existing ones.
+      for (const [day, desired] of desiredByDay.entries()) {
+        const existing = currentByDay.get(day)
+
+        if (existing) {
+          await existing.update(
+            {
+              startDate: desired.startDate ?? existing.startDate,
+              endDate: desired.endDate ?? existing.endDate,
+              state: StateProductAvailable.ACTIVE
+            },
+            { transaction }
+          )
+        } else {
+          await model.create(
+            {
+              pId,
+              idStore,
+              dayAvailable: day,
+              startDate: desired.startDate ?? '00:00',
+              endDate: desired.endDate ?? '23:59',
+              state: StateProductAvailable.ACTIVE
+            },
+            { transaction }
+          )
+        }
+      }
+
+      await transaction.commit()
+
+      // Return the reconciled, ordered schedule.
+      const result = await model.findAll({
+        where: {
+          pId,
+          idStore,
+          state: StateProductAvailable.ACTIVE
+        },
+        order: [
+          ['dayAvailable', 'ASC'],
+          ['startDate', 'ASC']
+        ],
+        raw: true
+      })
+
+      return result ?? []
+    } catch (e) {
+      await transaction.rollback()
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
   async createProductSold(_originalPid: string, _pCodeRef: string, product: Partial<Product>): Promise<Product | null> {
     console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ product:', product)
     try {
