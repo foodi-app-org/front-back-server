@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { TagsServicesTenantFactory } from '../../../../tags/main/factories/store-services.factory'
 import { productSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
 import { CreateMultipleProducts, CreateStatusTypeOrderInput } from '../inputs'
@@ -9,6 +10,23 @@ import { IProduct } from '@modules/products/domain'
 import { ContextValidator } from '@shared/utils/context-validator'
 
 export const productResolvers = {
+  ProductFood: {
+    getOneTags: async (
+      parent: { tgId?: string | null },
+      _args: unknown,
+      context: GraphQLContext
+    ) => {
+      const tgId = parent?.tgId
+      if (!tgId || !context.restaurant) {
+        return null
+      }
+      const services = TagsServicesTenantFactory(context.restaurant)
+      return services.getOne.execute({
+        idStore: context.restaurant,
+        tgId
+      })
+    }
+  },
   Query: {
     productFoodsOne: async (_: GraphQLResolveInfo, args: { pId: string }, context: GraphQLContext) => {
       const { pId } = args ?? {
@@ -182,5 +200,76 @@ export const productResolvers = {
       }
       return productsSucess
     },
+    registerTagToProduct: async (
+      _: GraphQLResolveInfo,
+      args: { pId: string; tgId: string },
+      context: GraphQLContext
+    ) => {
+      try {
+        const { pId, tgId } = args ?? {}
+
+        if (!pId || !tgId) {
+          return {
+            success: false,
+            data: null,
+            message: 'pId y tgId son requeridos',
+            errors: [
+              {
+                message: 'pId y tgId son requeridos para asociar el tag',
+                path: ['pId', 'tgId'],
+                type: 'required'
+              }
+            ]
+          }
+        }
+
+        const store = context.restaurant ?? ''
+
+        // Validate the tag exists before associating it with the product.
+        const tagServices = TagsServicesTenantFactory(store)
+        const tag = await tagServices.getOne.execute({ idStore: store, tgId })
+
+        if (!tag) {
+          return {
+            success: false,
+            data: null,
+            message: 'El tag no existe',
+            errors: [
+              {
+                message: 'No se encontró un tag activo con ese tgId',
+                path: ['tgId'],
+                type: 'not_found'
+              }
+            ]
+          }
+        }
+
+        // The product→tag relationship lives as the `tgId` FK on the product,
+        // so associating the tag is just updating that column.
+        const productServices = ProductServicesTenantFactory(store)
+        const result = await productServices.edit.execute({ pId, tgId })
+
+        return {
+          success: result?.success ?? false,
+          message: result?.success
+            ? 'Tag asociado al producto correctamente'
+            : (result?.message ?? 'No se pudo asociar el tag al producto'),
+          data: result?.data ?? null
+        }
+      } catch (err) {
+        return {
+          success: false,
+          data: null,
+          message: err instanceof Error ? err.message : 'Error inesperado al asociar el tag',
+          errors: [
+            {
+              message: err instanceof Error ? err.message : String(err),
+              path: ['registerTagToProduct'],
+              type: 'unexpected_error'
+            }
+          ]
+        }
+      }
+    }
   }
 }

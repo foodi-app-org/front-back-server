@@ -161,8 +161,9 @@ export const stockResolvers = {
      * lower it from here (lowering goes through sales or an inventory
      * adjustment). Reuses the shared StockService.restock so the physical stock
      * and stock_history stay consistent with a single movement (no double
-     * counting). Does nothing (and reports the current stock) when the target is
-     * not greater than the current stock.
+     * counting). Returns an error (`success: false`) when the target is not
+     * greater than the current stock, so lowering/no-op attempts are rejected
+     * and surfaced in the UI instead of silently succeeding.
      */
     restockProduct: async (
       _root: GraphQLResolveInfo,
@@ -191,11 +192,21 @@ export const stockResolvers = {
 
         const current = Number(row.stock ?? 0)
         const delta = target - current
-        if (delta <= 0) {
-          // No lowering and no-op increases: never reduce existing stock here.
+        if (delta < 0) {
+          // Lowering stock is not allowed from this flow: report it as an error
+          // so the UI surfaces it (reductions go through sales or an inventory
+          // adjustment, never this entry/restock flow).
           return {
-            success: true,
-            message: 'El stock no se incrementó (solo se permite subir el stock)',
+            success: false,
+            message: `No se puede bajar el stock. El stock actual es ${current} y solo se permite registrar entradas (subir el stock).`,
+            data: { pId, manageStock: true, stock: current, previousStock: Number(row.previousStock ?? 0) }
+          }
+        }
+        if (delta === 0) {
+          // No-op: the target equals the current stock, nothing to register.
+          return {
+            success: false,
+            message: 'El stock no cambió. Indica una cantidad mayor al stock actual para registrar una entrada.',
             data: { pId, manageStock: true, stock: current, previousStock: Number(row.previousStock ?? 0) }
           }
         }

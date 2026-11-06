@@ -54,7 +54,7 @@ export class DeleteExtFoodSubsOptionalUseCase {
                     state: nextState
                 })
 
-            const message = input.state === active ? 'Deleted' : 'Activated'
+            const message = input.state === active ? 'Sub produto Elimnado' : 'Activated'
 
             return { success: true, message, data: updated }
         } catch (err) {

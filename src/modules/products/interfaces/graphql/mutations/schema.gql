@@ -8,4 +8,6 @@ type Mutation {
   editProductFoods(input: InputProductFood): Response
   "Borra un productFoodo"
   deleteProductFoods(input: IDeleteProductFood): ProductFood
+  "Asocia un tag existente a un producto"
+  registerTagToProduct(pId: ID!, tgId: ID!): ResponseProduct
 }

@@ -3,6 +3,7 @@ import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { CreateTagsUseCase } from '../../application/use-cases/create_tags.usecase'
 import { DeleteTagUseCase } from '../../application/use-cases/delete-tag.usecase'
 import { GetAllTagsUseCase } from '../../application/use-cases/get-all-tags.usecase'
+import { GetOneTagUseCase } from '../../application/use-cases/get-one-tag.usecase'
 import { RegisterMultipleTagsUseCase } from '../../application/use-cases/register-multiple-tags.usecase'
 import { SequelizeTagsRepository } from '../../infrastructure/repositories/sequelize.controller.repository'
 
@@ -18,11 +19,13 @@ export const TagsServicesTenantFactory = (tenant: string) => {
     const createTagsUseCase = new CreateTagsUseCase(tagsRepository)
     const registerMultipleTagsUseCase = new RegisterMultipleTagsUseCase(tagsRepository)
     const getAllTagsUseCase = new GetAllTagsUseCase(tagsRepository)
+    const getOneTagUseCase = new GetOneTagUseCase(tagsRepository)
     const deleteTagsUseCase = new DeleteTagUseCase(tagsRepository)
     return {
         create: createTagsUseCase,
         registerMultiple: registerMultipleTagsUseCase,
         getAll: getAllTagsUseCase,
+        getOne: getOneTagUseCase,
         delete: deleteTagsUseCase
     }
 }

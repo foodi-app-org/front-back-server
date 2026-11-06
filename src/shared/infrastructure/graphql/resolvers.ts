@@ -45,6 +45,7 @@ export default {
     ...storeResolvers.Type,
     ...categoryProductResolvers.Type,
     ...paymentMethodResolvers.Type,
+    ProductFood: productResolvers.ProductFood,
 
     Query: {
         ...userResolvers.Query,

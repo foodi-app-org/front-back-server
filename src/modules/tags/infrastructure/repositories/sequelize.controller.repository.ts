@@ -70,6 +70,26 @@ export class SequelizeTagsRepository implements TagProductRepository {
     }
   }
 
+  /**
+   * Finds a tag by its name within the tenant schema.
+   *
+   * nameTag has a unique constraint, so this lookup is used to detect whether a
+   * tag already exists before attempting an insert (avoiding unique violations).
+   * @param nameTag - The tag name to look up.
+   * @returns The matching tag or null when not found.
+   */
+  async findByName(nameTag: string): Promise<TagProductEntity | null> {
+    try {
+      const tag = await models.TagProduct.schema(this.tenant).findOne({ where: { nameTag } })
+      return tag
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
   async updateState(tgId: string, state: number, idStore: string): Promise<void> {
     try {
       await models.TagProduct.schema(this.tenant).update(
