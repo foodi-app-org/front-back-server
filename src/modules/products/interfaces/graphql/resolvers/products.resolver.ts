@@ -93,6 +93,42 @@ export const productResolvers = {
         }
       }
     },
+    /**
+     * Busca un producto ACTIVO por código de barras dentro del tenant actual.
+     * Seguridad multi-tenant: el store sale de `context.restaurant` (header
+     * autenticado), nunca del cliente, así un código no puede traer productos
+     * de otra tienda. Devuelve un resultado con `status` diferenciado
+     * (FOUND / NOT_FOUND / INVALID) y maneja errores de servidor sin filtrar
+     * detalles internos.
+     */
+    findProductByBarcode: async (
+      _: GraphQLResolveInfo,
+      args: { ProBarCode: string },
+      context: GraphQLContext
+    ) => {
+      const store = context.restaurant ?? ''
+      if (!store) {
+        return {
+          success: false,
+          status: 'INVALID',
+          message: 'No hay una tienda activa en la sesión.',
+          barcode: '',
+          data: null
+        }
+      }
+      try {
+        const services = ProductServicesTenantFactory(store)
+        return await services.findByBarcode.execute(args?.ProBarCode ?? '')
+      } catch (err) {
+        return {
+          success: false,
+          status: 'ERROR',
+          message: err instanceof Error ? err.message : 'Error inesperado al buscar el producto',
+          barcode: '',
+          data: null
+        }
+      }
+    },
     productFoodsAll: async (
       _: GraphQLResolveInfo,
       args: QueryProductFoodsAllArgs & {

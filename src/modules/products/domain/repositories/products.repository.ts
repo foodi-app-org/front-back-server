@@ -25,7 +25,13 @@ export interface ProductListFilters {
 export interface ProductRepository {
   create(data: Product): Promise<Product | null>
   findCode(pCodeRef: string): Promise<Product | null>
+  /** Busca un producto ACTIVO por código de barras (scope tenant). */
   findByProBarCode(ProBarCode: string): Promise<Product | null>
+  /**
+   * Busca un producto por código de barras en CUALQUIER estado (para validar
+   * unicidad). Unicidad por tienda: opcionalmente filtra por `idStore`.
+   */
+  findAnyByProBarCode(ProBarCode: string, idStore?: string): Promise<Product | null>
   getAll(
     idStore: string,
     pagination: { page: number; max: number },

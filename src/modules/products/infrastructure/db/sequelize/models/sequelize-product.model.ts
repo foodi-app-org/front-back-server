@@ -320,7 +320,12 @@ export const columnsProduct = {
   ProBarCode: {
     type: STRING(50),
     allowNull: true,
-    unique: true,
+    // La unicidad del código de barras es POR TIENDA, no global: el mismo
+    // código puede existir en tiendas distintas (p. ej. un EAN de fábrica), pero
+    // no duplicarse dentro de la misma tienda. Por eso NO se marca `unique: true`
+    // (que crearía un índice único global de una sola columna); la unicidad se
+    // garantiza con el índice compuesto `(idStore, ProBarCode)` definido abajo
+    // en `indexes` y respaldado por la migración DDL correspondiente.
     validate: { len: [1, 50] as [number, number] }
   },
   createdAt: {
@@ -333,11 +338,23 @@ export const columnsProduct = {
   }
 }
 
+/** Nombre del índice único compuesto (idStore, ProBarCode). */
+export const PRODUCT_BARCODE_UNIQUE_INDEX = 'uq_product_models_idstore_probarcode'
+
 SequelizeProductModel.init(columnsProduct, {
   sequelize,
   modelName: PRODUCT_MODEL,
   freezeTableName: true,
-  timestamps: true
+  timestamps: true,
+  indexes: [
+    {
+      // Unicidad del código de barras por tienda. Permite el mismo código en
+      // tiendas distintas, pero no duplicado dentro de la misma tienda.
+      name: PRODUCT_BARCODE_UNIQUE_INDEX,
+      unique: true,
+      fields: ['idStore', 'ProBarCode']
+    }
+  ]
 })
 
 export default SequelizeProductModel

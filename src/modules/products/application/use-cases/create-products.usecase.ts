@@ -50,11 +50,18 @@ export class CreateProductTypeUseCase {
       }
     }
     const providedBarCode = `${newProduct?.ProBarCode ?? ''}`.trim()
+    const idStore = newProduct?.idStore
 
     if (providedBarCode) {
       // Si el cliente envió un código (p. ej. el de fábrica), respetamos el
-      // valor pero validamos que no esté duplicado.
-      const existingProductByProBarCode = await this.productRepository.findByProBarCode(providedBarCode)
+      // valor pero validamos que no esté duplicado EN LA MISMA TIENDA. Se usa
+      // findAnyByProBarCode (cualquier estado) porque el índice único compuesto
+      // `(idStore, ProBarCode)` no distingue por estado: un código en un
+      // producto inactivo igual colisionaría.
+      const existingProductByProBarCode = await this.productRepository.findAnyByProBarCode(
+        providedBarCode,
+        idStore
+      )
 
       if (existingProductByProBarCode) {
         return {
@@ -65,10 +72,10 @@ export class CreateProductTypeUseCase {
       }
     } else {
       // Sin código: generamos un EAN-13 de uso interno (prefijo 2) válido y
-      // único, usando el repositorio para garantizar que no colisione.
+      // único dentro de la tienda, para no colisionar con el índice único.
       newProduct.ProBarCode = await generateUniqueEAN13Barcode(
         async (barcode) => {
-          const found = await this.productRepository.findByProBarCode(barcode)
+          const found = await this.productRepository.findAnyByProBarCode(barcode, idStore)
           return Boolean(found)
         }
       )

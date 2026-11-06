@@ -118,6 +118,17 @@ type ResponseProduct {
   data: ProductFood
 }
 
+# Resultado diferenciado de la búsqueda por código de barras.
+# status: FOUND | NOT_FOUND | INVALID  -> permite al front reaccionar distinto.
+type FindProductByBarcodeResult {
+  success: Boolean
+  status: String
+  message: String
+  "Código normalizado que se consultó (para precargar el formulario de creación)."
+  barcode: String
+  data: ProductFood
+}
+
 type ProductFoodsResultAll {
   success: Boolean!
   message: String!
@@ -163,4 +174,6 @@ type Query {
     max: Int
   ): [ProductFood]
   getMinPrice(idStore: ID): Float
+  "Busca un producto ACTIVO por su código de barras dentro de la tienda actual."
+  findProductByBarcode(ProBarCode: String!): FindProductByBarcodeResult
 }

@@ -10,6 +10,7 @@ import { UpdateAvailableProductUseCase } from '../../application/use-cases/updat
 import { SetImageProductUseCase } from '../../application/use-cases/create-image-product.usecase'
 import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
 import { EditProductUseCase } from '../../application/use-cases/edit-products.usecase'
+import { FindProductByBarcodeUseCase } from '../../application/use-cases/find-products-by-ProBarCode.usecase'
 import { FindProductByIdUseCase } from '../../application/use-cases/find-products-by-id.usecase'
 import { GetAllProductsAllUseCase } from '../../application/use-cases/get-all-products-all.usecase'
 import { GetAllProductsByCategoryIdUseCase } from '../../application/use-cases/get-all-products-by-category.usecase'
@@ -33,6 +34,7 @@ export const ProductServicesTenantFactory = (tenant: string) => {
         create: new CreateProductTypeUseCase(productRepository, categoryProductsRepository),
         edit: new EditProductUseCase(productRepository),
         findById: new FindProductByIdUseCase(productRepository),
+        findByBarcode: new FindProductByBarcodeUseCase(productRepository),
         getAllProductsByCategoryId: new GetAllProductsByCategoryIdUseCase(productRepository),
         setImageProduct: new SetImageProductUseCase(productRepository),
         registerAvailableProduct: new RegisterAvailableProductUseCase(productRepository),

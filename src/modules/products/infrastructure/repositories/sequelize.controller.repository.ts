@@ -14,6 +14,7 @@ import {
   ProductRepository,
   ProductListFilters
 } from '../../domain/repositories/products.repository'
+import { normalizeBarcode } from '../../domain/services/barcode.service'
 import { StateProductAvailable } from '../db/sequelize/models/sequelize-available-product.model'
 import type { SequelizeProductModel } from '../db/sequelize/models/sequelize-product.model'
 import { QueryProductFoodsAllArgs } from 'generated/graphql'
@@ -204,13 +205,60 @@ export class SequelizeProductRepository implements ProductRepository {
     }
   }
 
-  async findByProBarCode(id: string): Promise<Product | null> {
+  /**
+   * Busca un producto ACTIVO por su código de barras dentro del tenant actual.
+   * - Escapa al schema del tenant (`this.tenant`), nunca consulta otra tienda.
+   * - Normaliza el código (trim, preserva ceros/alfanuméricos) para que la
+   *   comparación sea exacta y no falle por espacios/saltos de línea del lector.
+   * - Filtra por `pState: ACTIVE` para no devolver productos inactivos/eliminados.
+   */
+  async findByProBarCode(barcode: string): Promise<Product | null> {
     try {
-      const Product = await models.Product.schema(this.tenant).findOne({ where: { ProBarCode: id } })
-      if (!Product) {
+      const normalized = normalizeBarcode(barcode)
+      if (!normalized) {
         return null
       }
-      return Product
+      const product = await models.Product.schema(this.tenant).findOne({
+        where: {
+          ProBarCode: normalized,
+          pState: StateProduct.ACTIVE
+        },
+        raw: true
+      })
+      return product ?? null
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
+  /**
+   * Variante sin filtro de estado: usada para validar unicidad al crear/editar
+   * (el código puede existir en un producto inactivo y aun así colisionar con
+   * el índice único). Devuelve el producto en cualquier estado.
+   *
+   * Unicidad POR TIENDA: la consulta ya está aislada al schema del tenant
+   * (= una tienda). Cuando se provee `idStore`, se filtra además por esa
+   * columna para alinear con el índice único compuesto `(idStore, ProBarCode)`
+   * y quedar a prueba de futuro (varias tiendas en un mismo schema).
+   */
+  async findAnyByProBarCode(barcode: string, idStore?: string): Promise<Product | null> {
+    try {
+      const normalized = normalizeBarcode(barcode)
+      if (!normalized) {
+        return null
+      }
+      const where: Record<string, unknown> = { ProBarCode: normalized }
+      if (idStore) {
+        where.idStore = idStore
+      }
+      const product = await models.Product.schema(this.tenant).findOne({
+        where,
+        raw: true
+      })
+      return product ?? null
     } catch (e) {
       if (e instanceof Error) {
         throw new Error(e.message)

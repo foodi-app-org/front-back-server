@@ -1,44 +1,69 @@
-
-import { IProduct, Product } from '../../domain/entities/products.entity'
+import { Product } from '../../domain/entities/products.entity'
 import { ProductRepository } from '../../domain/repositories/products.repository'
+import {
+  detectBarcodeFormat,
+  normalizeBarcode
+} from '../../domain/services/barcode.service'
 
 /**
- * Input DTO to create a new Store
+ * Códigos de resultado para que el frontend reaccione de forma diferenciada
+ * (no un `null` genérico para todos los escenarios).
  */
-export type CreateProductDTO = IProduct  
+export enum FindByBarcodeStatus {
+  FOUND = 'FOUND',
+  NOT_FOUND = 'NOT_FOUND',
+  INVALID = 'INVALID'
+}
 
-interface ResponseOrderStatusType {
+export interface FindProductByBarcodeResult {
   success: boolean
+  status: FindByBarcodeStatus
   message: string
+  /** Código normalizado que efectivamente se consultó (útil para precargar el form de creación). */
+  barcode: string
   data: Product | null
 }
-/**
- * Use case responsible for creating a new store
- */
-export class FindProductByIdUseCase {
-  constructor(
-    private readonly productRepository: ProductRepository
-  ) { }
 
-  /**
-   * Executes the use case to create a new Store
-   * @param input - store data
-   * @returns The newly created Store or null if it already exists
-   */
-  async execute(ProBarCode: string): Promise<ResponseOrderStatusType | null> {
-    
-    const product = await this.productRepository.findByProBarCode(ProBarCode)
+/**
+ * Caso de uso: buscar un producto ACTIVO por su código de barras dentro del
+ * tenant actual. Valida el formato ANTES de consultar la BD para evitar
+ * consultas inútiles con cadenas inválidas, y devuelve un estado explícito.
+ */
+export class FindProductByBarcodeUseCase {
+  constructor(private readonly productRepository: ProductRepository) {}
+
+  async execute(rawBarcode: string): Promise<FindProductByBarcodeResult> {
+    const barcode = normalizeBarcode(rawBarcode)
+
+    // 1. Validación de formato (fuente de verdad en backend).
+    if (!barcode || detectBarcodeFormat(barcode) === null) {
+      return {
+        success: false,
+        status: FindByBarcodeStatus.INVALID,
+        message: 'El código de barras no tiene un formato válido.',
+        barcode,
+        data: null
+      }
+    }
+
+    // 2. Consulta tenant-scoped de producto ACTIVO.
+    const product = await this.productRepository.findByProBarCode(barcode)
 
     if (!product) {
       return {
         success: false,
-        message: 'Failed to find product by ID',
+        status: FindByBarcodeStatus.NOT_FOUND,
+        message: 'No se encontró un producto con ese código de barras.',
+        barcode,
         data: null
       }
     }
+
     return {
       success: true,
-      message: 'Product found successfully',
+      status: FindByBarcodeStatus.FOUND,
+      message: 'Producto encontrado.',
+      barcode,
       data: new Product(product)
     }
   }

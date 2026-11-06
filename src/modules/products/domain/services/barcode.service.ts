@@ -1,11 +1,31 @@
 /**
- * Servicio de dominio para la generación de códigos de barras de producto.
+ * Servicio de dominio para la generación y validación de códigos de barras.
  *
+ * ── Generación de EAN-13 interno ──────────────────────────────────────────
  * Genera EAN-13 de USO INTERNO para un POS colombiano. El rango de prefijos
  * 20–29 está reservado por GS1 para códigos de circulación interna de la tienda
  * (no son GTIN oficiales), lo que evita colisiones con los GTIN reales de
  * fabricantes (p. ej. el prefijo nacional 770 de Colombia). Es la convención
  * estándar para artículos sin código de fábrica (graneles, preparados, etc.).
+ *
+ * ── ¿CUÁNDO se activa la autogeneración? ──────────────────────────────────
+ * SOLO cuando el producto se crea SIN código de barras (campo `ProBarCode`
+ * vacío/undefined). La decisión vive en `CreateProductTypeUseCase.execute`:
+ *   - Si el usuario envía un código (p. ej. el EAN de fábrica), se RESPETA ese
+ *     valor tal cual (nunca se sobrescribe) y solo se valida que no esté
+ *     duplicado dentro de la tienda (findAnyByProBarCode + idStore).
+ *   - Si NO se envía código, se llama a `generateUniqueEAN13Barcode`, que:
+ *       1. genera `2` + 11 dígitos aleatorios + dígito de control (EAN-13 válido),
+ *       2. verifica contra el repositorio (por tienda) que no colisione,
+ *       3. reintenta hasta 5 veces si hubiera colisión.
+ * Así nunca se producen inconsistencias con códigos comerciales existentes:
+ * los códigos de fábrica se conservan y los internos usan un rango distinto.
+ *
+ * ── Normalización y validación ────────────────────────────────────────────
+ * `normalizeBarcode` recorta espacios/saltos de línea preservando ceros a la
+ * izquierda (nunca convierte a número). `detectBarcodeFormat`/`isValidBarcode`
+ * validan el formato (EAN-13/8, UPC-A/E, CODE128/39, ITF) ANTES de consultar la
+ * base, para evitar consultas inútiles.
  */
 
 /** Prefijo de uso interno (GS1 restricted circulation). */
@@ -61,4 +81,94 @@ export const generateUniqueEAN13Barcode = async (
   }
 
   return barcode
+}
+
+/* -------------------------------------------------------------------------- */
+/* Normalización y validación multi-formato (fuente de verdad del backend)    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Formatos lineales soportados. La lista puede ampliarse sin cambiar la lógica
+ * de consulta/carrito: solo se agrega el caso en `detectBarcodeFormat`.
+ */
+export type BarcodeFormat =
+  | 'EAN13'
+  | 'EAN8'
+  | 'UPC_A'
+  | 'UPC_E'
+  | 'CODE128'
+  | 'CODE39'
+  | 'ITF'
+
+/** Longitud máxima persistible (debe coincidir con la columna STRING(50)). */
+export const MAX_BARCODE_LENGTH = 50
+
+/**
+ * Normaliza un código escaneado/ingresado SIN perder información significativa:
+ * - Recorta espacios al inicio/fin (los lectores suelen añadir espacios o un
+ *   salto de línea final).
+ * - NO convierte a número: preserva ceros a la izquierda y valores
+ *   alfanuméricos (CODE128/CODE39).
+ * - Colapsa espacios internos accidentales solo en los extremos; los espacios
+ *   internos legítimos de CODE39 se conservan.
+ *
+ * @param raw - Valor crudo (string o número proveniente del lector/front).
+ * @returns El código normalizado como string.
+ */
+export const normalizeBarcode = (raw: string | number | null | undefined): string => {
+  if (raw === null || raw === undefined) return ''
+  // Importante: usar String() preserva ceros a la izquierda y no pierde
+  // precisión; nunca se hace parseInt/Number sobre el código.
+  return `${raw}`.replace(/[\r\n\t]/g, '').trim()
+}
+
+/** Checksum módulo-10 EAN/UPC (pesos 3/1 desde la derecha) sobre todos los dígitos menos el último. */
+const hasValidEanUpcChecksum = (value: string): boolean => {
+  const digits = value.split('').map(Number)
+  const checkDigit = digits[digits.length - 1]
+  const body = digits.slice(0, -1).reverse()
+  const sum = body.reduce((acc, digit, index) => acc + digit * (index % 2 === 0 ? 3 : 1), 0)
+  const calculated = (10 - (sum % 10)) % 10
+  return calculated === checkDigit
+}
+
+const isValidEAN13 = (v: string): boolean => /^\d{13}$/.test(v) && hasValidEanUpcChecksum(v)
+const isValidEAN8 = (v: string): boolean => /^\d{8}$/.test(v) && hasValidEanUpcChecksum(v)
+const isValidUPCA = (v: string): boolean => /^\d{12}$/.test(v) && hasValidEanUpcChecksum(v)
+const isValidUPCE = (v: string): boolean => /^\d{8}$/.test(v) // UPC-E: 8 dígitos (checksum depende de la expansión)
+const isValidITF = (v: string): boolean => /^\d+$/.test(v) && v.length % 2 === 0 && v.length >= 6
+const isValidCODE39 = (v: string): boolean => /^[0-9A-Z\-.$/+%\s]+$/.test(v)
+const isValidCODE128 = (v: string): boolean => /^[\x20-\x7E]+$/.test(v) && v.length > 0
+
+/**
+ * Detecta el formato de un código ya normalizado. Prioriza los formatos con
+ * dígito de control (EAN/UPC) y cae a los alfanuméricos (CODE39/CODE128).
+ * Devuelve `null` cuando no corresponde a ningún formato soportado.
+ */
+export const detectBarcodeFormat = (value: string): BarcodeFormat | null => {
+  const v = normalizeBarcode(value)
+  if (!v || v.length > MAX_BARCODE_LENGTH) return null
+
+  if (/^\d+$/.test(v)) {
+    if (v.length === 13 && isValidEAN13(v)) return 'EAN13'
+    if (v.length === 12 && isValidUPCA(v)) return 'UPC_A'
+    if (v.length === 8 && isValidEAN8(v)) return 'EAN8'
+    if (v.length === 8 && isValidUPCE(v)) return 'UPC_E'
+    if (isValidITF(v)) return 'ITF'
+    // Numérico sin checksum/longitud estándar: representable como CODE128.
+    return 'CODE128'
+  }
+
+  if (isValidCODE39(v)) return 'CODE39'
+  if (isValidCODE128(v)) return 'CODE128'
+  return null
+}
+
+/**
+ * Indica si un código (ya normalizado o no) es válido en ALGÚN formato
+ * soportado. Es la validación de formato que el backend aplica ANTES de
+ * consultar la base de datos, para evitar consultas inútiles con basura.
+ */
+export const isValidBarcode = (value: string): boolean => {
+  return detectBarcodeFormat(value) !== null
 }
