@@ -5,8 +5,13 @@ type AvailableProduct {
     idStore: ID
     pId: ID
     dayAvailable: Int
+    startDate: String
+    endDate: String
+    state: Int
     pDatCre: DateTime
     pDatMod: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
 }
 # Account Type
 
@@ -16,8 +21,13 @@ input IAvailableProduct {
     idStore: ID
     pId: ID
     dayAvailable: Int
+    startDate: String
+    endDate: String
+    state: Int
     pDatCre: DateTime
     pDatMod: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
 }
 
 # Query

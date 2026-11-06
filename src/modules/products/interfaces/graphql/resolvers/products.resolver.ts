@@ -25,6 +25,51 @@ export const productResolvers = {
         idStore: context.restaurant,
         tgId
       })
+    },
+    /**
+     * Nested availability for a product (days + time ranges).
+     * Reads from the same table the mutation writes to (`product_availables`),
+     * so the admin modal and cards stay consistent with what was saved.
+     * Returns an empty array when the product has no schedule.
+     */
+    getAllAvailableProduct: async (
+      parent: { pId?: string | null; getAllAvailableProduct?: unknown },
+      _args: unknown,
+      context: GraphQLContext
+    ) => {
+      // Respect a pre-resolved value (e.g. when the parent query already
+      // included the association) to avoid an extra DB round-trip.
+      if (Array.isArray(parent?.getAllAvailableProduct)) {
+        return parent.getAllAvailableProduct
+      }
+      const pId = parent?.pId
+      if (!pId || !context.restaurant) {
+        return []
+      }
+      const services = ProductServicesTenantFactory(context.restaurant)
+      const result = await services.getAvailableProducts.execute(pId, context.restaurant)
+      return result.data
+    },
+    /**
+     * Alias field used by the category listing (cards). Same source of truth
+     * as `getAllAvailableProduct` so the "available today" indicator matches
+     * what the detail modal shows.
+     */
+    product_availables: async (
+      parent: { pId?: string | null; product_availables?: unknown },
+      _args: unknown,
+      context: GraphQLContext
+    ) => {
+      if (Array.isArray(parent?.product_availables)) {
+        return parent.product_availables
+      }
+      const pId = parent?.pId
+      if (!pId || !context.restaurant) {
+        return []
+      }
+      const services = ProductServicesTenantFactory(context.restaurant)
+      const result = await services.getAvailableProducts.execute(pId, context.restaurant)
+      return result.data
     }
   },
   Query: {

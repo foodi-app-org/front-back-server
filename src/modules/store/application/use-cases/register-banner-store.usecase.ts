@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { pipeline } from 'stream/promises'
 import { GraphQLError } from 'graphql'
 import os from 'os'
 import path from 'path'
@@ -10,8 +11,15 @@ import { StoreRepository } from '../../domain/repositories/store.repository'
 const PATH_EXTERNAL_OS = process.env.PATH_EXTERNAL_OS
 const userDataPath = path.join(os.homedir(), String(PATH_EXTERNAL_OS))
 
+interface UploadFile {
+  filename: string
+  mimetype: string
+  encoding: string
+  createReadStream: () => NodeJS.ReadableStream
+}
+
 interface RegisterBannerDTO {
-  bnImage: any // El archivo subido (GraphQL Upload)
+  bnImage: Promise<UploadFile> | string
   idStore: string
 }
 
@@ -20,69 +28,143 @@ interface RegisterBannerResponse {
   message: string
 }
 
-/**
- * Use case responsible for registering/updating a store's banner.
- */
 export class RegisterBannerUseCase {
   constructor(
     private readonly storeRepository: StoreRepository
   ) {}
 
-  /**
-   * Executes the use case for registering/updating a banner
-   * @param input - DTO with image data
-   * @param context - GraphQL request context
-   */
   async execute(
     input: RegisterBannerDTO
   ): Promise<RegisterBannerResponse> {
+    let newFilePath: string | undefined
+
     try {
-     
       if (!input?.bnImage) {
-        return { success: false, message: 'Banner image is required' }
+        return {
+          success: false,
+          message: 'Banner image is required'
+        }
       }
 
-      const fileData = await input.bnImage.promise
-      const { filename, createReadStream } = fileData
+      // Si recibimos una referencia existente, actualizamos directamente.
+      if (typeof input.bnImage === 'string') {
+        const banner = input.bnImage.trim()
 
-      const nameImage = `${input.idStore}-${Date.now()}-${filename?.replace(/\s+/g, '-')}`
-      const filePath = path.join(userDataPath, nameImage)
-      const fileStream = createReadStream()
+        if (!banner) {
+          return {
+            success: false,
+            message: 'Banner image is required'
+          }
+        }
 
+        await this.storeRepository.update(
+          String(input.idStore),
+          { banner } as Partial<Store>
+        )
 
-      // Get previous banner (if exists)
-      const storeData = await this.storeRepository.findById(String(input.idStore))
+        return {
+          success: true,
+          message: 'El banner ha cambiado'
+        }
+      }
 
-      const previousBanner = storeData?.banner
-      const previousBannerPath = previousBanner
-        ? path.join(userDataPath, previousBanner)
-        : null
+      // Resolver el archivo enviado mediante GraphQL Upload.
+      const fileData = await input.bnImage
 
-      // Save new file
-      await new Promise((resolve, reject) => {
-        const writeStream = fs.createWriteStream(filePath)
-        fileStream.pipe(writeStream)
-        writeStream.on('finish', () => resolve(undefined))
-        writeStream.on('error', reject)
-      })
+      if (!fileData?.filename || typeof fileData.createReadStream !== 'function') {
+        throw new Error('Invalid uploaded file')
+      }
 
-      // Update DB with new banner
-      await this.storeRepository.update(String(input.idStore), { banner: nameImage } as Partial<Store>
+      // Normalizar el nombre para que sea seguro en disco y en URLs:
+      // - separamos extensión y base
+      // - quitamos acentos/diacríticos
+      // - reemplazamos cualquier caracter no alfanumérico por "-"
+      // - colapsamos guiones repetidos
+      // Así un archivo como "Captura de pantalla 2026-08-11 a las 4.15.05 p. m..png"
+      // se guarda como "captura-de-pantalla-2026-08-11-a-las-4-15-05-p-m.png".
+      const originalName = path.basename(fileData.filename)
+      const ext = path.extname(originalName).toLowerCase()
+      const baseName = path.basename(originalName, path.extname(originalName))
+
+      const normalizedBase = baseName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .toLowerCase()
+
+      const safeFilename = `${normalizedBase || 'image'}${ext}`
+
+      const nameImage = `${input.idStore}-${Date.now()}-${safeFilename}`
+
+      newFilePath = path.join(userDataPath, nameImage)
+
+      // Asegurar que el directorio exista.
+      await fs.promises.mkdir(userDataPath, { recursive: true })
+
+      // Consultar el banner anterior.
+      const storeData = await this.storeRepository.findById(
+        String(input.idStore)
       )
 
-      // Delete old banner if exists
-      if (previousBannerPath && fs.existsSync(previousBannerPath)) {
-        fs.unlink(previousBannerPath, (err) => {
-          if (err) LogDanger(`Error deleting previous banner: ${err instanceof Error ? err.message : JSON.stringify(err)}`)
-        })
+      const previousBanner = storeData?.banner
+
+      const previousBannerPath = previousBanner
+        ? path.join(userDataPath, path.basename(previousBanner))
+        : null
+
+      // Guardar el nuevo archivo.
+      await pipeline(
+        fileData.createReadStream(),
+        fs.createWriteStream(newFilePath)
+      )
+
+      // Actualizar la referencia en base de datos.
+      await this.storeRepository.update(
+        String(input.idStore),
+        { banner: nameImage } as Partial<Store>
+      )
+
+      // Eliminar el banner anterior.
+      if (previousBannerPath) {
+        try {
+          await fs.promises.unlink(previousBannerPath)
+        } catch (error: any) {
+          if (error.code !== 'ENOENT') {
+            LogDanger(
+              `Error deleting previous banner: ${error.message}`
+            )
+          }
+        }
       }
 
-      return { success: true, message: 'El banner ha cambiado' }
-    } catch (e: any) {
-      if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
-        return { success: false, message: 'Token expired' }
+      return {
+        success: true,
+        message: 'El banner ha cambiado'
       }
-      return { success: false, message: 'El banner no pudo cambiar' }
+    } catch (error: any) {
+      // Limpiar el archivo nuevo si ocurre un error.
+      if (newFilePath) {
+        await fs.promises.unlink(newFilePath).catch(() => undefined)
+      }
+
+      console.error('RegisterBannerUseCase:', error)
+
+      if (
+        error instanceof GraphQLError &&
+        error.extensions?.code === 'FORBIDDEN'
+      ) {
+        return {
+          success: false,
+          message: 'Token expired'
+        }
+      }
+
+      return {
+        success: false,
+        message: 'El banner no pudo cambiar'
+      }
     }
   }
 }

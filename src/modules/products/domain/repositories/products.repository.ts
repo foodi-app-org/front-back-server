@@ -38,6 +38,12 @@ export interface ProductRepository {
   updateImage(id: string, image: string): Promise<Product | null>
   findByProductAndStore(pId: string, idStore: string): Promise<Product | null>
   createAvailableProduct(data: Partial<AvailableProduct>): Promise<AvailableProduct | null>
+  /**
+   * Lists the availability schedule (days + time ranges) of a product.
+   * Returns active records ordered by weekday. Empty array when the product
+   * has no explicit availability (interpreted as "available all week").
+   */
+  getAvailableProductsByProduct(pId: string, idStore?: string): Promise<AvailableProduct[]>
 
   // sold products
   createProductSold(originalPid: string, pCodeRef: string, product: Partial<Product>): Promise<Product | null>

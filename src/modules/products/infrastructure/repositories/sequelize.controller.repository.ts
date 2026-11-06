@@ -329,6 +329,47 @@ export class SequelizeProductRepository implements ProductRepository {
       throw new Error(String(e))
     }
   }
+
+  /**
+   * Lists the availability schedule for a product.
+   * - Filters only ACTIVE records.
+   * - Scopes by `idStore` when provided (safer in multi-tenant reads).
+   * - Orders by weekday (`dayAvailable`) and then by `startDate`.
+   * Returns an empty array (never null) so callers can treat "no schedule"
+   * as "available all week" without extra null checks.
+   */
+  async getAvailableProductsByProduct(pId: string, idStore?: string): Promise<AvailableProduct[]> {
+    if (!pId) {
+      return []
+    }
+
+    try {
+      const where: Record<string, unknown> = {
+        pId,
+        state: StateProductAvailable.ACTIVE
+      }
+
+      if (idStore) {
+        where.idStore = idStore
+      }
+
+      const rows = await models.AvailableProduct.schema(this.tenant).findAll({
+        where,
+        order: [
+          ['dayAvailable', 'ASC'],
+          ['startDate', 'ASC']
+        ],
+        raw: true
+      })
+
+      return rows ?? []
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
   async createProductSold(_originalPid: string, _pCodeRef: string, product: Partial<Product>): Promise<Product | null> {
     console.log('🚀 ~ SequelizeProductRepository ~ createProductSold ~ product:', product)
     try {

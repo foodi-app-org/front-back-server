@@ -69,7 +69,13 @@ export class SetImageProductUseCase {
       }
 
       // Validate file type
-      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp']
+      const allowedMimeTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'image/gif'
+      ]
       if (!allowedMimeTypes.includes(mimetype)) {
         return {
           success: false,

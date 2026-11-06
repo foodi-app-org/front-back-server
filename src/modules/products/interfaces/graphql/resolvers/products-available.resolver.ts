@@ -18,6 +18,10 @@ type RegisterAvailableProductArgs = {
   input: AvailableProduct[]
 }
 
+type GetAllAvailableProductArgs = {
+  pId?: string
+}
+
 const DEFAULT_START_DATE = '00:00'
 const DEFAULT_END_DATE = '23:59'
 const DEFAULT_STATE = 1
@@ -51,7 +55,29 @@ const validateAvailableProducts = (input: AvailableProduct[]) => {
 }
 
 export const productAvailableResolvers = {
-  Query: {},
+  Query: {
+    getAllAvailableProduct: async (
+      _parent: unknown,
+      { pId }: GetAllAvailableProductArgs,
+      context: GraphQLContext
+    ) => {
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+
+      // Without a product id there is nothing to read. Return an empty list
+      // so clients can safely interpret it as "available all week".
+      if (!pId) {
+        return []
+      }
+
+      const services = ProductServicesTenantFactory(idStore ?? '')
+
+      const result = await services.getAvailableProducts.execute(pId, idStore ?? undefined)
+
+      // The GraphQL field resolves to [AvailableProduct]; surface only the data.
+      return result.data
+    }
+  },
 
   Mutation: {
     registerAvailableProduct: async (
