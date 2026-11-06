@@ -78,7 +78,12 @@ export class SequelizeStoreRepository implements StoreRepository {
 
   async update(id: string, updateData: Partial<Store>): Promise<Store | null> {
     try {
-      const [updated] = await models.Store.update(updateData, {
+      // Scope the UPDATE to the same schema this repo instance reads from
+      // (`findById` uses `.schema(this.tenant)`). Keeping read and write on the
+      // same schema is what makes logo/banner persistence consistent: the
+      // logo/banner use-cases are now wired to a PUBLIC-schema repo (see the
+      // store services factory), matching `getStore`.
+      const [updated] = await models.Store.schema(this.tenant).update(updateData, {
         where: { idStore: id }
       })
       return updated === 1 ? (await this.findById(id)) : null
@@ -92,10 +97,10 @@ export class SequelizeStoreRepository implements StoreRepository {
 
   async updateScheduleOpenAll(id: string, openAll: boolean): Promise<Store | null> {
     try {
-      const [updated] = await models.Store.update({ scheduleOpenAll: openAll }, {
-        where: { idStore: id }
-      })
-      await models.Store.schema(this.tenant).update({ scheduleOpenAll: openAll }, {
+      // Write only on the tenant schema (same as every read). The previous
+      // extra update on the default schema was a workaround for the `update`
+      // bug fixed above and is no longer needed.
+      const [updated] = await models.Store.schema(this.tenant).update({ scheduleOpenAll: openAll }, {
         where: { idStore: id }
       })
       return updated ? (await this.findById(id)) : null

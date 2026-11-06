@@ -1,63 +1,203 @@
-import { GraphQLResolveInfo } from 'graphql'
-import { FileUpload } from 'graphql-upload-ts'
 
-import { GraphQLContext } from '../../../../../shared/types/context'
+import type { FileUpload } from 'graphql-upload-ts'
+
+import type { GraphQLContext } from '../../../../../shared/types/context'
+import type { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
+
 import { CategoryStoreServicesPublic } from '../../../../category_store/main/factories/category_store.factory'
-import { CreateStoreDTO } from '../../../application/use-cases/create-store.usecase'
 import { StoreServicesPublic } from '../../../infrastructure/services'
 import { StoreServicesTenantFactory } from '../../../main/factories/store-services.factory'
 
+/* -------------------------------------------------------------------------- */
+/*                                   Types                                    */
+/* -------------------------------------------------------------------------- */
+
+interface StoreParent {
+  catStore?: string | null
+}
 
 interface NewRegisterStoreArgs {
   input: CreateStoreDTO
+}
+
+interface GetStoreArgs {
+  id?: string
+}
+
+interface SetScheduleOpenAllArgs {
+  scheduleOpenAll: boolean
+}
+
+interface CreateDeliveryTimeArgs {
+  minutes: number
+}
+
+interface UpsertGoalArgs {
+  input: {
+    idStore?: string | null
+    dailyGoal: number
+  }
 }
 
 interface BannerInput {
   bnImage: string
   idStore: string
 }
+
+interface RegisterBannerArgs {
+  input: BannerInput
+}
+
+interface DeleteBannerArgs {
+  idStore: string
+}
+
+interface RegisterLogoArgs {
+  logo: Promise<FileUpload>
+  idStore?: string | null
+}
+
+interface DeleteLogoArgs {
+  idStore?: string | null
+}
+
+interface DeleteStoreArgs {
+  idStore?: string | null
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Helper methods                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Returns the tenant-specific store services.
+ */
+const getTenantServices = (context: GraphQLContext) => {
+  return StoreServicesTenantFactory(context.restaurant ?? '')
+}
+
+/**
+ * Resolves the store ID from the arguments or authenticated context.
+ */
+const resolveStoreId = (
+  context: GraphQLContext,
+  idStore?: string | null
+): string => {
+  return idStore ?? context.restaurant ?? ''
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Resolvers                                 */
+/* -------------------------------------------------------------------------- */
+
 export const storeResolvers = {
+  /* --------------------------------- Types -------------------------------- */
   Type: {
     Store: {
-      cateStore: async (parent: { catStore?: string }, _: unknown, context: GraphQLContext) => {
-        if (!context.User?.id) return null
-        return await CategoryStoreServicesPublic.findById.execute(parent.catStore ?? '')
+      cateStore: (
+        parent: StoreParent,
+        _: unknown,
+        context: GraphQLContext
+      ) => {
+        if (!context.User?.id) {
+          return null
+        }
+
+        return CategoryStoreServicesPublic.findById.execute(
+          parent.catStore ?? ''
+        )
       }
     }
   },
-  /**
-   * Query to get store details by ID
-   */
+
+  /* -------------------------------- Queries ------------------------------- */
+
   Query: {
-    getStore: async (_: GraphQLResolveInfo, args: { id: string }, context: GraphQLContext) => {
-      return await StoreServicesPublic.findById.execute(args.id ?? context.restaurant ?? '')
+    /**
+     * Retrieves store information by ID.
+     */
+    getStore: (
+      _: unknown,
+      { id }: GetStoreArgs,
+      context: GraphQLContext
+    ) => {
+      const storeId = resolveStoreId(context, id)
+
+      return StoreServicesPublic.findById.execute(storeId)
     }
   },
+
+  /* ------------------------------- Mutations ------------------------------ */
+
   Mutation: {
-    newRegisterStore: async (_: GraphQLResolveInfo, args: NewRegisterStoreArgs) => {
-      return await StoreServicesPublic.create.execute(args.input)
+    /**
+     * Creates a new store.
+     */
+    newRegisterStore: (
+      _: unknown,
+      { input }: NewRegisterStoreArgs
+    ) => {
+      return StoreServicesPublic.create.execute(input)
     },
-    setScheduleOpenAll: async (_: GraphQLResolveInfo, { scheduleOpenAll }: { scheduleOpenAll: boolean }, context: GraphQLContext) => {
-      const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      await services.updateScheduleOpenAll.execute(context.restaurant ?? '', scheduleOpenAll)
+
+    /**
+     * Enables or disables the schedule for all days.
+     */
+    setScheduleOpenAll: async (
+      _: unknown,
+      { scheduleOpenAll }: SetScheduleOpenAllArgs,
+      context: GraphQLContext
+    ) => {
+      const storeId = context.restaurant ?? ''
+      const services = getTenantServices(context)
+
+      await services.updateScheduleOpenAll.execute(
+        storeId,
+        scheduleOpenAll
+      )
+
       return {
         success: true,
         message: 'Schedule updated successfully',
         errors: null
       }
     },
-    createDeliveryTime: async (_: GraphQLResolveInfo, { minutes }: { minutes: number }, context: GraphQLContext) => {
-      if (!context.restaurant) {
+
+    /**
+     * Updates the store delivery time.
+     */
+    createDeliveryTime: (
+      _: unknown,
+      { minutes }: CreateDeliveryTimeArgs,
+      context: GraphQLContext
+    ) => {
+      const storeId = context.restaurant
+
+      if (!storeId) {
         return {
           success: false,
           message: 'No se pudo crear el tiempo de entrega'
         }
       }
-      const services = StoreServicesTenantFactory(context.restaurant)
-      return await services.updateDeliveryTime.execute(context.restaurant, minutes)
+
+      const services = getTenantServices(context)
+
+      return services.updateDeliveryTime.execute(
+        storeId,
+        minutes
+      )
     },
-    upsertGoal: async (_: GraphQLResolveInfo, { input }: { input: { idStore?: string, dailyGoal: number } }, context: GraphQLContext) => {
-      const storeId = context.restaurant ?? input?.idStore ?? ''
+
+    /**
+     * Creates or updates the store daily goal.
+     */
+    upsertGoal: (
+      _: unknown,
+      { input }: UpsertGoalArgs,
+      context: GraphQLContext
+    ) => {
+      const storeId = resolveStoreId(context, input?.idStore)
+
       if (!storeId) {
         return {
           success: false,
@@ -65,44 +205,93 @@ export const storeResolvers = {
           data: null
         }
       }
-      const services = StoreServicesTenantFactory(storeId)
-      return await services.upsertGoal.execute(storeId, Number(input?.dailyGoal))
-    },
 
-    registerBanner: async (_: GraphQLResolveInfo, { input }: { input: BannerInput }, context: GraphQLContext) => {
-      const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      return await services.registerBanner.execute(input)
-    },
+      const services = getTenantServices(context)
 
-    deleteOneBanner: async (_: GraphQLResolveInfo, { idStore }: { idStore: string }, context: GraphQLContext) => {
-      const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      return await services.deleteOneBanner.execute(idStore)
-    },
-    registerLogo: async (_: GraphQLResolveInfo, { logo, idStore }: { logo: FileUpload, idStore: string }, context: GraphQLContext) => {
-      const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      return await services.registerLogo.execute({ logo, idStore: idStore ?? context.restaurant ?? '' })
-    },
-    deleteALogoStore: async (_: GraphQLResolveInfo, { idStore }: { idStore: string }, context: GraphQLContext) => {
-      const services = StoreServicesTenantFactory(context.restaurant ?? '')
-      return await services.deleteALogoStore.execute({ idStore: idStore ?? context.restaurant ?? '' })
+      return services.upsertGoal.execute(
+        storeId,
+        Number(input.dailyGoal)
+      )
     },
 
     /**
-     * Permanently deletes a store/tenant (schema + public store & user rows).
-     * Destructive and irreversible. Requires an authenticated session.
+     * Registers or updates a store banner.
      */
-    deleteStore: async (_: GraphQLResolveInfo, { idStore }: { idStore?: string }, context: GraphQLContext) => {
+    registerBanner: (
+      _: unknown,
+      { input }: RegisterBannerArgs,
+      context: GraphQLContext
+    ) => {
+      const services = getTenantServices(context)
+
+      return services.registerBanner.execute(input)
+    },
+
+    /**
+     * Deletes a specific store banner.
+     */
+    deleteOneBanner: (
+      _: unknown,
+      { idStore }: DeleteBannerArgs,
+      context: GraphQLContext
+    ) => {
+      const services = getTenantServices(context)
+
+      return services.deleteOneBanner.execute(idStore)
+    },
+
+    /**
+     * Registers or updates the store logo.
+     */
+    registerLogo: (
+      _: unknown,
+      { logo, idStore }: RegisterLogoArgs,
+      context: GraphQLContext
+    ) => {
+      const services = getTenantServices(context)
+
+      return services.registerLogo.execute({
+        logo,
+        idStore: resolveStoreId(context, idStore)
+      })
+    },
+
+    /**
+     * Deletes the store logo.
+     */
+    deleteALogoStore: (
+      _: unknown,
+      { idStore }: DeleteLogoArgs,
+      context: GraphQLContext
+    ) => {
+      const services = getTenantServices(context)
+
+      return services.deleteALogoStore.execute({
+        idStore: resolveStoreId(context, idStore)
+      })
+    },
+
+    /**
+     * Permanently deletes a store/tenant.
+     * Requires an authenticated session.
+     */
+    deleteStore: (
+      _: unknown,
+      { idStore }: DeleteStoreArgs,
+      context: GraphQLContext
+    ) => {
+      const targetStore = resolveStoreId(context, idStore)
+
       if (!context.User?.id) {
         return {
           success: false,
           message: 'No autorizado. Debes iniciar sesión para eliminar un comercio.',
-          idStore: idStore ?? context.restaurant ?? '',
+          idStore: targetStore,
           storesDeleted: 0,
           usersDeleted: 0
         }
       }
 
-      const targetStore = idStore ?? context.restaurant ?? ''
       if (!targetStore) {
         return {
           success: false,
@@ -113,7 +302,7 @@ export const storeResolvers = {
         }
       }
 
-      return await StoreServicesPublic.delete.execute(targetStore)
+      return StoreServicesPublic.delete.execute(targetStore)
     }
   }
 }

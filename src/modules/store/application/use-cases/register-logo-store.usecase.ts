@@ -1,3 +1,4 @@
+
 import fs from 'fs'
 import { GraphQLError } from 'graphql'
 import os from 'os'
@@ -8,10 +9,10 @@ import { Store } from '../../domain/entities/store.entity'
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
 const PATH_EXTERNAL_OS = process.env.PATH_EXTERNAL_OS
-const userDataPath = path.join(os.homedir(), String(PATH_EXTERNAL_OS))
+const userDataPath = path.join(os.homedir(), String(PATH_EXTERNAL_OS ?? ''))
 
 interface RegisterLogoDTO {
-  logo: any // GraphQL Upload (logo file)
+  logo: any
   idStore: string
 }
 
@@ -21,34 +22,81 @@ interface RegisterLogoResponse {
   data?: string
 }
 
-/**
- * Use case responsible for registering/updating a store's logo.
- */
-export class RegisterLogoUseCase {
-  constructor(private readonly storeRepository: StoreRepository) { }
+interface UploadedFile {
+  filename: string
+  createReadStream: () => NodeJS.ReadableStream
+}
 
-  /**
-   * Executes the use case for uploading and saving a logo
-   * @param input - DTO with logo data
-   */
-  async execute(input: RegisterLogoDTO): Promise<RegisterLogoResponse> {
+export class RegisterLogoUseCase {
+  constructor(
+    private readonly storeRepository: StoreRepository
+  ) {}
+
+  async execute(
+    input: RegisterLogoDTO
+  ): Promise<RegisterLogoResponse> {
+    let filePath: string | undefined
+
     try {
+      // Validate input
       if (!input?.logo) {
-        return { success: false, message: 'Logo image is required' }
+        return {
+          success: false,
+          message: 'Logo image is required'
+        }
       }
 
-      // Apollo Upload gives a promise with file info
-      const fileData = await input.logo.promise
-      const { filename, createReadStream } = fileData ?? {}
+      if (!input.idStore) {
+        return {
+          success: false,
+          message: 'Store ID is required'
+        }
+      }
 
-      if (typeof filename !== 'string') {
-        return { success: false, message: 'Invalid filename provided' }
+      // Resolve GraphQL Upload.
+      // Depending on the implementation, it can be:
+      // 1. A Promise<UploadedFile>
+      // 2. An object containing promise: Promise<UploadedFile>
+      const upload = input.logo
+
+      const fileData: UploadedFile = await (
+        upload?.promise ?? upload
+      )
+
+      const {
+        filename,
+        createReadStream
+      } = fileData ?? {}
+
+      // Validate uploaded file
+      if (
+        typeof filename !== 'string' ||
+        typeof createReadStream !== 'function'
+      ) {
+        LogDanger(
+          `Invalid upload structure: ${JSON.stringify({
+            hasLogo: Boolean(input.logo),
+            hasPromise: Boolean(upload?.promise),
+            hasFileData: Boolean(fileData),
+            filename,
+            createReadStreamType: typeof createReadStream
+          })}`
+        )
+
+        return {
+          success: false,
+          message: 'Invalid file provided'
+        }
       }
 
       // Fetch store
-      const storeData = await this.storeRepository.findById(input.idStore)
+      const storeData = await this.storeRepository.findById(
+        input.idStore
+      )
+
       if (!storeData) {
         LogInfo(`Store not found with id: ${input.idStore}`)
+
         return {
           success: false,
           message: 'Store not found',
@@ -56,35 +104,67 @@ export class RegisterLogoUseCase {
         }
       }
 
-
       // Ensure base directory exists
-      if (!fs.existsSync(userDataPath)) {
-        LogInfo(`Creating directory: ${userDataPath}`)
-        fs.mkdirSync(userDataPath, { recursive: true })
+      await fs.promises.mkdir(userDataPath, {
+        recursive: true
+      })
+
+      // Get original extension
+      const ext = path.extname(filename).toLowerCase()
+
+      // Validate image extension
+      const allowedExtensions = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.webp',
+        '.gif',
+        '.svg'
+      ]
+
+      if (!allowedExtensions.includes(ext)) {
+        return {
+          success: false,
+          message: 'Unsupported image format'
+        }
       }
 
-      // Clean filename -> store_{id}.ext (overwrite style)
-      const ext = path.extname(filename)
+      // Generate final filename
       const cleanFileName = `store_${storeData.idStore}${ext}`
-      const filePath = path.join(userDataPath, cleanFileName)
+
+      filePath = path.join(userDataPath, cleanFileName)
+
+      LogInfo(
+        `Uploading logo for store ${storeData.idStore} to ${filePath}`
+      )
+
+      // Create readable stream
       const fileStream = createReadStream()
 
-      LogInfo(`Uploading logo for store ${storeData.idStore} to ${filePath}`)
-      // Save file to filesystem
+      // Save file
       await new Promise<void>((resolve, reject) => {
-        const writeStream = fs.createWriteStream(filePath)
-        fileStream.pipe(writeStream)
-        writeStream.on('finish', () => resolve())
+        const writeStream = fs.createWriteStream(filePath!)
+
+        fileStream.on('error', reject)
         writeStream.on('error', reject)
+        writeStream.on('finish', resolve)
+
+        fileStream.pipe(writeStream)
       })
 
       LogInfo(`Logo uploaded successfully: ${filePath}`)
-      // Save logo path in DB
-      await this.storeRepository.update(String(storeData.idStore), {
-        Image: cleanFileName
-      } as Partial<Store>)
 
-      LogInfo(`Store logo path updated in DB for store ${storeData.idStore}`)
+      // Update database
+      await this.storeRepository.update(
+        String(storeData.idStore),
+        {
+          Image: cleanFileName
+        } as Partial<Store>
+      )
+
+      LogInfo(
+        `Store logo path updated in DB for store ${storeData.idStore}`
+      )
 
       return {
         success: true,
@@ -92,13 +172,34 @@ export class RegisterLogoUseCase {
         data: cleanFileName
       }
     } catch (e: any) {
-      if (e instanceof GraphQLError && e.extensions?.code === 'FORBIDDEN') {
-        LogInfo(`Token expired while uploading logo: ${JSON.stringify(e)}`)
-        return { success: false, message: 'Token expired' }
+      // Remove partially uploaded file if something failed
+      if (filePath) {
+        try {
+          await fs.promises.unlink(filePath)
+        } catch {
+          // File may not exist
+        }
+      }
+
+      if (
+        e instanceof GraphQLError &&
+        e.extensions?.code === 'FORBIDDEN'
+      ) {
+        LogInfo(
+          `Token expired while uploading logo: ${JSON.stringify(e)}`
+        )
+
+        return {
+          success: false,
+          message: 'Token expired'
+        }
       }
 
       LogDanger(
-        `Error uploading logo: ${e instanceof Error ? e.message : JSON.stringify(e)
+        `Error uploading logo: ${
+          e instanceof Error
+            ? e.message
+            : JSON.stringify(e)
         }`
       )
 

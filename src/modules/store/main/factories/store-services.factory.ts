@@ -47,6 +47,14 @@ export const StoreServicesTenantFactory = (tenant: string) => {
     const migrationService = new SequelizeMigrationService()
     const i18n = new I18nAdapter('es', 'store')
 
+    // The master store row (including `Image` and `banner`) lives in the PUBLIC
+    // schema — that is exactly what `getStore` reads via `StoreServicesPublic`.
+    // Logo and banner operations must therefore read AND write against PUBLIC,
+    // not the tenant schema, otherwise `deleteALogoStore` looks at an empty
+    // tenant row and reports "Store logo does not exist" even though the logo
+    // exists and is returned by `getStore`.
+    const publicStoreRepository = new SequelizeStoreRepository(MigrationFolder.Public)
+
     const createStoreUseCase = new CreateStoreUseCase(
         storeRepository,
         userRepository,
@@ -64,9 +72,9 @@ export const StoreServicesTenantFactory = (tenant: string) => {
         updateScheduleOpenAll: new UpdateStoreScheduleOpenAllUseCase(storeRepository),
         updateDeliveryTime: new UpdateDeliveryTimeUseCase(storeRepository),
         upsertGoal: new UpsertGoalUseCase(storeRepository),
-        registerBanner: new RegisterBannerUseCase(storeRepository),
-        deleteOneBanner: new DeleteBannerUseCase(storeRepository),
-        registerLogo: new RegisterLogoUseCase(storeRepository),
-        deleteALogoStore: new DeleteLogoUseCase(storeRepository)   
+        registerBanner: new RegisterBannerUseCase(publicStoreRepository),
+        deleteOneBanner: new DeleteBannerUseCase(publicStoreRepository),
+        registerLogo: new RegisterLogoUseCase(publicStoreRepository),
+        deleteALogoStore: new DeleteLogoUseCase(publicStoreRepository)
     }
 }

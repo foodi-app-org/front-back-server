@@ -18,6 +18,11 @@ type RegisterAvailableProductArgs = {
   input: AvailableProduct[]
 }
 
+type UpdateAvailableProductArgs = {
+  pId?: string
+  input: AvailableProduct[]
+}
+
 type GetAllAvailableProductArgs = {
   pId?: string
 }
@@ -118,6 +123,61 @@ export const productAvailableResolvers = {
       const services = ProductServicesTenantFactory(idStore)
 
       return services.registerAvailableProduct.execute(mappedInput)
+    },
+
+    /**
+     * Updates (synchronizes) the whole weekly availability of a product.
+     * Accepts the full desired set of days/ranges; the backend reconciles it
+     * (create new, update existing, remove the rest). An empty input clears
+     * the schedule. The product id is taken from `pId` or from the input.
+     */
+    updateAvailableProduct: async (
+      _parent: unknown,
+      { pId, input }: UpdateAvailableProductArgs,
+      context: GraphQLContext
+    ) => {
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+
+      if (!idStore) {
+        return {
+          success: false,
+          data: null,
+          message: 'Store ID is required',
+          errors: [{ message: 'Store ID is required', path: ['idStore'] }]
+        }
+      }
+
+      const items = Array.isArray(input) ? input : []
+
+      // Resolve the product id from the explicit arg or the first item.
+      const productId = pId ?? items.find(item => item?.pId)?.pId
+
+      if (!productId) {
+        return {
+          success: false,
+          data: null,
+          message: 'pId is required to update availability',
+          errors: [{ message: 'Missing pId', path: ['pId'] }]
+        }
+      }
+
+      const mappedInput = normalizeAvailableProducts(items, idStore)
+
+      const validationErrors = validateAvailableProducts(mappedInput)
+
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          data: null,
+          message: 'Error de validación',
+          errors: validationErrors
+        }
+      }
+
+      const services = ProductServicesTenantFactory(idStore)
+
+      return services.updateAvailableProduct.execute(productId, idStore, mappedInput)
     }
   }
 }

@@ -21,6 +21,7 @@ input IAvailableProduct {
     dayAvailable: Int
     startDate: String
     endDate: String
+    state: Int
     createdAt: DateTime
     updatedAt: DateTime
 }
@@ -39,5 +40,6 @@ type Query {
 # Mutations
 type Mutation {
   registerAvailableProduct(input: [IAvailableProduct]): ResponseAvailableProduct
+  updateAvailableProduct(pId: ID, input: [IAvailableProduct]): ResponseAvailableProduct
   editAvailableProduct(pId: ID): Boolean,
 }

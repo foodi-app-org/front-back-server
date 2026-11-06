@@ -6,6 +6,7 @@ import { getTenantName } from '../../../../shared/utils/tenant.utils'
 import { SequelizeCategoryProductRepository } from '../../../category_products/infrastructure/repositories/sequelize-category-products.controller.repository'
 import { RegisterAvailableProductUseCase } from '../../application/use-cases/create-available-product.usecase'
 import { GetAvailableProductsUseCase } from '../../application/use-cases/get-available-products.usecase'
+import { UpdateAvailableProductUseCase } from '../../application/use-cases/update-available-product.usecase'
 import { SetImageProductUseCase } from '../../application/use-cases/create-image-product.usecase'
 import { CreateProductTypeUseCase } from '../../application/use-cases/create-products.usecase'
 import { EditProductUseCase } from '../../application/use-cases/edit-products.usecase'
@@ -36,6 +37,7 @@ export const ProductServicesTenantFactory = (tenant: string) => {
         setImageProduct: new SetImageProductUseCase(productRepository),
         registerAvailableProduct: new RegisterAvailableProductUseCase(productRepository),
         getAvailableProducts: new GetAvailableProductsUseCase(productRepository),
+        updateAvailableProduct: new UpdateAvailableProductUseCase(productRepository),
         productFoodsAll: new GetAllProductsAllUseCase(productRepository),
         getAllProductSoldByPCodeRef: new GetProductsSaleByPCodeRefUseCase(productRepository)
     }
