@@ -1,7 +1,8 @@
 
 import { CategoryProductRepository } from '../../../category_products/domain/repositories/category_products.repository'
 import { IProduct, Product } from '../../domain/entities/products.entity'
-import { ProductRepository } from '../../domain/repositories/products.repository' 
+import { ProductRepository } from '../../domain/repositories/products.repository'
+import { generateUniqueEAN13Barcode } from '../../domain/services/barcode.service'
 
 /**
  * Input DTO to create a new Store
@@ -48,21 +49,38 @@ export class CreateProductTypeUseCase {
         data: existingProductById
       }
     }
-    const existingProductByProBarCode = await this.productRepository.findByProBarCode(newProduct?.ProBarCode ?? '')
+    const providedBarCode = `${newProduct?.ProBarCode ?? ''}`.trim()
 
-    if (existingProductByProBarCode) {
-      return {
-        success: false,
-        message: 'Product with this barcode already exists',
-        data: existingProductByProBarCode
+    if (providedBarCode) {
+      // Si el cliente envió un código (p. ej. el de fábrica), respetamos el
+      // valor pero validamos que no esté duplicado.
+      const existingProductByProBarCode = await this.productRepository.findByProBarCode(providedBarCode)
+
+      if (existingProductByProBarCode) {
+        return {
+          success: false,
+          message: 'Product with this barcode already exists',
+          data: existingProductByProBarCode
+        }
       }
+    } else {
+      // Sin código: generamos un EAN-13 de uso interno (prefijo 2) válido y
+      // único, usando el repositorio para garantizar que no colisione.
+      newProduct.ProBarCode = await generateUniqueEAN13Barcode(
+        async (barcode) => {
+          const found = await this.productRepository.findByProBarCode(barcode)
+          return Boolean(found)
+        }
+      )
     }
 
     const category = await this.categoryProductRepository.getByName(process.env.DEFAULT_CATEGORY ?? '')
 
+    // Preserva el barcode (provisto o autogenerado) en todos los caminos de
+    // creación, incluido el fallback de categoría por defecto.
     const productToCreate = input.carProId
       ? newProduct
-      : { ...input, carProId: category?.carProId }
+      : { ...newProduct, carProId: category?.carProId }
 
       const created = await this.productRepository.create(productToCreate)
 

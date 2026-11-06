@@ -30,7 +30,7 @@ import { categories } from '../../utils/migrations/20240330051906-bulk-insert-ca
 import GenericService from '../../services'
 import { movementTypes } from '../../models/inventory/stockMovement'
 import { states } from '../../utils/state_db'
-import { generateEAN13Barcode } from '../../utils/generateEAN13Barcode'
+import { generateUniqueEAN13Barcode } from '../../utils/generateEAN13Barcode'
 
 import { productFoodSchema } from './schema'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
@@ -300,15 +300,25 @@ const updateProductFoods = async (_root, { input }, context) => {
         })
       }
       const stockValue = Number(input.stock) || 1
-      // Use the provided barcode, otherwise generate a valid EAN-13 so every
-      // product is scannable and renders correctly in the admin UI.
+      // Usa el código provisto; si no, genera un EAN-13 de USO INTERNO (prefijo
+      // 2) válido y único para el POS colombiano. La verificación de unicidad
+      // reintenta contra la restricción UNIQUE de ProBarCode en este tenant.
       const hasBarCode = input?.ProBarCode !== undefined && input?.ProBarCode !== null && `${input.ProBarCode}` !== ''
+      const barcodeExists = async (barcode) => {
+        const found = await productModelFood
+          .schema(tenant)
+          .findOne({ where: { ProBarCode: barcode }, attributes: ['pId'] })
+        return Boolean(found)
+      }
+      const resolvedBarCode = hasBarCode
+        ? `${input.ProBarCode}`
+        : await generateUniqueEAN13Barcode({ exists: barcodeExists })
       const data = await productModelFood
         .schema(getTenantName(context?.restaurant))
         .create({
           ValueDelivery,
           ...input,
-          ProBarCode: hasBarCode ? `${input.ProBarCode}` : generateEAN13Barcode(),
+          ProBarCode: resolvedBarCode,
           pState: 1,
           idStore: deCode(context.restaurant),
           carProId: deCode(carProId) || dataCategoryProduct?.carProId,
@@ -415,7 +425,16 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: 0,
-          ProBarCode: productInput?.ProBarCode ? `${productInput.ProBarCode}` : generateEAN13Barcode()
+          ProBarCode: productInput?.ProBarCode
+            ? `${productInput.ProBarCode}`
+            : await generateUniqueEAN13Barcode({
+              exists: async (barcode) => {
+                const found = await productModelFood
+                  .schema(getTenantName(context?.restaurant))
+                  .findOne({ where: { ProBarCode: barcode }, attributes: ['pId'] })
+                return Boolean(found)
+              }
+            })
         })
 
         return {
