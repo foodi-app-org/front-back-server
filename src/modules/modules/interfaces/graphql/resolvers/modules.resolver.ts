@@ -1,7 +1,12 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { UpdateModuleOrderItemDTO } from '../../../application/use-cases/update-module-order.usecase'
 import { ModuleServicesFactory, SubmoduleServicesFactory } from '../../../infrastructure/services/'
+
+interface UpdateModuleOrderArgs {
+  input: UpdateModuleOrderItemDTO[]
+}
 
 export const modulesResolvers = {
   Type: {
@@ -20,5 +25,16 @@ export const modulesResolvers = {
     }
   },
   Mutation: {
+    /**
+     * Persists the user-defined ordering of modules for the current tenant.
+     */
+    updateModuleOrder: async (
+      _: GraphQLResolveInfo,
+      { input }: UpdateModuleOrderArgs,
+      context: GraphQLContext
+    ) => {
+      const services = ModuleServicesFactory(context?.restaurant ?? '')
+      return await services.updateOrder.execute(input)
+    }
   }
 }

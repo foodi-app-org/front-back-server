@@ -5,6 +5,7 @@ import { CreateModuleUseCase } from '../../application/use-cases/create-modules.
 import { CreateSubmoduleUseCase } from '../../application/use-cases/create-sub-modules.usecase'
 import { GetAllModulesUseCase } from '../../application/use-cases/get-all-modules.usecase'
 import { GetAllSubmodulesUseCase } from '../../application/use-cases/get-all-sub-modules.usecase'
+import { UpdateModuleOrderUseCase } from '../../application/use-cases/update-module-order.usecase'
 import { SequelizeModuleOrderRepository } from '../repositories/sequelize.controller.repository'
 import { SequelizeSubModuleOrderRepository } from '../repositories/sequelize.sub-module.controller.repository'
 
@@ -13,7 +14,8 @@ const submoduleRepository = new SequelizeSubModuleOrderRepository(MigrationFolde
 
 export const ModuleServicesPublic = {
     create: new CreateModuleUseCase(moduleRepository),
-    getAll: new GetAllModulesUseCase(moduleRepository)
+    getAll: new GetAllModulesUseCase(moduleRepository),
+    updateOrder: new UpdateModuleOrderUseCase(moduleRepository)
 }
 
 export const SubmoduleServicesPublic = {
@@ -26,7 +28,8 @@ export const ModuleServicesFactory = (tenant: string) => {
 
   return {
     create: new CreateModuleUseCase(moduleRepository),
-    getAll: new GetAllModulesUseCase(moduleRepository)
+    getAll: new GetAllModulesUseCase(moduleRepository),
+    updateOrder: new UpdateModuleOrderUseCase(moduleRepository)
   }
 }
 

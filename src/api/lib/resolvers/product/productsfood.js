@@ -30,6 +30,7 @@ import { categories } from '../../utils/migrations/20240330051906-bulk-insert-ca
 import GenericService from '../../services'
 import { movementTypes } from '../../models/inventory/stockMovement'
 import { states } from '../../utils/state_db'
+import { generateEAN13Barcode } from '../../utils/generateEAN13Barcode'
 
 import { productFoodSchema } from './schema'
 import ExtProductFoodOptional from './../../models/Store/sales/saleExtProductFoodOptional'
@@ -190,6 +191,7 @@ const editProductInputSchema = Joi.object({
   ProOutstanding: Joi.number().allow(null, '').optional(),
   ProDelivery: Joi.number().allow(null, '').optional(),
   ProVoltaje: Joi.any().allow(null, '').optional(),
+  ProBarCode: Joi.string().allow(null, '').optional(),
   pState: Joi.number().allow(null, '').optional(),
   sTateLogistic: Joi.number().allow(null, '').optional()
 })
@@ -217,15 +219,22 @@ export const editProductFoods = async (_root, { input }, context) => {
       ProPrice,
       ProDescription,
       ProImage,
-      ValueDelivery
+      ValueDelivery,
+      ProBarCode
     } = input || {}
+    // Only overwrite the barcode when a non-empty value is provided so editing
+    // other fields never wipes an existing barcode.
+    const barcodeUpdate = ProBarCode !== undefined && ProBarCode !== null && `${ProBarCode}` !== ''
+      ? { ProBarCode: `${ProBarCode}` }
+      : {}
     await productModelFood.schema(getTenantName(context?.restaurant)).update({
       pName,
       ProDescuento,
       ProPrice,
       ProDescription,
       ProImage,
-      ValueDelivery
+      ValueDelivery,
+      ...barcodeUpdate
     }, {
       where: {
         pId: deCode(pId),
@@ -291,11 +300,15 @@ const updateProductFoods = async (_root, { input }, context) => {
         })
       }
       const stockValue = Number(input.stock) || 1
+      // Use the provided barcode, otherwise generate a valid EAN-13 so every
+      // product is scannable and renders correctly in the admin UI.
+      const hasBarCode = input?.ProBarCode !== undefined && input?.ProBarCode !== null && `${input.ProBarCode}` !== ''
       const data = await productModelFood
         .schema(getTenantName(context?.restaurant))
         .create({
           ValueDelivery,
           ...input,
+          ProBarCode: hasBarCode ? `${input.ProBarCode}` : generateEAN13Barcode(),
           pState: 1,
           idStore: deCode(context.restaurant),
           carProId: deCode(carProId) || dataCategoryProduct?.carProId,
@@ -388,16 +401,6 @@ const updateMultipleProducts = async (_root, { input }, context) => {
             message: `El producto con código de barras ${ProBarCode} ya existe. Se ha actualizado su stock.`
           }
         }
-        /**
-         * Generates a scannable CODE128-compatible barcode
-         * @param {number} length - Length of the barcode
-         * @returns {string} - Valid CODE128 string
-         */
-        const generateCode128 = (length = 12) => {
-          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-          return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
-        }
-
         const data = await productModelFood.schema(getTenantName(context?.restaurant)).create({
           ValueDelivery,
           ...productInput,
@@ -412,7 +415,7 @@ const updateMultipleProducts = async (_root, { input }, context) => {
           dId: dId ? deCode(dId) : null,
           ctId: ctId ? deCode(ctId) : null,
           poPriority: 0,
-          ProBarCode: productInput?.ProBarCode ?? generateCode128()
+          ProBarCode: productInput?.ProBarCode ? `${productInput.ProBarCode}` : generateEAN13Barcode()
         })
 
         return {

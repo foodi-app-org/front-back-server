@@ -39,7 +39,7 @@ export const productFoodSchema = Joi.object({
   pDatCre: Joi.date().iso().optional(),
   pDatMod: Joi.date().iso().optional(),
   vat: Joi.number().allow(null, '').optional(),
-  ProBarCode: Joi.number().allow(null, '').optional()
+  ProBarCode: Joi.string().allow(null, '').optional()
 })
 
 export const ImageProductschema = Joi.object({
