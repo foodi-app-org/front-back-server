@@ -91,7 +91,14 @@ type DashboardRecentOrder {
   extraItems: Int!
   createdAt: String!
   statusState: Int!
+  # GROSS sale value (before the global discount).
   total: Float!
+  # Discount type applied at sale time ('PERCENT' | 'AMOUNT'); null when none.
+  discountType: String
+  # Money actually discounted on the order.
+  discountAmount: Float
+  # Net income of the order (gross - discount).
+  netTotal: Float
 }
 
 type DashboardRecentOrdersPage {

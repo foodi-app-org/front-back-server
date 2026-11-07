@@ -142,7 +142,14 @@ export interface RecentOrderRow {
   createdAt: string
   /** Raw persisted status state (order_status_types.state). */
   statusState: number
+  /** GROSS sale value (before the global discount). */
   total: number
+  /** Discount type applied at sale time ('PERCENT' | 'AMOUNT'); null when none. */
+  discountType?: string | null
+  /** Money actually discounted on the order. */
+  discountAmount?: number
+  /** Net income of the order (gross - discount). */
+  netTotal?: number
 }
 
 /**

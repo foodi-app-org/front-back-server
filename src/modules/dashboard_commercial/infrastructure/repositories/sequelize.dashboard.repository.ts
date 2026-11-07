@@ -1,3 +1,4 @@
+
 import { QueryTypes } from 'sequelize'
 
 import { CATEGORY_PRODUCT_MODEL } from '../../../category_products/infrastructure/db/sequelize/models/sequelize-model'
@@ -34,43 +35,61 @@ import {
 
 /** A completed order (CONCLUIDA) has `order_status_types.state = 4`. */
 const ORDER_STATE_CONCLUDED = 4
+
 /** Active client state (`clients.clState = 1`). */
 const CLIENT_STATE_ACTIVE = 1
+
 /** Active product state (`product_models.pState = 1`). */
 const PRODUCT_STATE_ACTIVE = 1
+
 /** Hard cap for the top-products ranking. */
 const TOP_PRODUCTS_LIMIT = 10
+
 /** Category bucket used when a product has no category. */
 const UNCATEGORIZED = 'Sin categoría'
 
-type OrderRow = { createdAt: string | Date; total: number | string | null }
+type OrderRow = {
+  createdAt: string | Date
+  total: number | string | null
+}
 
 /**
- * Normalizes a DB `createdAt` value into an ISO-8601 UTC string the browser can
- * parse. The app stores timestamps as text like `2026-10-03 21:10:15.988
- * +00:00`; `new Date()` does not parse that shape reliably, so we convert the
- * space separator and ` +00:00` suffix to `T` and `Z`.
- *
- * @param value - Raw `createdAt` from the DB (Date or stored text).
- * @returns An ISO UTC string.
+ * Normalizes a DB `createdAt` value into an ISO-8601 UTC string.
  */
 const normalizeToIso = (value: string | Date): string => {
   if (value instanceof Date) return value.toISOString()
+
   const raw = String(value).trim()
-  const normalized = raw.replace(' ', 'T').replace(' +00:00', 'Z').replace('+00:00', 'Z')
+  const normalized = raw
+    .replace(' ', 'T')
+    .replace(' +00:00', 'Z')
+    .replace('+00:00', 'Z')
+
   const parsed = new Date(normalized)
-  return Number.isNaN(parsed.getTime()) ? raw : parsed.toISOString()
+
+  return Number.isNaN(parsed.getTime())
+    ? raw
+    : parsed.toISOString()
 }
 
 /**
  * Sequelize-backed implementation of the commercial dashboard aggregations.
  *
- * Every query is scoped to the tenant schema (same convention as the stock
- * module) and uses parameterized half-open date bounds `[startAt, endAt)` so it
- * is portable across SQLite (dev/test) and PostgreSQL (prod) without relying on
- * dialect-specific date functions.
+ * Financial rules:
+ *
+ * - totalProductsPrice: gross sale value, before discount.
+ * - discountAmount: actual monetary discount.
+ * - netTotal: final sale value after discount.
+ *
+ * For new orders, netTotal is the authoritative source of revenue.
+ * For legacy orders without netTotal, revenue is reconstructed from
+ * line items and discountAmount.
+ *
+ * Category and product reports allocate the order discount proportionally
+ * across their corresponding gross revenue.
  */
-export class SequelizeDashboardCommercialRepository implements IDashboardCommercialRepository {
+export class SequelizeDashboardCommercialRepository
+implements IDashboardCommercialRepository {
   private readonly tenant: string
 
   constructor(tenant?: string) {
@@ -80,7 +99,11 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
   /** @returns The shared Sequelize instance, or throws when unavailable. */
   private getSequelize() {
     const sequelize = models.Product.sequelize
-    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    if (!sequelize) {
+      throw new Error('Sequelize instance is not available')
+    }
+
     return sequelize
   }
 
@@ -92,46 +115,85 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
   /**
    * Loads completed orders (one row per order) within a half-open range.
    *
-   * Per-order revenue prefers the header total `orders_statuses.totalProductsPrice`,
-   * but falls back to the sum of the order's line items (`shopping_carts`) when
-   * the header is 0 or null. Some order-creation flows leave the header at 0
-   * while still writing priced line items, which previously made Revenue/Trend
-   * show $0 even though Sales-by-Category (which reads the line items) showed
-   * the real amount. The COALESCE keeps all commercial widgets consistent.
+   * Revenue uses:
+   * 1. netTotal when available.
+   * 2. Gross total minus discountAmount for legacy orders.
    *
-   * Aggregating one row per order avoids join multiplication of money.
+   * The gross fallback includes both products and sold extras.
    */
-  private async loadOrdersInRange(startAt: string, endAt: string): Promise<OrderRow[]> {
+  private async loadOrdersInRange(
+    startAt: string,
+    endAt: string
+  ): Promise<OrderRow[]> {
     const sequelize = this.getSequelize()
+
     return sequelize.query<OrderRow>(
       `
+      WITH order_totals AS (
+        SELECT
+          o."createdAt" AS "createdAt",
+          o."netTotal" AS "netTotal",
+          COALESCE(o."discountAmount", 0) AS "discountAmount",
+
+          COALESCE(
+            NULLIF(o."totalProductsPrice", 0),
+
+            -- Base products.
+            COALESCE((
+              SELECT SUM(
+                COALESCE(sc."priceProduct", 0) *
+                COALESCE(sc."cantProducts", 1)
+              )
+              FROM ${this.table(SHOPPING_CART_MODEL)} sc
+              WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
+            ), 0)
+
+            +
+
+            -- Sold extras.
+            COALESCE((
+              SELECT SUM(
+                COALESCE(es."extraPrice", 0) *
+                COALESCE(es."quantity", 1)
+              )
+              FROM ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
+              WHERE es."pCodeRef" = o."pCodeRef"
+            ), 0),
+
+            0
+          ) AS "grossTotal"
+
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+      )
+
       SELECT
-        o."createdAt" AS "createdAt",
-        (
-          -- Base product revenue (line items). priceProduct is the BASE price
-          -- only; it never includes extras.
-          COALESCE((
-            SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
-            FROM ${this.table(SHOPPING_CART_MODEL)} sc
-            WHERE sc."shoppingCartRefCode" = o."shoppingCartRefCode"
-          ), 0)
-          +
-          -- Sold-extra revenue (extraPrice * quantity), linked by pCodeRef.
-          -- Extras live in a disjoint table, so adding them to the base never
-          -- double-counts. This fixes revenue/trend/summary showing $0 when the
-          -- product base price is 0 and all the value is in the complementos.
-          COALESCE((
-            SELECT SUM(es."extraPrice" * COALESCE(es."quantity", 1))
-            FROM ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
-            WHERE es."pCodeRef" = o."pCodeRef"
-          ), 0)
-        ) AS "total"
-      FROM ${this.table(STATUS_ORDER_MODEL)} o
-      INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-        ON o."idStatus" = t."idStatus"
-      WHERE t."state" = :concluded
-        AND o."createdAt" >= :startAt
-        AND o."createdAt" < :endAt;
+        "createdAt",
+
+        CASE
+          -- New orders: the persisted net total is authoritative.
+          WHEN "netTotal" IS NOT NULL THEN
+            CASE
+              WHEN "netTotal" < 0 THEN 0
+              ELSE "netTotal"
+            END
+
+          -- Legacy orders: reconstruct net revenue.
+          ELSE
+            CASE
+              WHEN (
+                "grossTotal" - MAX("discountAmount", 0)
+              ) > 0
+                THEN "grossTotal" - MAX("discountAmount", 0)
+              ELSE 0
+            END
+        END AS "total"
+
+      FROM order_totals;
       `,
       {
         type: QueryTypes.SELECT,
@@ -144,52 +206,88 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
     )
   }
 
-  /** Sums revenue and counts orders from a flat order set. */
-  private sumOrders(rows: OrderRow[]): { revenue: number; orders: number } {
+  /** Sums net revenue and counts orders from a flat order set. */
+  private sumOrders(
+    rows: OrderRow[]
+  ): { revenue: number; orders: number } {
     let revenue = 0
+
     for (const row of rows) {
       const value = Number(row.total ?? 0)
-      if (Number.isFinite(value)) revenue += value
+
+      if (Number.isFinite(value)) {
+        revenue += value
+      }
     }
-    return { revenue: roundMoney(revenue), orders: rows.length }
+
+    return {
+      revenue: roundMoney(revenue),
+      orders: rows.length
+    }
   }
 
   /** Counts active catalog products as of now (no temporal dimension). */
   private async countCatalogProducts(): Promise<number> {
     const sequelize = this.getSequelize()
-    const rows = await sequelize.query<{ total: number | string | null }>(
+
+    const rows = await sequelize.query<{
+      total: number | string | null
+    }>(
       `
       SELECT COUNT(*) AS "total"
       FROM ${this.table(PRODUCT_MODEL)}
       WHERE "pState" = :active;
       `,
-      { type: QueryTypes.SELECT, replacements: { active: PRODUCT_STATE_ACTIVE } }
+      {
+        type: QueryTypes.SELECT,
+        replacements: {
+          active: PRODUCT_STATE_ACTIVE
+        }
+      }
     )
+
     return Number(rows[0]?.total ?? 0)
   }
 
   /**
    * Counts active clients, optionally created within a range.
-   * LIMITATION: there is no order<->client relation in the schema, so this is
-   * an approximation of "active customers", not "customers with purchases".
+   *
+   * LIMITATION:
+   * There is no order<->client relation in the schema, so this is
+   * an approximation of active customers, not customers with purchases.
    */
-  private async countClients(startAt?: string, endAt?: string): Promise<number> {
+  private async countClients(
+    startAt?: string,
+    endAt?: string
+  ): Promise<number> {
     const sequelize = this.getSequelize()
-    const scoped = startAt && endAt
-    const rows = await sequelize.query<{ total: number | string | null }>(
+    const scoped = Boolean(startAt && endAt)
+
+    const rows = await sequelize.query<{
+      total: number | string | null
+    }>(
       `
       SELECT COUNT(*) AS "total"
       FROM ${this.table(CLIENTS_TABLE)}
       WHERE "clState" = :active
-      ${scoped ? 'AND "createdAt" >= :startAt AND "createdAt" < :endAt' : ''};
+      ${scoped
+        ? 'AND "createdAt" >= :startAt AND "createdAt" < :endAt'
+        : ''};
       `,
       {
         type: QueryTypes.SELECT,
         replacements: scoped
-          ? { active: CLIENT_STATE_ACTIVE, startAt: toStoredUtcFormat(startAt), endAt: toStoredUtcFormat(endAt) }
-          : { active: CLIENT_STATE_ACTIVE }
+          ? {
+              active: CLIENT_STATE_ACTIVE,
+              startAt: toStoredUtcFormat(startAt!),
+              endAt: toStoredUtcFormat(endAt!)
+            }
+          : {
+              active: CLIENT_STATE_ACTIVE
+            }
       }
     )
+
     return Number(rows[0]?.total ?? 0)
   }
 
@@ -197,63 +295,153 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
   private bucketTrend(
     rows: OrderRow[],
     filter: DashboardFilter
-  ): { points: TrendPoint[]; granularity: SalesTrend['granularity'] } {
-    const range = { startAt: filter.startAt, endAt: filter.endAt }
-    const granularity = resolveGranularity(range)
-
-    // Pre-seed every bucket in the range with zero so the series is continuous
-    // across the whole period (e.g. all 15 days) and the chart/sparkline draw a
-    // line even when sales land on a single day. Zero here means "no sales",
-    // which is the correct meaning for an empty bucket.
-    const map = new Map<string, TrendPoint>()
-    for (const key of enumerateBuckets(range, granularity, filter.timezone)) {
-      map.set(key, { bucket: key, revenue: 0, orders: 0 })
+  ): {
+    points: TrendPoint[]
+    granularity: SalesTrend['granularity']
+  } {
+    const range = {
+      startAt: filter.startAt,
+      endAt: filter.endAt
     }
 
+    const granularity = resolveGranularity(range)
+    const map = new Map<string, TrendPoint>()
+
+    // Pre-seed every bucket with zero.
+    for (const key of enumerateBuckets(
+      range,
+      granularity,
+      filter.timezone
+    )) {
+      map.set(key, {
+        bucket: key,
+        revenue: 0,
+        orders: 0
+      })
+    }
+
+    // Each order contributes its NET revenue.
     for (const row of rows) {
-      const key = getBucketKey(row.createdAt, granularity, filter.timezone)
+      const key = getBucketKey(
+        row.createdAt,
+        granularity,
+        filter.timezone
+      )
+
       if (!key) continue
-      const existing = map.get(key) ?? { bucket: key, revenue: 0, orders: 0 }
+
+      const existing = map.get(key) ?? {
+        bucket: key,
+        revenue: 0,
+        orders: 0
+      }
+
       const value = Number(row.total ?? 0)
-      existing.revenue = roundMoney(existing.revenue + (Number.isFinite(value) ? value : 0))
+
+      existing.revenue = roundMoney(
+        existing.revenue +
+        (Number.isFinite(value) ? value : 0)
+      )
+
       existing.orders += 1
+
       map.set(key, existing)
     }
 
-    const points = Array.from(map.values()).sort((a, b) => a.bucket.localeCompare(b.bucket))
-    return { points, granularity }
+    const points = Array.from(map.values()).sort(
+      (a, b) => a.bucket.localeCompare(b.bucket)
+    )
+
+    return {
+      points,
+      granularity
+    }
   }
 
-  async getSummary(filter: DashboardFilter): Promise<DashboardSummary> {
-    const previous = getPreviousPeriodRange({ startAt: filter.startAt, endAt: filter.endAt })
+  async getSummary(
+    filter: DashboardFilter
+  ): Promise<DashboardSummary> {
+    const previous = getPreviousPeriodRange({
+      startAt: filter.startAt,
+      endAt: filter.endAt
+    })
 
-    const [currentOrders, previousOrders, catalogProducts, activeClients] = await Promise.all([
-      this.loadOrdersInRange(filter.startAt, filter.endAt),
-      this.loadOrdersInRange(previous.startAt, previous.endAt),
+    const [
+      currentOrders,
+      previousOrders,
+      catalogProducts,
+      activeClients
+    ] = await Promise.all([
+      this.loadOrdersInRange(
+        filter.startAt,
+        filter.endAt
+      ),
+      this.loadOrdersInRange(
+        previous.startAt,
+        previous.endAt
+      ),
       this.countCatalogProducts(),
       this.countClients()
     ])
 
     const current = this.sumOrders(currentOrders)
     const prev = this.sumOrders(previousOrders)
-    const { points } = this.bucketTrend(currentOrders, filter)
+
+    const { points } = this.bucketTrend(
+      currentOrders,
+      filter
+    )
 
     return {
-      revenue: buildKpiMetric(current.revenue, prev.revenue),
-      orders: buildKpiMetric(current.orders, prev.orders),
-      // Catalog size is a point-in-time count; there is no comparable history.
-      products: buildKpiMetric(catalogProducts, null),
-      // Active clients: no order relation -> no period comparison available.
-      activeCustomers: buildKpiMetric(activeClients, null),
-      revenueSparkline: points.map((p) => p.revenue),
-      ordersSparkline: points.map((p) => p.orders),
-      range: { startAt: filter.startAt, endAt: filter.endAt, timezone: filter.timezone }
+      revenue: buildKpiMetric(
+        current.revenue,
+        prev.revenue
+      ),
+
+      orders: buildKpiMetric(
+        current.orders,
+        prev.orders
+      ),
+
+      products: buildKpiMetric(
+        catalogProducts,
+        null
+      ),
+
+      activeCustomers: buildKpiMetric(
+        activeClients,
+        null
+      ),
+
+      revenueSparkline: points.map(
+        (point) => point.revenue
+      ),
+
+      ordersSparkline: points.map(
+        (point) => point.orders
+      ),
+
+      range: {
+        startAt: filter.startAt,
+        endAt: filter.endAt,
+        timezone: filter.timezone
+      }
     }
   }
 
-  async getSalesTrend(filter: DashboardFilter): Promise<SalesTrend> {
-    const orders = await this.loadOrdersInRange(filter.startAt, filter.endAt)
-    const { points, granularity } = this.bucketTrend(orders, filter)
+  async getSalesTrend(
+    filter: DashboardFilter
+  ): Promise<SalesTrend> {
+    const orders = await this.loadOrdersInRange(
+      filter.startAt,
+      filter.endAt
+    )
+
+    const {
+      points,
+      granularity
+    } = this.bucketTrend(orders, filter)
+
     const totals = this.sumOrders(orders)
 
     return {
@@ -264,42 +452,60 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
     }
   }
 
-  async getSalesByCategory(filter: DashboardFilter): Promise<SalesByCategory> {
+  /**
+   * Sales by category.
+   *
+   * Each order's discount is distributed proportionally
+   * between the categories participating in that order.
+   *
+   * The stored netTotal takes priority over discountAmount
+   * to keep category revenue aligned with the order header.
+   */
+  async getSalesByCategory(
+    filter: DashboardFilter
+  ): Promise<SalesByCategory> {
     const sequelize = this.getSequelize()
 
-    // Revenue/units per category from completed-order line items. Line items
-    // (shopping_carts) join orders by the shared string key shoppingCartRefCode;
-    // category comes from product_models.carProId -> category_products.
     const rows = await sequelize.query<{
       categoryId: string | null
       categoryName: string | null
       revenue: number | string | null
       units: number | string | null
     }>(
-      // Sold line items reference `product_models_sold` (a snapshot taken at the
-      // moment of sale); only legacy/catalog rows match `product_models`. We join
-      // both and COALESCE so the category resolves from whichever source has it.
-      // Revenue per category combines TWO disjoint sources so complementos
-      // (extras) are reflected even when the base product price is 0:
-      //  - base: shopping_carts.priceProduct (never includes extras)
-      //  - extras: products_extras_sold.extraPrice * quantity, attributed to the
-      //    category of the parent sold product (es.pId -> product_models_sold).
-      // Both are UNION-ed and then grouped, so no revenue is double-counted.
-      // Units count only base product units (extras are add-ons, not standalone
-      // category units) to keep the "units" meaning stable.
       `
-      SELECT "categoryId", "categoryName",
-             COALESCE(SUM("revenue"), 0) AS "revenue",
-             COALESCE(SUM("units"), 0) AS "units"
-      FROM (
+      WITH orders_in_range AS (
         SELECT
-          COALESCE(catSold."carProId", catCat."carProId") AS "categoryId",
-          COALESCE(catSold."pName", catCat."pName") AS "categoryName",
-          (sc."priceProduct" * COALESCE(sc."cantProducts", 1)) AS "revenue",
-          COALESCE(sc."cantProducts", 1) AS "units"
+          o."stPId" AS "orderId",
+          o."shoppingCartRefCode" AS "shoppingCartRefCode",
+          o."pCodeRef" AS "pCodeRef",
+          o."netTotal" AS "netTotal",
+          COALESCE(o."discountAmount", 0) AS "discountAmount"
         FROM ${this.table(STATUS_ORDER_MODEL)} o
         INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
           ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+      ),
+
+      -- Base product and extra revenue by category.
+      category_components AS (
+        SELECT
+          o."orderId",
+          COALESCE(
+            catSold."carProId",
+            catCat."carProId"
+          ) AS "categoryId",
+          COALESCE(
+            catSold."pName",
+            catCat."pName"
+          ) AS "categoryName",
+          (
+            COALESCE(sc."priceProduct", 0) *
+            COALESCE(sc."cantProducts", 1)
+          ) AS "grossRevenue",
+          COALESCE(sc."cantProducts", 1) AS "units"
+        FROM orders_in_range o
         INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
           ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
         LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
@@ -310,31 +516,101 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
           ON catSold."carProId" = ps."carProId"
         LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} catCat
           ON catCat."carProId" = p."carProId"
-        WHERE t."state" = :concluded
-          AND o."createdAt" >= :startAt
-          AND o."createdAt" < :endAt
 
         UNION ALL
 
         SELECT
+          o."orderId",
           cat."carProId" AS "categoryId",
           cat."pName" AS "categoryName",
-          (es."extraPrice" * COALESCE(es."quantity", 1)) AS "revenue",
+          (
+            COALESCE(es."extraPrice", 0) *
+            COALESCE(es."quantity", 1)
+          ) AS "grossRevenue",
           0 AS "units"
-        FROM ${this.table(STATUS_ORDER_MODEL)} o
-        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-          ON o."idStatus" = t."idStatus"
+        FROM orders_in_range o
         INNER JOIN ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
           ON es."pCodeRef" = o."pCodeRef"
         LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
           ON ps."pId" = es."pId"
         LEFT JOIN ${this.table(CATEGORY_PRODUCT_MODEL)} cat
           ON cat."carProId" = ps."carProId"
-        WHERE t."state" = :concluded
-          AND o."createdAt" >= :startAt
-          AND o."createdAt" < :endAt
-      ) AS combined
-      GROUP BY "categoryId", "categoryName";
+      ),
+
+      -- Gross revenue by order and category.
+      category_by_order AS (
+        SELECT
+          "orderId",
+          "categoryId",
+          "categoryName",
+          SUM("grossRevenue") AS "grossRevenue",
+          SUM("units") AS "units"
+        FROM category_components
+        GROUP BY
+          "orderId",
+          "categoryId",
+          "categoryName"
+      ),
+
+      -- Actual gross total reconstructed from all components.
+      order_component_totals AS (
+        SELECT
+          "orderId",
+          SUM("grossRevenue") AS "grossTotal"
+        FROM category_by_order
+        GROUP BY "orderId"
+      ),
+
+      -- Calculate each category's participation in the NET total.
+      adjusted_categories AS (
+        SELECT
+          c."categoryId",
+          c."categoryName",
+          c."units",
+
+          c."grossRevenue" *
+          CASE
+            WHEN COALESCE(ot."grossTotal", 0) <= 0 THEN 1
+
+            -- Prefer persisted netTotal.
+            WHEN o."netTotal" IS NOT NULL THEN
+              CASE
+                WHEN o."netTotal" <= 0 THEN 0
+                WHEN o."netTotal" >= ot."grossTotal" THEN 1
+                ELSE
+                  (1.0 * o."netTotal") / ot."grossTotal"
+              END
+
+            -- Legacy fallback using discountAmount.
+            ELSE
+              CASE
+                WHEN COALESCE(o."discountAmount", 0) <= 0 THEN 1
+                WHEN o."discountAmount" >= ot."grossTotal" THEN 0
+                ELSE
+                  (
+                    1.0 * (
+                      ot."grossTotal" - o."discountAmount"
+                    )
+                  ) / ot."grossTotal"
+              END
+          END AS "netRevenue"
+
+        FROM category_by_order c
+        INNER JOIN orders_in_range o
+          ON o."orderId" = c."orderId"
+        INNER JOIN order_component_totals ot
+          ON ot."orderId" = c."orderId"
+      )
+
+      SELECT
+        "categoryId",
+        "categoryName",
+        COALESCE(SUM("netRevenue"), 0) AS "revenue",
+        COALESCE(SUM("units"), 0) AS "units"
+      FROM adjusted_categories
+      GROUP BY
+        "categoryId",
+        "categoryName";
       `,
       {
         type: QueryTypes.SELECT,
@@ -353,24 +629,55 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       units: Number(row.units ?? 0)
     }))
 
-    const totalRevenue = roundMoney(slicesRaw.reduce((acc, s) => acc + s.revenue, 0))
+    const totalRevenue = roundMoney(
+      slicesRaw.reduce(
+        (acc, item) => acc + item.revenue,
+        0
+      )
+    )
 
     const slices: CategorySalesSlice[] = slicesRaw
-      .map((s) => ({
-        ...s,
-        percentage: totalRevenue > 0 ? Math.round((s.revenue / totalRevenue) * 10000) / 100 : 0
+      .map((item) => ({
+        ...item,
+        percentage:
+          totalRevenue > 0
+            ? Math.round(
+                (item.revenue / totalRevenue) * 10000
+              ) / 100
+            : 0
       }))
       .sort((a, b) => b.revenue - a.revenue)
 
-    return { slices, totalRevenue }
+    return {
+      slices,
+      totalRevenue
+    }
   }
 
-  async getTopProducts(filter: DashboardFilter): Promise<TopProductSale[]> {
+  /**
+   * Top products.
+   *
+   * Product and extra revenue are grouped by parent product.
+   * Each product receives its proportional share of the order discount.
+   *
+   * IMPORTANT:
+   * The category filter is applied AFTER calculating the proportional
+   * discount, so filtering a category does not redistribute the discount
+   * incorrectly among only the visible products.
+   */
+  async getTopProducts(
+    filter: DashboardFilter
+  ): Promise<TopProductSale[]> {
     const sequelize = this.getSequelize()
 
-    // Category filter is applied on the combined (base + extras) set via the
-    // resolved parent category id (`catId`) in the outer query.
-    const categoryClause = filter.categoryIds?.length ? 'filter' : ''
+    const categoryClause = filter.categoryIds?.length
+      ? 'AND "catId" IN (:categoryIds)'
+      : ''
+
+    const orderByColumn =
+      filter.sortBy === 'revenue'
+        ? 'revenue'
+        : 'unitsSold'
 
     const rows = await sequelize.query<{
       idProduct: string | null
@@ -379,71 +686,173 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       unitsSold: number | string | null
       revenue: number | string | null
     }>(
-      // Sold line items reference `product_models_sold`, a per-sale snapshot
-      // where the same logical product gets a new pId (and a new order-scoped
-      // pCodeRef) on every sale. The stable identity of a product across sales
-      // is its name, so we consolidate the ranking by product name plus its
-      // category id (as a tie-breaker so two distinct products that happen to
-      // share a name are not merged). Name/image/id come from whichever product
-      // source (sold snapshot or live catalog) has them.
-      // Product ranking combines base-product revenue/units with the revenue of
-      // the extras sold under each product (attributed to the parent product
-      // name), so a product whose value lives in its complementos still ranks.
-      // Base and extras are disjoint sources UNION-ed together; `unitsSold`
-      // counts only base product units (extras are add-ons, delta 0 units) so
-      // the units ranking keeps its meaning.
       `
-      SELECT
-        MIN("idProduct") AS "idProduct",
-        "productName",
-        MAX("image") AS "image",
-        COALESCE(SUM("units"), 0) AS "unitsSold",
-        COALESCE(SUM("revenue"), 0) AS "revenue"
-      FROM (
+      WITH orders_in_range AS (
         SELECT
-          sc."pId" AS "idProduct",
-          COALESCE(ps."pName", p."pName", 'Producto') AS "productName",
-          COALESCE(ps."ProImage", p."ProImage") AS "image",
-          COALESCE(sc."cantProducts", 1) AS "units",
-          (sc."priceProduct" * COALESCE(sc."cantProducts", 1)) AS "revenue",
-          COALESCE(ps."carProId", p."carProId") AS "catId"
+          o."stPId" AS "orderId",
+          o."shoppingCartRefCode" AS "shoppingCartRefCode",
+          o."pCodeRef" AS "pCodeRef",
+          o."netTotal" AS "netTotal",
+          COALESCE(o."discountAmount", 0) AS "discountAmount"
         FROM ${this.table(STATUS_ORDER_MODEL)} o
         INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
           ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+      ),
+
+      -- Base product revenue and extra revenue.
+      product_components AS (
+        SELECT
+          o."orderId",
+          sc."pId" AS "idProduct",
+          COALESCE(
+            ps."pName",
+            p."pName",
+            'Producto'
+          ) AS "productName",
+          COALESCE(
+            ps."ProImage",
+            p."ProImage"
+          ) AS "image",
+          COALESCE(sc."cantProducts", 1) AS "units",
+          (
+            COALESCE(sc."priceProduct", 0) *
+            COALESCE(sc."cantProducts", 1)
+          ) AS "grossRevenue",
+          COALESCE(
+            ps."carProId",
+            p."carProId"
+          ) AS "catId"
+        FROM orders_in_range o
         INNER JOIN ${this.table(SHOPPING_CART_MODEL)} sc
           ON sc."shoppingCartRefCode" = o."shoppingCartRefCode"
         LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
           ON ps."pId" = sc."pId"
         LEFT JOIN ${this.table(PRODUCT_MODEL)} p
           ON p."pId" = sc."pId"
-        WHERE t."state" = :concluded
-          AND o."createdAt" >= :startAt
-          AND o."createdAt" < :endAt
 
         UNION ALL
 
         SELECT
+          o."orderId",
           es."pId" AS "idProduct",
-          COALESCE(ps."pName", 'Producto') AS "productName",
+          COALESCE(
+            ps."pName",
+            'Producto'
+          ) AS "productName",
           ps."ProImage" AS "image",
           0 AS "units",
-          (es."extraPrice" * COALESCE(es."quantity", 1)) AS "revenue",
+          (
+            COALESCE(es."extraPrice", 0) *
+            COALESCE(es."quantity", 1)
+          ) AS "grossRevenue",
           ps."carProId" AS "catId"
-        FROM ${this.table(STATUS_ORDER_MODEL)} o
-        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-          ON o."idStatus" = t."idStatus"
+        FROM orders_in_range o
         INNER JOIN ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} es
           ON es."pCodeRef" = o."pCodeRef"
         LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps
           ON ps."pId" = es."pId"
-        WHERE t."state" = :concluded
-          AND o."createdAt" >= :startAt
-          AND o."createdAt" < :endAt
-      ) AS combined
-      WHERE 1 = 1 ${categoryClause ? 'AND "catId" IN (:categoryIds)' : ''}
-      GROUP BY "productName", "catId"
-      HAVING SUM("revenue") > 0 OR SUM("units") > 0
-      ORDER BY "${filter.sortBy === 'revenue' ? 'revenue' : 'unitsSold'}" DESC
+      ),
+
+      -- Group all components belonging to the same parent product
+      -- inside each order.
+      product_by_order AS (
+        SELECT
+          "orderId",
+          MIN("idProduct") AS "idProduct",
+          "productName",
+          MAX("image") AS "image",
+          "catId",
+          SUM("units") AS "units",
+          SUM("grossRevenue") AS "grossRevenue"
+        FROM product_components
+        GROUP BY
+          "orderId",
+          "productName",
+          "catId"
+      ),
+
+      -- Gross order total from ALL products, extras included.
+      order_component_totals AS (
+        SELECT
+          "orderId",
+          SUM("grossRevenue") AS "grossTotal"
+        FROM product_by_order
+        GROUP BY "orderId"
+      ),
+
+      -- Apply the discount proportionally before ranking products.
+      ranked_products AS (
+        SELECT
+          MIN(pb."idProduct") AS "idProduct",
+          pb."productName",
+          MAX(pb."image") AS "image",
+          pb."catId",
+
+          COALESCE(
+            SUM(pb."units"),
+            0
+          ) AS "unitsSold",
+
+          COALESCE(
+            SUM(
+              pb."grossRevenue" *
+              CASE
+                WHEN COALESCE(ot."grossTotal", 0) <= 0 THEN 1
+
+                -- New orders: netTotal is authoritative.
+                WHEN o."netTotal" IS NOT NULL THEN
+                  CASE
+                    WHEN o."netTotal" <= 0 THEN 0
+                    WHEN o."netTotal" >= ot."grossTotal" THEN 1
+                    ELSE
+                      (1.0 * o."netTotal") / ot."grossTotal"
+                  END
+
+                -- Legacy orders: use discountAmount.
+                ELSE
+                  CASE
+                    WHEN COALESCE(o."discountAmount", 0) <= 0 THEN 1
+                    WHEN o."discountAmount" >= ot."grossTotal" THEN 0
+                    ELSE
+                      (
+                        1.0 * (
+                          ot."grossTotal" - o."discountAmount"
+                        )
+                      ) / ot."grossTotal"
+                  END
+              END
+            ),
+            0
+          ) AS "revenue"
+
+        FROM product_by_order pb
+        INNER JOIN orders_in_range o
+          ON o."orderId" = pb."orderId"
+        INNER JOIN order_component_totals ot
+          ON ot."orderId" = pb."orderId"
+
+        GROUP BY
+          pb."productName",
+          pb."catId"
+
+        HAVING
+          SUM(pb."grossRevenue") > 0
+          OR SUM(pb."units") > 0
+      )
+
+      SELECT
+        "idProduct",
+        "productName",
+        "image",
+        "unitsSold",
+        "revenue"
+      FROM ranked_products
+      WHERE 1 = 1
+        ${categoryClause}
+      ORDER BY "${orderByColumn}" DESC
       LIMIT :limit;
       `,
       {
@@ -453,7 +862,10 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
           startAt: toStoredUtcFormat(filter.startAt),
           endAt: toStoredUtcFormat(filter.endAt),
           categoryIds: filter.categoryIds ?? [],
-          limit: Math.min(filter.pageSize ?? TOP_PRODUCTS_LIMIT, TOP_PRODUCTS_LIMIT)
+          limit: Math.min(
+            filter.pageSize ?? TOP_PRODUCTS_LIMIT,
+            TOP_PRODUCTS_LIMIT
+          )
         }
       }
     )
@@ -467,36 +879,68 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
     }))
   }
 
-  async getRecentOrders(filter: DashboardFilter): Promise<RecentOrdersPage> {
+  /**
+   * Recent orders.
+   *
+   * total = gross sale value.
+   * discountAmount = actual money discounted.
+   * netTotal = final sale value.
+   *
+   * Legacy orders without netTotal reconstruct the net value
+   * from grossTotal - discountAmount.
+   */
+  async getRecentOrders(
+    filter: DashboardFilter
+  ): Promise<RecentOrdersPage> {
     const sequelize = this.getSequelize()
+
     const page = filter.page ?? 1
     const pageSize = filter.pageSize ?? 10
     const offset = (page - 1) * pageSize
-    const sortColumn = RECENT_ORDERS_SORT_ALLOWLIST[filter.sortBy ?? 'createdAt'] ?? 'createdAt'
-    const direction = filter.sortDirection === 'ASC' ? 'ASC' : 'DESC'
-    const search = filter.search ? `%${filter.search.toLowerCase()}%` : null
 
-    const searchClause = search ? 'AND LOWER(o."pCodeRef") LIKE :search' : ''
+    const sortColumn =
+      RECENT_ORDERS_SORT_ALLOWLIST[
+        filter.sortBy ?? 'createdAt'
+      ] ?? 'createdAt'
 
-    const countRows = await sequelize.query<{ total: number | string | null }>(
+    const direction =
+      filter.sortDirection === 'ASC'
+        ? 'ASC'
+        : 'DESC'
+
+    const search = filter.search
+      ? `%${filter.search.toLowerCase()}%`
+      : null
+
+    const searchClause = search
+      ? 'AND LOWER(o."pCodeRef") LIKE :search'
+      : ''
+
+    // Count only completed orders, using the same filters as the data query.
+    const countRows = await sequelize.query<{
+      total: number | string | null
+    }>(
       `
       SELECT COUNT(*) AS "total"
       FROM ${this.table(STATUS_ORDER_MODEL)} o
       INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
         ON o."idStatus" = t."idStatus"
-      WHERE o."createdAt" >= :startAt
+      WHERE t."state" = :concluded
+        AND o."createdAt" >= :startAt
         AND o."createdAt" < :endAt
         ${searchClause};
       `,
       {
         type: QueryTypes.SELECT,
         replacements: {
+          concluded: ORDER_STATE_CONCLUDED,
           startAt: toStoredUtcFormat(filter.startAt),
           endAt: toStoredUtcFormat(filter.endAt),
           ...(search ? { search } : {})
         }
       }
     )
+
     const total = Number(countRows[0]?.total ?? 0)
 
     const rows = await sequelize.query<{
@@ -505,53 +949,125 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
       createdAt: string | Date
       statusState: number | string | null
       total: number | string | null
+      discountType: string | null
+      discountAmount: number | string | null
+      netTotal: number | string | null
       productName: string | null
       itemCount: number | string | null
     }>(
       `
+      WITH recent_orders AS (
+        SELECT
+          o.*,
+          t."state" AS "statusState",
+
+          -- Gross sale value, including products and extras.
+          COALESCE(
+            NULLIF(o."totalProductsPrice", 0),
+
+            COALESCE((
+              SELECT SUM(
+                COALESCE(scT."priceProduct", 0) *
+                COALESCE(scT."cantProducts", 1)
+              )
+              FROM ${this.table(SHOPPING_CART_MODEL)} scT
+              WHERE scT."shoppingCartRefCode" = o."shoppingCartRefCode"
+            ), 0)
+
+            +
+
+            COALESCE((
+              SELECT SUM(
+                COALESCE(esT."extraPrice", 0) *
+                COALESCE(esT."quantity", 1)
+              )
+              FROM ${this.table(EXTRA_PRODUCT_MODEL_SOLD)} esT
+              WHERE esT."pCodeRef" = o."pCodeRef"
+            ), 0),
+
+            0
+          ) AS "grossTotal"
+
+        FROM ${this.table(STATUS_ORDER_MODEL)} o
+        INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
+          ON o."idStatus" = t."idStatus"
+        WHERE t."state" = :concluded
+          AND o."createdAt" >= :startAt
+          AND o."createdAt" < :endAt
+          ${searchClause}
+      )
+
       SELECT
         o."stPId" AS "orderId",
         o."pCodeRef" AS "code",
         o."createdAt" AS "createdAt",
-        t."state" AS "statusState",
+        o."statusState" AS "statusState",
+
+        -- Gross value before the discount.
+        o."grossTotal" AS "total",
+
+        o."discountType" AS "discountType",
+
         COALESCE(
-          -- GROSS value of the sale (before the global discount), consistent
-          -- with the "Valor total de ventas" KPI and the recent-orders list
-          -- showing each order's sale value.
-          NULLIF(o."totalProductsPrice", 0),
-          -- Legacy fallback: reconstruct the base from the order's line items.
-          (
-            SELECT SUM(scT."priceProduct" * COALESCE(scT."cantProducts", 1))
-            FROM ${this.table(SHOPPING_CART_MODEL)} scT
-            WHERE scT."shoppingCartRefCode" = o."shoppingCartRefCode"
-          ),
+          o."discountAmount",
           0
-        ) AS "total",
+        ) AS "discountAmount",
+
+        -- Prefer persisted netTotal.
+        -- Legacy fallback: grossTotal minus discountAmount.
+        CASE
+          WHEN o."netTotal" IS NOT NULL THEN
+            CASE
+              WHEN o."netTotal" < 0 THEN 0
+              ELSE o."netTotal"
+            END
+
+          ELSE
+            CASE
+              WHEN (
+                o."grossTotal" - MAX(
+                  COALESCE(o."discountAmount", 0),
+                  0
+                )
+              ) > 0
+                THEN o."grossTotal" - MAX(
+                  COALESCE(o."discountAmount", 0),
+                  0
+                )
+              ELSE 0
+            END
+        END AS "netTotal",
+
         (
-          SELECT COALESCE(ps2."pName", p2."pName")
+          SELECT COALESCE(
+            ps2."pName",
+            p2."pName"
+          )
           FROM ${this.table(SHOPPING_CART_MODEL)} sc2
-          LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps2 ON ps2."pId" = sc2."pId"
-          LEFT JOIN ${this.table(PRODUCT_MODEL)} p2 ON p2."pId" = sc2."pId"
+          LEFT JOIN ${this.table(PRODUCT_MODEL_SOLD)} ps2
+            ON ps2."pId" = sc2."pId"
+          LEFT JOIN ${this.table(PRODUCT_MODEL)} p2
+            ON p2."pId" = sc2."pId"
           WHERE sc2."shoppingCartRefCode" = o."shoppingCartRefCode"
           LIMIT 1
         ) AS "productName",
+
         (
           SELECT COUNT(*)
           FROM ${this.table(SHOPPING_CART_MODEL)} sc3
           WHERE sc3."shoppingCartRefCode" = o."shoppingCartRefCode"
         ) AS "itemCount"
-      FROM ${this.table(STATUS_ORDER_MODEL)} o
-      INNER JOIN ${this.table(ORDER_STATUS_TYPE_MODEL)} t
-        ON o."idStatus" = t."idStatus"
-      WHERE o."createdAt" >= :startAt
-        AND o."createdAt" < :endAt
-        ${searchClause}
-      ORDER BY o."${sortColumn}" ${direction}, o."stPId" ${direction}
+
+      FROM recent_orders o
+      ORDER BY
+        o."${sortColumn}" ${direction},
+        o."stPId" ${direction}
       LIMIT :limit OFFSET :offset;
       `,
       {
         type: QueryTypes.SELECT,
         replacements: {
+          concluded: ORDER_STATE_CONCLUDED,
           startAt: toStoredUtcFormat(filter.startAt),
           endAt: toStoredUtcFormat(filter.endAt),
           limit: pageSize,
@@ -563,7 +1079,15 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
 
     const mapped: RecentOrderRow[] = rows.map((row) => {
       const itemCount = Number(row.itemCount ?? 0)
-      const extraItems = itemCount > 1 ? itemCount - 1 : 0
+
+      const extraItems = itemCount > 1
+        ? itemCount - 1
+        : 0
+
+      const discountAmount = roundMoney(
+        Number(row.discountAmount ?? 0)
+      )
+
       return {
         orderId: row.orderId,
         code: row.code,
@@ -571,10 +1095,25 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
         extraItems,
         createdAt: normalizeToIso(row.createdAt),
         statusState: Number(row.statusState ?? 0),
-        total: roundMoney(Number(row.total ?? 0))
+
+        // Gross sale value before discount.
+        total: roundMoney(Number(row.total ?? 0)),
+
+        discountType: row.discountType ?? null,
+        discountAmount,
+
+        // Final revenue after discount.
+        netTotal: roundMoney(
+          Number(row.netTotal ?? row.total ?? 0)
+        )
       }
     })
 
-    return { rows: mapped, total, page, pageSize }
+    return {
+      rows: mapped,
+      total,
+      page,
+      pageSize
+    }
   }
 }

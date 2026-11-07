@@ -8,7 +8,9 @@ import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructu
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
+// import { computeDiscountAmount, computeExtrasTotal, computeLineBaseTotal, computeNetTotal, normalizeSellableExtras } from '../../../application/order-total'
 import { computeDiscountAmount, computeExtrasTotal, computeLineBaseTotal, computeNetTotal, normalizeSellableExtras } from '../../../application/order-total'
+
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
@@ -33,6 +35,7 @@ import {
   LogWarning
 } from '@shared/utils/logger.utils'
 import { SocketEvents } from '@shared/constants/socket-events'
+import { ProductServicesTenantFactory } from '@modules/products/main/factories/products-services.factory'
 
 export const orderResolvers = {
   Type: {
@@ -265,30 +268,31 @@ export const orderResolvers = {
       _: GraphQLResolveInfo,
       args: RegisterSalesStoreInput,
       context: GraphQLContext
-    ): Promise<Maybe<ResponseSalesStore>> => {
+    ): Promise<any> => {
       const start = Date.now()
       const idStore = context.restaurant ?? args.idStore
 
-        // 0. Validaciones previas (fuera de la transacción)
-        const storeExists = await StoreServicesPublic.findById.execute(idStore)
-        if (!storeExists) {
-          return {
-            success: false,
-            message: 'Store not found',
-            errors: []
-          }
+      // 0. Validaciones previas (fuera de la transacción)
+      const storeExists = await StoreServicesPublic.findById.execute(idStore)
+      if (!storeExists) {
+        return {
+          success: false,
+          message: 'Store not found',
+          errors: []
         }
+      }
 
-        if (!Array.isArray(args.input) || args.input.length === 0) {
-          return {
-            success: false,
-            message: 'No products to add',
-            data: null,
-            errors: []
-          }
+      if (!Array.isArray(args.input) || args.input.length === 0) {
+        return {
+          success: false,
+          message: 'No products to add',
+          data: null,
+          errors: []
         }
+      }
 
       // 1. Instanciar servicios una sola vez
+      const ProductServices = ProductServicesTenantFactory(idStore)
       const ShoppingServices = ShoppingServicesTenantFactory(idStore)
       const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
       const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
@@ -390,9 +394,10 @@ export const orderResolvers = {
           // Prefer ProPrice when present so a zeroed free line is respected,
           // then fall back to priceProduct. A free line forces the effective
           // unit price to 0 regardless of what the client sent.
-          const rawUnitPrice = Number(
-            item.ProPrice ?? item.priceProduct ?? 0
-          )
+
+          const product = await ProductServices.findById.execute(String(item.pId))
+          const rawUnitPrice = Number(product?.data?.ProPrice)
+
           const unitPrice = Number.isFinite(rawUnitPrice) ? rawUnitPrice : 0
           const effectiveUnitPrice = isFreeLine ? 0 : unitPrice
 
@@ -560,8 +565,12 @@ export const orderResolvers = {
         // `discount` column is still persisted untouched for backward-compatible
         // reads (e.g. the existing single-sale detail path).
         const discountInput = (discount ?? null) as { type?: string, value?: number } | null
+
+
         const discountAmount = computeDiscountAmount(discountInput, computedTotalProductsPrice)
+
         const netTotal = computeNetTotal(computedTotalProductsPrice, discountAmount)
+   
         const discountType = discountInput?.type === 'AMOUNT' ? 'AMOUNT' : (discountInput ? 'PERCENT' : null)
         const discountValue = discountInput && Number.isFinite(Number(discountInput?.value))
           ? Math.max(0, Math.round(Number(discountInput.value)))

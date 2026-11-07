@@ -26,7 +26,7 @@ export class FindProductByIdUseCase {
    * @returns The newly created Store or null if it already exists
    */
   async execute(id: string): Promise<ResponseOrderStatusType | null> {
-    
+
     const created = await this.productRepository.findById(id)
 
     if (!created) {
