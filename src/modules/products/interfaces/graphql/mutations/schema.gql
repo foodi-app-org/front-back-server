@@ -10,4 +10,6 @@ type Mutation {
   deleteProductFoods(input: IDeleteProductFood): ProductFood
   "Asocia un tag existente a un producto"
   registerTagToProduct(pId: ID!, tgId: ID!): ResponseProduct
+  "Actualiza la categoría (carProId) de un producto"
+  updateProductCategory(pId: ID!, carProId: ID!): ResponseProduct
 }

@@ -50,6 +50,31 @@ export class SequelizeCategoryProductRepository implements CategoryProductReposi
     }
   }
 
+  /**
+   * Retrieves a single category by its primary key (`carProId`) within the
+   * current tenant schema. Returns null when the category does not exist.
+   * @param carProId - Category identifier.
+   * @returns The category entity or null.
+   */
+  async findById(carProId: string): Promise<ProductCategory | null> {
+    try {
+      const category = await models.CategoryProduct.schema(this.tenant).findOne({
+        where: { carProId }
+      })
+      return category
+        ? new ProductCategory({
+          ...category.get(),
+          createdAt: category.createdAt,
+          updatedAt: category.updatedAt,
+          pState: category.pState ?? 0
+        })
+        : null
+    } catch (e) {
+      console.error('Error in SequelizeCategoryProductRepository.findById:', e)
+      throw new Error('Error al obtener la categoría por id')
+    }
+  }
+
   async getByName(name: string): Promise<ProductCategory | null> {
     try {
       const category = await models.CategoryProduct.schema(this.tenant).findOne({

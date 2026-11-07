@@ -6,6 +6,7 @@ import { CreateProductCategoryUseCase } from '../../application/use-cases/create
 import { GetCatProductsWithProductUseCase } from '../../application/use-cases/get-all-category-with-products-category.usecase'
 import { GetAllCategoryProductsUseCase } from '../../application/use-cases/get-all-products-category.use-case'
 import { GetCategoryByNameProductsUseCase } from '../../application/use-cases/get-by-name-products-category.use-case'
+import { GetOneCategoryProductsUseCase } from '../../application/use-cases/get-one-products-category.use-case'
 import { SequelizeCategoryProductRepository } from '../../infrastructure/repositories/sequelize-category-products.controller.repository'
 
 const categoryProductsRepository = new SequelizeCategoryProductRepository(MigrationFolder.Public)
@@ -40,6 +41,7 @@ export const CategoryProductRepositoryServicesTenantFactory = (tenant: string) =
         create: createProductCategoryUseCase,
         getAll: new GetAllCategoryProductsUseCase(categoryProductsRepository),
         getByName: new GetCategoryByNameProductsUseCase(categoryProductsRepository),
+        getOne: new GetOneCategoryProductsUseCase(categoryProductsRepository),
         getCatProductsWithProduct: new GetCatProductsWithProductUseCase(categoryProductsRepository)
     }
 }

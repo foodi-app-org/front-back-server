@@ -23,7 +23,12 @@ export interface CategoryProductRepository {
       idStore?: string
     }
   ): Promise<{ totalCount: number; catProductsWithProduct: ProductCategory[] }>
-  // findById(id: string): Promise<ProductCategory | null>
+  /**
+   * Retrieves a single category by its primary key (`carProId`).
+   * @param carProId - Category identifier.
+   * @returns The category or null when it does not exist.
+   */
+  findById(carProId: string): Promise<ProductCategory | null>
   // update(id: string, data: Partial<ProductCategory>): Promise<ProductCategory | null>
   // delete(id: string): Promise<void>
 }

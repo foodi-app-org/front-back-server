@@ -1,3 +1,4 @@
+
 import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -10,7 +11,7 @@ import { CATEGORY_PRODUCT_MODEL } from '../../models/sequelize-model'
  * - gender: 'm' | 'f'
  * - number: 's' | 'p'
  * - tags: semantic tags used to pick compatible adjectives
- * - preferAdjBefore: if true, prefer "Adjective Noun" (e.g. "Dulce Especial")
+ * - preferAdjBefore: if true, prefer "Adjective Noun"
  */
 const NOUNS: {
   word: string
@@ -43,14 +44,14 @@ const NOUNS: {
 ]
 
 /**
- * Adjective entry with forms for gender/number and semantic tags.
+ * Adjective entry with forms for gender/number.
  * forms keys: 'm_s', 'm_p', 'f_s', 'f_p'
  * tags: semantic categories indicating compatibility with nouns
  */
 const ADJECTIVES: {
   forms: { m_s: string; m_p: string; f_s: string; f_p: string }
   tags: string[]
-  blacklistNouns?: string[] // optionally avoid these specific noun words (exact match)
+  blacklistNouns?: string[]
 }[] = [
   {
     forms: { m_s: 'Delicioso', m_p: 'Deliciosos', f_s: 'Deliciosa', f_p: 'Deliciosas' },
@@ -91,7 +92,7 @@ const ADJECTIVES: {
   {
     forms: { m_s: 'Sabroso', m_p: 'Sabrosos', f_s: 'Sabrosa', f_p: 'Sabrosas' },
     tags: ['taste'],
-    blacklistNouns: ['Sabor', 'Sabores'] // avoid tautology: "Sabor Sabroso"
+    blacklistNouns: ['Sabor', 'Sabores']
   },
   {
     forms: { m_s: 'Tradicional', m_p: 'Tradicionales', f_s: 'Tradicional', f_p: 'Tradicionales' },
@@ -101,7 +102,6 @@ const ADJECTIVES: {
     forms: { m_s: 'Moderno', m_p: 'Modernos', f_s: 'Moderna', f_p: 'Modernas' },
     tags: ['style', 'modern']
   },
-  // Flavor-specific adjectives — better fit for "Sabor/Sabores"
   {
     forms: { m_s: 'Aromático', m_p: 'Aromáticos', f_s: 'Aromática', f_p: 'Aromáticas' },
     tags: ['flavor', 'aroma']
@@ -134,24 +134,25 @@ type CategorySeed = {
 
 /**
  * Chunk an array into smaller arrays
- * @param array input array
- * @param chunkSize size per chunk
  */
 const chunkArray = <T,>(array: T[], chunkSize = 50): T[][] => {
   if (!Array.isArray(array)) throw new TypeError('array must be an array')
-  if (typeof chunkSize !== 'number' || chunkSize <= 0)
+
+  if (typeof chunkSize !== 'number' || chunkSize <= 0) {
     throw new TypeError('chunkSize must be a positive number')
+  }
 
   const chunks: T[][] = []
+
   for (let i = 0; i < array.length; i += chunkSize) {
     chunks.push(array.slice(i, i + chunkSize))
   }
+
   return chunks
 }
 
 /**
  * Normalize words for simple comparisons (lowercase, remove accents)
- * @param s input string
  */
 const normalize = (s: string): string =>
   s
@@ -160,13 +161,7 @@ const normalize = (s: string): string =>
     .replace(/\p{Diacritic}/gu, '')
 
 /**
- * Check if adjective is tautological with noun (simple heuristics)
- * e.g. ("Sabor", "Sabroso") -> avoid
- * Uses blacklistNouns and root overlap heuristics.
- *
- * @param nounWord raw noun word
- * @param adjForm adjective form (selected)
- * @param adjEntry adjective entry (to check blacklist)
+ * Check if adjective is tautological with noun.
  */
 const isTautological = (
   nounWord: string,
@@ -176,17 +171,17 @@ const isTautological = (
   const nounNorm = normalize(nounWord)
   const adjNorm = normalize(adjForm)
 
-  // explicit blacklist
   if (adjEntry?.blacklistNouns) {
-    if (adjEntry.blacklistNouns.map(normalize).includes(nounNorm)) return true
+    if (adjEntry.blacklistNouns.map(normalize).includes(nounNorm)) {
+      return true
+    }
   }
 
-  // avoid identical roots: if adjective contains noun root or viceversa for first 4 chars
   const nounRoot = nounNorm.slice(0, 4)
   const adjRoot = adjNorm.slice(0, 4)
+
   if (nounRoot && adjRoot && nounRoot === adjRoot) return true
 
-  // avoid exact word duplicates (rare)
   if (nounNorm === adjNorm) return true
 
   return false
@@ -194,9 +189,6 @@ const isTautological = (
 
 /**
  * Pick an adjective compatible with noun by tags and agreement.
- * Guarantees grammatical agreement and avoids tautology.
- *
- * @param noun noun object from NOUNS
  */
 const pickCompatibleAdjective = (noun: {
   word: string
@@ -206,22 +198,25 @@ const pickCompatibleAdjective = (noun: {
 }) => {
   const nounTags = new Set(noun.tags)
 
-  // filter adjectives by tag compatibility and not blacklisted for this noun
   const candidates = ADJECTIVES.filter(adj =>
     adj.tags.some(t => nounTags.has(t))
   )
 
-  // if we have candidates specific to noun tags, try them first
-  const tryList = candidates.length ? candidates : ADJECTIVES
+  const tryList = candidates.length ? [...candidates] : [...ADJECTIVES]
 
-  // shuffle tryList (simple Fisher-Yates)
-  for (let i = tryList.length - 1; i > 0; i--) {
+  // Shuffle candidates using Fisher-Yates
+  for (let i = tryList.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[tryList[i], tryList[j]] = [tryList[j], tryList[i]]
   }
 
   for (const adj of tryList) {
-    const key = `${noun.gender}_${noun.number}` as 'm_s' | 'm_p' | 'f_s' | 'f_p'
+    const key = `${noun.gender}_${noun.number}` as
+      | 'm_s'
+      | 'm_p'
+      | 'f_s'
+      | 'f_p'
+
     const form = adj.forms[key]
 
     if (!form) continue
@@ -230,32 +225,45 @@ const pickCompatibleAdjective = (noun: {
     return { form, adjEntry: adj }
   }
 
-  // fallback: pick any adjective that isn't tautological
+  // Fallback
   for (const adj of ADJECTIVES) {
-    const key = `${noun.gender}_${noun.number}` as 'm_s' | 'm_p' | 'f_s' | 'f_p'
+    const key = `${noun.gender}_${noun.number}` as
+      | 'm_s'
+      | 'm_p'
+      | 'f_s'
+      | 'f_p'
+
     const form = adj.forms[key]
+
     if (!form) continue
     if (isTautological(noun.word, form, adj)) continue
+
     return { form, adjEntry: adj }
   }
 
-  // last resort: return a neutral adjective adapted to gender/number
   return {
-    form: noun.gender === 'f' ? (noun.number === 's' ? 'Especial' : 'Especiales') : noun.number === 's' ? 'Especial' : 'Especiales',
+    form:
+      noun.gender === 'f'
+        ? noun.number === 's'
+          ? 'Especial'
+          : 'Especiales'
+        : noun.number === 's'
+          ? 'Especial'
+          : 'Especiales',
     adjEntry: undefined
   }
 }
 
 /**
- * Generate a semantically correct Spanish category name (smart ordering & agreement).
- * - uses noun.allowedTags to pick adjectives
- * - places adjective before noun when noun.preferAdjBefore === true
- *
- * @param usedNames set of previously used names
- * @param maxAttempts attempts before numeric suffix
+ * Generate a semantically correct Spanish category name.
  */
-const generateUniqueCategoryName = (usedNames: Set<string>, maxAttempts = 10): string => {
-  if (!(usedNames instanceof Set)) throw new TypeError('usedNames must be a Set')
+const generateUniqueCategoryName = (
+  usedNames: Set<string>,
+  maxAttempts = 10
+): string => {
+  if (!(usedNames instanceof Set)) {
+    throw new TypeError('usedNames must be a Set')
+  }
 
   let attempt = 0
   let base = ''
@@ -267,42 +275,69 @@ const generateUniqueCategoryName = (usedNames: Set<string>, maxAttempts = 10): s
     const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)]
     const { form: adjective } = pickCompatibleAdjective(noun)
 
-    // choose ordering: some nouns prefer adjective before (e.g. "Dulce Especial"),
-    // otherwise use the more common "Noun Adjective" (e.g. "Plato Delicioso")
-    base = noun.preferAdjBefore ? `${adjective} ${noun.word}` : `${noun.word} ${adjective}`
+    base = noun.preferAdjBefore
+      ? `${adjective} ${noun.word}`
+      : `${noun.word} ${adjective}`
 
-    if (!usedNames.has(base)) {
-      usedNames.add(base)
+    if (!usedNames.has(normalize(base))) {
+      usedNames.add(normalize(base))
       return base
     }
   }
 
-  // numeric suffix fallback
+  // Numeric suffix fallback
   let suffixIndex = 1
+
   do {
     candidate = `${base} ${suffixIndex}`
     suffixIndex += 1
-  } while (usedNames.has(candidate))
+  } while (usedNames.has(normalize(candidate)))
 
-  usedNames.add(candidate)
+  usedNames.add(normalize(candidate))
+
   return candidate
 }
 
 /**
- * Generate N random categories with unique names
- * @param total number of categories to generate
- * @param idStore store identifier
+ * Generate N categories with unique names.
+ * The default category is always created first.
  */
-const generateRandomCategories = (total: number, idStore: string): CategorySeed[] => {
-  if (typeof total !== 'number' || total <= 0) throw new TypeError('total must be a positive number')
+const generateRandomCategories = (
+  total: number,
+  idStore: string
+): CategorySeed[] => {
+  if (typeof total !== 'number' || !Number.isInteger(total) || total <= 0) {
+    throw new TypeError('total must be a positive integer')
+  }
+
   if (!idStore) throw new TypeError('idStore is required')
 
   const now = new Date()
   const usedNames = new Set<string>()
   const categories: CategorySeed[] = []
 
-  for (let i = 0; i < total; i += 1) {
+  const defaultCategory = process.env.DEFAULT_CATEGORY?.trim()
+
+  // Create default category first
+  if (defaultCategory) {
+    usedNames.add(normalize(defaultCategory))
+
+    categories.push({
+      carProId: uuidv4(),
+      pName: defaultCategory,
+      pState: 1,
+      idStore,
+      createdAt: now,
+      updatedAt: now
+    })
+  }
+
+  // Generate remaining random categories
+  const remaining = total - categories.length
+
+  for (let i = 0; i < remaining; i += 1) {
     const pName = generateUniqueCategoryName(usedNames)
+
     categories.push({
       carProId: uuidv4(),
       pName,
@@ -317,11 +352,7 @@ const generateRandomCategories = (total: number, idStore: string): CategorySeed[
 }
 
 /**
- * Inserts data in chunks to avoid memory issues
- * @param queryInterface sequelize QueryInterface
- * @param schemaName target schema
- * @param data rows to insert
- * @param chunkSize chunk size (default 50)
+ * Inserts data in chunks to avoid memory issues.
  */
 const bulkInsertInChunks = async (
   queryInterface: QueryInterface,
@@ -343,20 +374,24 @@ const bulkInsertInChunks = async (
       )
     } catch (err: any) {
       const message = `bulkInsert failed for schema=${schemaName} chunkSize=${chunk.length}: ${err?.message ?? err}`
-      const e = new Error(message)
-      ;(e as any).original = err
-      throw e
+      const error = new Error(message)
+      ;(error as any).original = err
+      throw error
     }
   }
 }
 
 /**
- * Seed random category_products records
+ * Seed category_products records.
  * @param queryInterface sequelize QueryInterface
  * @param schemaName target schema (tenant schema)
  * @param total optional number of records to create (default 1000)
  */
-export const up = async (queryInterface: QueryInterface, schemaName: string, total = 1000): Promise<void> => {
+export const up = async (
+  queryInterface: QueryInterface,
+  schemaName: string,
+  total = 10
+): Promise<void> => {
   if (!queryInterface) throw new Error('queryInterface is required')
   if (!schemaName) throw new Error('schemaName is required')
 
@@ -367,11 +402,12 @@ export const up = async (queryInterface: QueryInterface, schemaName: string, tot
 }
 
 /**
- * Removes seeded categories (safe rollback)
- * @param queryInterface sequelize QueryInterface
- * @param schemaName target schema
+ * Removes seeded categories (safe rollback).
  */
-export const down = async (queryInterface: QueryInterface, schemaName: string): Promise<void> => {
+export const down = async (
+  queryInterface: QueryInterface,
+  schemaName: string
+): Promise<void> => {
   if (!queryInterface) throw new Error('queryInterface is required')
   if (!schemaName) throw new Error('schemaName is required')
 
@@ -384,8 +420,8 @@ export const down = async (queryInterface: QueryInterface, schemaName: string): 
     )
   } catch (err: any) {
     const message = `bulkDelete failed for schema=${schemaName}: ${err?.message ?? err}`
-    const e = new Error(message)
-    ;(e as any).original = err
-    throw e
+    const error = new Error(message)
+    ;(error as any).original = err
+    throw error
   }
 }

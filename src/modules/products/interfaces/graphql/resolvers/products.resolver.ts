@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo } from 'graphql'
 
 import { GraphQLContext } from '../../../../../shared/types/context'
+import { CategoryProductRepositoryServicesTenantFactory } from '../../../../category_products/main/factories/category_products-services.factory'
 import { TagsServicesTenantFactory } from '../../../../tags/main/factories/store-services.factory'
 import { productSchema } from '../../../infrastructure/validators'
 import { ProductServicesTenantFactory } from '../../../main/factories/products-services.factory'
@@ -346,6 +347,78 @@ export const productResolvers = {
             {
               message: err instanceof Error ? err.message : String(err),
               path: ['registerTagToProduct'],
+              type: 'unexpected_error'
+            }
+          ]
+        }
+      }
+    },
+    updateProductCategory: async (
+      _: GraphQLResolveInfo,
+      args: { pId: string; carProId: string },
+      context: GraphQLContext
+    ) => {
+      try {
+        const { pId, carProId } = args ?? {}
+
+        if (!pId || !carProId) {
+          return {
+            success: false,
+            data: null,
+            message: 'pId y carProId son requeridos',
+            errors: [
+              {
+                message: 'pId y carProId son requeridos para actualizar la categoría del producto',
+                path: ['pId', 'carProId'],
+                type: 'required'
+              }
+            ]
+          }
+        }
+
+        const store = context.restaurant ?? ''
+
+        // Validate the category exists before associating it with the product,
+        // mirroring how `registerTagToProduct` validates the tag first.
+        const categoryServices = CategoryProductRepositoryServicesTenantFactory(store)
+        const category = await categoryServices.getOne.execute(carProId)
+
+        if (!category) {
+          return {
+            success: false,
+            data: null,
+            message: 'La categoría no existe',
+            errors: [
+              {
+                message: 'No se encontró una categoría con ese carProId',
+                path: ['carProId'],
+                type: 'not_found'
+              }
+            ]
+          }
+        }
+
+        // The product→category relationship lives as the `carProId` FK on the
+        // product, so updating the category is just updating that column.
+        const productServices = ProductServicesTenantFactory(store)
+        const result = await productServices.edit.execute({ pId, carProId })
+
+        return {
+          success: result?.success ?? false,
+          message: result?.success
+            ? 'Categoría del producto actualizada correctamente'
+            : (result?.message ?? 'No se pudo actualizar la categoría del producto'),
+          data: result?.data ?? null
+        }
+      } catch (err) {
+        return {
+          success: false,
+          data: null,
+          message: err instanceof Error ? err.message : 'Error inesperado al actualizar la categoría',
+          errors: [
+            {
+              message: err instanceof Error ? err.message : String(err),
+              path: ['updateProductCategory'],
               type: 'unexpected_error'
             }
           ]
