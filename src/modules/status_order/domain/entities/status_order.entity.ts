@@ -20,6 +20,10 @@ export interface IStatusOrder {
   valueDelivery?: number
   locationUser?: string
   discount?: number
+  discountType?: string | null
+  discountValue?: number | null
+  discountAmount?: number | null
+  netTotal?: number | null
   tip?: number
   change?: number
   pCodeRef: string
@@ -46,6 +50,10 @@ export class StatusOrder {
   public valueDelivery?: number
   public locationUser?: string
   public discount?: number
+  public discountType?: string | null
+  public discountValue?: number | null
+  public discountAmount?: number | null
+  public netTotal?: number | null
   public tip?: number
   public change?: number
   public pCodeRef: string = ''

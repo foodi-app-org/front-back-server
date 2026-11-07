@@ -88,6 +88,13 @@ export const statusOrderSchema = Joi.object({
   valueDelivery: Joi.number().optional().allow(null, 0).integer().min(0).default(0),
   locationUser: Joi.string().allow(null, ''),
   discount: discountSchema.optional().allow(null),
+  // Structured discount + net income persisted at sale time (accounting source
+  // of truth). All optional/nullable so legacy flows without a discount still
+  // validate.
+  discountType: Joi.string().valid('PERCENT', 'AMOUNT').optional().allow(null),
+  discountValue: Joi.number().integer().min(0).optional().allow(null),
+  discountAmount: Joi.number().precision(2).min(0).optional().allow(null),
+  netTotal: Joi.number().precision(2).min(0).optional().allow(null),
   tip: Joi.number().integer().min(0).default(0),
   change: Joi.number().allow(null, 0).integer().min(0).default(0),
 

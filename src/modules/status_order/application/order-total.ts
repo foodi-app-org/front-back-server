@@ -129,3 +129,72 @@ export const computeOrderTotal = (lines?: OrderLineLike[] | null): number => {
   }, 0)
   return Number.isFinite(total) && total > 0 ? total : 0
 }
+
+/** Discount type matching the POS / GraphQL `DiscountInput.type`. */
+export type OrderDiscountType = 'PERCENT' | 'AMOUNT'
+
+/** Structured, order-level discount as sent by the POS. */
+export interface OrderDiscountLike {
+  type?: OrderDiscountType | string | null
+  /**
+   * The user-entered figure: a percentage (0-100) when `type` is 'PERCENT' or a
+   * money amount when `type` is 'AMOUNT'.
+   */
+  value?: number | string | null
+}
+
+/**
+ * Compute the MONEY actually discounted for an order, given the structured
+ * discount and the GROSS order total (base + extras, with free lines already
+ * excluded — i.e. the output of {@link computeOrderTotal}).
+ *
+ * Rules (mirrors the POS frontend `applyDiscountToCart`):
+ *  - PERCENT → `round(gross * value / 100)`, with `value` clamped to [0, 100].
+ *  - AMOUNT  → `value` clamped to [0, gross] (a fixed discount never exceeds the
+ *    discountable total).
+ *  - Any invalid/missing input yields 0.
+ *
+ * The result is always a finite, non-negative number not greater than `gross`,
+ * so it can never turn a sale negative.
+ *
+ * @param discount - The structured discount ({ type, value }).
+ * @param grossTotal - The order's gross total (base + extras, free excluded).
+ * @returns The money discounted (>= 0, <= grossTotal).
+ */
+export const computeDiscountAmount = (
+  discount: OrderDiscountLike | null | undefined,
+  grossTotal: number
+): number => {
+  const gross = toFiniteNumber(grossTotal)
+  if (gross <= 0) return 0
+
+  const type = String(discount?.type ?? 'PERCENT').toUpperCase()
+  const rawValue = toFiniteNumber(discount?.value)
+  if (rawValue <= 0) return 0
+
+  if (type === 'AMOUNT') {
+    // Fixed money discount, capped to the discountable total.
+    return Math.min(rawValue, gross)
+  }
+
+  // Default/PERCENT: clamp the percentage to [0, 100] then apply.
+  const percent = Math.min(100, Math.max(0, rawValue))
+  const amount = Math.round((gross * percent) / 100)
+  return Math.min(amount, gross)
+}
+
+/**
+ * Net order total = gross total minus the money discounted, never negative.
+ * This is the real income of the sale and is what every aggregated accounting
+ * figure (day, general, reports, dashboard) must sum.
+ *
+ * @param grossTotal - The order's gross total (base + extras, free excluded).
+ * @param discountAmount - The money discounted (output of {@link computeDiscountAmount}).
+ * @returns The net total (>= 0).
+ */
+export const computeNetTotal = (grossTotal: number, discountAmount: number): number => {
+  const gross = toFiniteNumber(grossTotal)
+  const discount = toFiniteNumber(discountAmount)
+  const net = gross - discount
+  return net > 0 ? net : 0
+}

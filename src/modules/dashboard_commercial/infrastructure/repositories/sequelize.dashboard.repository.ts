@@ -515,7 +515,11 @@ export class SequelizeDashboardCommercialRepository implements IDashboardCommerc
         o."createdAt" AS "createdAt",
         t."state" AS "statusState",
         COALESCE(
+          -- GROSS value of the sale (before the global discount), consistent
+          -- with the "Valor total de ventas" KPI and the recent-orders list
+          -- showing each order's sale value.
           NULLIF(o."totalProductsPrice", 0),
+          -- Legacy fallback: reconstruct the base from the order's line items.
           (
             SELECT SUM(scT."priceProduct" * COALESCE(scT."cantProducts", 1))
             FROM ${this.table(SHOPPING_CART_MODEL)} scT

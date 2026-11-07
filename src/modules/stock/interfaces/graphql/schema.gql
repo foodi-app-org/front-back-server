@@ -15,7 +15,12 @@ type ProductMovement {
 type TotalSalesResult {
   success: Boolean!
   message: String!
+  # GROSS value of concluded sales (before the global discount).
   totalSales: Float
+  # Total money discounted across concluded sales.
+  totalDiscount: Float
+  # Net income of concluded sales (gross - discount).
+  netTotal: Float
 }
 
 type StockMovementSummary {

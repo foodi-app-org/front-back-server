@@ -125,6 +125,21 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
           ),
           0
         ) AS "totalProductsPrice",
+        os."discountType" AS "discountType",
+        os."discountValue" AS "discountValue",
+        os."discountAmount" AS "discountAmount",
+        -- Net income persisted at sale time; fall back to the gross header
+        -- total (then to the line-items reconstruction) for legacy rows.
+        COALESCE(
+          os."netTotal",
+          NULLIF(os.totalProductsPrice, 0),
+          (
+            SELECT SUM(sc2."priceProduct" * COALESCE(sc2."cantProducts", 1))
+            FROM "${this.tenant}.shopping_carts" AS sc2
+            WHERE sc2."shoppingCartRefCode" = os."shoppingCartRefCode"
+          ),
+          0
+        ) AS "netTotal",
         os.createdAt,
         os.createdAt AS "pDatCre",
         os.updatedAt,
@@ -141,6 +156,10 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
         pCodeRef: string
         pSState: string
         totalProductsPrice: number
+        discountType: string | null
+        discountValue: number | null
+        discountAmount: number | null
+        netTotal: number | null
         createdAt: Date | string
         pDatCre: Date | string
         updatedAt: Date | string

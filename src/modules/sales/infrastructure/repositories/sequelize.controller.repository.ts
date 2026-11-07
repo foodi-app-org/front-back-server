@@ -63,9 +63,13 @@ export class SequelizeSalesRepository implements SalesRepository {
     const table = (name: string): string => `"${this.tenant}.${name}"`
 
     try {
+      // Net income = totalProductsPrice (gross) minus the global discount.
+      // `netTotal` is the discount-aware figure persisted at sale time; for
+      // legacy rows (pre-migration / pre-backfill) it is NULL, so we fall back
+      // to the gross `totalProductsPrice` to preserve the historical behavior.
       const rows = await sequelize.query<{ total: number | string | null }>(
         `
-        SELECT COALESCE(SUM(o."totalProductsPrice"), 0) AS "total"
+        SELECT COALESCE(SUM(COALESCE(o."netTotal", o."totalProductsPrice")), 0) AS "total"
         FROM ${table(STATUS_ORDER_MODEL)} o
         INNER JOIN ${table(ORDER_STATUS_TYPE_MODEL)} t
           ON o."idStatus" = t."idStatus"

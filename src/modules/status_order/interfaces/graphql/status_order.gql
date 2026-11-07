@@ -17,6 +17,15 @@ type StoreOrders {
   pSState: ID
   payId: ID
   totalProductsPrice: Float
+  # Structured discount + net income (accounting source of truth).
+  # discountType: 'PERCENT' | 'AMOUNT' at sale time.
+  # discountValue: user-entered figure (percent 0-100 or money amount).
+  # discountAmount: money actually discounted.
+  # netTotal: totalProductsPrice (gross) - discountAmount.
+  discountType: String
+  discountValue: Int
+  discountAmount: Float
+  netTotal: Float
   unidProducts: Int
   createdAt: DateTime
   updatedAt: DateTime

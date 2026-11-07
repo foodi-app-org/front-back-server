@@ -27,6 +27,14 @@ export interface IStatusOrderStoreAttributes {
   valueDelivery?: number
   locationUser?: string
   discount?: number
+  /** Discount type at sale time ('PERCENT' | 'AMOUNT'). */
+  discountType?: string | null
+  /** User-entered discount figure (percent 0-100 or money amount). */
+  discountValue?: number | null
+  /** Money actually discounted (computed at sale time). */
+  discountAmount?: number | null
+  /** Net income = totalProductsPrice - discountAmount (never negative). */
+  netTotal?: number | null
   tip?: number
   change?: number
   pCodeRef: string
@@ -58,6 +66,10 @@ export class SequelizeStatusOrderModel extends Model<IStatusOrderStoreAttributes
   declare valueDelivery?: number
   declare locationUser?: string
   declare discount?: number
+  declare discountType?: string | null
+  declare discountValue?: number | null
+  declare discountAmount?: number | null
+  declare netTotal?: number | null
   declare tip?: number
   declare change?: number
   declare pCodeRef: string
@@ -109,6 +121,27 @@ export const columnsStatusOrdersStore = {
   },
   discount: {
     type: INTEGER,
+    allowNull: true
+  },
+  // Structured discount persisted at sale time. `discount` (legacy INTEGER) is
+  // kept untouched for backward-compatible reads; these columns are the new
+  // source of truth for accounting.
+  discountType: {
+    type: STRING(16),
+    allowNull: true
+  },
+  discountValue: {
+    type: INTEGER,
+    allowNull: true
+  },
+  discountAmount: {
+    type: DECIMAL(1000, 2),
+    allowNull: true
+  },
+  // Net income of the sale = totalProductsPrice - discountAmount. Nullable so
+  // legacy rows (pre-migration) stay valid until the backfill populates them.
+  netTotal: {
+    type: DECIMAL(1000, 2),
     allowNull: true
   },
   tip: {

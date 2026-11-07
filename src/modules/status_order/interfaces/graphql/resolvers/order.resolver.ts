@@ -8,7 +8,7 @@ import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructu
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
-import { computeExtrasTotal, computeLineBaseTotal, normalizeSellableExtras } from '../../../application/order-total'
+import { computeDiscountAmount, computeExtrasTotal, computeLineBaseTotal, computeNetTotal, normalizeSellableExtras } from '../../../application/order-total'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
@@ -103,12 +103,19 @@ export const orderResolvers = {
         id: clientId,
         createdAt,
         shoppingCartRefCode,
-        discount
-      } = data ?? {
+        discount,
+        // Structured discount + net income persisted at sale time. May be null
+        // for legacy orders registered before these columns existed.
+        discountType,
+        discountValue,
+        discountAmount,
+        netTotal,
+        totalProductsPrice: headerTotalProductsPrice
+      } = (data ?? {
         id: null,
         createdAt: null,
         shoppingCartRefCode: ''
-      }
+      }) as any
       const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
       const shopping = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
       const servicesStore = StoreServicesTenantFactory(idStore)
@@ -203,6 +210,16 @@ export const orderResolvers = {
         paymentMethod,
         statusOrder: statusOrderType ?? null,
         discount,
+        // Structured discount + net income (accounting source of truth). These
+        // mirror the persisted header columns so the client can show the real
+        // discounted figures without recomputing. `netTotal` falls back to the
+        // gross header total for legacy rows that predate the net column.
+        discountType: discountType ?? null,
+        discountValue: discountValue != null ? Number(discountValue) : null,
+        discountAmount: discountAmount != null ? Number(discountAmount) : null,
+        netTotal: netTotal != null
+          ? Number(netTotal)
+          : (headerTotalProductsPrice != null ? Number(headerTotalProductsPrice) : null),
         // The GraphQL `totals` field is `[OrderTotals]` (a list of
         // { key, name, value }). `computeCartTotals` returns a summary object
         // whose `.totals` property holds that list; expose the list so the
@@ -534,6 +551,22 @@ export const orderResolvers = {
         const statusOrderType = await services.findByName.execute(StatusTypeOrder.CONCLUDES)
         const servicesClient = ClientServicesTenantFactory(idStore)
         const client = await servicesClient.findById.execute(idStore)
+
+        // Structured discount + net income. `computedTotalProductsPrice` is the
+        // GROSS total (base + extras; free lines already excluded). We compute
+        // the real money discounted and the net income here, at sale time,
+        // using the SAME pure helpers a backfill uses, so every aggregated
+        // accounting figure can read a discount-aware net total. The legacy
+        // `discount` column is still persisted untouched for backward-compatible
+        // reads (e.g. the existing single-sale detail path).
+        const discountInput = (discount ?? null) as { type?: string, value?: number } | null
+        const discountAmount = computeDiscountAmount(discountInput, computedTotalProductsPrice)
+        const netTotal = computeNetTotal(computedTotalProductsPrice, discountAmount)
+        const discountType = discountInput?.type === 'AMOUNT' ? 'AMOUNT' : (discountInput ? 'PERCENT' : null)
+        const discountValue = discountInput && Number.isFinite(Number(discountInput?.value))
+          ? Math.max(0, Math.round(Number(discountInput.value)))
+          : null
+
         const mockSalesStore = {
           id: id ?? client?.data?.cliId,
           tableId,
@@ -544,6 +577,12 @@ export const orderResolvers = {
           shoppingCartRefCode,
           locationUser: '',
           discount,
+          // New structured discount + net-income columns (accounting source of
+          // truth). Nullable when there is no discount.
+          discountType,
+          discountValue,
+          discountAmount,
+          netTotal,
           tip,
           change,
           pCodeRef,

@@ -217,9 +217,26 @@ export class SequelizeStockRepository implements IStockMovementRepository {
       // shopping_carts and products_extras_sold for every order (O(N*M),
       // unscalable for large histories). The INNER JOIN to order_status_types
       // keeps the exact same "concluded" filter (state = 4) as before.
-      const rows = await sequelize.query<{ totalSales: number | string | null }>(
+      // This KPI is the GROSS value of concluded sales ("Valor total de ventas
+      // concluidas"): the catalog value actually sold, BEFORE the global
+      // discount. Free lines are already excluded upstream (persisted at
+      // priceProduct = 0), so they never inflate it.
+      //
+      // The discount-aware figures are returned ALONGSIDE as `totalDiscount`
+      // (real money discounted) and `netTotal` (gross - discount), so consumers
+      // that need net income have it without changing the headline KPI. The
+      // per-day and reports aggregates remain net; only this "value of sales"
+      // KPI is intentionally gross.
+      const rows = await sequelize.query<{
+        totalSales: number | string | null
+        totalDiscount: number | string | null
+        netTotal: number | string | null
+      }>(
         `
-        SELECT COALESCE(SUM(o."totalProductsPrice"), 0) AS "totalSales"
+        SELECT
+          COALESCE(SUM(o."totalProductsPrice"), 0) AS "totalSales",
+          COALESCE(SUM(COALESCE(o."discountAmount", 0)), 0) AS "totalDiscount",
+          COALESCE(SUM(COALESCE(o."netTotal", o."totalProductsPrice")), 0) AS "netTotal"
         FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
         INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t
           ON o."idStatus" = t."idStatus"
@@ -231,7 +248,9 @@ export class SequelizeStockRepository implements IStockMovementRepository {
       return {
         success: true,
         message: 'Total sales calculated successfully',
-        totalSales: Number(rows[0]?.totalSales ?? 0)
+        totalSales: Number(rows[0]?.totalSales ?? 0),
+        totalDiscount: Number(rows[0]?.totalDiscount ?? 0),
+        netTotal: Number(rows[0]?.netTotal ?? 0)
       }
     } catch {
       return {

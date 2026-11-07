@@ -85,8 +85,10 @@ export const getAllSalesStoreTotal = async (_, args, ctx) => {
 
     const getTotalSales = async (channel = null) => {
       const whereChannel = channel !== null ? '"channel" = :channel AND' : ''
+      // Net income: prefer the discount-aware `netTotal`; fall back to the
+      // gross `totalProductsPrice` for legacy rows that predate the column.
       const query = `
-        SELECT SUM("totalProductsPrice") AS "total"
+        SELECT SUM(COALESCE("netTotal", "totalProductsPrice")) AS "total"
         FROM "${tenant}.${STATUS_ORDER_MODEL}"
         WHERE ${whereChannel} "pSState" = :pSState AND "idStore" = :idStore
       `

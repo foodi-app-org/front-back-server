@@ -15,6 +15,13 @@ type StoreOrders {
   payId: String
   pPRecoger: Int
   totalProductsPrice: Float
+  # Structured discount + net income (accounting source of truth).
+  # discountType: 'PERCENT' | 'AMOUNT'. discountValue: user-entered figure.
+  # discountAmount: money discounted. netTotal: gross total - discountAmount.
+  discountType: String
+  discountValue: Int
+  discountAmount: Float
+  netTotal: Float
   unidProducts: Int
   pDatCre: DateTime
   pDatMod: DateTime

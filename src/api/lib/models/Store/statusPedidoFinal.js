@@ -57,6 +57,25 @@ const StatusPedidosModel = sequelize.define(STATUS_ORDER_MODEL, {
     type: INTEGER,
     allowNull: true
   },
+  // Structured discount + net income (same orders_statuses columns written by
+  // the registerSalesStore resolver). Declared here so getAttributes() can
+  // select them for the legacy sales/statistic queries.
+  discountType: {
+    type: STRING(16),
+    allowNull: true
+  },
+  discountValue: {
+    type: INTEGER,
+    allowNull: true
+  },
+  discountAmount: {
+    type: DECIMAL(1000, 2),
+    allowNull: true
+  },
+  netTotal: {
+    type: DECIMAL(1000, 2),
+    allowNull: true
+  },
   tip: {
     type: INTEGER,
     allowNull: true,

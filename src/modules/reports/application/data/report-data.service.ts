@@ -168,11 +168,23 @@ export class ReportDataService {
       `
       SELECT
         COUNT(*) AS "orders",
+        -- Net income: discount-aware netTotal with a fallback to the gross
+        -- totalProductsPrice for legacy rows (pre discount/net columns).
+        COALESCE(SUM(
+          CASE
+            WHEN o."netTotal" IS NOT NULL AND o."netTotal" > 0 THEN o."netTotal"
+            WHEN o."totalProductsPrice" IS NOT NULL AND o."totalProductsPrice" > 0 THEN o."totalProductsPrice"
+            ELSE 0
+          END
+        ), 0) AS "total",
+        -- Gross income (before global discount), for reference.
         COALESCE(SUM(
           CASE WHEN o."totalProductsPrice" IS NOT NULL AND o."totalProductsPrice" > 0
                THEN o."totalProductsPrice" ELSE 0 END
-        ), 0) AS "total",
-        COALESCE(SUM(o."discount"), 0) AS "discount",
+        ), 0) AS "gross",
+        -- Prefer the real money discounted (discountAmount); fall back to the
+        -- legacy discount column for rows that predate it.
+        COALESCE(SUM(COALESCE(o."discountAmount", o."discount", 0)), 0) AS "discount",
         COALESCE(SUM(o."tip"), 0) AS "tip"
       FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
       INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t ON o."idStatus" = t."idStatus"
@@ -182,17 +194,20 @@ export class ReportDataService {
       { type: QueryTypes.SELECT, replacements: { concluded: ORDER_STATE_CONCLUDED, ...range } }
     )
 
-    const r = rows[0] ?? { orders: 0, total: 0, discount: 0, tip: 0 }
+    const r = rows[0] ?? { orders: 0, total: 0, gross: 0, discount: 0, tip: 0 }
     const orders = Number(r.orders ?? 0)
+    // `total` is now the NET income (after the global discount).
     const total = Number(r.total ?? 0)
+    const gross = Number((r as { gross?: number | string | null }).gross ?? 0)
     const avg = orders > 0 ? total / orders : 0
 
     return {
       rows: [
         { metric: 'Ventas confirmadas', value: String(orders) },
+        { metric: 'Ingreso bruto', value: String(gross) },
+        { metric: 'Descuentos', value: String(Number(r.discount ?? 0)) },
         { metric: 'Ingreso total', value: String(total) },
         { metric: 'Ticket promedio', value: String(Math.round(avg * 100) / 100) },
-        { metric: 'Descuentos', value: String(Number(r.discount ?? 0)) },
         { metric: 'Propinas', value: String(Number(r.tip ?? 0)) }
       ],
       summary: [
@@ -219,8 +234,10 @@ export class ReportDataService {
       SELECT
         o."pCodeRef" AS "code",
         o."createdAt" AS "date",
-        COALESCE(o."totalProductsPrice", 0) AS "total",
-        COALESCE(o."discount", 0) AS "discount",
+        -- Net income per order (after the global discount). Falls back to gross
+        -- for legacy rows without a persisted netTotal.
+        COALESCE(o."netTotal", o."totalProductsPrice", 0) AS "total",
+        COALESCE(o."discountAmount", o."discount", 0) AS "discount",
         COALESCE(o."tip", 0) AS "tip",
         pm."name" AS "paymentMethod",
         o."channel" AS "channel"
@@ -263,7 +280,7 @@ export class ReportDataService {
       SELECT
         SUBSTR(o."createdAt", 1, 10) AS "day",
         COUNT(*) AS "orders",
-        COALESCE(SUM(o."totalProductsPrice"), 0) AS "total"
+        COALESCE(SUM(COALESCE(o."netTotal", o."totalProductsPrice")), 0) AS "total"
       FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
       INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t ON o."idStatus" = t."idStatus"
       WHERE t."state" = :concluded
@@ -286,7 +303,7 @@ export class ReportDataService {
       SELECT
         COALESCE(pm."name", 'Sin registrar') AS "paymentMethod",
         COUNT(*) AS "orders",
-        COALESCE(SUM(o."totalProductsPrice"), 0) AS "total"
+        COALESCE(SUM(COALESCE(o."netTotal", o."totalProductsPrice")), 0) AS "total"
       FROM "${this.tenant}.${STATUS_ORDER_MODEL}" o
       INNER JOIN "${this.tenant}.${ORDER_STATUS_TYPE_MODEL}" t ON o."idStatus" = t."idStatus"
       LEFT JOIN "${this.tenant}.${PAYMENT_METHOD_MODEL}" pm ON o."payId" = pm."payId"

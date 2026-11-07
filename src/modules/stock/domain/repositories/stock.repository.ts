@@ -17,7 +17,12 @@ export interface TopProductMovement {
 export interface TotalSalesResult {
   success: boolean
   message: string
+  /** GROSS value of concluded sales (before the global discount). */
   totalSales: number | null
+  /** Total money discounted across concluded sales. */
+  totalDiscount?: number | null
+  /** Net income of concluded sales (gross - discount). */
+  netTotal?: number | null
 }
 
 /**

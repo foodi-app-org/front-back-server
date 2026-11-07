@@ -1,6 +1,8 @@
 import {
+  computeDiscountAmount,
   computeExtrasTotal,
   computeLineBaseTotal,
+  computeNetTotal,
   computeOrderTotal,
   normalizeSellableExtras
 } from './order-total'
@@ -245,5 +247,99 @@ describe('order-total', () => {
       )
       expect(once).toBe(10000)
     })
+  })
+})
+
+describe('computeDiscountAmount', () => {
+  it('PERCENT: 15% of 10000 = 1500', () => {
+    expect(computeDiscountAmount({ type: 'PERCENT', value: 15 }, 10000)).toBe(1500)
+  })
+
+  it('PERCENT: rounds to the nearest peso', () => {
+    // 10% of 9999 = 999.9 -> 1000
+    expect(computeDiscountAmount({ type: 'PERCENT', value: 10 }, 9999)).toBe(1000)
+  })
+
+  it('PERCENT: clamps the percentage to [0, 100]', () => {
+    expect(computeDiscountAmount({ type: 'PERCENT', value: 150 }, 10000)).toBe(10000)
+  })
+
+  it('AMOUNT: fixed money amount', () => {
+    expect(computeDiscountAmount({ type: 'AMOUNT', value: 2000 }, 10000)).toBe(2000)
+  })
+
+  it('AMOUNT: is capped to the gross total', () => {
+    expect(computeDiscountAmount({ type: 'AMOUNT', value: 50000 }, 10000)).toBe(10000)
+  })
+
+  it('defaults to PERCENT when type is missing', () => {
+    expect(computeDiscountAmount({ value: 20 }, 10000)).toBe(2000)
+  })
+
+  it('returns 0 for a zero/negative/invalid value', () => {
+    expect(computeDiscountAmount({ type: 'PERCENT', value: 0 }, 10000)).toBe(0)
+    expect(computeDiscountAmount({ type: 'AMOUNT', value: -5 }, 10000)).toBe(0)
+    expect(computeDiscountAmount({ type: 'PERCENT', value: Number.NaN }, 10000)).toBe(0)
+  })
+
+  it('returns 0 when there is no gross total to discount', () => {
+    expect(computeDiscountAmount({ type: 'PERCENT', value: 10 }, 0)).toBe(0)
+    expect(computeDiscountAmount({ type: 'AMOUNT', value: 1000 }, 0)).toBe(0)
+  })
+
+  it('returns 0 for a null/undefined discount', () => {
+    expect(computeDiscountAmount(null, 10000)).toBe(0)
+    expect(computeDiscountAmount(undefined, 10000)).toBe(0)
+  })
+
+  it('coerces string numerics coming from the DB/payload', () => {
+    expect(computeDiscountAmount({ type: 'PERCENT', value: '25' }, 10000)).toBe(2500)
+  })
+})
+
+describe('computeNetTotal', () => {
+  it('subtracts the discount from the gross total', () => {
+    expect(computeNetTotal(10000, 1500)).toBe(8500)
+  })
+
+  it('never returns a negative value', () => {
+    expect(computeNetTotal(10000, 15000)).toBe(0)
+  })
+
+  it('equals the gross total when there is no discount', () => {
+    expect(computeNetTotal(10000, 0)).toBe(10000)
+  })
+
+  it('guards non-finite inputs', () => {
+    expect(computeNetTotal(Number.NaN, 1000)).toBe(0)
+    expect(computeNetTotal(10000, Number.NaN)).toBe(10000)
+  })
+})
+
+describe('discount accounting — end-to-end composition', () => {
+  it('gross -> discountAmount -> netTotal is consistent (PERCENT)', () => {
+    const gross = computeOrderTotal([
+      { priceProduct: 10000, cantProducts: 1 },
+      { priceProduct: 10000, cantProducts: 1 }
+    ])
+    expect(gross).toBe(20000)
+
+    const discountAmount = computeDiscountAmount({ type: 'PERCENT', value: 15 }, gross)
+    expect(discountAmount).toBe(3000)
+
+    const net = computeNetTotal(gross, discountAmount)
+    expect(net).toBe(17000)
+  })
+
+  it('free lines are excluded from gross, so the discount only hits paid items', () => {
+    const gross = computeOrderTotal([
+      { priceProduct: 10000, cantProducts: 1, free: true }, // gift → 0
+      { priceProduct: 10000, cantProducts: 1 } // paid
+    ])
+    expect(gross).toBe(10000)
+
+    const discountAmount = computeDiscountAmount({ type: 'PERCENT', value: 10 }, gross)
+    expect(discountAmount).toBe(1000)
+    expect(computeNetTotal(gross, discountAmount)).toBe(9000)
   })
 })
