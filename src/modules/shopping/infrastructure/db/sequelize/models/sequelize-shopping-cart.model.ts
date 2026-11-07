@@ -1,4 +1,5 @@
 import {
+  BOOLEAN,
   DataTypes,
   DECIMAL,
   INTEGER,
@@ -37,6 +38,10 @@ export interface IStatusOrderStoreAttributes {
   comments?: string
   refCodePid?: string
   cantProducts?: number
+  // Marca la línea como cortesía/gratis. Cuando es true el `priceProduct`
+  // persistido es 0, de modo que el regalo no suma en contaduría, reportes,
+  // venta del día ni venta general de la tienda. Se guarda para trazabilidad.
+  free?: boolean
   sState: StateShoppingCart
   createdAt: Date
   updatedAt: Date
@@ -69,6 +74,7 @@ export class SequelizeShoppingOrderModel
   comments?: string
   refCodePid?: string
   cantProducts?: number
+  free?: boolean
   sState: StateShoppingCart.ACTIVE = StateShoppingCart.ACTIVE
   declare readonly createdAt: Date
   declare readonly updatedAt: Date
@@ -125,6 +131,15 @@ export const columnsShoppingCart = {
   cantProducts: {
     type: INTEGER,
     allowNull: true
+  },
+  // Cortesía/gratis. Por defecto false para que las ventas normales e
+  // históricas no cambien de comportamiento. Cuando es true el `priceProduct`
+  // guardado es 0 (producto y complementos), excluyendo el regalo de
+  // contaduría, reportes, venta del día y venta general de la tienda.
+  free: {
+    type: BOOLEAN,
+    defaultValue: false,
+    allowNull: false
   },
   sState: {
     type: DataTypes.INTEGER,

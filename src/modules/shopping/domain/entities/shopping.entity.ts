@@ -22,6 +22,12 @@ export interface IShoppingCart {
   comments?: string
   refCodePid?: string
   cantProducts?: number
+  /**
+   * Courtesy flag. When true the line was sold as a gift and its persisted
+   * `priceProduct` is 0, so it is excluded from accounting, reports, daily
+   * sales and the store's general sales. Kept for traceability.
+   */
+  free?: boolean
   sState: StateShoppingCart
   createdAt: Date
   updatedAt: Date
@@ -44,6 +50,7 @@ export class ShoppingCart {
   public comments?: string
   public refCodePid?: string
   public cantProducts?: number
+  public free?: boolean
   public pCodeRef?: string // Reference code for the sale
   public sState: StateShoppingCart = StateShoppingCart.ACTIVE
   // Timestamps

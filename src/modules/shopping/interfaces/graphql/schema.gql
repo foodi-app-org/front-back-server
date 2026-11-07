@@ -81,6 +81,11 @@ input IShoppingCart {
   cantProducts: Int
   priceProduct: Float
   refCodePid: String
+  # Marca el producto como cortesía/gratis. Cuando es true el backend fuerza el
+  # precio de la línea a 0 (producto y complementos) para que NO sume en
+  # contaduría, reportes, venta del día ni venta general de la tienda, sin
+  # importar el ProPrice/priceProduct real enviado desde el POS.
+  free: Boolean
   sState: Int
   createdAt: DateTime
   updatedAt: DateTime

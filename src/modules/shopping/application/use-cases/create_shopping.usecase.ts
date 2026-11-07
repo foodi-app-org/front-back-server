@@ -41,10 +41,27 @@ export class CreateIShoppingCartTypeUseCase {
       }
     }
 
+    // Price resolution:
+    //  - Courtesy line (`free === true`): the product is a gift, so the
+    //    persisted `priceProduct` is forced to 0 and NEVER taken from the
+    //    catalog. This keeps the gift out of accounting, reports, daily sales
+    //    and the store's general sales (all of which read `priceProduct`).
+    //  - Normal line: honor the unit price resolved by the caller
+    //    (`input.priceProduct`, which the resolver reconciles from ProPrice).
+    //    It previously overrode this with the catalog `product.ProPrice`, which
+    //    is exactly why a free/zero-priced line still persisted the real price.
+    //    Falls back to the catalog price only when the caller did not send one.
+    const resolvedPrice = input.free === true
+      ? 0
+      : (Number.isFinite(Number(input.priceProduct))
+        ? Number(input.priceProduct)
+        : (product.ProPrice ?? 0))
+
     // sum price of product by cantProducts
     const newIShoppingCart = new ShoppingCart({
       ...input,
-      priceProduct: product.ProPrice ?? 0,
+      priceProduct: resolvedPrice,
+      free: input.free === true,
       pId: String(product.pId),
       cantProducts: input.cantProducts
     })

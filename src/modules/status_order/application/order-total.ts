@@ -31,6 +31,13 @@ export interface OrderLineLike {
   priceProduct?: number | string | null
   cantProducts?: number | string | null
   dataExtra?: OrderExtraLike[] | null
+  /**
+   * Courtesy flag. When true the whole line (product + extras) is a gift and
+   * must contribute 0 to `totalProductsPrice`, so it is excluded from
+   * accounting, reports, daily sales and the store's general sales regardless
+   * of the real `priceProduct`/extra prices.
+   */
+  free?: boolean | null
 }
 
 /** Coerces a value to a finite number, falling back to 0 for null/NaN/∞. */
@@ -91,8 +98,13 @@ export const normalizeSellableExtras = <T extends OrderExtraLike>(
     })
 }
 
-/** Base revenue of a line: `priceProduct * cantProducts` (never negative). */
+/**
+ * Base revenue of a line: `priceProduct * cantProducts` (never negative).
+ * A courtesy line (`free === true`) always contributes 0, regardless of the
+ * real price, so gifts never reach accounting/reports/daily/general sales.
+ */
 export const computeLineBaseTotal = (line: OrderLineLike): number => {
+  if (line?.free === true) return 0
   const price = toFiniteNumber(line?.priceProduct)
   const qty = toFiniteNumber(line?.cantProducts)
   if (qty <= 0) return 0
@@ -110,6 +122,9 @@ export const computeLineBaseTotal = (line: OrderLineLike): number => {
 export const computeOrderTotal = (lines?: OrderLineLike[] | null): number => {
   if (!Array.isArray(lines)) return 0
   const total = lines.reduce((acc, line) => {
+    // Courtesy lines contribute nothing: neither the base nor the extras of a
+    // free product are counted (the whole gift is excluded from the total).
+    if (line?.free === true) return acc
     return acc + computeLineBaseTotal(line) + computeExtrasTotal(line?.dataExtra)
   }, 0)
   return Number.isFinite(total) && total > 0 ? total : 0

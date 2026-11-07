@@ -362,6 +362,23 @@ export const orderResolvers = {
             }
           }
 
+          // Courtesy line: the POS marks a product as a gift with `free: true`
+          // (and already zeroes its ProPrice in the cart). This is the single
+          // backend guard so the real price NEVER leaks into accounting,
+          // reports, daily sales or the store's general sales.
+          const isFreeLine = item.free === true
+
+          // Reconcile the unit price. The POS sends `ProPrice` (its catalog/cart
+          // field name); `priceProduct` is kept for backward compatibility.
+          // Prefer ProPrice when present so a zeroed free line is respected,
+          // then fall back to priceProduct. A free line forces the effective
+          // unit price to 0 regardless of what the client sent.
+          const rawUnitPrice = Number(
+            item.ProPrice ?? item.priceProduct ?? 0
+          )
+          const unitPrice = Number.isFinite(rawUnitPrice) ? rawUnitPrice : 0
+          const effectiveUnitPrice = isFreeLine ? 0 : unitPrice
+
           // OUT de inventario del producto PADRE DENTRO de la transacción de la
           // venta (atómico). Antes se publicaba un evento CHANGE_STOCK_SUBSCRIBER
           // DESPUÉS del commit, por lo que la factura se creaba aunque el
@@ -416,16 +433,32 @@ export const orderResolvers = {
           // manageStock=true y sin stock jamás llega hasta aquí (la venta se
           // revirtió), garantizando la regla "solo se cuentan los extras
           // efectivamente vendidos".
+          // A courtesy line contributes NOTHING to the order total: neither the
+          // product base nor its complementos are charged. `computeLineBaseTotal`
+          // already returns 0 for `free`, but we also skip the extras sum so a
+          // gift with complementos stays fully out of the total (accounting,
+          // reports, daily sales and the store's general sales all read from
+          // this header total / the persisted priceProduct, so this is the one
+          // place that must stay consistent). The effective unit price is used
+          // so a normal line still counts even if the client omitted
+          // `priceProduct` and only sent `ProPrice`.
           computedTotalProductsPrice += computeLineBaseTotal({
-            priceProduct: item.priceProduct,
-            cantProducts: qty
-          }) + computeExtrasTotal(sellableExtras)
+            priceProduct: effectiveUnitPrice,
+            cantProducts: qty,
+            free: isFreeLine
+          }) + (isFreeLine ? 0 : computeExtrasTotal(sellableExtras))
 
           const response = await ShoppingServices.create.execute({
             idStore,
             pId: item.pId,
             shoppingCartRefCode: args.shoppingCartRefCode,
-            priceProduct: item.priceProduct,
+            // Persist the EFFECTIVE unit price (0 for a courtesy line). The
+            // create use case no longer overrides this with the catalog
+            // ProPrice, so the stored `shopping_carts.priceProduct` is the
+            // single source of truth that keeps gifts out of every downstream
+            // sales metric. `free` is persisted for traceability/reprints.
+            priceProduct: effectiveUnitPrice,
+            free: isFreeLine,
             cantProducts: item.cantProducts,
             idUser: item.idUser,
             comments: item.comments,
@@ -452,6 +485,14 @@ export const orderResolvers = {
           // vendieron. Se usa la misma `quantity` normalizada para que el
           // registro `products_extras_sold`, el importe del total y el OUT de
           // stock sean idénticos (sin doble contabilización ni divergencias).
+          // En una línea de cortesía (free) los complementos SÍ se descuentan
+          // de inventario y se registran como vendidos (el regalo se consume
+          // físicamente), pero su precio se persiste en 0 para que tampoco
+          // aporten importe en la reimpresión / detalle de la venta (que
+          // recalcula desde products_extras_sold). Así el regalo completo
+          // (producto + complementos) queda fuera de contaduría, reportes,
+          // venta del día y venta general, de forma consistente en todas las
+          // rutas de lectura. En una línea normal se conserva el precio real.
           const dataOptional = item.dataOptional || []
           const soldPid = response?.data?.pId ?? ''
           await ProductExtraServices.bulkCreateExtraSold.execute(sellableExtras.map(e => ({
@@ -460,7 +501,7 @@ export const orderResolvers = {
             idStore,
             pCodeRef: args.pCodeRef,
             extraName: e.extraName,
-            extraPrice: e.extraPrice,
+            extraPrice: isFreeLine ? 0 : e.extraPrice,
             pId: soldPid,
             quantity: e.quantity
           })), t)

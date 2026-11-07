@@ -131,6 +131,11 @@ export const shoppingCartItemSchema = Joi.object({
   ProPrice: Joi.number().optional().default(0),
   totalExtra: Joi.number().optional().default(0),
   priceProduct: Joi.number(),
+  // Courtesy flag sent by the POS. Optional so historical/legacy payloads keep
+  // validating. When true the resolver forces the line price (product +
+  // extras) to 0 so the gift is excluded from accounting, reports, daily sales
+  // and the store's general sales.
+  free: Joi.boolean().optional().default(false),
   cantProducts: Joi.number()
     .integer(),
   id: Joi.string().optional().allow(null, ''),

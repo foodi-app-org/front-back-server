@@ -94,6 +94,10 @@ input IShoppingCard {
   ProPrice: Float
   refCodePid: String
   totalExtra: Int
+  # Marca el producto como cortesía/gratis. Cuando es true el backend fuerza
+  # priceProduct = 0 para que NO cuente en contaduría, reportes, venta del día
+  # ni venta general de la tienda, sin importar el ProPrice real del producto.
+  free: Boolean
   cState: Int
   cDatCre: DateTime
   cDatMod: DateTime

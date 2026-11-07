@@ -66,12 +66,25 @@ interface ExtraItem {
 interface ShoppingCartItem {
   pId: string
   shoppingCartRefCode: string
+  /**
+   * Unit price sent by the POS. The legacy field name used by the client is
+   * `ProPrice`; `priceProduct` is kept for backward compatibility. The resolver
+   * reconciles both (ProPrice takes precedence when present).
+   */
   priceProduct: number
+  /** Unit price as sent by the POS catalog/cart (client field name). */
+  ProPrice?: number
   cantProducts: number
   idUser: string
   refCodePid: string
   idStore: string
   comments?: string
+  /**
+   * Courtesy flag. When true the product is a gift: the backend forces the line
+   * price (product + extras) to 0 so it is excluded from accounting, reports,
+   * daily sales and the store's general sales, regardless of the real price.
+   */
+  free?: boolean
   dataExtra?: ExtraItem[]
   dataOptional: UpdateProductOptionalAndSubOptionalInput[]
 }

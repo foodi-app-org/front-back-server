@@ -368,8 +368,15 @@ export const registerSalesStore = async (
         }
       }
     }
+    // Total autoritativo calculado por el backend. No confiamos en el
+    // `totalProductsPrice` que llega del cliente: el servidor es la fuente de
+    // verdad del dinero. Por cada producto sumamos su precio real * cantidad
+    // (salvo los marcados como `free`, que suman 0) más los complementos
+    // (extras) realmente seleccionados. Así un producto gratis nunca infla
+    // contaduría, reportes, venta del día ni venta general de la tienda.
+    let computedTotalProductsPrice = 0
     for (const element of input) {
-      const { pId, cantProducts, refCodePid } = element
+      const { pId, cantProducts, refCodePid, free, dataExtra } = element
       if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
 
       const decodePid = deCode(pId)
@@ -384,7 +391,22 @@ export const registerSalesStore = async (
         LogDanger(`registerSalesStore: Stock insuficiente para ${originalProduct.dataValues.pName}`)
         return { Response: { success: false, message: `No hay suficiente stock para el producto ${originalProduct.dataValues.pName}` } }
       }
+
+      const qty = Number.parseInt(String(cantProducts ?? 0), 10) || 0
+      const baseUnitPrice = free === true ? 0 : Number(originalProduct.ProPrice ?? 0) || 0
+      computedTotalProductsPrice += baseUnitPrice * qty
+
+      // Complementos seleccionados del producto. Conservan su precio aunque el
+      // producto base sea gratis: `free` solo aplica al producto, no al extra.
+      if (Array.isArray(dataExtra)) {
+        for (const extra of dataExtra) {
+          const extraUnit = Number(extra?.newExtraPrice ?? extra?.extraPrice ?? 0) || 0
+          const extraQty = Number.parseInt(String(extra?.quantity ?? 0), 10) || 0
+          computedTotalProductsPrice += extraUnit * extraQty
+        }
+      }
     }
+    computedTotalProductsPrice = Math.max(0, computedTotalProductsPrice)
     await Promise.all(input.map(async (element) => {
       const {
         pId,
@@ -392,18 +414,26 @@ export const registerSalesStore = async (
         comments,
         dataExtra,
         dataOptional,
-        refCodePid
+        refCodePid,
+        free
       } = element
       const decodePid = deCode(pId)
       if (!refCodePid) throw new Error('No pudimos guardar tu venta, intenta de nuevo')
       const originalProduct = await productModelFood.schema(getTenantName(context?.restaurant)).findByPk(decodePid)
+      // Producto gratis/cortesía: si el carrito marca `free`, la línea se
+      // registra con priceProduct = 0 sin importar el ProPrice real. Así el
+      // producto no suma en contaduría, reportes, venta del día ni venta
+      // general de la tienda. El backend es la fuente de verdad del precio.
+      const isFree = free === true
+      const unitPrice = isFree ? 0 : (originalProduct?.ProPrice || 0)
       // Verificar stock disponible
       const resShoppingCard = await ShoppingCard.schema(getTenantName(context?.restaurant)).create({
         pId: deCode(pId),
         id: clientId ? deCode(clientId) : deCode(id),
         comments: comments ?? '',
         cState: 0,
-        priceProduct: originalProduct?.ProPrice || 0,
+        priceProduct: unitPrice,
+        free: isFree,
         refCodePid: refCodePid || '',
         cantProducts,
         idStore: deCode(context.restaurant)
@@ -535,7 +565,10 @@ export const registerSalesStore = async (
       pCodeRef,
       pickUp,
       pSState: OrderStatus?.idStatus ?? null,
-      totalProductsPrice,
+      // Total calculado por el backend (excluye productos gratis). Se ignora el
+      // `totalProductsPrice` recibido del cliente para evitar que un producto
+      // marcado como free termine sumando su precio real en los reportes.
+      totalProductsPrice: computedTotalProductsPrice,
       valueDelivery
     })
     LogSuccess(`registerSalesStore: pCodeRef: ${pCodeRef} Venta exitosa`)

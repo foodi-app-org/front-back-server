@@ -28,6 +28,14 @@ describe('order-total', () => {
     it('guards non-finite values', () => {
       expect(computeLineBaseTotal({ priceProduct: Number.NaN, cantProducts: 2 })).toBe(0)
     })
+
+    it('a courtesy line (free) contributes 0 regardless of the real price', () => {
+      expect(computeLineBaseTotal({ priceProduct: 20000, cantProducts: 3, free: true })).toBe(0)
+    })
+
+    it('free: false behaves like a normal priced line', () => {
+      expect(computeLineBaseTotal({ priceProduct: 1000, cantProducts: 2, free: false })).toBe(2000)
+    })
   })
 
   describe('computeExtrasTotal', () => {
@@ -91,6 +99,20 @@ describe('order-total', () => {
       expect(computeOrderTotal([
         { priceProduct: 1000, cantProducts: 2 },
         { priceProduct: 0, cantProducts: 1, dataExtra: [{ extraPrice: 500, quantity: 3 }] }
+      ])).toBe(3500)
+    })
+
+    it('excludes a courtesy (free) line entirely: neither base nor its extras count', () => {
+      expect(computeOrderTotal([
+        { priceProduct: 20000, cantProducts: 1, free: true, dataExtra: [{ extraPrice: 5000, quantity: 2 }] }
+      ])).toBe(0)
+    })
+
+    it('a free line does not reduce the total of the other (priced) lines', () => {
+      expect(computeOrderTotal([
+        { priceProduct: 1000, cantProducts: 2 },
+        { priceProduct: 9999, cantProducts: 5, free: true, dataExtra: [{ extraPrice: 3000, quantity: 4 }] },
+        { priceProduct: 500, cantProducts: 3 }
       ])).toBe(3500)
     })
   })

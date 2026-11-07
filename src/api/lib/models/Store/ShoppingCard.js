@@ -5,7 +5,8 @@ import {
   STRING,
   SMALLINT,
   DATE,
-  DECIMAL
+  DECIMAL,
+  BOOLEAN
 } from 'sequelize'
 
 import connect from '../../db'
@@ -74,6 +75,14 @@ const ShoppingCard = sequelize.define(SHOPPING_CARD_MODEL, {
   cantProducts: {
     type: INTEGER,
     allowNull: true
+  },
+  // Cortesía/gratis: cuando es true, esta línea de venta se registra con
+  // priceProduct = 0 para que no sume en contaduría, reportes, venta del día
+  // ni venta general de la tienda.
+  free: {
+    type: BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   },
   cState: {
     type: SMALLINT,
