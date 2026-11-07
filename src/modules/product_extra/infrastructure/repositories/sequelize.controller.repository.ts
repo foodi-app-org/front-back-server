@@ -51,6 +51,35 @@ export class SequelizeProductExtraRepository implements IProductExtraRepo {
     }
   }
 
+  /**
+   * Devuelve todos los complementos (extras) ACTIVOS de la tienda que se
+   * manejan por inventario y tienen existencias (`manageStock = true` y
+   * `stock > 0`). Es la misma regla que usa el KPI "Unidades en inventario"
+   * (ver `findTotalProductsInStock` en el módulo stock), por lo que esta
+   * consulta es el detalle navegable de ese indicador para complementos.
+   *
+   * No recibe `pId`: a diferencia de `getAllByProductId`, lista TODO el
+   * catálogo de la tienda, que es justo lo que la vista de inventario necesita.
+   */
+  async getAllInStockByStore(): Promise<ProductExtra[] | null> {
+    try {
+      const extras = await models.ProductExtra.schema(this.tenant).findAll({
+        where: {
+          exState: StateProductExtra.ACTIVE,
+          manageStock: true,
+          stock: { [Op.gt]: 0 }
+        },
+        order: [['extraName', 'ASC']]
+      })
+      return extras
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+      throw new Error(String(e))
+    }
+  }
+
   async getAll(idStore: string): Promise<ProductExtraPagination | null> {
     try {
       const result = await this.genericService.getAll({

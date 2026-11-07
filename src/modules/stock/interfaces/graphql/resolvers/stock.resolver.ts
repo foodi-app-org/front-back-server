@@ -77,6 +77,26 @@ export const stockResolvers = {
     },
 
     /**
+     * Listado paginado (en backend) de unidades gestionadas en inventario:
+     * productos + complementos con `manageStock = true` y `stock > 0`.
+     * Devuelve `{ data, pagination }` con el mismo contrato de paginación que
+     * `productFoodsAll`, de modo que el frontend lo consume igual que
+     * `useProductsFood`.
+     */
+    getManagedUnitsInStock: async (
+      _root: GraphQLResolveInfo,
+      args: { page?: number | null; pageSize?: number | null; search?: string | null },
+      context: GraphQLContext
+    ) => {
+      const repository = new SequelizeStockRepository(getTenantName(context?.restaurant ?? ''))
+      return await repository.findManagedUnitsInStock({
+        page: Number(args?.page ?? 1),
+        pageSize: Number(args?.pageSize ?? 50),
+        search: args?.search ?? null
+      })
+    },
+
+    /**
      * Daily aggregated IN/OUT/ADJUSTMENT movements. Accepts an optional
      * dashboard filter so the chart respects the selected period; without it,
      * the full history is returned (backward compatible).

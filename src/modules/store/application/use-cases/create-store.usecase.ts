@@ -20,6 +20,23 @@ export interface CreateStoreDTO {
 }
 
 /**
+ * Normalized, locale-independent outcome codes for store registration.
+ *
+ * These are the single source of truth the frontend branches on (instead of
+ * matching the localized `message` text). The `message` stays human-readable
+ * for display; the `code` stays stable for logic.
+ */
+export const StoreRegisterCode = {
+  CREATED: 'STORE_CREATED',
+  ALREADY_EXISTS: 'STORE_ALREADY_EXISTS',
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
+  REGISTER_ERROR: 'STORE_REGISTER_ERROR'
+} as const
+
+export type StoreRegisterCode =
+  (typeof StoreRegisterCode)[keyof typeof StoreRegisterCode]
+
+/**
  * Use case responsible for creating a new store
  */
 export class CreateStoreUseCase {
@@ -49,18 +66,22 @@ export class CreateStoreUseCase {
 
       const existing = await this.storeRepository.findByEmail(emailStore)
       const user = await this.userRepository.findByEmail(emailStore)
-      if (!user) return {
-        user: null as unknown as User,
-        token: '',
-        idStore: '',
-        admin: false,
-        success: false,
-        isVerifyEmail: false,
-        message: 'Usuario no encontrado',
-        storeUserId: '',
-        userId: '',
-        refreshToken: '',
-        newRefreshToken: ''
+      if (!user) {
+        this.logger.info(`User with email ${emailStore} not found; cannot register store.`)
+        return {
+          user: null as unknown as User,
+          token: '',
+          idStore: '',
+          admin: false,
+          success: false,
+          isVerifyEmail: false,
+          message: this.i18n.t('store.user.notFound'),
+          code: StoreRegisterCode.USER_NOT_FOUND,
+          storeUserId: '',
+          userId: '',
+          refreshToken: '',
+          newRefreshToken: ''
+        }
       }
       if (existing) {
         this.logger.info(`Store with email ${emailStore} already exists.`)
@@ -69,15 +90,24 @@ export class CreateStoreUseCase {
           token: '',
           idStore: existing.idStore,
           admin: false,
-          success: true,
+          // A pre-existing store is NOT a successful new registration. Marking
+          // it `success: false` with an explicit code lets the client show the
+          // "already exists" message instead of treating it as a fresh create.
+          success: false,
           isVerifyEmail: false,
           message: this.i18n.t('store.already.exists', { storeName }),
+          code: StoreRegisterCode.ALREADY_EXISTS,
           storeUserId: '',
           userId: '',
           refreshToken: '',
           newRefreshToken: ''
         }
         this.logger.info(`Returning response for existing store with email ${emailStore}: ${JSON.stringify(response)}`)
+        // IMPORTANT: return here. Previously execution fell through and tried to
+        // create the store AGAIN, which hit a DB constraint and surfaced a
+        // generic "Validation error" (the mutation returned null). Returning the
+        // already-exists payload is the correct, idempotent behavior.
+        return response
       }
 
       const store = {
@@ -101,6 +131,7 @@ export class CreateStoreUseCase {
           success: false,
           isVerifyEmail: false,
           message: this.i18n.t('store.register.error', { name: storeName }),
+          code: StoreRegisterCode.REGISTER_ERROR,
           storeUserId: '',
           userId: '',
           refreshToken: '',
@@ -128,6 +159,7 @@ export class CreateStoreUseCase {
         success: true,
         isVerifyEmail: false,
         message: this.i18n.t('store.register.success', { name: storeName }),
+        code: StoreRegisterCode.CREATED,
         storeUserId: '',
         userId: '',
         refreshToken: '',

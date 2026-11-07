@@ -40,6 +40,15 @@ export const getMigrationPaths = async (type: MigrationType): Promise<string[]> 
   const resolvePattern = (segment: string) =>
     path.resolve(__dirname, `../../../../../modules/**/infrastructure/db/sequelize/migrations/${segment}/*.ts`)
 
+  // Test/spec files pueden convivir junto a las migraciones (ej. una prueba de
+  // integración del índice que instala una migración). NO son migraciones: si
+  // el glob los recoge, Umzug hace `require()` del archivo y se ejecuta código
+  // que depende de globales de Jest (`describe`/`it`), lanzando
+  // "describe is not defined" al correr las migraciones del tenant. Los
+  // excluimos en el origen para que el runner solo vea migraciones reales.
+  const ignore = ['**/*.test.ts', '**/*.spec.ts', '**/*.d.ts']
+  const globMigrations = (pattern: string) => glob(pattern, { ignore })
+
   if (type === MigrationType.All) {
     // concat DDL + DML
     const [ddl, dml] = await Promise.all([
@@ -56,12 +65,12 @@ export const getMigrationPaths = async (type: MigrationType): Promise<string[]> 
       resolvePattern(`${MigrationType.PUBLIC}/${MigrationType.DML}`),
     ].map(normalize)
 
-    const results = await Promise.all(patterns.map(p => glob(p)))
+    const results = await Promise.all(patterns.map(p => globMigrations(p)))
     return results.flat()
   }
 
   // DDL or DML (u otros tipos futuros)
-  return glob(normalize(resolvePattern(type)))
+  return globMigrations(normalize(resolvePattern(type)))
 }
 
 /**

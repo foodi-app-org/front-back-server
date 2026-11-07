@@ -32,6 +32,23 @@ export const productExtraResolvers = {
         console.error(err)
         return null
       }
+    },
+    /**
+     * Lista TODOS los complementos (extras) de la tienda que se manejan por
+     * inventario y tienen existencias (`manageStock = true`, `stock > 0`).
+     * A diferencia de `ExtProductFoodsAll` (que requiere `pId`), esta query no
+     * necesita un producto: devuelve el catálogo completo de complementos con
+     * stock para la vista "Unidades en inventario".
+     */
+    ExtProductFoodsInStock: async (_: GraphQLResolveInfo, _args: Record<string, never>, context: GraphQLContext) => {
+      try {
+        const services = ProductExtraServicesTenantFactory(context.restaurant ?? '')
+        const result = await services.getAllInStock.execute()
+        return result?.data ?? []
+      } catch (err) {
+        console.error(err)
+        return []
+      }
     }
   },
   Mutation: {

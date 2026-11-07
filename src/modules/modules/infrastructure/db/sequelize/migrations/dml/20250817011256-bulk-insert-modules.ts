@@ -142,8 +142,9 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       globalConfig: {},
       submodules: [
         { smName: 'Productos', view: 'products', smPath: 'products/products?all=true', smPriority: 1, smIcon: 'IconBox' },
-        { smName: 'Eliminados', view: 'products', smPath: 'products/disabled', smPriority: 2, smIcon: 'IconDelete' },
-        { smName: 'Destacados', view: 'products', smPath: 'products/featured', smPriority: 3, smIcon: 'IconStar' }
+        { smName: 'Unidades en inventario', view: 'products', smPath: 'products/units', smPriority: 2, smIcon: 'IconInventory' },
+        { smName: 'Eliminados', view: 'products', smPath: 'products/disabled', smPriority: 3, smIcon: 'IconDelete' },
+        { smName: 'Destacados', view: 'products', smPath: 'products/featured', smPriority: 4, smIcon: 'IconStar' }
       ]
     },
     {
@@ -191,8 +192,9 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       globalConfig: {},
       submodules: [
         { smName: 'Inventario', view: 'inventory', smPath: 'inventory', smPriority: 1, smIcon: 'IconInventory' },
-        { smName: 'Entradas', view: 'inventory', smPath: 'inventory/entries', smPriority: 2, smIcon: 'IconInventory' },
-        { smName: 'Salidas', view: 'inventory', smPath: 'inventory/outputs', smPriority: 3, smIcon: 'IconInventory' }
+        { smName: 'Unidades en inventario', view: 'inventory', smPath: 'inventory/units', smPriority: 2, smIcon: 'IconInventory' },
+        { smName: 'Entradas', view: 'inventory', smPath: 'inventory/entries', smPriority: 3, smIcon: 'IconInventory' },
+        { smName: 'Salidas', view: 'inventory', smPath: 'inventory/outputs', smPriority: 4, smIcon: 'IconInventory' }
       ]
     },
     {

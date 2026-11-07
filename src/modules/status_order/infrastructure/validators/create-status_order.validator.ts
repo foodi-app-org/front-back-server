@@ -21,30 +21,41 @@ const dataExtraItemSchema = Joi.object({
 })
 
 
+// Un sub-opcional puede identificarse por su UUID real (`opSubExPid`) o por su
+// `exCode` corto cuando es "custom" (ver `isCustomSubOpExPid` en el flujo de
+// edición/borrado de sub-opcionales). Por eso los identificadores NO se fuerzan
+// a UUID aquí: aceptamos cualquier string no vacío para no rechazar opcionales
+// custom en el registro de la venta. `check` es un flag de UI (lo usa el front
+// en filterDataOptional); el backend solo persiste, así que es opcional.
 const subOptionalSchema = Joi.object({
-  pId: Joi.string().uuid().required(),
-  opExPid: Joi.string().uuid().allow(null),
-  idStore: Joi.string().uuid().required(),
-  opSubExPid: Joi.string().uuid().required(),
+  pId: Joi.string().required(),
+  opExPid: Joi.string().allow(null, ''),
+  idStore: Joi.string().required(),
+  opSubExPid: Joi.string().required(),
   OptionalSubProName: Joi.string().required(),
   exCodeOptionExtra: Joi.string().required(),
   exCode: Joi.string().required(),
   state: Joi.number().required(),
-  createdAt: Joi.date().required(),
-  updatedAt: Joi.date().required(),
-  check: Joi.boolean().required()
+  createdAt: Joi.date().optional().allow(null),
+  updatedAt: Joi.date().optional().allow(null),
+  check: Joi.boolean().optional()
 })
 
+// Un opcional también puede ser "custom" e identificarse por su `code` corto.
+// En ese caso el `opExPid` que viaja en el payload es ese code (no un UUID),
+// por lo que aceptamos string genérico. El repositorio lo persiste como
+// `originalExtraId` y genera un UUID propio para el registro vendido, de modo
+// que conservar el valor original (UUID o code) mantiene intacta la trazabilidad.
 const dataOptionalSchema = Joi.object({
-  pId: Joi.string().uuid().required(),
-  opExPid: Joi.string().uuid().required(),
+  pId: Joi.string().required(),
+  opExPid: Joi.string().required(),
   OptionalProName: Joi.string().required(),
   state: Joi.number().required(),
   code: Joi.string().required(),
   numbersOptionalOnly: Joi.number().integer().min(0).required(),
-  createdAt: Joi.date().required(),
+  createdAt: Joi.date().optional().allow(null),
   required: Joi.number().required(),
-  updatedAt: Joi.date().required(),
+  updatedAt: Joi.date().optional().allow(null),
   ExtProductFoodsSubOptionalAll: Joi.array().items(subOptionalSchema).required()
 })
 

@@ -11,5 +11,7 @@ export default {
   'store.fetch.failed': 'Failed to fetch store, please try again',
   'store.validation.required': '{{field}} is required',
   'store.validation.invalidEmail': 'Invalid email format',
-  'store.already.exists': 'El comercio {{storeName}} con el email ya existe'
+  'store.already.exists': 'A store {{storeName}} with this email already exists',
+  'store.register.error': 'Could not register the store {{name}}, please try again',
+  'store.user.notFound': 'User not found'
 }

@@ -8,7 +8,7 @@ import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructu
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
-import { computeExtrasTotal, computeLineBaseTotal } from '../../../application/order-total'
+import { computeExtrasTotal, computeLineBaseTotal, normalizeSellableExtras } from '../../../application/order-total'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
 import { PubSub } from 'graphql-subscriptions'
@@ -377,6 +377,33 @@ export const orderResolvers = {
           //    producto manejado por stock no tiene existencias).
           await parentStock.decrement(item.pId, qty, idStore, t)
 
+          // Normaliza los complementos vendibles ANTES de contabilizarlos.
+          // Cada extra lleva una `quantity` normalizada (>= 1, con fallback a la
+          // cantidad del producto padre cuando llega null/0 tras el filtro) que
+          // es la ÚNICA cantidad usada en los tres puntos del flujo: el importe
+          // del total, el registro `products_extras_sold` y el descuento de
+          // inventario. Así no hay divergencia entre lo que se cobra, lo que se
+          // marca como vendido y lo que sale de stock (evita doble o distinta
+          // contabilización).
+          const sellableExtras = normalizeSellableExtras(selectedExtras, qty)
+
+          // OUT de inventario de complementos ANTES de acumular su importe y de
+          // persistirlos como vendidos. El descuento es la compuerta que aplica
+          // la regla de negocio: el StockService hace bypass cuando el extra NO
+          // maneja inventario (manageStock = false) -> se vende y se contabiliza
+          // como hasta ahora; y cuando `manageStock = true` sin stock suficiente
+          // lanza InsufficientStockError, lo que revierte TODA la venta (el
+          // extra sin stock NUNCA se cuenta ni se marca como vendido). Se usa el
+          // exPid ORIGINAL del complemento (no el id del registro "sold") para
+          // afectar el inventario real. El producto padre ya se descontó arriba
+          // en esta misma transacción.
+          for (const extra of sellableExtras) {
+            const originalExPid = extra?.exPid
+            const extraQty = Number(extra?.quantity ?? 0)
+            if (!originalExPid || extraQty <= 0) continue
+            await extraStock.decrement(originalExPid, extraQty, idStore, t)
+          }
+
           // Accumulate this line's contribution to the order total using the
           // SAME definition the metrics reconstruct from the detail:
           //   base  = priceProduct * cantProducts  (shopping_carts)
@@ -384,11 +411,15 @@ export const orderResolvers = {
           // Discounts, tips and delivery are intentionally excluded (they have
           // their own columns and were never part of `totalProductsPrice`). The
           // math lives in a pure, unit-tested helper so the header always
-          // matches findTotalSales / countSalesAmountToday.
+          // matches findTotalSales / countSalesAmountToday. Los extras ya pasaron
+          // el descuento de inventario, por lo que un complemento con
+          // manageStock=true y sin stock jamás llega hasta aquí (la venta se
+          // revirtió), garantizando la regla "solo se cuentan los extras
+          // efectivamente vendidos".
           computedTotalProductsPrice += computeLineBaseTotal({
             priceProduct: item.priceProduct,
             cantProducts: qty
-          }) + computeExtrasTotal(selectedExtras)
+          }) + computeExtrasTotal(sellableExtras)
 
           const response = await ShoppingServices.create.execute({
             idStore,
@@ -414,12 +445,16 @@ export const orderResolvers = {
             }
           }
 
-          // Use the selected extras (quantity >= 1) so unselected complementos
-          // are never persisted as sold nor decremented from inventory.
-          const extras = selectedExtras || []
+          // Persist the sold complementos using the SAME `sellableExtras`
+          // (quantity normalizada) que ya se descontó de inventario y que se
+          // acumuló en el total. El inventario se descontó arriba, por lo que
+          // los complementos que lleguen aquí son exactamente los que se
+          // vendieron. Se usa la misma `quantity` normalizada para que el
+          // registro `products_extras_sold`, el importe del total y el OUT de
+          // stock sean idénticos (sin doble contabilización ni divergencias).
           const dataOptional = item.dataOptional || []
           const soldPid = response?.data?.pId ?? ''
-          await ProductExtraServices.bulkCreateExtraSold.execute(extras.map(e => ({
+          await ProductExtraServices.bulkCreateExtraSold.execute(sellableExtras.map(e => ({
             originalExPid: e.exPid,
             exPid: uuiv4(),
             idStore,
@@ -429,20 +464,6 @@ export const orderResolvers = {
             pId: soldPid,
             quantity: e.quantity
           })), t)
-
-          // OUT de inventario de complementos: descuenta el stock de cada extra
-          // vendido DENTRO de la misma transacción de la venta (atómico). El
-          // StockService hace bypass automático cuando el extra no maneja stock,
-          // por lo que es seguro invocarlo siempre. Se usa el exPid ORIGINAL del
-          // complemento (no el id del registro "sold") para afectar el inventario
-          // real. El producto padre ya se descontó antes en este mismo loop
-          // (parentStock.decrement), dentro de la misma transacción.
-          for (const extra of extras) {
-            const originalExPid = extra?.exPid
-            const extraQty = Number(extra?.quantity ?? 0) || qty
-            if (!originalExPid || extraQty <= 0) continue
-            await extraStock.decrement(originalExPid, extraQty, idStore, t)
-          }
 
           await ProductOptionalServices.bulkCreateProductOptionalAndSubOptional.execute(dataOptional.map(op => ({
             ...op,

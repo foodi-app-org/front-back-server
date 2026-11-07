@@ -10,5 +10,6 @@ export interface IProductExtraRepo {
   findById(id: string): Promise<ProductExtra | null>
   getAll(idStore: string): Promise<ProductExtraPagination | null>
   getAllByProductId(id: string): Promise<ProductExtra[] | null>
+  getAllInStockByStore(): Promise<ProductExtra[] | null>
   bulkInsert(data: InputProductExtraInput[], transaction: Transaction): Promise<ProductExtra[] | null>
 }

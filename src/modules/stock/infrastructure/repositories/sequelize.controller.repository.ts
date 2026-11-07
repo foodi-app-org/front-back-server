@@ -8,7 +8,7 @@ import { EXTRA_PRODUCT_MODEL } from '@modules/product_extra/infrastructure/db/se
 import { STOCK_HISTORY_MODEL } from '@modules/stock/infrastructure/db/sequelize/models/sequelize-stock-history.model'
 import { STATUS_ORDER_MODEL } from '@modules/status_order/infrastructure/db/sequelize/models/sequelize-status_orders.model'
 import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastructure/db/sequelize/models/sequelize-status_orders_types.model'
-import { ProductStockRow } from '@modules/stock/domain/types'
+import { ManagedUnitsInStockResult, ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { toStoredUtcFormat } from '@shared/utils/period-range.utils'
 import {
@@ -299,6 +299,94 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     )
 
     return Number(rows[0]?.totalProductsInStock ?? 0)
+  }
+
+  /**
+   * Listado paginado de unidades gestionadas en inventario (productos +
+   * complementos) con `manageStock = true` y `stock > 0`.
+   *
+   * La paginación se aplica EN LA BASE DE DATOS sobre el conjunto combinado
+   * (UNION ALL) usando LIMIT/OFFSET, y el total se obtiene con un COUNT sobre
+   * el mismo UNION. Así el endpoint escala sin traer todo el catálogo al
+   * cliente (equivalente al patrón de `productFoodsAll`). El orden es estable
+   * (por tipo y luego nombre) para que la paginación sea determinista.
+   */
+  findManagedUnitsInStock = async (
+    { page, pageSize, search = null }: { page: number; pageSize: number; search?: string | null }
+  ): Promise<ManagedUnitsInStockResult> => {
+    const sequelize = models.Product.sequelize
+    if (!sequelize) throw new Error('Sequelize instance is not available')
+
+    // Saneado de parámetros: página >= 1, tamaño en rango razonable.
+    const safePageSize = Math.min(Math.max(1, Math.trunc(Number(pageSize) || 50)), 200)
+    const safePage = Math.max(1, Math.trunc(Number(page) || 1))
+    const offset = (safePage - 1) * safePageSize
+
+    const hasSearch = typeof search === 'string' && search.trim() !== ''
+    const searchTerm = hasSearch ? `%${search.trim().toLowerCase()}%` : null
+
+    // UNION ALL normalizado: ambas fuentes exponen las mismas columnas
+    // (id, kind, name, stock, price, active). El filtro de búsqueda opcional se
+    // aplica por nombre en cada rama. Los parámetros se pasan por `replacements`
+    // (consulta parametrizada) para evitar inyección SQL.
+    const productSearch = hasSearch ? 'AND LOWER("pName") LIKE :searchTerm' : ''
+    const extraSearch = hasSearch ? 'AND LOWER("extraName") LIKE :searchTerm' : ''
+
+    const unionSql = `
+      SELECT "pId" AS "id", 'PRODUCT' AS "kind", "pName" AS "name",
+             "stock" AS "stock", "ProPrice" AS "price",
+             (CASE WHEN "pState" = 1 THEN true ELSE false END) AS "active",
+             "pName" AS "sortName"
+      FROM "${this.tenant}.${PRODUCT_MODEL}"
+      WHERE "stock" > 0 AND "manageStock" = true AND "pState" = 1 ${productSearch}
+      UNION ALL
+      SELECT "exPid" AS "id", 'EXTRA' AS "kind", "extraName" AS "name",
+             "stock" AS "stock", "extraPrice" AS "price",
+             (CASE WHEN "exState" = 1 THEN true ELSE false END) AS "active",
+             "extraName" AS "sortName"
+      FROM "${this.tenant}.${EXTRA_PRODUCT_MODEL}"
+      WHERE "stock" > 0 AND "manageStock" = true AND "exState" = 1 ${extraSearch}
+    `
+
+    const [countRows, dataRows] = await Promise.all([
+      sequelize.query<{ totalRecords: number | string | null }>(
+        `SELECT COUNT(*) AS "totalRecords" FROM (${unionSql}) AS "managed_units"`,
+        { type: QueryTypes.SELECT, replacements: { searchTerm } }
+      ),
+      sequelize.query<{
+        id: string
+        kind: 'PRODUCT' | 'EXTRA'
+        name: string | null
+        stock: number | string | null
+        price: number | string | null
+        active: boolean | number | null
+      }>(
+        `SELECT "id", "kind", "name", "stock", "price", "active"
+         FROM (${unionSql}) AS "managed_units"
+         ORDER BY "kind" ASC, "sortName" ASC
+         LIMIT :limit OFFSET :offset`,
+        { type: QueryTypes.SELECT, replacements: { searchTerm, limit: safePageSize, offset } }
+      )
+    ])
+
+    const totalRecords = Number(countRows[0]?.totalRecords ?? 0)
+    const totalPages = Math.max(1, Math.ceil(totalRecords / safePageSize))
+
+    const data = dataRows.map((row) => ({
+      id: String(row.id ?? ''),
+      kind: row.kind,
+      name: row.name ?? (row.kind === 'PRODUCT' ? 'Producto sin nombre' : 'Complemento sin nombre'),
+      stock: Number(row.stock ?? 0),
+      price: Number(row.price ?? 0),
+      active: Boolean(row.active)
+    }))
+
+    return {
+      success: true,
+      message: 'Managed units in stock retrieved successfully',
+      data,
+      pagination: { totalRecords, totalPages, currentPage: safePage }
+    }
   }
 
   findStockMovementsByDay = async (

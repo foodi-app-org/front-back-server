@@ -1,5 +1,6 @@
 import { StockMovement } from '../entities/stock.entity'
 import { IProductRepository } from '../ports/IProductRepository'
+import { ManagedUnitsInStockResult } from '../types'
 
 /**
  * Ranking row describing how many units of a product left the inventory.
@@ -57,6 +58,12 @@ export interface IStockMovementRepository extends IProductRepository {
   findTotalProductsSold(): Promise<number>
   /** Total managed units currently in stock. */
   findTotalProductsInStock(): Promise<number>
+  /**
+   * Paginated listing of managed units in stock (products + extras) with
+   * `manageStock = true` and `stock > 0`. Pagination is applied in the
+   * database over the combined set, so it scales regardless of catalog size.
+   */
+  findManagedUnitsInStock(params: { page: number; pageSize: number; search?: string | null }): Promise<ManagedUnitsInStockResult>
   /**
    * Daily aggregated IN/OUT/ADJUSTMENT movements, optionally restricted to a
    * half-open UTC range `[startAt, endAt)`.

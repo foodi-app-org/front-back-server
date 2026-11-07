@@ -44,3 +44,32 @@ export class GetAllExtraProduct {
         }
     }
 }
+
+/**
+ * Use case: lista todos los complementos (extras) de la tienda que se manejan
+ * por inventario y tienen existencias (`manageStock = true`, `stock > 0`).
+ * Alimenta la vista "Unidades en inventario" del panel.
+ */
+export class GetExtrasInStock {
+    constructor(
+        private readonly repo: IProductExtraRepo
+    ) { }
+
+    async execute(): Promise<UseCaseResponse<ProductExtra[]>> {
+        try {
+            const data = await this.repo.getAllInStockByStore()
+            return {
+                success: true,
+                message: 'Extras in stock retrieved successfully',
+                data: data ?? []
+            }
+        } catch (err) {
+            return {
+                success: false,
+                message: err instanceof Error ? err.message : 'Unexpected error',
+                errors: [{ message: err instanceof Error ? err.message : 'Unexpected error' }],
+                data: []
+            }
+        }
+    }
+}

@@ -53,8 +53,14 @@ export interface AuthPayload {
   /** Indicates if the email is verified */
   isVerifyEmail: boolean
 
-  /** Informational or error message */
+  /** Informational or error message (localized, for display) */
   message: string
+
+  /**
+   * Machine-readable outcome code, stable across locales. Clients should branch
+   * on this instead of matching the localized `message`.
+   */
+  code?: string
 
   /** ID of the user inside the store context */
   storeUserId: string

@@ -9,6 +9,12 @@ type AuthPayload {
   success: Boolean
   isVerifyEmail: Boolean
   message: String
+  """
+  Machine-readable outcome code (stable across locales). Lets clients branch on
+  the result without matching the localized `message` text. e.g.
+  STORE_CREATED, STORE_ALREADY_EXISTS, USER_NOT_FOUND, STORE_REGISTER_ERROR.
+  """
+  code: String
   storeUserId: ID
   userId: ID
   refreshToken: String

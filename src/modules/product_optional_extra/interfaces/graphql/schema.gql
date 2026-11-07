@@ -112,6 +112,8 @@ type Query {
 	"Consulta todos los ExtProductFood"
 	ExtProductFoodsOne(pId: ID, cId: ID, dId: ID, ctId: ID ): ExtProductFood
 	ExtProductFoodsAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
+	"Complementos de la tienda manejados por inventario y con existencias (manageStock = true, stock > 0)"
+	ExtProductFoodsInStock: [ExtProductFood]
 	ExtProductFoodsLogis(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFood]
 	"Consulta todos los ExtProductFoodOptional"
 	ExtProductFoodsOptionalAll(pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int  ): [ExtProductFoodOptional]

@@ -56,12 +56,39 @@ type ResponseManageStock {
   data: ManageStockProduct
 }
 
+"Fila unificada de unidades en inventario (producto o complemento)."
+type ManagedUnit {
+  id: ID
+  "Origen de la unidad: PRODUCT o EXTRA."
+  kind: String
+  name: String
+  stock: Int
+  price: Float
+  active: Boolean
+}
+
+"Metadata de paginación (mismo contrato que productFoodsAll.pagination)."
+type ManagedUnitsPagination {
+  totalRecords: Int
+  totalPages: Int
+  currentPage: Int
+}
+
+type ResponseManagedUnitsInStock {
+  success: Boolean
+  message: String
+  data: [ManagedUnit]
+  pagination: ManagedUnitsPagination
+}
+
 type Query {
   getTopProductsMovements: [ProductMovement]
   totalSales: TotalSalesResult!
   getTotalSalesSold: Int!
   getTotalProductsSold: Int!
   getTotalProductsInStock: Int!
+  "Listado paginado (en backend) de productos y complementos con inventario y existencias."
+  getManagedUnitsInStock(page: Int, pageSize: Int, search: String): ResponseManagedUnitsInStock
   getStockMovementsByDay(filter: DashboardFilterInput): [StockMovementSummary!]!
   getStockMovementWeeklyComparison: [WeeklyStockChange]
 }
