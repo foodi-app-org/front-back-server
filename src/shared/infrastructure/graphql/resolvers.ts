@@ -30,6 +30,9 @@ import { filterConfigResolvers } from '../../../modules/filter_config/interfaces
 import { stockResolvers } from '../../../modules/stock/interfaces/graphql/resolvers/stock.resolver'
 import { dashboardCommercialResolvers } from '../../../modules/dashboard_commercial/interfaces/graphql/resolvers/dashboard-commercial.resolver'
 import { reportsResolvers } from '../../../modules/reports/interfaces/graphql/resolvers/reports.resolver'
+import { appConfigurationResolvers } from '@modules/app_configurations/interfaces/graphql/resolvers/app-configuration.resolver'
+
+
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
 function incrementNumber () {
@@ -75,6 +78,7 @@ export default {
         ...stockResolvers.Query,
         ...dashboardCommercialResolvers.Query,
         ...reportsResolvers.Query,
+        ...appConfigurationResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)
@@ -110,7 +114,9 @@ export default {
         ...geolocationsResolvers.Mutation,
         ...filterConfigResolvers.Mutation,
         ...stockResolvers.Mutation,
-        ...reportsResolvers.Mutation
+        ...reportsResolvers.Mutation,
+        ...appConfigurationResolvers.Mutation,
+
     },
     Subscription: {
      numberIncremented: {

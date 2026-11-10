@@ -1,0 +1,135 @@
+enum ConfigurationScope {
+  APP
+  STORE
+  USER
+}
+
+enum ConfigurationEventType {
+  CREATED
+  UPDATED
+  DELETED
+  RESET
+}
+
+enum ConfigurationEventSource {
+  USER
+  SYSTEM
+  MIGRATION
+  IMPORT
+}
+
+type AppConfiguration {
+  id: ID!
+  scope: ConfigurationScope!
+  componentName: String!
+  key: String!
+  value: JSON
+  description: String
+  version: Int!
+  createdBy: String
+  updatedBy: String
+  createdAt: String
+  updatedAt: String
+}
+
+type ResolvedConfiguration {
+  componentName: String!
+  key: String!
+  value: JSON
+  sourceScope: ConfigurationScope!
+  version: Int!
+  updatedAt: String
+}
+
+type ConfigurationEvent {
+  id: ID!
+  configurationId: ID
+  scope: ConfigurationScope!
+  componentName: String!
+  key: String!
+  eventType: ConfigurationEventType!
+  source: ConfigurationEventSource!
+  previousValue: JSON
+  newValue: JSON
+  actorId: String
+  correlationId: String
+  createdAt: String
+}
+
+input UpsertConfigurationInput {
+  scope: ConfigurationScope!
+  componentName: String!
+  key: String!
+  value: JSON!
+  description: String
+}
+
+input ConfigurationBulkItemInput {
+  scope: ConfigurationScope!
+  componentName: String!
+  key: String!
+  value: JSON!
+  description: String
+}
+
+type ConfigurationMutationResponse {
+  success: Boolean!
+  message: String!
+  data: AppConfiguration
+}
+
+type ConfigurationBulkMutationResponse {
+  success: Boolean!
+  message: String!
+  data: [AppConfiguration!]!
+}
+
+type ConfigurationResetResponse {
+  success: Boolean!
+  message: String!
+}
+
+extend type Query {
+  getConfiguration(
+    scope: ConfigurationScope!
+    componentName: String!
+    key: String!
+  ): AppConfiguration
+
+  getConfigurations(
+    scope: ConfigurationScope!
+    componentName: String
+    search: String
+    limit: Int
+    offset: Int
+  ): [AppConfiguration!]!
+
+  getResolvedConfiguration(
+    componentName: String!
+    key: String!
+  ): ResolvedConfiguration
+
+  getConfigurationEvents(
+    scope: ConfigurationScope!
+    componentName: String
+    key: String
+    limit: Int
+    offset: Int
+  ): [ConfigurationEvent!]!
+}
+
+extend type Mutation {
+  upsertConfiguration(
+    input: UpsertConfigurationInput!
+  ): ConfigurationMutationResponse!
+
+  upsertConfigurations(
+    inputs: [ConfigurationBulkItemInput!]!
+  ): ConfigurationBulkMutationResponse!
+
+  resetConfiguration(
+    scope: ConfigurationScope!
+    componentName: String!
+    key: String!
+  ): ConfigurationResetResponse!
+}
