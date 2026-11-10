@@ -12,4 +12,7 @@ type Mutation {
   registerTagToProduct(pId: ID!, tgId: ID!): ResponseProduct
   "Actualiza la categoría (carProId) de un producto"
   updateProductCategory(pId: ID!, carProId: ID!): ResponseProduct
+  "Actualiza el status de un producto"
+  updateStatusProduct(pId: ID!, pState: Int): ResponseProduct
+
 }

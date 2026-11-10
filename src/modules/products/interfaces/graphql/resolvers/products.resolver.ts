@@ -178,6 +178,69 @@ export const productResolvers = {
     }
   },
   Mutation: {
+    updateStatusProduct: async (
+      _: GraphQLResolveInfo,
+      args: {
+        pId: string
+        pState?: number | null
+      },
+      context: GraphQLContext
+    ) => {
+      try {
+        // 1. Validate authenticated session.
+        const validator = new ContextValidator(context)
+        validator.validateUserSession()
+
+        // 2. Get arguments.
+        const pId = String(args?.pId ?? '').trim()
+        const pState = args?.pState
+
+        if (!pId) {
+          return {
+            success: false,
+            message: 'El identificador del producto (pId) es requerido',
+            data: null
+          }
+        }
+
+        if (typeof pState !== 'number') {
+          return {
+            success: false,
+            message: 'El estado del producto (pState) es requerido',
+            data: null
+          }
+        }
+
+        // 3. Get authenticated tenant.
+        const store = context.restaurant ?? ''
+
+        if (!store) {
+          return {
+            success: false,
+            message: 'No hay una tienda activa en la sesión',
+            data: null
+          }
+        }
+
+        // 4. Execute use case using the tenant-specific factory.
+        const services = ProductServicesTenantFactory(store)
+
+        return await services.updateStatusProduct.execute({
+          pId,
+          pState
+        })
+      } catch (err) {
+        console.error('updateStatusProduct resolver:', err)
+
+        return {
+          success: false,
+          message: err instanceof Error
+            ? err.message
+            : 'Error inesperado al actualizar el estado del producto',
+          data: null
+        }
+      }
+    },
     updateProductFoods: async (_: GraphQLResolveInfo, args: { input: CreateStatusTypeOrderInput }, context: GraphQLContext) => {
       const validator = new ContextValidator(context)
       const idStore = validator.validateUserSession()

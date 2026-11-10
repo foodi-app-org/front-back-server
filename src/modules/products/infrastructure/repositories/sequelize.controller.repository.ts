@@ -77,6 +77,48 @@ export class SequelizeProductRepository implements ProductRepository {
   ])
 
   /**
+ * Actualiza el estado de un producto independientemente de su estado actual.
+ *
+ * Importante:
+ * - No utiliza findById(), porque ese método solamente encuentra productos activos.
+ * - Busca por pId dentro del schema del tenant.
+ * - No elimina físicamente el producto.
+ * - Permite activar, desactivar y archivar.
+ */
+  async updateStatusProduct(
+    pId: string,
+    pState: number
+  ): Promise<Product | null> {
+    try {
+      const productModel = models.Product.schema(this.tenant)
+
+      // Buscar sin filtrar por pState.
+      const product = await productModel.findOne({
+        where: {
+          pId
+        }
+      })
+
+      if (!product) {
+        return null
+      }
+
+      // Actualizar exclusivamente el estado.
+      await product.update({
+        pState: pState as StateProduct
+      })
+
+      return product.get({ plain: true }) as Product
+    } catch (e) {
+      if (e instanceof Error) {
+        throw new Error(e.message)
+      }
+
+      throw new Error(String(e))
+    }
+  }
+
+  /**
    * Translates a reusable filter object into a Sequelize `where` fragment and
    * an ordered `orderFields` list consumed by the GenericService.
    */

@@ -8,6 +8,7 @@ import {
   RawDashboardFilterInput
 } from '../../../application/filters.validator'
 import { SequelizeDashboardCommercialRepository } from '../../../infrastructure/repositories/sequelize.dashboard.repository'
+import { ContextValidator } from '@shared/utils/context-validator'
 
 interface DashboardArgs {
   filter?: RawDashboardFilterInput | null
@@ -18,8 +19,8 @@ interface DashboardArgs {
  * The tenant is derived from the authenticated `restaurant` header, never from
  * a client-supplied id, preserving cross-tenant isolation.
  */
-const repositoryFromContext = (context: GraphQLContext): SequelizeDashboardCommercialRepository => {
-  return new SequelizeDashboardCommercialRepository(getTenantName(context?.restaurant ?? ''))
+const repositoryFromContext = (idStore?: string): SequelizeDashboardCommercialRepository => {
+  return new SequelizeDashboardCommercialRepository(getTenantName(idStore ?? ''))
 }
 
 /**
@@ -49,7 +50,9 @@ export const dashboardCommercialResolvers = {
       args: DashboardArgs,
       context: GraphQLContext
     ) => {
-      return repositoryFromContext(context).getSummary(resolveFilter(args))
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+      return repositoryFromContext(String(idStore)).getSummary(resolveFilter(args))
     },
 
     getDashboardSalesTrend: async (
@@ -57,7 +60,9 @@ export const dashboardCommercialResolvers = {
       args: DashboardArgs,
       context: GraphQLContext
     ) => {
-      return repositoryFromContext(context).getSalesTrend(resolveFilter(args))
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+      return repositoryFromContext(String(idStore)).getSalesTrend(resolveFilter(args))
     },
 
     getDashboardSalesByCategory: async (
@@ -65,7 +70,9 @@ export const dashboardCommercialResolvers = {
       args: DashboardArgs,
       context: GraphQLContext
     ) => {
-      return repositoryFromContext(context).getSalesByCategory(resolveFilter(args))
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+      return repositoryFromContext(String(idStore)).getSalesByCategory(resolveFilter(args))
     },
 
     getDashboardTopProducts: async (
@@ -73,7 +80,9 @@ export const dashboardCommercialResolvers = {
       args: DashboardArgs,
       context: GraphQLContext
     ) => {
-      return repositoryFromContext(context).getTopProducts(resolveFilter(args))
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+      return repositoryFromContext(String(idStore)).getTopProducts(resolveFilter(args))
     },
 
     getDashboardRecentOrders: async (
@@ -81,7 +90,9 @@ export const dashboardCommercialResolvers = {
       args: DashboardArgs,
       context: GraphQLContext
     ) => {
-      return repositoryFromContext(context).getRecentOrders(resolveFilter(args))
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
+      return repositoryFromContext(String(idStore)).getRecentOrders(resolveFilter(args))
     }
   }
 }
