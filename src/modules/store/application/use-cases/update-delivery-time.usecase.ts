@@ -1,3 +1,4 @@
+
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
 export interface UpdateDeliveryTimeResult {
@@ -8,15 +9,19 @@ export interface UpdateDeliveryTimeResult {
 /**
  * Use case for setting the store delivery time (in minutes).
  *
- * Mirrors the legacy `createDeliveryTime` behavior: the delivery time must be
- * between 1 and 60 minutes.
+ * Updates both private and public store repositories.
+ * The delivery time must be between 1 and 60 minutes.
  */
 export class UpdateDeliveryTimeUseCase {
     constructor(
-        private readonly storeRepository: StoreRepository
+        private readonly storeRepository: StoreRepository,
+        private readonly publicstoreRepository: StoreRepository
     ) {}
 
-    async execute(storeId: string, minutes: number): Promise<UpdateDeliveryTimeResult> {
+    async execute(
+        storeId: string,
+        minutes: number
+    ): Promise<UpdateDeliveryTimeResult> {
         if (!storeId) {
             return {
                 success: false,
@@ -24,7 +29,11 @@ export class UpdateDeliveryTimeUseCase {
             }
         }
 
-        if (!minutes || minutes < 1 || minutes > 60) {
+        if (
+            !Number.isFinite(minutes) ||
+            minutes < 1 ||
+            minutes > 60
+        ) {
             return {
                 success: false,
                 message: 'El tiempo de entrega debe estar entre 1 y 60 minutos'
@@ -32,15 +41,19 @@ export class UpdateDeliveryTimeUseCase {
         }
 
         try {
-            await this.storeRepository.updateDeliveryTime(storeId, minutes)
+            await Promise.all([
+                this.storeRepository.updateDeliveryTime(storeId, minutes),
+                this.publicstoreRepository.updateDeliveryTime(storeId, minutes)
+            ])
+
             return {
                 success: true,
-                message: 'Tiempo de entrega creado'
+                message: 'Tiempo de entrega actualizado'
             }
         } catch {
             return {
                 success: false,
-                message: 'No se pudo crear el tiempo de entrega'
+                message: 'No se pudo actualizar el tiempo de entrega'
             }
         }
     }

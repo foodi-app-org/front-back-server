@@ -1,3 +1,4 @@
+
 import { StoreRepository } from '../../domain/repositories/store.repository'
 
 export interface UpsertGoalResult {
@@ -16,10 +17,14 @@ export interface UpsertGoalResult {
  */
 export class UpsertGoalUseCase {
     constructor(
-        private readonly storeRepository: StoreRepository
+        private readonly storeRepository: StoreRepository,
+        private readonly publicstoreRepository: StoreRepository
     ) {}
 
-    async execute(storeId: string, dailyGoal: number): Promise<UpsertGoalResult> {
+    async execute(
+        storeId: string,
+        dailyGoal: number
+    ): Promise<UpsertGoalResult> {
         if (!storeId) {
             return {
                 success: false,
@@ -28,7 +33,11 @@ export class UpsertGoalUseCase {
             }
         }
 
-        if (dailyGoal == null || Number.isNaN(dailyGoal) || dailyGoal < 0) {
+        if (
+            dailyGoal == null ||
+            !Number.isFinite(dailyGoal) ||
+            dailyGoal < 0
+        ) {
             return {
                 success: false,
                 message: 'La meta del día debe ser un valor mayor o igual a 0',
@@ -37,7 +46,11 @@ export class UpsertGoalUseCase {
         }
 
         try {
-            await this.storeRepository.updateDailyGoal(storeId, dailyGoal)
+            await Promise.all([
+                this.storeRepository.updateDailyGoal(storeId, dailyGoal),
+                this.publicstoreRepository.updateDailyGoal(storeId, dailyGoal)
+            ])
+
             return {
                 success: true,
                 message: 'Meta del día actualizada',
