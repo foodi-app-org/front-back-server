@@ -46,7 +46,8 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
         options: ['Table', 'Grid', 'Columns']
       },
       submodules: [
-        { smName: 'Pedidos', view: 'orders', smPath: 'orders', smPriority: 2, smIcon: 'IconTicket' }
+        { smName: 'Pedidos', view: 'orders', smPath: 'orders', smPriority: 2, smIcon: 'IconTicket' },
+        { smName: 'Conciliaciones', view: 'orders', smPath: 'orders/reconciliation', smPriority: 4, smIcon: 'IconTicket' }
       ]
     },
     {
