@@ -1,10 +1,10 @@
-import { computeCartTotals, computePersistedSaleTotals } from 'exact-cart-totals'
+import { computeCartTotals, computePersistedSaleTotals, type DeliveryFinancialTerms } from 'exact-cart-totals'
 import { assertSameMoney, money, normalizeSaleDiscount, type Discount } from './sale-pricing-policy'
 
 export type PricingRow = Parameters<typeof computeCartTotals>[0][number]
 
 export function calculateSalePricing(rows: readonly PricingRow[], request: {
-  discount?: unknown; valueDelivery?: unknown; tip?: unknown; change?: unknown; totalProductsPrice?: unknown
+  discount?: unknown; valueDelivery?: unknown; tip?: unknown; change?: unknown; totalProductsPrice?: unknown; deliveryTerms?: DeliveryFinancialTerms | null
 }) {
   const discount = normalizeSaleDiscount(request.discount)
   const delivery = money(request.valueDelivery ?? 0, 'valueDelivery')
@@ -12,7 +12,7 @@ export function calculateSalePricing(rows: readonly PricingRow[], request: {
   const change = money(request.change ?? 0, 'change')
   const totals = computeCartTotals(rows, {
     pricingMode: 'pos', fractionPolicy: 'half-up', includeExtras: true,
-    includeLines: true, globalDiscount: discount, delivery, tip, lang: 'es'
+    includeLines: true, globalDiscount: discount, delivery, deliveryTerms: request.deliveryTerms, tip, lang: 'es'
   })
   // The client's totalProductsPrice is the NET merchandise amount in useSales.
   // It is an optimistic checkout assertion, never a source of prices.
@@ -53,9 +53,9 @@ export function assertSoldRows(expected: readonly PricingRow[], actual: readonly
 }
 
 /** Abort before commit if written detail cannot reconcile with the header. */
-export function verifySalePricing(rows: readonly PricingRow[], header: ReturnType<typeof calculateSalePricing>['header'], discount: Discount | null) {
-  const verified = computePersistedSaleTotals(rows, { ...header, discount }, { lang: 'es', includeLines: true })
-  if (!verified.valid) throw new Error(`Sale financial reconciliation failed: ${verified.issues.join(', ')}`)
+export function verifySalePricing(rows: readonly PricingRow[], header: ReturnType<typeof calculateSalePricing>['header'], discount: Discount | null, deliveryTerms?: DeliveryFinancialTerms | null) {
+  const verified = computePersistedSaleTotals(rows, { ...header, discount, deliveryTerms }, { lang: 'es', includeLines: true })
+  if (!verified.valid || (deliveryTerms && !verified.deliveryVerified)) throw new Error(`Sale financial reconciliation failed: ${verified.issues.join(', ')}`)
   assertSameMoney(header.totalProductsPrice, verified.gross, 'persisted.gross')
   assertSameMoney(header.discountAmount, verified.discountAmount, 'persisted.discountAmount')
   assertSameMoney(header.netTotal, verified.netTotal, 'persisted.netTotal')

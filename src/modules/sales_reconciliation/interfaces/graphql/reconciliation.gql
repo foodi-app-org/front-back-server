@@ -1,0 +1,100 @@
+# Exact canonical decimals in COP. Never GraphQL Float for money aggregates.
+enum ReconciliationStatus { MATCHED MISMATCH UNVERIFIABLE }
+type ReconciliationRecorded { gross: String discount: String net: String delivery: String tip: String payable: String change: String }
+type ReconciliationCalculated { gross: String discount: String net: String payable: String courtesy: String extras: String }
+type ReconciliationRow { id: ID! reference: String! createdAt: String! day: String! payId: ID paymentName: String! paymentKind: String! status: ReconciliationStatus! issues: [String!]! paymentIssues: [String!]! comparisonTrusted: Boolean! settlement: ReconciliationSettlement deliveryVerified: Boolean! deliveryIssues: [String!]! recorded: ReconciliationRecorded! calculated: ReconciliationCalculated delta: String }
+type ReconciliationSummary {
+  sales: Int!
+  classifiedSales: Int!
+  unclassifiedSales: Int!
+  knownCostSales: Int!
+  unclassifiedRecordedCount: Int!
+  unclassifiedRecordedPayable: String!
+  classifiedMerchandiseNet: String!
+  classifiedCheckoutTotal: String!
+  classifiedTip: String!
+  classifiedCustomerTotal: String!
+  classifiedMerchantRevenue: String!
+  classifiedDeliveryRevenue: String!
+  classifiedThirdPartyPayable: String!
+  classifiedExternalCharge: String!
+  classifiedMerchantCost: String!
+  matched: Int!
+  mismatch: Int!
+  unverifiable: Int!
+  paymentWarnings: Int!
+  recordedCount: Int!
+  headerCount: Int!
+  compared: Int!
+  recordedPayable: String!
+  recordedGross: String!
+  recordedDiscount: String!
+  recordedNet: String!
+  recordedDelivery: String!
+  recordedTip: String!
+  comparedRecorded: String!
+  expected: String!
+  delta: String!
+  absoluteDelta: String!
+  overRecorded: String!
+  underRecorded: String!
+}
+type ReconciliationGroup {
+  key: String!
+  label: String!
+  sales: Int!
+  classifiedSales: Int!
+  unclassifiedSales: Int!
+  knownCostSales: Int!
+  unclassifiedRecordedCount: Int!
+  unclassifiedRecordedPayable: String!
+  classifiedMerchandiseNet: String!
+  classifiedCheckoutTotal: String!
+  classifiedTip: String!
+  classifiedCustomerTotal: String!
+  classifiedMerchantRevenue: String!
+  classifiedDeliveryRevenue: String!
+  classifiedThirdPartyPayable: String!
+  classifiedExternalCharge: String!
+  classifiedMerchantCost: String!
+  matched: Int!
+  mismatch: Int!
+  unverifiable: Int!
+  paymentWarnings: Int!
+  recordedCount: Int!
+  headerCount: Int!
+  compared: Int!
+  recordedPayable: String!
+  recordedGross: String!
+  recordedDiscount: String!
+  recordedNet: String!
+  recordedDelivery: String!
+  recordedTip: String!
+  comparedRecorded: String!
+  expected: String!
+  delta: String!
+  absoluteDelta: String!
+  overRecorded: String!
+  underRecorded: String!
+}
+type SalesReconciliationReport { from: String! to: String! timezone: String! channel: Int! currency: String! scope: String! generatedAt: String! summary: ReconciliationSummary! byPayment: [ReconciliationGroup!]! byDay: [ReconciliationGroup!]! byDelivery: [ReconciliationGroup!]! rows: [ReconciliationRow!]! }
+extend type Query { getSalesReconciliation(from: String!, to: String!, channel: Int = 1): SalesReconciliationReport! }
+
+# Frozen distribution; null amounts mean unknown, not zero.
+type ReconciliationSettlement {
+  classification: String!
+  mode: String
+  currency: String!
+  policyVersion: Int
+  merchandiseNet: String!
+  tip: String!
+  posCharge: String!
+  checkoutTotal: String!
+  customerFee: String
+  customerTotal: String
+  externalCharge: String
+  deliveryRevenue: String
+  merchantRevenue: String
+  thirdPartyPayable: String
+  merchantCost: String
+}

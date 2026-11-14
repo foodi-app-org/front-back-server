@@ -1,7 +1,7 @@
 import { DeliveryServicesTenantFactory } from '@modules/delivery/main/factories/delivery-services.factory'
 import { validateQuote } from '@modules/delivery/infrastructure/validators/delivery.validator'
 import { displayMinor } from '@modules/delivery/domain/services/delivery-money'
-import { combineDelivery } from '@modules/delivery/domain/services/delivery-policy'
+import { DeliveryError } from '@modules/delivery/domain/services/delivery-error'
 import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
@@ -29,7 +29,7 @@ import { ClientServicesTenantFactory } from '@modules/clients/main/factories/rol
 import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
 import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
 import { convertTimezone } from '@shared/utils/convert-time-zone'
-import { computePersistedSaleTotals, moneyNumber, productMinor } from 'exact-cart-totals'
+import { computePersistedSaleTotals, deliveryTermsFromMinor, moneyNumber, productMinor, type DeliveryFinancialTerms } from 'exact-cart-totals'
 import { mapLegacyTotals, mapSaleFinancials } from '../mappers/sale-financials.mapper'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
 import type { Maybe, ResponseSalesStore } from 'generated/graphql'
@@ -307,11 +307,28 @@ export const orderResolvers = {
         idStatus ? statusServices.findById.execute(idStatus) : Promise.resolve(null)
       ])
 
+      // A missing snapshot is not proof of a pickup or merchant revenue.
+      let deliveryTerms: DeliveryFinancialTerms | null = null
+      let deliverySnapshotIssue: string | undefined
+      try {
+        const snapshot = await DeliveryServicesTenantFactory(idStore).getSaleDelivery.execute(pCodeRef)
+        if (snapshot) {
+          if (snapshot.saleId !== response.data.stPId || snapshot.idStore !== idStore || snapshot.saleReference !== pCodeRef) {
+            deliverySnapshotIssue = 'DELIVERY_SNAPSHOT_REFERENCE_MISMATCH'
+          } else {
+            try { deliveryTerms = deliveryTermsFromMinor(snapshot) }
+            catch { deliverySnapshotIssue = 'DELIVERY_SNAPSHOT_INVALID' }
+          }
+        }
+      } catch (error) {
+        if (!(error instanceof DeliveryError) || error.code !== 'INVALID_DELIVERY') throw error
+        deliverySnapshotIssue = 'DELIVERY_SNAPSHOT_INVALID'
+      }
       const lines = shopping ?? []
       const financials = computePersistedSaleTotals(
         lines as unknown as Parameters<typeof computePersistedSaleTotals>[0],
         { totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
-          discountAmount, netTotal, discount, valueDelivery, tip },
+          discountAmount, netTotal, discount, valueDelivery, tip, deliveryTerms, deliverySnapshotIssue },
         { lang: 'es', includeLines: true }
       )
       const financialView = mapSaleFinancials(financials, {
@@ -522,17 +539,16 @@ export const orderResolvers = {
           } = args
 
           const pricing = calculateSalePricing(pricingRows, {
-            discount, valueDelivery: deliveryTerms ? displayMinor(deliveryTerms.posChargeMinor) : valueDelivery, tip, change, totalProductsPrice: args.totalProductsPrice
+            discount, valueDelivery: deliveryTerms ? displayMinor(deliveryTerms.posChargeMinor) : valueDelivery, deliveryTerms: deliveryTerms ? deliveryTermsFromMinor(deliveryTerms) : null, tip, change, totalProductsPrice: args.totalProductsPrice
           })
           const { header, discount: discountInput } = pricing
           if (deliveryTerms) {
-            const checkout = combineDelivery(pricing.totals.exact.netTotal, deliveryTerms, pricing.totals.exact.tip)
-            assertSameMoney(displayMinor(checkout.checkoutTotalMinor), args.expectedCheckoutTotal, 'checkout.total')
+            assertSameMoney(pricing.totals.settlement.checkoutTotal, args.expectedCheckoutTotal, 'checkout.total')
           }
           // Actual database snapshots must reconcile before the managed transaction commits.
           const soldRows = await pricingRepository.readSoldRows(String(shoppingCartRefCode), pCodeRef, transaction)
           assertSoldRows(pricingRows, soldRows)
-          verifySalePricing(soldRows, header, discountInput)
+          verifySalePricing(soldRows, header, discountInput, deliveryTerms ? deliveryTermsFromMinor(deliveryTerms) : null)
 
           const timestamp = new Date()
           const sale = {
@@ -578,7 +594,9 @@ export const orderResolvers = {
           if (deliveryInput && deliveryTerms) {
             const saleId = result.data.stPId
             if (!saleId) throw new SaleAbort(failure('No se encontró la clave de la venta registrada'))
-            const recorded = await deliveryServices.record.execute({saleId, saleReference:pCodeRef, delivery:deliveryInput, actor:context.User!.id}, transaction)
+            await deliveryServices.record.execute({saleId, saleReference:pCodeRef, delivery:deliveryInput, actor:context.User!.id}, transaction)
+            const recorded = await deliveryServices.getSaleDelivery.execute(pCodeRef, transaction)
+            if (!recorded || recorded.saleId !== saleId || recorded.idStore !== idStore || recorded.methodId !== deliveryTerms.methodId || recorded.methodRevision !== deliveryTerms.methodRevision || recorded.mode !== deliveryTerms.mode || recorded.policyVersion !== deliveryTerms.policyVersion) throw new SaleAbort(failure('El snapshot persistido no coincide con la cotización'))
             for (const k of ['posChargeMinor','externalChargeMinor','merchantRevenueMinor','thirdPartyPayableMinor','merchantCostMinor','customerFeeMinor','providerCostMinor'] as const) {
               if (recorded[k] !== deliveryTerms[k]) throw new SaleAbort(failure('El snapshot de entrega no coincide con la cotización'))
             }

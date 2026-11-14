@@ -1,7 +1,9 @@
+import { calculateDeliveryDistribution, computeSaleSettlement, deliveryTermsFromMinor } from 'exact-cart-totals'
 import { DELIVERY_MODES, type DeliveryMethod, type DeliveryMode, type DeliveryParty, type DeliveryProvider } from '../entities/delivery-method.entity'
 import type { DeliveryQuoteInput, DeliveryStatus, DeliveryTerms } from '../entities/sale-delivery.entity'
 import { DeliveryError, invalid } from './delivery-error'
-import { decimalToMinor, readMinor, sumMinor } from './delivery-money'
+import { decimalToMinor, readMinor, displayMinor } from './delivery-money'
+
 export const POLICY_VERSION = 1 as const
 interface Policy { providerType: DeliveryProvider; collector: DeliveryParty; beneficiary: DeliveryParty; free: boolean; merchantPaysCost: boolean }
 export const DELIVERY_POLICIES: Readonly<Record<DeliveryMode, Readonly<Policy>>> = {
@@ -24,20 +26,14 @@ export function validateMethod(method: Pick<DeliveryMethod, 'mode' | 'defaultFee
   if (!policy.free && (fee === 0n || (fee === null && !method.allowFeeOverride))) invalid('Define una tarifa positiva o permite introducirla en caja')
 }
 export function distribution(mode: DeliveryMode, customerFeeMinor: string, providerCostMinor: string | null) {
-  const policy = policyFor(mode)
-  const fee = readMinor(customerFeeMinor)
-  if (policy.free ? fee !== 0n : fee <= 0n) invalid('Tarifa incompatible con la modalidad')
-  if (providerCostMinor !== null) readMinor(providerCostMinor)
-  if (!policy.merchantPaysCost && providerCostMinor !== null) invalid('Esta modalidad no admite un costo a cargo del comercio')
-  const { providerType, collector, beneficiary } = policy
-  return {
-    providerType, collector, beneficiary,
-    posChargeMinor: collector === 'MERCHANT' ? customerFeeMinor : '0',
-    externalChargeMinor: collector === 'PROVIDER' ? customerFeeMinor : '0',
-    merchantRevenueMinor: beneficiary === 'MERCHANT' ? customerFeeMinor : '0',
-    thirdPartyPayableMinor: collector === 'MERCHANT' && beneficiary === 'PROVIDER' ? customerFeeMinor : '0',
-    merchantCostMinor: policy.merchantPaysCost ? providerCostMinor : '0'
-  }
+  const { providerType, collector, beneficiary } = policyFor(mode)
+  try {
+    const d = calculateDeliveryDistribution(mode, displayMinor(customerFeeMinor), providerCostMinor === null ? null : displayMinor(providerCostMinor))
+    return { providerType, collector, beneficiary,
+      posChargeMinor: decimalToMinor(d.posCharge), externalChargeMinor: decimalToMinor(d.externalCharge),
+      merchantRevenueMinor: decimalToMinor(d.merchantRevenue), thirdPartyPayableMinor: decimalToMinor(d.thirdPartyPayable),
+      merchantCostMinor: d.merchantCost === null ? null : decimalToMinor(d.merchantCost) }
+  } catch (error) { return invalid(error instanceof Error ? error.message : 'Importe de entrega inválido') }
 }
 export function quoteDelivery(method: DeliveryMethod, input: DeliveryQuoteInput): DeliveryTerms {
   if (!method.active) throw new DeliveryError('DELIVERY_CONFLICT', 'Modalidad deshabilitada')
@@ -58,16 +54,13 @@ export function quoteDelivery(method: DeliveryMethod, input: DeliveryQuoteInput)
 }
 /** Called with exact merchandise net already computed by exact-cart-totals. Tips are not classified as merchant revenue. */
 export function combineDelivery(merchandiseNet: string, delivery: DeliveryTerms, tip = '0.00') {
-  const net = decimalToMinor(merchandiseNet), tipMinor = decimalToMinor(tip)
   assertDeliveryTerms(delivery)
+  const total = computeSaleSettlement({merchandiseNet, tip, deliveryTerms: deliveryTermsFromMinor(delivery)})
   return {
-    merchandiseNetMinor: net,
-    tipMinor,
-    checkoutTotalMinor: sumMinor(net, delivery.posChargeMinor, tipMinor),
-    customerTotalMinor: sumMinor(net, delivery.posChargeMinor, delivery.externalChargeMinor, tipMinor),
-    merchantRevenueMinor: sumMinor(net, delivery.merchantRevenueMinor),
-    thirdPartyPayableMinor: delivery.thirdPartyPayableMinor,
-    merchantDeliveryCostMinor: delivery.merchantCostMinor
+    merchandiseNetMinor: decimalToMinor(total.merchandiseNet), tipMinor: decimalToMinor(total.tip),
+    checkoutTotalMinor: decimalToMinor(total.checkoutTotal), customerTotalMinor: decimalToMinor(total.customerTotal!),
+    merchantRevenueMinor: decimalToMinor(total.merchantRevenue!), thirdPartyPayableMinor: decimalToMinor(total.thirdPartyPayable!),
+    merchantDeliveryCostMinor: total.merchantCost === null ? null : decimalToMinor(total.merchantCost)
   }
 }
 export function assertDeliveryTerms(terms: DeliveryTerms): void {

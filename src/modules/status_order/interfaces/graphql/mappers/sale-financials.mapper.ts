@@ -32,7 +32,7 @@ export function mapSaleFinancials(financials: FinancialResult, header: Header) {
   // Raw header values remain nullable below so absence can be distinguished from zero.
   const delivery = numeric(header.valueDelivery ?? 0)
   const tip = numeric(header.tip ?? 0)
-  const payableMinor = minor(netTotal) + minor(delivery) + minor(tip)
+  const payableMinor = financials.settlement ? minor(financials.settlement.checkoutTotal) : minor(netTotal) + minor(delivery) + minor(tip)
   const payableTotal = moneyNumber(payableMinor)
   const change = has(header.change) ? numeric(header.change) : null
   const trustedBreakdown = valid && source === 'persisted' && calculated !== null
@@ -54,12 +54,19 @@ export function mapSaleFinancials(financials: FinancialResult, header: Header) {
     }
   }
   summary.push(summaryRow('netTotal', 'Neto de mercancía', netTotal, 'TOTAL'))
-  if (delivery > 0) summary.push(summaryRow('delivery', 'Domicilio', delivery, 'ADD'))
+  if (delivery > 0) summary.push(summaryRow('delivery', 'Domicilio cobrado en POS', delivery, 'ADD'))
+  // These are informational; they must not be added to the receipt twice.
+  const settlement = financials.settlement
+  if (settlement?.classification === 'CLASSIFIED') {
+    if (minor(settlement.externalCharge!) > 0n) summary.push(summaryRow('externalDeliveryPayment', 'Domicilio a pagar al proveedor', numeric(settlement.externalCharge), 'INFO'))
+    if (minor(settlement.thirdPartyPayable!) > 0n) summary.push(summaryRow('thirdPartyPayable', 'Importe de terceros (incluido en cobro)', numeric(settlement.thirdPartyPayable), 'INFO'))
+  }
   if (tip > 0) summary.push(summaryRow('tip', 'Propina', tip, 'ADD'))
   summary.push(summaryRow('payableTotal', 'Total a pagar', payableTotal, 'TOTAL'))
   return {
     source, valid, issues, gross, discountAmount, netTotal, delivery, tip, payableTotal, change,
     currency: 'COP',
+    settlement, deliveryVerified: financials.deliveryVerified, deliveryIssues: financials.deliveryIssues,
     exact: { gross: exact(gross), discountAmount: exact(discountAmount), netTotal: exact(netTotal), delivery: exact(delivery), tip: exact(tip), payableTotal: formatMinor(payableMinor), change: optionalExact(change) },
     persisted: {
       gross: optionalExact(header.totalProductsPrice), discountAmount: optionalExact(header.discountAmount),
