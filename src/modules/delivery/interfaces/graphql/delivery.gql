@@ -1,0 +1,50 @@
+# All money fields are exact decimal COP strings or explicitly labeled minor-unit strings.
+enum DeliveryMode { NONE MERCHANT MERCHANT_EXTERNAL THIRD_PARTY_COLLECTED THIRD_PARTY_DIRECT MERCHANT_SUBSIDIZED MERCHANT_SUBSIDIZED_EXTERNAL }
+enum DeliveryProvider { NONE OWN THIRD_PARTY }
+enum DeliveryParty { NONE MERCHANT PROVIDER }
+enum DeliveryStatus { NOT_REQUIRED PENDING DISPATCHED DELIVERED CANCELLED }
+type DeliveryMethod {
+  id: ID! idStore: ID! code: String! name: String! mode: DeliveryMode!
+  providerType: DeliveryProvider! collector: DeliveryParty! beneficiary: DeliveryParty!
+  defaultFeeMinor: String defaultFee: String allowFeeOverride: Boolean! active: Boolean! revision: Int!
+  createdBy: ID updatedBy: ID createdAt: DateTime! updatedAt: DateTime!
+}
+interface DeliveryFinancialTerms {
+  methodId: ID! methodRevision: Int! methodCode: String! methodName: String! mode: DeliveryMode!
+  providerType: DeliveryProvider! collector: DeliveryParty! beneficiary: DeliveryParty! providerName: String providerRef: String
+  currency: String! policyVersion: Int!
+  customerFeeMinor: String! providerCostMinor: String posChargeMinor: String! externalChargeMinor: String!
+  merchantRevenueMinor: String! thirdPartyPayableMinor: String! merchantCostMinor: String
+  customerFee: String! providerCost: String posCharge: String! externalCharge: String! merchantRevenue: String! thirdPartyPayable: String! merchantCost: String
+}
+type DeliveryQuote implements DeliveryFinancialTerms {
+  methodId: ID! methodRevision: Int! methodCode: String! methodName: String! mode: DeliveryMode!
+  providerType: DeliveryProvider! collector: DeliveryParty! beneficiary: DeliveryParty! providerName: String providerRef: String
+  currency: String! policyVersion: Int!
+  customerFeeMinor: String! providerCostMinor: String posChargeMinor: String! externalChargeMinor: String!
+  merchantRevenueMinor: String! thirdPartyPayableMinor: String! merchantCostMinor: String
+  customerFee: String! providerCost: String posCharge: String! externalCharge: String! merchantRevenue: String! thirdPartyPayable: String! merchantCost: String
+}
+type SaleDelivery implements DeliveryFinancialTerms {
+  id: ID! idStore: ID! saleId: ID! saleReference: String! deliveryStatus: DeliveryStatus!
+  methodId: ID! methodRevision: Int! methodCode: String! methodName: String! mode: DeliveryMode!
+  providerType: DeliveryProvider! collector: DeliveryParty! beneficiary: DeliveryParty! providerName: String providerRef: String
+  currency: String! policyVersion: Int!
+  customerFeeMinor: String! providerCostMinor: String posChargeMinor: String! externalChargeMinor: String!
+  merchantRevenueMinor: String! thirdPartyPayableMinor: String! merchantCostMinor: String
+  customerFee: String! providerCost: String posCharge: String! externalCharge: String! merchantRevenue: String! thirdPartyPayable: String! merchantCost: String
+  createdBy: ID! updatedBy: ID! createdAt: DateTime! updatedAt: DateTime!
+}
+input CreateDeliveryMethodInput { code: String! name: String! mode: DeliveryMode! defaultFee: String allowFeeOverride: Boolean! active: Boolean = false }
+input UpdateDeliveryMethodInput { name: String defaultFee: String allowFeeOverride: Boolean active: Boolean }
+input QuoteSaleDeliveryInput { methodId: ID! customerFee: String providerCost: String providerName: String providerRef: String expectedRevision: Int }
+extend type Query {
+  getDeliveryMethods(includeInactive: Boolean = false): [DeliveryMethod!]!
+  quoteSaleDelivery(input: QuoteSaleDeliveryInput!): DeliveryQuote!
+  getSaleDelivery(saleReference: String!): SaleDelivery
+}
+extend type Mutation {
+  createDeliveryMethod(input: CreateDeliveryMethodInput!): DeliveryMethod!
+  updateDeliveryMethod(id: ID!, expectedRevision: Int!, input: UpdateDeliveryMethodInput!): DeliveryMethod!
+  updateSaleDeliveryStatus(saleReference: String!, expected: DeliveryStatus!, next: DeliveryStatus!): SaleDelivery!
+}

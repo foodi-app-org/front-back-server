@@ -28,6 +28,8 @@ type Mutation {
     pickUp: Int
     totalProductsPrice: Float
     valueDelivery: Float
+    delivery: QuoteSaleDeliveryInput
+    expectedCheckoutTotal: String
     idSubArray: IID_SUB_ITEMS
   ): ResponseSalesStore
 

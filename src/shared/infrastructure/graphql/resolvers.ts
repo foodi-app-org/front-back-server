@@ -31,7 +31,7 @@ import { stockResolvers } from '../../../modules/stock/interfaces/graphql/resolv
 import { dashboardCommercialResolvers } from '../../../modules/dashboard_commercial/interfaces/graphql/resolvers/dashboard-commercial.resolver'
 import { reportsResolvers } from '../../../modules/reports/interfaces/graphql/resolvers/reports.resolver'
 import { appConfigurationResolvers } from '@modules/app_configurations/interfaces/graphql/resolvers/app-configuration.resolver'
-
+import { deliveryResolvers } from '@modules/delivery/interfaces/graphql/resolvers/delivery.resolver'
 
 const pubsub = new PubSub() // create a PubSub instance with correct type
 let currentNumber = 0
@@ -48,6 +48,7 @@ export default {
     ...storeResolvers.Type,
     ...categoryProductResolvers.Type,
     ...paymentMethodResolvers.Type,
+    ...deliveryResolvers.Type,
     ProductFood: productResolvers.ProductFood,
 
     Query: {
@@ -79,6 +80,7 @@ export default {
         ...dashboardCommercialResolvers.Query,
         ...reportsResolvers.Query,
         ...appConfigurationResolvers.Query,
+        ...deliveryResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)
@@ -116,6 +118,7 @@ export default {
         ...stockResolvers.Mutation,
         ...reportsResolvers.Mutation,
         ...appConfigurationResolvers.Mutation,
+        ...deliveryResolvers.Mutation,
 
     },
     Subscription: {

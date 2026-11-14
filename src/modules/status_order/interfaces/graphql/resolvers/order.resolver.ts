@@ -1,3 +1,7 @@
+import { DeliveryServicesTenantFactory } from '@modules/delivery/main/factories/delivery-services.factory'
+import { validateQuote } from '@modules/delivery/infrastructure/validators/delivery.validator'
+import { displayMinor } from '@modules/delivery/domain/services/delivery-money'
+import { combineDelivery } from '@modules/delivery/domain/services/delivery-policy'
 import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
@@ -8,7 +12,7 @@ import { UserServices } from '../../../../user/main/factories/user-services.fact
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
 import { normalizeSellableExtras } from '../../../application/order-total'
 import { calculateSalePricing, assertSoldRows, verifySalePricing, type PricingRow } from '../../../application/sale-pricing'
-import { assertSaleHeader, assertDiscountHeader, positiveQuantity } from '../../../application/sale-pricing-policy'
+import { assertSaleHeader, assertDiscountHeader, assertSameMoney, positiveQuantity } from '../../../application/sale-pricing-policy'
 import { SequelizeSalePricingRepository } from '../../../infrastructure/repositories/sequelize-sale-pricing.repository'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { StateShoppingCart, type RegisterSalesStoreInput } from '../inputs'
@@ -367,7 +371,7 @@ export const orderResolvers = {
   },
 
   Mutation: {
-    registerSalesStore: async (_parent: unknown, args: RegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
+    registerSalesStore: async (_parent: unknown, args: RegisterSalesStoreInput & { delivery?: Parameters<typeof validateQuote>[0] | null; expectedCheckoutTotal?: string | null }, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
       const startedAt = Date.now()
       // Se conserva el fallback legado. El tenant de sesión tiene prioridad.
       const validator = new ContextValidator(context)
@@ -418,6 +422,17 @@ export const orderResolvers = {
         // Transacción administrada: cualquier excepción revierte TODA la venta.
         // No ejecutar escrituras concurrentes sobre la misma transacción.
         const created = await connect().transaction(async transaction => {
+          // Resolve and lock the active configuration before reading/writing cart rows.
+          const deliveryServices = DeliveryServicesTenantFactory(idStore)
+          const deliveryInput = args.delivery ? validateQuote(args.delivery) : null
+          if (!deliveryInput && (Number(args.valueDelivery ?? 0) !== 0 || args.expectedCheckoutTotal != null)) {
+            throw new SaleAbort(failure('Selecciona la modalidad de entrega antes de cobrar'))
+          }
+          if (deliveryInput && (!context.User?.id || deliveryInput.expectedRevision == null || args.expectedCheckoutTotal == null)) {
+            throw new SaleAbort(failure('Cotización de entrega y usuario requeridos'))
+          }
+          const deliveryTerms = deliveryInput ? await deliveryServices.quote.execute(deliveryInput, transaction) : null
+          if (deliveryTerms) assertSameMoney(displayMinor(deliveryTerms.posChargeMinor), args.valueDelivery ?? 0, 'delivery.posCharge')
           const pricingRows: PricingRow[] = []
 
           for (const { item, quantity, isFree, sellableExtras } of lines) {
@@ -507,9 +522,13 @@ export const orderResolvers = {
           } = args
 
           const pricing = calculateSalePricing(pricingRows, {
-            discount, valueDelivery, tip, change, totalProductsPrice: args.totalProductsPrice
+            discount, valueDelivery: deliveryTerms ? displayMinor(deliveryTerms.posChargeMinor) : valueDelivery, tip, change, totalProductsPrice: args.totalProductsPrice
           })
           const { header, discount: discountInput } = pricing
+          if (deliveryTerms) {
+            const checkout = combineDelivery(pricing.totals.exact.netTotal, deliveryTerms, pricing.totals.exact.tip)
+            assertSameMoney(displayMinor(checkout.checkoutTotalMinor), args.expectedCheckoutTotal, 'checkout.total')
+          }
           // Actual database snapshots must reconcile before the managed transaction commits.
           const soldRows = await pricingRepository.readSoldRows(String(shoppingCartRefCode), pCodeRef, transaction)
           assertSoldRows(pricingRows, soldRows)
@@ -528,7 +547,7 @@ export const orderResolvers = {
             ...header,
             pCodeRef,
             payId,
-            pickUp: PickUpMethod.inStorePickup,
+            pickUp: !deliveryTerms || deliveryTerms.mode === 'NONE' ? PickUpMethod.inStorePickup : deliveryTerms.providerType === 'OWN' ? PickUpMethod.storeDelivery : PickUpMethod.delivery,
             channel: Channel.store,
             createdAt: timestamp,
             updatedAt: timestamp
@@ -556,6 +575,14 @@ export const orderResolvers = {
           // Confirm the persisted entity echoes the exact header (integration-test this DTO).
           assertSaleHeader(header, result.data)
           assertDiscountHeader(discountInput, result.data)
+          if (deliveryInput && deliveryTerms) {
+            const saleId = result.data.stPId
+            if (!saleId) throw new SaleAbort(failure('No se encontró la clave de la venta registrada'))
+            const recorded = await deliveryServices.record.execute({saleId, saleReference:pCodeRef, delivery:deliveryInput, actor:context.User!.id}, transaction)
+            for (const k of ['posChargeMinor','externalChargeMinor','merchantRevenueMinor','thirdPartyPayableMinor','merchantCostMinor','customerFeeMinor','providerCostMinor'] as const) {
+              if (recorded[k] !== deliveryTerms[k]) throw new SaleAbort(failure('El snapshot de entrega no coincide con la cotización'))
+            }
+          }
           return result
         })
 
