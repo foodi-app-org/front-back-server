@@ -28,7 +28,7 @@ import { ClientServicesTenantFactory } from '@modules/clients/main/factories/rol
 import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factories/shopping.factories'
 import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
 import { convertTimezone } from '@shared/utils/convert-time-zone'
-import { computeCartTotals } from 'exact-cart-totals'
+import { computePersistedSaleTotals, moneyNumber, productMinor } from 'exact-cart-totals'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
 import type { Maybe, ResponseSalesStore } from 'generated/graphql'
 import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
@@ -143,34 +143,6 @@ const isUniqueViolation = (error: unknown): boolean => {
     /unique constraint|duplicate key|already exists/i.test(errorMessage(error))
 }
 
-const toFiniteNumber = (value: unknown): number => {
-  const number = Number(value ?? 0)
-  return Number.isFinite(number) ? number : 0
-}
-
-/** Compatibilidad con descuentos históricos: número, objeto y JSON. */
-const resolveDiscountPercent = (raw: unknown): number => {
-  if (raw == null) return 0
-  if (typeof raw === 'number') return toFiniteNumber(raw)
-  if (typeof raw === 'object') {
-    return toFiniteNumber((raw as { value?: unknown }).value)
-  }
-  if (typeof raw !== 'string') return 0
-
-  const value = raw.trim()
-  if (!value || value === '[object Object]') return 0
-  const numeric = Number(value)
-  if (Number.isFinite(numeric)) return numeric
-
-  try {
-    const parsed: unknown = JSON.parse(value)
-    // No se aceptan JSON que solo envuelven otras cadenas indefinidamente.
-    return typeof parsed === 'string' ? toFiniteNumber(parsed) : resolveDiscountPercent(parsed)
-  } catch {
-    return 0
-  }
-}
-
 const mapShoppingCart = (cart: CartLine): CartLineWithProduct & {
   products: SoldProduct & {
     ExtProductFoodsAll?: SoldExtra[]
@@ -188,30 +160,11 @@ const mapShoppingCart = (cart: CartLine): CartLineWithProduct & {
       ExtProductFoodsAll: product?.dataExtra?.map(extra => ({
         ...extra,
         newExtraPrice: extra.newExtraPrice ??
-          (toFiniteNumber(extra.extraPrice) * toFiniteNumber(extra.quantity))
+          moneyNumber(productMinor(extra.extraPrice, Number(extra.quantity ?? 0), 'half-up', 'sold extra'))
       })),
       ExtProductFoodOptional: product?.dataOptional?.map(optional => ({ ...optional }))
     }
   }
-}
-
-const getSaleTotals = (shopping: CartLine[], discount: unknown) => {
-  // Mantener las opciones y el formato existentes de exact-cart-totals evita
-  // alterar el contrato de lectura y la reimpresión en este refactor.
-  const calculated = computeCartTotals(
-    shopping as unknown as Parameters<typeof computeCartTotals>[0],
-    {
-      currencySymbol: '$',
-      includeExtras: true,
-      globalDiscountPercent: resolveDiscountPercent(discount),
-      includeBreakdownByStore: false,
-      includeLines: false,
-      formatNumbers: true,
-      lang: 'es'
-    }
-  ) as unknown as { totals?: unknown[] } | null
-
-  return Array.isArray(calculated?.totals) ? calculated.totals : []
 }
 
 const mapValidationErrors = (details: Array<{
@@ -338,7 +291,8 @@ export const orderResolvers = {
         discountValue,
         discountAmount,
         netTotal,
-        totalProductsPrice: headerTotalProductsPrice
+        totalProductsPrice: headerTotalProductsPrice,
+        valueDelivery, tip, change
       } = response.data
 
       const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
@@ -357,6 +311,17 @@ export const orderResolvers = {
       ])
 
       const lines = shopping ?? []
+      const financials = computePersistedSaleTotals(
+        lines as unknown as Parameters<typeof computePersistedSaleTotals>[0],
+        { totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
+          discountAmount, netTotal, discount, valueDelivery, tip },
+        { lang: 'es' }
+      )
+      console.log(financials)
+      if (!financials.valid) {
+        // Historical mismatch is a reconciliation task, not permission to overwrite a sale.
+        LogWarning(`Sale financial reconciliation: ${financials.issues.join(', ')}`)
+      }
       const sale = {
         createdAt: convertTimezone(createdAt as Date),
         store,
@@ -370,11 +335,13 @@ export const orderResolvers = {
         discount,
         discountType: discountType ?? null,
         discountValue: discountValue != null ? Number(discountValue) : null,
-        discountAmount: discountAmount != null ? Number(discountAmount) : null,
-        netTotal: netTotal != null
-          ? Number(netTotal)
-          : (headerTotalProductsPrice != null ? Number(headerTotalProductsPrice) : null),
-        totals: getSaleTotals(lines, discount)
+        discountAmount: financials.discountAmount,
+        totalProductsPrice: financials.gross,
+        netTotal: financials.netTotal,
+        valueDelivery,
+        tip,
+        change,
+        totals: financials.totals
       }
 
       return { success: true, message: response.message, data: sale }
@@ -399,7 +366,8 @@ export const orderResolvers = {
     registerSalesStore: async (_parent: unknown, args: RegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
       const startedAt = Date.now()
       // Se conserva el fallback legado. El tenant de sesión tiene prioridad.
-      const idStore = context.restaurant ?? args.idStore
+      const validator = new ContextValidator(context)
+      const idStore = validator.validateUserSession()
       if (!idStore) return toGraphQLResponse(failure('Store not found'))
 
       const orderServices = StatusOrderServicesTenantFactory(idStore)
@@ -423,7 +391,7 @@ export const orderResolvers = {
         }
 
         // Validaciones de entrada antes de abrir la transacción.
-        
+
         const lines = prepareLines(args.input, context)
         const statusServices = StatusOrderTypesServicesTenantFactory(idStore)
         const clientServices = ClientServicesTenantFactory(idStore)
