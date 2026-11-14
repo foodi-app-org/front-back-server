@@ -6,13 +6,10 @@ import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructu
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
-import {
-  computeDiscountAmount,
-  computeExtrasTotal,
-  computeLineBaseTotal,
-  computeNetTotal,
-  normalizeSellableExtras
-} from '../../../application/order-total'
+import { normalizeSellableExtras } from '../../../application/order-total'
+import { calculateSalePricing, assertSoldRows, verifySalePricing, type PricingRow } from '../../../application/sale-pricing'
+import { assertSaleHeader, assertDiscountHeader, positiveQuantity } from '../../../application/sale-pricing-policy'
+import { SequelizeSalePricingRepository } from '../../../infrastructure/repositories/sequelize-sale-pricing.repository'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
 import { StateShoppingCart, type RegisterSalesStoreInput } from '../inputs'
 import type { PubSub } from 'graphql-subscriptions'
@@ -29,11 +26,11 @@ import { ShoppingCartServicesTenantFactory } from '@modules/shopping/main/factor
 import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-services.factory'
 import { convertTimezone } from '@shared/utils/convert-time-zone'
 import { computePersistedSaleTotals, moneyNumber, productMinor } from 'exact-cart-totals'
+import { mapLegacyTotals, mapSaleFinancials } from '../mappers/sale-financials.mapper'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
 import type { Maybe, ResponseSalesStore } from 'generated/graphql'
 import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
 import { SocketEvents } from '@shared/constants/socket-events'
-import { ProductServicesTenantFactory } from '@modules/products/main/factories/products-services.factory'
 import { ContextValidator } from '@shared/utils/context-validator'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
@@ -79,11 +76,6 @@ type SoldProduct = {
 }
 
 type CartLineWithProduct = CartLine & { products?: SoldProduct | null }
-
-type DiscountLike = {
-  type?: string | null
-  value?: number | string | null
-}
 
 type GetAllSalesArgs = {
   idStore?: string
@@ -183,7 +175,11 @@ const mapValidationErrors = (details: Array<{
 const prepareLines = (items: SaleLineInput[], context: GraphQLContext) => {
   return items.map(item => {
     const selectedExtras = Array.isArray(item.dataExtra)
-      ? item.dataExtra.filter(extra => Number(extra?.quantity) >= 1)
+      ? item.dataExtra.filter(extra => {
+        if (extra?.quantity == null || Number(extra.quantity) === 0) return false
+        positiveQuantity(extra.quantity, 'extra.quantity')
+        return true
+      })
       : item.dataExtra
     const normalizedItem = { ...item, dataExtra: selectedExtras }
     const { error } = shoppingCartItemSchema.validate({
@@ -196,10 +192,7 @@ const prepareLines = (items: SaleLineInput[], context: GraphQLContext) => {
       throw new SaleAbort(failure('Validation error', mapValidationErrors(error.details)))
     }
 
-    const quantity = Number(item.cantProducts ?? 0)
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      throw new SaleAbort(failure(`Invalid quantity for pId=${item.pId}`))
-    }
+    const quantity = positiveQuantity(item.cantProducts, `product ${item.pId}.quantity`)
 
     return {
       item,
@@ -315,14 +308,24 @@ export const orderResolvers = {
         lines as unknown as Parameters<typeof computePersistedSaleTotals>[0],
         { totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
           discountAmount, netTotal, discount, valueDelivery, tip },
-        { lang: 'es' }
+        { lang: 'es', includeLines: true }
       )
-      console.log(financials)
+      const financialView = mapSaleFinancials(financials, {
+        totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
+        discountAmount, netTotal, discount, valueDelivery, tip, change
+      })
       if (!financials.valid) {
         // Historical mismatch is a reconciliation task, not permission to overwrite a sale.
         LogWarning(`Sale financial reconciliation: ${financials.issues.join(', ')}`)
       }
       const sale = {
+        id: clientId,
+        idStore,
+        payId,
+        channel: response.data.channel,
+        pSState: response.data.pSState,
+        locationUser: response.data.locationUser,
+        updatedAt: response.data.updatedAt ? convertTimezone(response.data.updatedAt as Date) : null,
         createdAt: convertTimezone(createdAt as Date),
         store,
         client: client?.data,
@@ -338,10 +341,11 @@ export const orderResolvers = {
         discountAmount: financials.discountAmount,
         totalProductsPrice: financials.gross,
         netTotal: financials.netTotal,
-        valueDelivery,
-        tip,
-        change,
-        totals: financials.totals
+        valueDelivery: financialView.delivery,
+        tip: financialView.tip,
+        change: financialView.change,
+        totals: mapLegacyTotals(financials.totals),
+        financials: financialView
       }
 
       return { success: true, message: response.message, data: sale }
@@ -384,6 +388,10 @@ export const orderResolvers = {
           return toGraphQLResponse(failure('Code sale reference is required'))
         }
 
+        if (typeof args.shoppingCartRefCode !== 'string' || !args.shoppingCartRefCode.trim()) {
+          return toGraphQLResponse(failure('Shopping cart reference is required'))
+        }
+
         // La restricción UNIQUE del tenant sigue siendo la garantía final.
         const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
         if (previous?.success && previous.data) {
@@ -400,7 +408,7 @@ export const orderResolvers = {
           clientServices.findById.execute(idStore)
         ])
 
-        const productServices = ProductServicesTenantFactory(idStore)
+        const pricingRepository = new SequelizeSalePricingRepository(idStore)
         const shoppingServices = ShoppingServicesTenantFactory(idStore)
         const extraServices = ProductExtraServicesTenantFactory(idStore)
         const optionalServices = ProductOptionalServicesTenantFactory(idStore)
@@ -410,33 +418,18 @@ export const orderResolvers = {
         // Transacción administrada: cualquier excepción revierte TODA la venta.
         // No ejecutar escrituras concurrentes sobre la misma transacción.
         const created = await connect().transaction(async transaction => {
-          let computedTotalProductsPrice = 0
+          const pricingRows: PricingRow[] = []
 
           for (const { item, quantity, isFree, sellableExtras } of lines) {
-            const product = await productServices.findById.execute(String(item.pId))
-            if (!product?.data) {
-              throw new SaleAbort(failure(`Product with id ${item.pId} not found`))
-            }
-
-            // La fuente de precio es el catálogo en el backend; no el cliente.
-            const rawUnitPrice = Number(product.data.ProPrice)
-            const unitPrice = Number.isFinite(rawUnitPrice) ? rawUnitPrice : 0
+            const { unitPrice } = await pricingRepository.getProduct(String(item.pId), transaction)
             const effectivePrice = isFree ? 0 : unitPrice
-
+            // Reprice every selected extra from its own active catalog entry.
+            // normalizeSellableExtras keeps the existing absolute quantity contract.
+            const catalogExtras = await pricingRepository.getExtras(String(item.pId), sellableExtras, transaction)
             await parentStock.decrement(item.pId, quantity, idStore, transaction)
-
-            for (const extra of sellableExtras) {
-              const originalExPid = extra.exPid
-              const extraQty = Number(extra.quantity ?? 0)
-              if (!originalExPid || extraQty <= 0) continue
-              await extraStock.decrement(originalExPid, extraQty, idStore, transaction)
+            for (const extra of catalogExtras) {
+              await extraStock.decrement(extra.exPid, extra.quantity, idStore, transaction)
             }
-
-            computedTotalProductsPrice += computeLineBaseTotal({
-              priceProduct: effectivePrice,
-              cantProducts: quantity,
-              free: isFree
-            }) + (isFree ? 0 : computeExtrasTotal(sellableExtras))
 
             const timestamp = new Date()
             const cart = await shoppingServices.create.execute({
@@ -445,7 +438,7 @@ export const orderResolvers = {
               shoppingCartRefCode: args.shoppingCartRefCode,
               priceProduct: effectivePrice,
               free: isFree,
-              cantProducts: item.cantProducts,
+              cantProducts: quantity,
               idUser: item.idUser,
               comments: item.comments,
               id: args.id,
@@ -462,24 +455,34 @@ export const orderResolvers = {
 
             // El pId es el snapshot vendido, no necesariamente el pId del catálogo.
             const soldPid = cart.data.pId
-            if (sellableExtras.length > 0) {
+            const soldExtras = catalogExtras.map(extra => ({
+              originalExPid: extra.exPid,
+              exPid: uuidv4(),
+              idStore,
+              pCodeRef: args.pCodeRef,
+              extraName: extra.extraName,
+              extraPrice: extra.extraPrice,
+              pId: soldPid,
+              quantity: extra.quantity
+            }))
+            if (soldExtras.length > 0) {
               const extrasResult = await extraServices.bulkCreateExtraSold.execute(
-                sellableExtras.map(extra => ({
-                  originalExPid: extra.exPid,
-                  exPid: uuidv4(),
-                  idStore,
-                  pCodeRef: args.pCodeRef,
-                  extraName: extra.extraName,
-                  extraPrice: isFree ? 0 : extra.extraPrice,
-                  pId: soldPid,
-                  quantity: extra.quantity
-                })),
+                soldExtras,
                 transaction
               )
               if (!extrasResult?.success) {
                 throw new SaleAbort(failure(extrasResult?.message ?? 'Failed to create sold extras'))
               }
             }
+
+            if (!cart.data.shoppingCartId) {
+              throw new SaleAbort(failure('Missing persisted shopping cart identifier'))
+            }
+            pricingRows.push({
+              shoppingCartId: String(cart.data.shoppingCartId), idStore,
+              priceProduct: effectivePrice, cantProducts: quantity, free: isFree,
+              products: { ProPrice: unitPrice, free: isFree, dataExtra: soldExtras }
+            })
 
             const optionals = item.dataOptional || []
             if (optionals.length > 0) {
@@ -503,16 +506,14 @@ export const orderResolvers = {
             shoppingCartRefCode, pCodeRef, tip = 0
           } = args
 
-          // Se conserva la fórmula y la representación de descuentos de escritura.
-          const discountInput = (discount ?? null) as unknown as DiscountLike | null
-          const discountAmount = computeDiscountAmount(discountInput, computedTotalProductsPrice)
-          const netTotal = computeNetTotal(computedTotalProductsPrice, discountAmount)
-          const discountType = discountInput?.type === 'AMOUNT'
-            ? 'AMOUNT'
-            : (discountInput ? 'PERCENT' : null)
-          const discountValue = discountInput && Number.isFinite(Number(discountInput.value))
-            ? Math.max(0, Math.round(Number(discountInput.value)))
-            : null
+          const pricing = calculateSalePricing(pricingRows, {
+            discount, valueDelivery, tip, change, totalProductsPrice: args.totalProductsPrice
+          })
+          const { header, discount: discountInput } = pricing
+          // Actual database snapshots must reconcile before the managed transaction commits.
+          const soldRows = await pricingRepository.readSoldRows(String(shoppingCartRefCode), pCodeRef, transaction)
+          assertSoldRows(pricingRows, soldRows)
+          verifySalePricing(soldRows, header, discountInput)
 
           const timestamp = new Date()
           const sale = {
@@ -521,18 +522,11 @@ export const orderResolvers = {
             idStatus: statusOrderType?.idStatus,
             idStore,
             pSState: StateShoppingCart.ACTIVE,
-            valueDelivery,
             shoppingCartRefCode,
             locationUser: '',
-            discount,
-            discountType,
-            discountValue,
-            discountAmount,
-            netTotal,
-            tip,
-            change,
+            discount: discountInput,
+            ...header,
             pCodeRef,
-            totalProductsPrice: computedTotalProductsPrice,
             payId,
             pickUp: PickUpMethod.inStorePickup,
             channel: Channel.store,
@@ -545,6 +539,9 @@ export const orderResolvers = {
             throw new SaleAbort(failure('Validation error', mapValidationErrors(error.details)))
           }
 
+          // Joi may otherwise coerce, strip or round decimal inputs.
+          assertSaleHeader(header, value)
+          assertDiscountHeader(discountInput, value)
           creatingHeader = true
           const result = await orderServices.create.execute(value, transaction)
           if (!result?.success || !result.data) {
@@ -556,6 +553,9 @@ export const orderResolvers = {
               errors: []
             }, isUniqueViolation(message))
           }
+          // Confirm the persisted entity echoes the exact header (integration-test this DTO).
+          assertSaleHeader(header, result.data)
+          assertDiscountHeader(discountInput, result.data)
           return result
         })
 

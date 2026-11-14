@@ -1,7 +1,139 @@
+enum SaleTotalUnit { MONEY PERCENT }
+enum SaleTotalEffect { ADD SUBTRACT INFO TOTAL }
+
 type OrderTotals {
   key: String
   name: String
   value: String
+  unit: SaleTotalUnit
+  numericValue: Float
+  exactValue: String
+}
+
+type SaleSummaryRow {
+  key: String!
+  name: String!
+  value: Float!
+  exactValue: String!
+  unit: SaleTotalUnit!
+  effect: SaleTotalEffect!
+}
+
+type SaleFinancialExact {
+  gross: String!
+  discountAmount: String!
+  netTotal: String!
+  delivery: String!
+  tip: String!
+  payableTotal: String!
+  change: String
+}
+
+# Null means the original field was absent, not that its amount was zero.
+type SalePersistedAmounts {
+  gross: String
+  discountAmount: String
+  netTotal: String
+  delivery: String
+  tip: String
+  change: String
+}
+
+type SaleCalculatedExact {
+  subtotal: String!
+  productGross: String!
+  extraGross: String!
+  totalVat: String!
+  totalDiscounts: String!
+  grandTotal: String!
+  discountableSubtotal: String!
+  globalDiscountValue: String!
+  discountAmount: String!
+  netTotal: String!
+  productNet: String!
+  extraNet: String!
+  delivery: String!
+  tip: String!
+  payableTotal: String!
+  courtesyAmount: String
+  nominalGross: String
+}
+
+type SaleCalculatedExtra {
+  id: ID!
+  quantity: Float!
+  gross: Float!
+  discountAmount: Float!
+  net: Float!
+}
+
+type SaleCalculatedLine {
+  id: ID!
+  unitPrice: Float!
+  quantity: Float!
+  extrasTotal: Float!
+  lineSubtotal: Float!
+  vatAmount: Float!
+  discountAmount: Float!
+  free: Boolean!
+  originalProductTotal: Float
+  courtesyAmount: Float
+  productGross: Float!
+  discountableSubtotal: Float!
+  globalDiscountAmount: Float!
+  commercialDiscountAmount: Float!
+  productNet: Float!
+  extrasNet: Float!
+  netTotal: Float!
+  extras: [SaleCalculatedExtra!]!
+}
+
+type SaleCalculatedTotals {
+  subtotal: Float!
+  totalExtras: Float!
+  totalVat: Float!
+  totalDiscounts: Float!
+  grandTotal: Float!
+  globalDiscountValue: Float!
+  globalDiscountPercent: Float!
+  grandTotalAfterGlobalDiscount: Float!
+  globalDiscountType: String!
+  globalDiscountRequestedValue: Float!
+  productGross: Float!
+  nominalGross: Float
+  courtesyAmount: Float
+  discountableSubtotal: Float!
+  protectedExtras: Float!
+  productNet: Float!
+  extraNet: Float!
+  discountAmount: Float!
+  netTotal: Float!
+  delivery: Float!
+  tip: Float!
+  payableTotal: Float!
+  totals: [OrderTotals!]!
+  exact: SaleCalculatedExact!
+  warnings: [String!]!
+  lines: [SaleCalculatedLine!]!
+}
+
+type SaleFinancials {
+  source: String!
+  valid: Boolean!
+  issues: [String!]!
+  breakdownVerified: Boolean!
+  currency: String!
+  gross: Float!
+  discountAmount: Float!
+  netTotal: Float!
+  delivery: Float!
+  tip: Float!
+  payableTotal: Float!
+  change: Float
+  persisted: SalePersistedAmounts!
+  exact: SaleFinancialExact!
+  calculated: SaleCalculatedTotals
+  summary: [SaleSummaryRow!]!
 }
 
 # Stores
@@ -11,21 +143,18 @@ type StoreOrders {
   idStore: ID
   ppState: Int
   channel: Int
-  change: Int
+  change: Float
   pCodeRef: String
   status: String
   pSState: ID
   payId: ID
   totalProductsPrice: Float
-  # Structured discount + net income (accounting source of truth).
-  # discountType: 'PERCENT' | 'AMOUNT' at sale time.
-  # discountValue: user-entered figure (percent 0-100 or money amount).
-  # discountAmount: money actually discounted.
-  # netTotal: totalProductsPrice (gross) - discountAmount.
   discountType: String
   discountValue: Int
   discountAmount: Float
   netTotal: Float
+  valueDelivery: Float
+  tip: Float
   unidProducts: Int
   createdAt: DateTime
   updatedAt: DateTime
@@ -42,6 +171,7 @@ type StoreOrders {
   totals: [OrderTotals]
   statusOrder: OrderStatusType
   paymentMethod: PaymentMethod
+  financials: SaleFinancials
 }
 type OrderPapu {
   id: String
@@ -50,14 +180,12 @@ type OrderPapu {
   totalProductsPrice: Int
   unidProducts: Int
 }
-
 type ResponseSalesStore {
   success: Boolean
   message: String
   errors: [errors]
   data: StoreOrders
 }
-
 type Query {
   getOneSalesStore(pCodeRef: String): ResponseSalesStore
   getAllSalesStore(idStore: ID, pId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int, fromDate: String, toDate: String, channel: Int): [StoreOrders]
