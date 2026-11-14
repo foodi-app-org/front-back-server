@@ -26,7 +26,6 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     data: ShoppingCart,
     transaction?: Transaction
   ): Promise<ShoppingCart | null> {
-    console.log({dataProduct: data})
     try {
       // Fetch product only if exists
       const product = await models.Product.schema(this.tenant).findOne({
