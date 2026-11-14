@@ -1,25 +1,27 @@
-import { GraphQLResolveInfo } from 'graphql'
-
 import { Channel } from '../../../../../shared/constants/channel'
 import { PickUpMethod } from '../../../../../shared/constants/typePickUp'
 import connect from '../../../../../shared/infrastructure/db/sequelize/sequelize.connect'
-import { GraphQLContext } from '../../../../../shared/types/context'
+import type { GraphQLContext } from '../../../../../shared/types/context'
 import { ShoppingServicesTenantFactory } from '../../../../shopping/infrastructure/services'
 import { StoreServicesPublic } from '../../../../store/infrastructure/services'
 import { UserServices } from '../../../../user/main/factories/user-services.factory'
 import { StatusOrderServicesTenantFactory } from '../../../infrastructure/services'
-// import { computeDiscountAmount, computeExtrasTotal, computeLineBaseTotal, computeNetTotal, normalizeSellableExtras } from '../../../application/order-total'
-import { computeDiscountAmount, computeExtrasTotal, computeLineBaseTotal, computeNetTotal, normalizeSellableExtras } from '../../../application/order-total'
-
+import {
+  computeDiscountAmount,
+  computeExtrasTotal,
+  computeLineBaseTotal,
+  computeNetTotal,
+  normalizeSellableExtras
+} from '../../../application/order-total'
 import { shoppingCartItemSchema, statusOrderSchema } from '../../../infrastructure/validators'
-import { RegisterSalesStoreInput, StateShoppingCart } from '../inputs'
-import { PubSub } from 'graphql-subscriptions'
+import { StateShoppingCart, type RegisterSalesStoreInput } from '../inputs'
+import type { PubSub } from 'graphql-subscriptions'
 import { ProductExtraServicesTenantFactory } from '../../../../product_extra/main/factories/product-extra-services.factory'
 import { ExtraStockServicesTenantFactory } from '../../../../product_extra/infrastructure/inventory/extra-stock.factory'
 import { StockServicesTenantFactory } from '../../../../stock/main/factories/stock.factory'
 import { InsufficientStockError, StockValidationError } from '../../../../stock/domain/errors/errors'
 import { ProductOptionalServicesTenantFactory } from '../../../../product_optional_extra/main/factories/product-optional-extra-services.factory'
-import { v4 as uuiv4 } from 'uuid'
+import { v4 as uuidv4 } from 'uuid'
 import { StatusOrderTypesServicesTenantFactory } from '@modules/status_order_types/main/factories/status_order_types.factory'
 import { StatusTypeOrder } from '@shared/constants/statusTypeOrder'
 import { ClientServicesTenantFactory } from '@modules/clients/main/factories/roles-services.factory'
@@ -28,744 +30,643 @@ import { StoreServicesTenantFactory } from '@modules/store/main/factories/store-
 import { convertTimezone } from '@shared/utils/convert-time-zone'
 import { computeCartTotals } from 'exact-cart-totals'
 import { PaymentMethodServicesFactory } from '@modules/payment_method/main/factories'
-import { Maybe, ResponseSalesStore } from 'generated/graphql'
-import {
-  LogDanger,
-  LogInfo,
-  LogWarning
-} from '@shared/utils/logger.utils'
+import type { Maybe, ResponseSalesStore } from 'generated/graphql'
+import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
 import { SocketEvents } from '@shared/constants/socket-events'
 import { ProductServicesTenantFactory } from '@modules/products/main/factories/products-services.factory'
+import { ContextValidator } from '@shared/utils/context-validator'
+
+// Contratos internos: los DTO de dominio y GraphQL no son idénticos.
+type SaleResult = {
+  success: boolean
+  message: string
+  data?: unknown
+  errors?: unknown[] | null
+}
+
+type StatusServices = ReturnType<typeof StatusOrderTypesServicesTenantFactory>
+type OrderStatus = NonNullable<Awaited<ReturnType<StatusServices['findById']['execute']>>>
+
+type StoreOrderParent = {
+  id?: string | null
+  idStore?: string | null
+  idStatus?: string | null
+  status?: string | null
+  statusOrder?: Partial<OrderStatus> | null
+  dataValues?: {
+    id?: string | null
+    idStore?: string | null
+    idStatus?: string | null
+    status?: string | null
+  }
+}
+
+type SaleLineInput = RegisterSalesStoreInput['input'][number]
+type ShoppingServices = ReturnType<typeof ShoppingCartServicesTenantFactory>
+type CartLine = NonNullable<Awaited<ReturnType<ShoppingServices['getAllByRefCode']['execute']>>>[number]
+
+type SoldExtra = {
+  extraPrice?: number | string | null
+  quantity?: number | string | null
+  newExtraPrice?: number | string | null
+  [field: string]: unknown
+}
+
+type SoldProduct = {
+  dataExtra?: SoldExtra[] | null
+  dataOptional?: Record<string, unknown>[] | null
+  [field: string]: unknown
+}
+
+type CartLineWithProduct = CartLine & { products?: SoldProduct | null }
+
+type DiscountLike = {
+  type?: string | null
+  value?: number | string | null
+}
+
+type GetAllSalesArgs = {
+  idStore?: string
+  search?: string
+  min?: number
+  max?: number
+  fromDate?: string
+  toDate?: string
+  channel?: number
+}
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
+
+const failure = (message: string, errors: unknown[] = []): SaleResult => ({
+  success: false,
+  message,
+  data: null,
+  errors
+})
+
+// Mantiene el contrato de salida utilizado por el schema actual. Los DTO
+// devueltos por los servicios no son tipos GraphQL generados.
+const toGraphQLResponse = (result: SaleResult): Maybe<ResponseSalesStore> =>
+  result as unknown as Maybe<ResponseSalesStore>
+
+const existingSale = (data: unknown): SaleResult => ({
+  success: true,
+  message: 'Sale already registered',
+  data,
+  errors: []
+})
+
+/** Lanzar este error dentro de la transacción garantiza el rollback. */
+class SaleAbort extends Error {
+  constructor(
+    readonly response: SaleResult,
+    readonly recheckIdempotency = false
+  ) {
+    super(response.message)
+    this.name = 'SaleAbort'
+  }
+}
+
+const isUniqueViolation = (error: unknown): boolean => {
+  const candidate = error as {
+    name?: string
+    code?: string
+    parent?: { code?: string }
+    original?: { code?: string }
+  } | null
+
+  return candidate?.name === 'SequelizeUniqueConstraintError' ||
+    candidate?.code === '23505' ||
+    candidate?.parent?.code === '23505' ||
+    candidate?.original?.code === '23505' ||
+    /unique constraint|duplicate key|already exists/i.test(errorMessage(error))
+}
+
+const toFiniteNumber = (value: unknown): number => {
+  const number = Number(value ?? 0)
+  return Number.isFinite(number) ? number : 0
+}
+
+/** Compatibilidad con descuentos históricos: número, objeto y JSON. */
+const resolveDiscountPercent = (raw: unknown): number => {
+  if (raw == null) return 0
+  if (typeof raw === 'number') return toFiniteNumber(raw)
+  if (typeof raw === 'object') {
+    return toFiniteNumber((raw as { value?: unknown }).value)
+  }
+  if (typeof raw !== 'string') return 0
+
+  const value = raw.trim()
+  if (!value || value === '[object Object]') return 0
+  const numeric = Number(value)
+  if (Number.isFinite(numeric)) return numeric
+
+  try {
+    const parsed: unknown = JSON.parse(value)
+    // No se aceptan JSON que solo envuelven otras cadenas indefinidamente.
+    return typeof parsed === 'string' ? toFiniteNumber(parsed) : resolveDiscountPercent(parsed)
+  } catch {
+    return 0
+  }
+}
+
+const mapShoppingCart = (cart: CartLine): CartLineWithProduct & {
+  products: SoldProduct & {
+    ExtProductFoodsAll?: SoldExtra[]
+    ExtProductFoodOptional?: Record<string, unknown>[]
+  }
+} => {
+  // El repositorio incluye asociaciones Sequelize y devuelve objetos planos;
+  // su firma de dominio todavía no declara la propiedad `products`.
+  const line = cart as CartLineWithProduct
+  const product = line.products
+  return {
+    ...line,
+    products: {
+      ...product,
+      ExtProductFoodsAll: product?.dataExtra?.map(extra => ({
+        ...extra,
+        newExtraPrice: extra.newExtraPrice ??
+          (toFiniteNumber(extra.extraPrice) * toFiniteNumber(extra.quantity))
+      })),
+      ExtProductFoodOptional: product?.dataOptional?.map(optional => ({ ...optional }))
+    }
+  }
+}
+
+const getSaleTotals = (shopping: CartLine[], discount: unknown) => {
+  // Mantener las opciones y el formato existentes de exact-cart-totals evita
+  // alterar el contrato de lectura y la reimpresión en este refactor.
+  const calculated = computeCartTotals(
+    shopping as unknown as Parameters<typeof computeCartTotals>[0],
+    {
+      currencySymbol: '$',
+      includeExtras: true,
+      globalDiscountPercent: resolveDiscountPercent(discount),
+      includeBreakdownByStore: false,
+      includeLines: false,
+      formatNumbers: true,
+      lang: 'es'
+    }
+  ) as unknown as { totals?: unknown[] } | null
+
+  return Array.isArray(calculated?.totals) ? calculated.totals : []
+}
+
+const mapValidationErrors = (details: Array<{
+  message: string
+  path: Array<string | number>
+  type: string
+  context?: unknown
+}>) => details.map(({ message, path, type, context }) => ({
+  message,
+  path,
+  type,
+  context
+}))
+
+/** Valida todas las líneas antes de tomar locks de inventario. */
+const prepareLines = (items: SaleLineInput[], context: GraphQLContext) => {
+  return items.map(item => {
+    const selectedExtras = Array.isArray(item.dataExtra)
+      ? item.dataExtra.filter(extra => Number(extra?.quantity) >= 1)
+      : item.dataExtra
+    const normalizedItem = { ...item, dataExtra: selectedExtras }
+    const { error } = shoppingCartItemSchema.validate({
+      ProPrice: 0,
+      id: context.User?.id ?? null,
+      ...normalizedItem
+    }, { abortEarly: false })
+
+    if (error) {
+      throw new SaleAbort(failure('Validation error', mapValidationErrors(error.details)))
+    }
+
+    const quantity = Number(item.cantProducts ?? 0)
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new SaleAbort(failure(`Invalid quantity for pId=${item.pId}`))
+    }
+
+    return {
+      item,
+      quantity,
+      isFree: item.free === true,
+      sellableExtras: normalizeSellableExtras(selectedExtras, quantity)
+    }
+  })
+}
+
+const publishSale = async (
+  context: GraphQLContext,
+  order: { id: string; idStore: string; pCodeRef: string }
+): Promise<void> => {
+  if (!context.pubsub) return
+
+  try {
+    await context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, {
+      newStoreOrder: order
+    })
+  } catch (error) {
+    // La venta ya se confirmó: una notificación fallida no cambia su resultado.
+    LogWarning(`NEW_STORE_ORDER publish failed for ${order.pCodeRef}: ${errorMessage(error)}`)
+  }
+}
 
 export const orderResolvers = {
   Type: {
     StoreOrders: {
-      getUser: async (parent: { dataValues: { id: string } }, _args: Record<string, unknown>, context: GraphQLContext) => {
-        const idUser = parent?.dataValues?.id ?? context?.User?.id
-        if (!idUser) return null
-        return await UserServices.findById.execute(idUser)
+      getUser: async (parent: StoreOrderParent, _args: Record<string, unknown>, context: GraphQLContext) => {
+        const idUser = parent?.dataValues?.id ?? context.User?.id
+        return idUser ? UserServices.findById.execute(idUser) : null
       },
-      getOneStore: async (parent: { dataValues: { idStore: string } }, _args: Record<string, unknown>, _context: GraphQLContext) => {
-        if (!parent?.dataValues?.idStore) return null
-        return await StoreServicesPublic.findById.execute(parent.dataValues.idStore)
+
+      getOneStore: async (parent: StoreOrderParent, _args: Record<string, unknown>, _context: GraphQLContext) => {
+        const idStore = parent?.dataValues?.idStore
+        return idStore ? StoreServicesPublic.findById.execute(idStore) : null
       },
-      statusOrder: async (parent: { status: string }, _args: Record<string, unknown>, context: GraphQLContext) => {
-        const idStore = context.restaurant ?? ''
-        const servicesStatusTypes = StatusOrderTypesServicesTenantFactory(idStore)
-        if (!parent?.status) return null
-        return await servicesStatusTypes.findByName.execute(parent.status)
+
+      statusOrder: async (parent: StoreOrderParent, _args: Record<string, unknown>, context: GraphQLContext) => {
+        const idStore = context.restaurant
+        if (!idStore) return null
+
+        // getOneSalesStore ya cargó el estado completo; no repetir la consulta.
+        if (parent.statusOrder?.idStatus && parent.statusOrder?.name) {
+          return parent.statusOrder
+        }
+
+        const idStatus = parent.idStatus ?? parent.dataValues?.idStatus
+        const name = parent.statusOrder?.name?.trim()
+        if (!idStatus && !name) return null
+
+        const services = StatusOrderTypesServicesTenantFactory(idStore)
+        if (idStatus) return services.findById.execute(idStatus)
+        return name ? services.findByName.execute(name) : null
       }
     }
   },
+
   Query: {
-    getOneSalesStore: async (_: GraphQLResolveInfo, args: { pCodeRef: string }, context: GraphQLContext) => {
+    getOneSalesStore: async (_parent: unknown, args: { pCodeRef?: string | null }, context: GraphQLContext) => {
       const pCodeRef = args.pCodeRef
       if (!pCodeRef) {
-        return {
-          success: false,
+        return failure('Code sale reference is required', [{
           message: 'Code sale reference is required',
-          errors: [
-            {
-              message: 'Code sale reference is required',
-              path: ['pCodeRef'],
-              type: 'required',
-              context:
-              {
-                label: 'pCodeRef', key: 'pCodeRef'
-              }
-            }
-          ]
-        }
+          path: ['pCodeRef'],
+          type: 'required',
+          context: { label: 'pCodeRef', key: 'pCodeRef' }
+        }])
       }
-      const idStore = context.restaurant ?? ''
-      const services = StatusOrderServicesTenantFactory(idStore)
-      const servicesStatusTypes = StatusOrderTypesServicesTenantFactory(idStore)
-      if (!idStore) {
-        return {
-          success: false,
-          message: 'Store not found',
-          errors: []
-        }
-      }
-      const response = await services.getOneByCodeRef.execute(args.pCodeRef)
-      const statusOrderType = await servicesStatusTypes.findById.execute(response?.data?.idStatus ?? '')
-      const {
-        success,
-        message,
-        data
-      } = response ?? {
-        success: false,
-        message: 'Error al obtener la venta',
-        data: null
-      }
-      if (success === false) {
-        throw new Error(message)
+
+      const idStore = new ContextValidator(context).validateUserSession()
+      if (!idStore) return failure('Store not found')
+
+      const orderServices = StatusOrderServicesTenantFactory(idStore)
+      const response = await orderServices.getOneByCodeRef.execute(pCodeRef)
+      if (!response?.success || !response.data) {
+        throw new Error(response?.message ?? 'Error al obtener la venta')
       }
 
       const {
         id: clientId,
+        idStatus,
+        payId,
         createdAt,
         shoppingCartRefCode,
         discount,
-        // Structured discount + net income persisted at sale time. May be null
-        // for legacy orders registered before these columns existed.
         discountType,
         discountValue,
         discountAmount,
         netTotal,
         totalProductsPrice: headerTotalProductsPrice
-      } = (data ?? {
-        id: null,
-        createdAt: null,
-        shoppingCartRefCode: ''
-      }) as any
+      } = response.data
+
       const shoppingServices = ShoppingCartServicesTenantFactory(idStore)
-      const shopping = await shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef)
-      const servicesStore = StoreServicesTenantFactory(idStore)
-      const servicesClient = ClientServicesTenantFactory(idStore)
-      const store = await servicesStore.findById.execute(idStore)
-      const client = await servicesClient.findById.execute(String(clientId || idStore))
-      const { getOneById } = PaymentMethodServicesFactory(context?.restaurant ?? '')
-      const paymentMethod = await getOneById.execute(String(data?.payId))
-      const shoppingResponse = shopping?.map(cart => {
-        return {
-          ...cart,
-          // @ts-ignore
-          products: {
-            // @ts-ignore
-            ...cart.products,
-            // @ts-ignore
-            ExtProductFoodsAll: cart.products?.dataExtra?.map((extras: any) => {
-              // The sold-extra snapshot persists unit `extraPrice` + `quantity`
-              // but not the line subtotal. Derive `newExtraPrice` here (read-path
-              // only) so the sale detail and invoice REPRINT show the per-extra
-              // subtotal, matching the live POS which computes it in the cart.
-              // Falls back to the stored value when present.
-              const unit = Number(extras?.extraPrice ?? 0)
-              const qty = Number(extras?.quantity ?? 0)
-              const derived = Number.isFinite(unit) && Number.isFinite(qty) ? unit * qty : 0
-              return {
-                ...extras,
-                newExtraPrice: extras?.newExtraPrice ?? derived
-              }
-            }),
-            // @ts-ignore
-            ExtProductFoodOptional: cart.products?.dataOptional?.map((optionals: any) => {
-              return {
-                ...optionals,
-              }
-            })
-          }
-        }
-      })
+      const storeServices = StoreServicesTenantFactory(idStore)
+      const clientServices = ClientServicesTenantFactory(idStore)
+      const statusServices = StatusOrderTypesServicesTenantFactory(idStore)
+      const paymentServices = PaymentMethodServicesFactory(idStore)
 
-      // The `discount` column may hold a plain number, a numeric string, a
-      // DiscountInput object ({ type, value }) or a JSON string of it. Older
-      // rows persisted the object via String() coercion, producing the literal
-      // "[object Object]", which crashed computeCartTotals (it expects a
-      // number). Normalize to a safe numeric percent here (read-path only; the
-      // sales/write flow is untouched) so the sale detail and invoice never
-      // break for discounted sales.
-      const resolveDiscountPercent = (raw: unknown): number => {
-        if (raw == null) return 0
-        if (typeof raw === 'number') return Number.isFinite(raw) ? raw : 0
-        if (typeof raw === 'object') {
-          const value = (raw as { value?: unknown }).value
-          const n = Number(value)
-          return Number.isFinite(n) ? n : 0
-        }
-        if (typeof raw === 'string') {
-          const trimmed = raw.trim()
-          if (trimmed === '' || trimmed === '[object Object]') return 0
-          const direct = Number(trimmed)
-          if (Number.isFinite(direct)) return direct
-          try {
-            const parsed = JSON.parse(trimmed)
-            return resolveDiscountPercent(parsed)
-          } catch {
-            return 0
-          }
-        }
-        return 0
-      }
-      const discountPercent = resolveDiscountPercent(discount)
+      // Todas estas lecturas dependen de la cabecera, pero no entre sí.
+      const [shopping, store, client, paymentMethod, statusOrder] = await Promise.all([
+        shoppingServices.getAllByRefCode.execute(String(shoppingCartRefCode), pCodeRef),
+        storeServices.findById.execute(idStore),
+        clientServices.findById.execute(String(clientId || idStore)),
+        payId ? paymentServices.getOneById.execute(String(payId)) : Promise.resolve(null),
+        idStatus ? statusServices.findById.execute(idStatus) : Promise.resolve(null)
+      ])
 
-      const totals = computeCartTotals(shopping as any[], {
-        currencySymbol: '$',
-        includeExtras: true,
-        globalDiscountPercent: discountPercent,
-        includeBreakdownByStore: false,
-        includeLines: false,
-        formatNumbers: true,
-        lang: 'es'
-      })
-
+      const lines = shopping ?? []
       const sale = {
         createdAt: convertTimezone(createdAt as Date),
         store,
         client: client?.data,
-        shoppingCarts: shoppingResponse,
+        shoppingCarts: shopping?.map(mapShoppingCart),
         pCodeRef,
         shoppingCartRefCode,
-        info: {
-          pCodeRef
-        },
+        info: { pCodeRef },
         paymentMethod,
-        statusOrder: statusOrderType ?? null,
+        statusOrder: statusOrder ?? null,
         discount,
-        // Structured discount + net income (accounting source of truth). These
-        // mirror the persisted header columns so the client can show the real
-        // discounted figures without recomputing. `netTotal` falls back to the
-        // gross header total for legacy rows that predate the net column.
         discountType: discountType ?? null,
         discountValue: discountValue != null ? Number(discountValue) : null,
         discountAmount: discountAmount != null ? Number(discountAmount) : null,
         netTotal: netTotal != null
           ? Number(netTotal)
           : (headerTotalProductsPrice != null ? Number(headerTotalProductsPrice) : null),
-        // The GraphQL `totals` field is `[OrderTotals]` (a list of
-        // { key, name, value }). `computeCartTotals` returns a summary object
-        // whose `.totals` property holds that list; expose the list so the
-        // field resolves correctly (it previously returned the object and threw
-        // "Expected Iterable" for StoreOrders.totals).
-        totals: Array.isArray((totals as any)?.totals) ? (totals as any).totals : []
+        totals: getSaleTotals(lines, discount)
       }
-      return {
-        success: true,
-        message,
-        data: sale
-      }
+
+      return { success: true, message: response.message, data: sale }
     },
 
-    getAllSalesStore: async (
-      _: GraphQLResolveInfo,
-      args: {
-        idStore?: string
-        search?: string
-        min?: number
-        max?: number
-        fromDate?: string
-        toDate?: string
-        channel?: number
-      },
-      context: GraphQLContext
-    ) => {
-      const idStore = context.restaurant ?? args?.idStore ?? ''
+    getAllSalesStore: async (_parent: unknown, args: GetAllSalesArgs, context: GraphQLContext) => {
+      const idStore = context.restaurant ?? args.idStore ?? ''
       const services = StatusOrderServicesTenantFactory(idStore)
       const response = await services.getAllByStatusType.execute({
-        search: args?.search,
-        min: args?.min,
-        max: args?.max,
-        fromDate: args?.fromDate,
-        toDate: args?.toDate,
-        channel: args?.channel
+        search: args.search,
+        min: args.min,
+        max: args.max,
+        fromDate: args.fromDate,
+        toDate: args.toDate,
+        channel: args.channel
       })
       return response?.data ?? []
     }
   },
+
   Mutation: {
-    registerSalesStore: async (
-      _: GraphQLResolveInfo,
-      args: RegisterSalesStoreInput,
-      context: GraphQLContext
-    ): Promise<any> => {
-      const start = Date.now()
+    registerSalesStore: async (_parent: unknown, args: RegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
+      const startedAt = Date.now()
+      // Se conserva el fallback legado. El tenant de sesión tiene prioridad.
       const idStore = context.restaurant ?? args.idStore
+      if (!idStore) return toGraphQLResponse(failure('Store not found'))
 
-      // 0. Validaciones previas (fuera de la transacción)
-      const storeExists = await StoreServicesPublic.findById.execute(idStore)
-      if (!storeExists) {
-        return {
-          success: false,
-          message: 'Store not found',
-          errors: []
-        }
-      }
+      const orderServices = StatusOrderServicesTenantFactory(idStore)
+      let creatingHeader = false
 
-      if (!Array.isArray(args.input) || args.input.length === 0) {
-        return {
-          success: false,
-          message: 'No products to add',
-          data: null,
-          errors: []
-        }
-      }
-
-      // 1. Instanciar servicios una sola vez
-      const ProductServices = ProductServicesTenantFactory(idStore)
-      const ShoppingServices = ShoppingServicesTenantFactory(idStore)
-      const StatusOrderServices = StatusOrderServicesTenantFactory(idStore)
-      const ProductExtraServices = ProductExtraServicesTenantFactory(idStore)
-      const ProductOptionalServices = ProductOptionalServicesTenantFactory(idStore)
-      const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
-      // Servicio de stock para el producto PADRE: hace lock FOR UPDATE, valida
-      // `manageStock` (bypass cuando el producto no se maneja por inventario) y
-      // lanza InsufficientStockError cuando no hay existencias suficientes.
-      const parentStock = StockServicesTenantFactory(idStore, context.pubsub)
-
-      // 2. IDEMPOTENCIA: `pCodeRef` es la clave de negocio de la venta y la envía
-      // el cliente. Si ya existe una orden con ese código (reintento por red,
-      // doble click o retry del cliente) devolvemos la venta existente SIN
-      // reinsertar líneas ni volver a descontar stock. Esta comprobación va
-      // ANTES de abrir la transacción y de tocar inventario, de modo que un
-      // reintento es un no-op seguro. La columna `pCodeRef` está indexada y la
-      // lectura es O(1), por lo que no penaliza el camino de alta concurrencia.
-      const existingOrder = await StatusOrderServices.getOneByCodeRef.execute(args.pCodeRef)
-      if (existingOrder?.success && existingOrder?.data) {
-        LogInfo(`registerSalesStore: pCodeRef ${args.pCodeRef} ya existe, respuesta idempotente`)
-        return {
-          success: true,
-          message: 'Sale already registered',
-          data: existingOrder.data as any,
-          errors: []
-        }
-      }
-
-      const sequelize = connect()
-      const t = await sequelize.transaction()
-      // Punto ÚNICO de cierre de la transacción: el `finally` hace rollback a
-      // menos que la venta se haya confirmado (`committed = true`). Así es
-      // imposible llamar a rollback dos veces o hacer rollback después del
-      // commit (eso lanzaría "Transaction cannot be rolled back because it has
-      // been finished"). Las salidas tempranas y el catch solo hacen `return` /
-      // registran el error; el `finally` se encarga de liberar la transacción y
-      // los locks FOR UPDATE.
-      let committed = false
       try {
+        const storeExists = await StoreServicesPublic.findById.execute(idStore)
+        if (!storeExists) return toGraphQLResponse(failure('Store not found'))
 
-        // Accumulate the order total in-flight (inside the transaction) instead
-        // of re-querying shopping_carts with sumPrice AFTER the loop. sumPrice
-        // ran outside the tx (never saw the just-inserted rows) and ignored
-        // extras, so the order was persisted with totalProductsPrice = 0/base.
-        // Here we compute total = base (priceProduct * cantProducts) + extras
-        // (sum of extraPrice * quantity for the selected complementos), which is
-        // O(1) per line and makes the header the single source of truth for all
-        // downstream sales metrics.
-        let computedTotalProductsPrice = 0
+        if (!Array.isArray(args.input) || args.input.length === 0) {
+          return toGraphQLResponse(failure('No products to add'))
+        }
+        if (typeof args.pCodeRef !== 'string' || !args.pCodeRef.trim()) {
+          return toGraphQLResponse(failure('Code sale reference is required'))
+        }
 
-        for (const item of args.input) {
-          // Keep only the complementos that were actually selected (quantity >=
-          // 1). Unselected extras may arrive with quantity null/0 (they exist in
-          // the product's catalog list but were not added); including them makes
-          // the item validator reject the whole sale. Normalizing here is the
-          // backend guard that complements the frontend filter and keeps the
-          // persisted sale consistent with the real selection.
-          const selectedExtras = Array.isArray(item.dataExtra)
-            ? item.dataExtra.filter((ex) => Number(ex?.quantity) >= 1)
-            : item.dataExtra
-          const normalizedItem = { ...item, dataExtra: selectedExtras }
-          const newItem = {
-            ProPrice: 0,
-            id: context?.User?.id ?? null,
-            ...normalizedItem
+        // La restricción UNIQUE del tenant sigue siendo la garantía final.
+        const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
+        if (previous?.success && previous.data) {
+          return toGraphQLResponse(existingSale(previous.data))
+        }
+
+        // Validaciones de entrada antes de abrir la transacción.
+        
+        const lines = prepareLines(args.input, context)
+        const statusServices = StatusOrderTypesServicesTenantFactory(idStore)
+        const clientServices = ClientServicesTenantFactory(idStore)
+        const [statusOrderType, client] = await Promise.all([
+          statusServices.findByName.execute(StatusTypeOrder.CONCLUDES),
+          clientServices.findById.execute(idStore)
+        ])
+
+        const productServices = ProductServicesTenantFactory(idStore)
+        const shoppingServices = ShoppingServicesTenantFactory(idStore)
+        const extraServices = ProductExtraServicesTenantFactory(idStore)
+        const optionalServices = ProductOptionalServicesTenantFactory(idStore)
+        const extraStock = ExtraStockServicesTenantFactory(idStore, context.pubsub)
+        const parentStock = StockServicesTenantFactory(idStore, context.pubsub)
+
+        // Transacción administrada: cualquier excepción revierte TODA la venta.
+        // No ejecutar escrituras concurrentes sobre la misma transacción.
+        const created = await connect().transaction(async transaction => {
+          let computedTotalProductsPrice = 0
+
+          for (const { item, quantity, isFree, sellableExtras } of lines) {
+            const product = await productServices.findById.execute(String(item.pId))
+            if (!product?.data) {
+              throw new SaleAbort(failure(`Product with id ${item.pId} not found`))
+            }
+
+            // La fuente de precio es el catálogo en el backend; no el cliente.
+            const rawUnitPrice = Number(product.data.ProPrice)
+            const unitPrice = Number.isFinite(rawUnitPrice) ? rawUnitPrice : 0
+            const effectivePrice = isFree ? 0 : unitPrice
+
+            await parentStock.decrement(item.pId, quantity, idStore, transaction)
+
+            for (const extra of sellableExtras) {
+              const originalExPid = extra.exPid
+              const extraQty = Number(extra.quantity ?? 0)
+              if (!originalExPid || extraQty <= 0) continue
+              await extraStock.decrement(originalExPid, extraQty, idStore, transaction)
+            }
+
+            computedTotalProductsPrice += computeLineBaseTotal({
+              priceProduct: effectivePrice,
+              cantProducts: quantity,
+              free: isFree
+            }) + (isFree ? 0 : computeExtrasTotal(sellableExtras))
+
+            const timestamp = new Date()
+            const cart = await shoppingServices.create.execute({
+              idStore,
+              pId: item.pId,
+              shoppingCartRefCode: args.shoppingCartRefCode,
+              priceProduct: effectivePrice,
+              free: isFree,
+              cantProducts: item.cantProducts,
+              idUser: item.idUser,
+              comments: item.comments,
+              id: args.id,
+              refCodePid: item.refCodePid,
+              sState: StateShoppingCart.ACTIVE,
+              pCodeRef: args.pCodeRef,
+              createdAt: timestamp,
+              updatedAt: timestamp
+            }, transaction)
+
+            if (!cart?.success || !cart.data?.pId) {
+              throw new SaleAbort(failure(cart?.message ?? 'Failed to create shopping cart line'))
+            }
+
+            // El pId es el snapshot vendido, no necesariamente el pId del catálogo.
+            const soldPid = cart.data.pId
+            if (sellableExtras.length > 0) {
+              const extrasResult = await extraServices.bulkCreateExtraSold.execute(
+                sellableExtras.map(extra => ({
+                  originalExPid: extra.exPid,
+                  exPid: uuidv4(),
+                  idStore,
+                  pCodeRef: args.pCodeRef,
+                  extraName: extra.extraName,
+                  extraPrice: isFree ? 0 : extra.extraPrice,
+                  pId: soldPid,
+                  quantity: extra.quantity
+                })),
+                transaction
+              )
+              if (!extrasResult?.success) {
+                throw new SaleAbort(failure(extrasResult?.message ?? 'Failed to create sold extras'))
+              }
+            }
+
+            const optionals = item.dataOptional || []
+            if (optionals.length > 0) {
+              const optionalsResult = await optionalServices.bulkCreateProductOptionalAndSubOptional.execute(
+                optionals.map(optional => ({
+                  ...optional,
+                  pCodeRef: args.pCodeRef,
+                  idStore,
+                  pId: soldPid
+                })),
+                transaction
+              )
+              if (!optionalsResult?.success) {
+                throw new SaleAbort(failure(optionalsResult?.message ?? 'Failed to create sold optionals'))
+              }
+            }
           }
-          const { error } = shoppingCartItemSchema.validate(newItem, { abortEarly: false })
+
+          const {
+            id, tableId, change, discount, valueDelivery, payId,
+            shoppingCartRefCode, pCodeRef, tip = 0
+          } = args
+
+          // Se conserva la fórmula y la representación de descuentos de escritura.
+          const discountInput = (discount ?? null) as unknown as DiscountLike | null
+          const discountAmount = computeDiscountAmount(discountInput, computedTotalProductsPrice)
+          const netTotal = computeNetTotal(computedTotalProductsPrice, discountAmount)
+          const discountType = discountInput?.type === 'AMOUNT'
+            ? 'AMOUNT'
+            : (discountInput ? 'PERCENT' : null)
+          const discountValue = discountInput && Number.isFinite(Number(discountInput.value))
+            ? Math.max(0, Math.round(Number(discountInput.value)))
+            : null
+
+          const timestamp = new Date()
+          const sale = {
+            id: id ?? client?.data?.cliId,
+            tableId,
+            idStatus: statusOrderType?.idStatus,
+            idStore,
+            pSState: StateShoppingCart.ACTIVE,
+            valueDelivery,
+            shoppingCartRefCode,
+            locationUser: '',
+            discount,
+            discountType,
+            discountValue,
+            discountAmount,
+            netTotal,
+            tip,
+            change,
+            pCodeRef,
+            totalProductsPrice: computedTotalProductsPrice,
+            payId,
+            pickUp: PickUpMethod.inStorePickup,
+            channel: Channel.store,
+            createdAt: timestamp,
+            updatedAt: timestamp
+          }
+
+          const { error, value } = statusOrderSchema.validate(sale, { abortEarly: false })
           if (error) {
-            return {
-              success: false,
-              data: null,
-              message: 'Validation error',
-              errors: error.details.map(e => ({
-                message: e.message,
-                path: e.path,
-                type: e.type,
-                context: e.context
-              }) as any)
-            }
+            throw new SaleAbort(failure('Validation error', mapValidationErrors(error.details)))
           }
-          const qty = Number(item.cantProducts ?? 0)
-          if (qty <= 0) {
-            return {
+
+          creatingHeader = true
+          const result = await orderServices.create.execute(value, transaction)
+          if (!result?.success || !result.data) {
+            const message = result?.message ?? 'Failed to create order status type'
+            throw new SaleAbort({
               success: false,
-              data: null,
-              message: `Invalid quantity for pId=${item.pId}`,
+              message,
+              data: result?.data ?? null,
               errors: []
-            }
+            }, isUniqueViolation(message))
           }
+          return result
+        })
 
-          // Courtesy line: the POS marks a product as a gift with `free: true`
-          // (and already zeroes its ProPrice in the cart). This is the single
-          // backend guard so the real price NEVER leaks into accounting,
-          // reports, daily sales or the store's general sales.
-          const isFreeLine = item.free === true
-
-          // Reconcile the unit price. The POS sends `ProPrice` (its catalog/cart
-          // field name); `priceProduct` is kept for backward compatibility.
-          // Prefer ProPrice when present so a zeroed free line is respected,
-          // then fall back to priceProduct. A free line forces the effective
-          // unit price to 0 regardless of what the client sent.
-
-          const product = await ProductServices.findById.execute(String(item.pId))
-          const rawUnitPrice = Number(product?.data?.ProPrice)
-
-          const unitPrice = Number.isFinite(rawUnitPrice) ? rawUnitPrice : 0
-          const effectiveUnitPrice = isFreeLine ? 0 : unitPrice
-
-          // OUT de inventario del producto PADRE DENTRO de la transacción de la
-          // venta (atómico). Antes se publicaba un evento CHANGE_STOCK_SUBSCRIBER
-          // DESPUÉS del commit, por lo que la factura se creaba aunque el
-          // producto ya no tuviera stock y el descuento ocurría fuera de la
-          // transacción (sin lock ni bloqueo de la venta). Ahora el descuento:
-          //  - toma un lock FOR UPDATE sobre la fila del producto (serializa
-          //    ventas concurrentes del mismo producto y soporta escrituras
-          //    masivas sin sobreventa),
-          //  - hace bypass automático si el producto NO se maneja por stock
-          //    (manageStock = false), por lo que es seguro invocarlo siempre,
-          //  - lanza InsufficientStockError si falta inventario, lo que aborta
-          //    y revierte TODA la factura (no se crea la venta si al menos un
-          //    producto manejado por stock no tiene existencias).
-          await parentStock.decrement(item.pId, qty, idStore, t)
-
-          // Normaliza los complementos vendibles ANTES de contabilizarlos.
-          // Cada extra lleva una `quantity` normalizada (>= 1, con fallback a la
-          // cantidad del producto padre cuando llega null/0 tras el filtro) que
-          // es la ÚNICA cantidad usada en los tres puntos del flujo: el importe
-          // del total, el registro `products_extras_sold` y el descuento de
-          // inventario. Así no hay divergencia entre lo que se cobra, lo que se
-          // marca como vendido y lo que sale de stock (evita doble o distinta
-          // contabilización).
-          const sellableExtras = normalizeSellableExtras(selectedExtras, qty)
-
-          // OUT de inventario de complementos ANTES de acumular su importe y de
-          // persistirlos como vendidos. El descuento es la compuerta que aplica
-          // la regla de negocio: el StockService hace bypass cuando el extra NO
-          // maneja inventario (manageStock = false) -> se vende y se contabiliza
-          // como hasta ahora; y cuando `manageStock = true` sin stock suficiente
-          // lanza InsufficientStockError, lo que revierte TODA la venta (el
-          // extra sin stock NUNCA se cuenta ni se marca como vendido). Se usa el
-          // exPid ORIGINAL del complemento (no el id del registro "sold") para
-          // afectar el inventario real. El producto padre ya se descontó arriba
-          // en esta misma transacción.
-          for (const extra of sellableExtras) {
-            const originalExPid = extra?.exPid
-            const extraQty = Number(extra?.quantity ?? 0)
-            if (!originalExPid || extraQty <= 0) continue
-            await extraStock.decrement(originalExPid, extraQty, idStore, t)
-          }
-
-          // Accumulate this line's contribution to the order total using the
-          // SAME definition the metrics reconstruct from the detail:
-          //   base  = priceProduct * cantProducts  (shopping_carts)
-          //   extra = sum(extraPrice * quantity)   (products_extras_sold)
-          // Discounts, tips and delivery are intentionally excluded (they have
-          // their own columns and were never part of `totalProductsPrice`). The
-          // math lives in a pure, unit-tested helper so the header always
-          // matches findTotalSales / countSalesAmountToday. Los extras ya pasaron
-          // el descuento de inventario, por lo que un complemento con
-          // manageStock=true y sin stock jamás llega hasta aquí (la venta se
-          // revirtió), garantizando la regla "solo se cuentan los extras
-          // efectivamente vendidos".
-          // A courtesy line contributes NOTHING to the order total: neither the
-          // product base nor its complementos are charged. `computeLineBaseTotal`
-          // already returns 0 for `free`, but we also skip the extras sum so a
-          // gift with complementos stays fully out of the total (accounting,
-          // reports, daily sales and the store's general sales all read from
-          // this header total / the persisted priceProduct, so this is the one
-          // place that must stay consistent). The effective unit price is used
-          // so a normal line still counts even if the client omitted
-          // `priceProduct` and only sent `ProPrice`.
-          computedTotalProductsPrice += computeLineBaseTotal({
-            priceProduct: effectiveUnitPrice,
-            cantProducts: qty,
-            free: isFreeLine
-          }) + (isFreeLine ? 0 : computeExtrasTotal(sellableExtras))
-
-          const response = await ShoppingServices.create.execute({
-            idStore,
-            pId: item.pId,
-            shoppingCartRefCode: args.shoppingCartRefCode,
-            // Persist the EFFECTIVE unit price (0 for a courtesy line). The
-            // create use case no longer overrides this with the catalog
-            // ProPrice, so the stored `shopping_carts.priceProduct` is the
-            // single source of truth that keeps gifts out of every downstream
-            // sales metric. `free` is persisted for traceability/reprints.
-            priceProduct: effectiveUnitPrice,
-            free: isFreeLine,
-            cantProducts: item.cantProducts,
-            idUser: item.idUser,
-            comments: item.comments,
-            id: args.id,
-            refCodePid: item.refCodePid,
-            sState: StateShoppingCart.ACTIVE,
-            pCodeRef: args.pCodeRef,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }, t)
-          if (response?.success === false) {
-            return {
-              success: false,
-              message: response.message,
-              data: null,
-              errors: []
-            }
-          }
-
-          // Persist the sold complementos using the SAME `sellableExtras`
-          // (quantity normalizada) que ya se descontó de inventario y que se
-          // acumuló en el total. El inventario se descontó arriba, por lo que
-          // los complementos que lleguen aquí son exactamente los que se
-          // vendieron. Se usa la misma `quantity` normalizada para que el
-          // registro `products_extras_sold`, el importe del total y el OUT de
-          // stock sean idénticos (sin doble contabilización ni divergencias).
-          // En una línea de cortesía (free) los complementos SÍ se descuentan
-          // de inventario y se registran como vendidos (el regalo se consume
-          // físicamente), pero su precio se persiste en 0 para que tampoco
-          // aporten importe en la reimpresión / detalle de la venta (que
-          // recalcula desde products_extras_sold). Así el regalo completo
-          // (producto + complementos) queda fuera de contaduría, reportes,
-          // venta del día y venta general, de forma consistente en todas las
-          // rutas de lectura. En una línea normal se conserva el precio real.
-          const dataOptional = item.dataOptional || []
-          const soldPid = response?.data?.pId ?? ''
-          await ProductExtraServices.bulkCreateExtraSold.execute(sellableExtras.map(e => ({
-            originalExPid: e.exPid,
-            exPid: uuiv4(),
-            idStore,
-            pCodeRef: args.pCodeRef,
-            extraName: e.extraName,
-            extraPrice: isFreeLine ? 0 : e.extraPrice,
-            pId: soldPid,
-            quantity: e.quantity
-          })), t)
-
-          await ProductOptionalServices.bulkCreateProductOptionalAndSubOptional.execute(dataOptional.map(op => ({
-            ...op,
-            pCodeRef: args.pCodeRef,
-            idStore,
-            pId: soldPid
-          })), t)
-        }
-        // Resto del flujo (statusOrder, etc.)
-        // The order total is now computed in-flight from the line items inside
-        // this transaction (base + extras), so it is always correct even for
-        // extra-only sales. The previous `ShoppingServices.sumPrice` call ran
-        // outside the tx (never saw the just-inserted rows) and ignored extras,
-        // which is why orders were persisted with totalProductsPrice = 0.
-        const {
-          id,
-          tableId,
-          change,
-          discount,
-          valueDelivery,
-          payId,
-          shoppingCartRefCode,
-          pCodeRef,
-          tip = 0
-        } = args
-        const services = StatusOrderTypesServicesTenantFactory(idStore)
-        const statusOrderType = await services.findByName.execute(StatusTypeOrder.CONCLUDES)
-        const servicesClient = ClientServicesTenantFactory(idStore)
-        const client = await servicesClient.findById.execute(idStore)
-
-        // Structured discount + net income. `computedTotalProductsPrice` is the
-        // GROSS total (base + extras; free lines already excluded). We compute
-        // the real money discounted and the net income here, at sale time,
-        // using the SAME pure helpers a backfill uses, so every aggregated
-        // accounting figure can read a discount-aware net total. The legacy
-        // `discount` column is still persisted untouched for backward-compatible
-        // reads (e.g. the existing single-sale detail path).
-        const discountInput = (discount ?? null) as { type?: string, value?: number } | null
-
-
-        const discountAmount = computeDiscountAmount(discountInput, computedTotalProductsPrice)
-
-        const netTotal = computeNetTotal(computedTotalProductsPrice, discountAmount)
-   
-        const discountType = discountInput?.type === 'AMOUNT' ? 'AMOUNT' : (discountInput ? 'PERCENT' : null)
-        const discountValue = discountInput && Number.isFinite(Number(discountInput?.value))
-          ? Math.max(0, Math.round(Number(discountInput.value)))
-          : null
-
-        const mockSalesStore = {
-          id: id ?? client?.data?.cliId,
-          tableId,
-          idStatus: statusOrderType?.idStatus,
+        // Este punto solo se alcanza después de confirmar la transacción.
+        await publishSale(context, {
+          id: created.data?.id ?? '',
           idStore,
-          pSState: StateShoppingCart.ACTIVE,
-          valueDelivery,
-          shoppingCartRefCode,
-          locationUser: '',
-          discount,
-          // New structured discount + net-income columns (accounting source of
-          // truth). Nullable when there is no discount.
-          discountType,
-          discountValue,
-          discountAmount,
-          netTotal,
-          tip,
-          change,
-          pCodeRef,
-          totalProductsPrice: computedTotalProductsPrice,
-          payId,
-          pickUp: PickUpMethod.inStorePickup,
-          channel: Channel.store,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        } as any
+          pCodeRef: created.data?.pCodeRef ?? ''
+        })
+        LogInfo(`RegisterSalesStore executed in ${((Date.now() - startedAt) / 1000).toFixed(2)} seconds for store ${idStore}`)
+        return toGraphQLResponse(created)
+      } catch (error) {
+        // El catch está FUERA de la transacción administrada. El rollback ya
+        // fue gestionado por Sequelize antes de cualquier relectura del ganador.
+        const mayBeRetry =
+          (error instanceof SaleAbort && error.recheckIdempotency) ||
+          (creatingHeader && isUniqueViolation(error)) ||
+          error instanceof InsufficientStockError
 
-        const { error, value } = statusOrderSchema.validate(mockSalesStore, { abortEarly: false })
-        if (error) {
-          return {
-            success: false,
-            data: null,
-            message: 'Validation error',
-            errors: error.details.map(e => ({
-              message: e.message,
-              path: e.path,
-              type: e.type,
-              context: e.context
-            }) as any)
-          }
-        }
-        const createResponse = await StatusOrderServices.create.execute(value, t)
-        if (createResponse?.success === false) {
-          const end = Date.now()
-          const durationMs = end - start
-          const time = (durationMs / 1000).toFixed(2)
-          LogWarning(`RegisterSalesStore executed in ${time} seconds for store ${idStore}`)
-          return {
-            success: false,
-            message: createResponse.message,
-            data: createResponse.data as any,
-            errors: []
+        if (mayBeRetry) {
+          const winner = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
+          if (winner?.success && winner.data) {
+            LogInfo(`registerSalesStore: retry resolved for ${args.pCodeRef}`)
+            return toGraphQLResponse(existingSale(winner.data))
           }
         }
 
-        await t.commit()
-        committed = true
-
-        // El descuento de inventario (producto padre + complementos) ya se
-        // realizó dentro de la transacción recién confirmada, por lo que no se
-        // publican eventos de stock post-commit (se eliminó el flujo
-        // CHANGE_STOCK_SUBSCRIBER para evitar un doble descuento).
-
-        const end = Date.now()
-        const durationMs = end - start
-        const time = (durationMs / 1000).toFixed(2)
-        LogInfo(`RegisterSalesStore executed in ${time} seconds for store ${idStore}`)
-        const newOrder = {
-          id: createResponse?.data?.id ?? '',
-          idStore: idStore,
-          pCodeRef: createResponse?.data?.pCodeRef ?? ''
-        }
-        if (context.pubsub) {
-          context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
-        }
-        return createResponse as Maybe<ResponseSalesStore>
-
-      } catch (e) {
-        // No se hace rollback aquí: el `finally` revierte la transacción porque
-        // `committed` sigue en false. Esto garantiza un único punto de cierre y
-        // libera los locks FOR UPDATE tomados sobre las filas de producto.
-
-        // CARRERA CONCURRENTE: dos requests con el MISMO `pCodeRef` pueden
-        // pasar ambos el guard de idempotencia (lectura previa) y competir por
-        // el INSERT. El índice UNIQUE sobre `pCodeRef` hace que el segundo
-        // INSERT falle con un error de unicidad. Eso NO es un fallo real: la
-        // venta ya quedó registrada por el request ganador, así que releemos la
-        // orden existente y devolvemos una respuesta idempotente de éxito.
-        const errName = (e as { name?: string })?.name ?? ''
-        const errMsg = e instanceof Error ? e.message.toLowerCase() : String(e).toLowerCase()
-        const isUniqueViolation =
-          errName === 'SequelizeUniqueConstraintError' ||
-          errMsg.includes('unique') ||
-          errMsg.includes('duplicate')
-        if (isUniqueViolation) {
-          const winner = await StatusOrderServices.getOneByCodeRef.execute(args.pCodeRef)
-          if (winner?.success && winner?.data) {
-            LogInfo(`registerSalesStore: carrera resuelta por índice único, respuesta idempotente para pCodeRef ${args.pCodeRef}`)
-            return {
-              success: true,
-              message: 'Sale already registered',
-              data: winner.data as any,
-              errors: []
-            }
-          }
+        if (error instanceof SaleAbort) {
+          return toGraphQLResponse(error.response)
         }
 
-        // Stock insuficiente de un producto manejado por inventario: la venta
-        // completa se bloquea y el front recibe un `errors[]` estructurado para
-        // informar al usuario exactamente qué producto se quedó sin stock
-        // (pId, cantidad pedida y disponible). Mismo contrato de error que el
-        // resto de validaciones (path/type/context) para que el cliente lo
-        // renderice de forma uniforme.
-        if (e instanceof InsufficientStockError) {
-          const { pId, requested, available } = e.payload
+        if (error instanceof InsufficientStockError) {
+          const { pId, requested, available } = error.payload
           LogWarning(`registerSalesStore: stock insuficiente pId=${pId} pedido=${requested} disponible=${available}`)
-          return {
-            success: false,
-            data: null,
-            message: 'Insufficient stock',
-            errors: [
-              {
-                message: `Stock insuficiente para el producto ${pId}. Solicitado: ${requested}, disponible: ${available}.`,
-                path: ['input', 'pId'],
-                type: 'stock.insufficient',
-                context: {
-                  key: 'pId',
-                  label: 'pId',
-                  // `value` está tipado como `Int` en el schema GraphQL
-                  // (contextError.value: Int). El `pId` es un UUID string, así
-                  // que meterlo aquí hacía fallar la serialización con
-                  // "Int cannot represent non-integer value". Enviamos la
-                  // cantidad solicitada (un entero) en `value`, que es lo que
-                  // tiene sentido numérico; el pId sigue disponible en
-                  // message/key/label.
-                  value: requested,
-                  limit: available
-                }
-              }
-            ] as any
-          }
+          return toGraphQLResponse(failure('Insufficient stock', [{
+            message: `Stock insuficiente para el producto ${pId}. Solicitado: ${requested}, disponible: ${available}.`,
+            path: ['input', 'pId'],
+            type: 'stock.insufficient',
+            context: {
+              key: 'pId',
+              label: 'pId',
+              value: requested,
+              limit: available
+            }
+          }]))
         }
 
-        if (e instanceof StockValidationError) {
-          LogDanger(`registerSalesStore: error de validación de stock: ${e.message}`)
-          return {
-            success: false,
-            data: null,
-            message: e.message,
-            errors: [
-              {
-                message: e.message,
-                path: ['input', 'pId'],
-                type: 'stock.validation'
-              }
-            ] as any
-          }
+        if (error instanceof StockValidationError) {
+          LogDanger(`registerSalesStore: error de validación de stock: ${error.message}`)
+          return toGraphQLResponse(failure(error.message, [{
+            message: error.message,
+            path: ['input', 'pId'],
+            type: 'stock.validation'
+          }]))
         }
 
-        LogDanger(`Error in registerSalesStore: ${e instanceof Error ? e.message : String(e)}`)
-        return {
-          success: false,
-          message: e instanceof Error ? e.message : String(e),
-          errors: []
-        }
-      } finally {
-        // Punto ÚNICO de cierre: si la venta no se confirmó (salida temprana o
-        // excepción), revertimos. El guard `committed` evita hacer rollback
-        // sobre una transacción ya finalizada tras el commit. Se envuelve en
-        // try/catch para que un fallo del propio rollback no enmascare la
-        // respuesta que ya calculamos.
-        if (!committed) {
-          try {
-            await t.rollback()
-          } catch (rollbackError) {
-            LogDanger(`registerSalesStore: rollback falló: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`)
-          }
-        }
+        LogDanger(`Error in registerSalesStore: ${errorMessage(error)}`)
+        return toGraphQLResponse(failure(errorMessage(error)))
       }
     },
-    createOrder: async (_: GraphQLResolveInfo, args: { idStore: string, pdpId: string, totalProductsPrice: number, unidProducts: number }, { pubsub }: { pubsub: PubSub }) => {
+
+    createOrder: async (
+      _parent: unknown,
+      args: { idStore: string; pdpId: string; totalProductsPrice: number; unidProducts: number },
+      { pubsub }: { pubsub: PubSub }
+    ) => {
+      // Mantiene el comportamiento de esta operación legado: solo evento.
       const newOrder = {
         id: Math.random().toString(36).substring(2, 15),
         idStore: args.idStore,
-        pCodeRef: Math.random().toString(36).substring(2, 15),
+        pCodeRef: Math.random().toString(36).substring(2, 15)
       }
-      // Publicar el nuevo pedido en el canal correspondiente
-      pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: { ...newOrder } });
+      // No hay escritura en esta operación; conserva la entrega best-effort.
+      try {
+        await pubsub.publish(SocketEvents.NEW_STORE_ORDER, { newStoreOrder: newOrder })
+      } catch (error) {
+        LogWarning(`NEW_STORE_ORDER publish failed: ${errorMessage(error)}`)
+      }
       return newOrder
     }
   }
 }
-

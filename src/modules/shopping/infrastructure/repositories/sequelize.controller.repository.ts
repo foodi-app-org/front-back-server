@@ -26,6 +26,7 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
     data: ShoppingCart,
     transaction?: Transaction
   ): Promise<ShoppingCart | null> {
+    console.log({dataProduct: data})
     try {
       // Fetch product only if exists
       const product = await models.Product.schema(this.tenant).findOne({
@@ -57,6 +58,7 @@ export class SequelizeShoppingCartRepository implements ShoppingCartRepository {
         pState: 1,
         optionalProductId: data.pId,
         ProQuantity: Number(data.cantProducts),
+        free: data.free ? 1 : 0,
         createdAt: new Date(),
         updatedAt: new Date()
       }
