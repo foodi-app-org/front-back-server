@@ -3,6 +3,7 @@ import type { DeliveryQuoteInput, DeliveryStatus } from '../../domain/entities/s
 import { invalid } from '../../domain/services/delivery-error'
 import { decimalToMinor } from '../../domain/services/delivery-money'
 import { validateMethod } from '../../domain/services/delivery-policy'
+
 const text = (value: unknown, label: string, max = 120): string => {
   if (typeof value !== 'string' || !value.trim() || value.trim().length > max) return invalid(`${label} inválido`)
   return value.trim()

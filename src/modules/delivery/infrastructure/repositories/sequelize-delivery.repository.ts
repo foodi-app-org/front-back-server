@@ -11,7 +11,7 @@ const minorString = (value: unknown) => readMinor(value).toString()
 const optionalMinor = (value: unknown) => value == null ? null : minorString(value)
 function mapMethod(row: SequelizeDeliveryMethod): DeliveryMethod {
   const raw = row.get({ plain: true }) as DeliveryMethod
-  return { ...raw, defaultFeeMinor: optionalMinor(raw.defaultFeeMinor) }
+  return { ...raw, defaultFeeMinor: optionalMinor(raw.defaultFeeMinor), createdAt: new Date() }
 }
 function mapSnapshot(row: SequelizeSaleDelivery): SaleDelivery {
   const raw = row.get({ plain: true }) as SaleDelivery

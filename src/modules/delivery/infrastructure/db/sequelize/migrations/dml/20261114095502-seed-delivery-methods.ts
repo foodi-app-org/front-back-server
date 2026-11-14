@@ -13,7 +13,7 @@ export async function up(queryInterface: QueryInterface, schemaName: string): Pr
       if (!existing.length) await db.query(pgOrderFk(schemaName), { transaction })
     }
     // Idempotent because the existing Umzug runner can load all migrations in both phases.
-    for (const preset of DELIVERY_PRESETS) await db.query(insertPresetSql(dialect,schemaName), { replacements: { ...preset, id: randomUUID(), idStore, now: new Date().toISOString() }, transaction })
+    for (const preset of DELIVERY_PRESETS) await db.query(insertPresetSql(dialect,schemaName), { replacements: { ...preset, id: randomUUID(), idStore, now: new Date() }, transaction })
   })
 }
 export async function down(queryInterface: QueryInterface, schemaName: string): Promise<void> {

@@ -204,7 +204,15 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       mPriority: 14,
       mIcon: 'IconWhatsApp',
       globalConfig: {}
-    }
+    },
+     {
+      mName: 'Metodos de entrega',
+      view: 'settings',
+      mPath: 'settings/delivery',
+      mPriority: 15,
+      mIcon: 'IconConfig',
+      globalConfig: {}
+    },
   ]
 
   // Assign IDs and stringify globalConfig for database storage
