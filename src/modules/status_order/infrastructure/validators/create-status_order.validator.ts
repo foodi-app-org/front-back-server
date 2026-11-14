@@ -85,7 +85,7 @@ export const statusOrderSchema = Joi.object({
   idStatus: Joi.string().required(),
   pSState: Joi.number().optional().allow(null),
 
-  valueDelivery: Joi.number().optional().allow(null, 0).integer().min(0).default(0),
+  valueDelivery: Joi.number().optional().allow(null, 0).min(0).default(0),
   locationUser: Joi.string().allow(null, ''),
   discount: discountSchema.optional().allow(null),
   // Structured discount + net income persisted at sale time (accounting source
