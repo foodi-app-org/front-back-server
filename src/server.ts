@@ -14,6 +14,7 @@ import { graphqlUploadExpress } from 'graphql-upload-ts'
 import resolvers from './shared/infrastructure/graphql/resolvers'
 import { typeDefs } from './shared/infrastructure/graphql/typeDefs'
 import { wsSchema } from './ws-schema'
+import { cashManagementChangedSubscriber } from './modules/cash_management/infrastructure/subscribers/cash-management-changed.subscriber'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import routes from './shared/infrastructure/res/routes'
@@ -93,6 +94,7 @@ const server = new ApolloServer({
 
 (async () => {
   const pubsub = new PubSub()
+  eventBus.subscribe(cashManagementChangedSubscriber(pubsub))
   // Ensure the `public.*` tables and their seed data exist before serving
   // requests. Idempotent: only pending migrations are applied. A failure here
   // is logged but does not prevent the server from starting.
@@ -293,33 +295,68 @@ const server = new ApolloServer({
     deviceid?: string;
   }
 
+  interface ConnectionParams {
+    authorization?: string
+    restaurant?: string
+    deviceid?: string
+  }
+
   useServer({
     schema: wsSchema,
+
     context: async (ctx) => {
-      const params = ctx.connectionParams as ConnectionParams
-      console.log("🔌 WS context", params)
+      const params = ctx.connectionParams as
+        | ConnectionParams
+        | undefined
 
-      // Aquí validas el token
-      // if (!params?.authorization) throw new Error("Unauthorized")
-
-      return { pubsub }
+      return {
+        pubsub,
+        connectionParams: {
+          authorization: params?.authorization,
+          restaurant: params?.restaurant,
+          deviceid: params?.deviceid
+        }
+      }
     },
+
     onConnect: (ctx) => {
-      console.log('🎉 Cliente conectado a la suscripción', ctx.connectionParams)
+      const params = ctx.connectionParams as
+        | ConnectionParams
+        | undefined
+
+      console.info('[WebSocket] Cliente conectado', {
+        authenticated: Boolean(params?.authorization),
+        hasRestaurant: Boolean(params?.restaurant)
+      })
     },
+
     onDisconnect: (_ctx, code, reason) => {
-      console.log('❌ Cliente desconectado', code, reason)
+      console.info('[WebSocket] Cliente desconectado', {
+        code,
+        reason
+      })
     },
-    onError: (_ctx, msg, errors) => {
-      console.error('⚠️ Error en suscripción', msg, errors)
+
+    onError: (_ctx, message, errors) => {
+      console.error('[WebSocket] Error de suscripción', {
+        // @ts-ignore
+        operationName: message.payload.operationName,
+        errors: errors.map(error => ({
+          message: error.message,
+          code: error.extensions?.code
+        }))
+      })
     },
-    onOperation(_ctx, message, args, result) {
-      LogInfo('Nueva operación de suscripción iniciada');
-      LogInfo(`info', 'Nueva operación de suscripción: ${message.payload.operationName}`);
-      LogInfo(`info', 'Mensaje completo: ${JSON.stringify(message)}`);
-      LogInfo(`info', 'Args: ${JSON.stringify(args)?.slice(0, 10)}`); // Limitar tamaño en logs
-      return result;
-    },
+
+    onOperation(_ctx, message, _args, result) {
+      LogInfo(
+        `[WebSocket] Subscription: ${message.payload.operationName ?? 'anonymous'
+        }`
+      )
+
+      return result
+    }
+
   }, wsServer)
 
 

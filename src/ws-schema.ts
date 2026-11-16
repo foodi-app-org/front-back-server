@@ -1,3 +1,4 @@
+import { cashManagementChanged } from '@modules/cash_management/interfaces/graphql/subscriptions/cash.subscription'
 import { SocketEvents } from '@shared/constants/socket-events'
 import {
   GraphQLObjectType,
@@ -33,6 +34,7 @@ export const wsSchema = new GraphQLSchema({
   subscription: new GraphQLObjectType({
     name: 'Subscription',
     fields: {
+    cashManagementChanged,
       greetings: {
         type: GraphQLString,
         subscribe: async function* () {
