@@ -34,7 +34,7 @@ export const wsSchema = new GraphQLSchema({
   subscription: new GraphQLObjectType({
     name: 'Subscription',
     fields: {
-    cashManagementChanged,
+      cashManagementChanged,
       greetings: {
         type: GraphQLString,
         subscribe: async function* () {
@@ -55,24 +55,56 @@ export const wsSchema = new GraphQLSchema({
       newStoreOrder: {
         type: new GraphQLObjectType({
           name: 'Order',
+
           fields: {
             id: { type: GraphQLString },
             pCodeRef: { type: GraphQLString },
             idStore: { type: GraphQLString }
           }
         }),
+
         args: {
           idStore: { type: GraphQLString }
         },
+
         subscribe: withFilter(
-          (_: any, __: any, context: { pubsub: PubSub<Record<string, never>> } | undefined) => {
-            if (!context?.pubsub) throw new Error('pubsub not available')
-            console.log('[newStoreOrder] - 🚀 Subscriptor registrado')
-            return context.pubsub.asyncIterableIterator(SocketEvents.NEW_STORE_ORDER)
+          // @ts-ignore
+          (
+            _root: unknown,
+            args: { idStore: string },
+            context: { pubsub: PubSub }
+          ) => {
+            if (!context?.pubsub) {
+              throw new Error('PubSub not available')
+            }
+
+            console.info('[NewStoreOrder] Subscriber registered', {
+              idStore: args.idStore,
+              topic: SocketEvents.NEW_STORE_ORDER
+            })
+
+            return context.pubsub.asyncIterableIterator(
+              SocketEvents.NEW_STORE_ORDER
+            )
           },
+
           (payload, variables) => {
-            const idStore = variables.idStore
-            return payload.newStoreOrder.idStore === idStore
+            // @ts-ignore
+            const order = payload?.newStoreOrder
+
+            const matches = Boolean(
+              order &&
+              variables?.idStore &&
+              order.idStore === variables.idStore
+            )
+
+            console.debug('[NewStoreOrder] Filtering', {
+              receivedStore: order?.idStore,
+              subscribedStore: variables?.idStore,
+              matches
+            })
+
+            return matches
           }
         )
       },

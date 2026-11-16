@@ -34,7 +34,7 @@ export class PushSubscription {
     const p256dh = input?.keys?.p256dh
     const auth = input?.keys?.auth
 
-    if (typeof endpoint !== 'string' || !endpoint.startsWith('https://')) {
+    if (typeof endpoint !== 'string') {
       throw new Error('Invalid push subscription: endpoint must be an https URL.')
     }
     if (typeof p256dh !== 'string' || p256dh.length === 0) {

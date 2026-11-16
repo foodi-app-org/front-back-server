@@ -218,17 +218,37 @@ const prepareLines = (items: SaleLineInput[], context: GraphQLContext) => {
 
 const publishSale = async (
   context: GraphQLContext,
-  order: { id: string; idStore: string; pCodeRef: string }
+  order: {
+    id: string
+    idStore: string
+    pCodeRef: string
+  }
 ): Promise<void> => {
-  if (!context.pubsub) return
+  if (!context.pubsub) {
+    console.warn('[NewStoreOrder] PubSub unavailable')
+    return
+  }
+
+  if (!order.idStore || !order.pCodeRef) {
+    console.warn('[NewStoreOrder] Invalid payload')
+    return
+  }
 
   try {
-    await context.pubsub.publish(SocketEvents.NEW_STORE_ORDER, {
-      newStoreOrder: order
+    await context.pubsub.publish(
+      SocketEvents.NEW_STORE_ORDER,
+      {
+        newStoreOrder: order
+      }
+    )
+
+    console.info('[NewStoreOrder] Published', {
+      topic: SocketEvents.NEW_STORE_ORDER,
+      idStore: order.idStore,
+      pCodeRef: order.pCodeRef
     })
   } catch (error) {
-    // La venta ya se confirmó: una notificación fallida no cambia su resultado.
-    LogWarning(`NEW_STORE_ORDER publish failed for ${order.pCodeRef}: ${errorMessage(error)}`)
+    console.error('[NewStoreOrder] Publish failed', error)
   }
 }
 
