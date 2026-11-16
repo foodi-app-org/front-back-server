@@ -1,3 +1,4 @@
+import { cashEnabled, authorizedCash } from '@modules/cash_management/infrastructure/validators/cash-access'
 import { GraphQLError } from 'graphql'
 import type { GraphQLContext } from '@shared/types/context'
 import { ContextValidator } from '@shared/utils/context-validator'
@@ -9,6 +10,7 @@ export async function getSalesReconciliation(_parent:unknown,args:{from:string;t
   const idStore=new ContextValidator(context).validateUserSession()
   if(!idStore||!context.User?.id)throw new GraphQLError('Sesión requerida',{extensions:{code:'FORBIDDEN'}})
   // Apply your reporting-role permission here (before repository access).
+  if(cashEnabled(idStore))authorizedCash(context,'audit')
   const channel=args.channel??1
   if(channel!==1)throw new GraphQLError('La conciliación de esta versión solo admite el canal POS físico',{extensions:{code:'BAD_USER_INPUT'}})
   try{return await SalesReconciliationServicesTenantFactory(idStore).getReport.execute(args.from,args.to,channel)}

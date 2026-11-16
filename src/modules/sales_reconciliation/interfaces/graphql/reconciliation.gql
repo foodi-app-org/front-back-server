@@ -2,7 +2,8 @@
 enum ReconciliationStatus { MATCHED MISMATCH UNVERIFIABLE }
 type ReconciliationRecorded { gross: String discount: String net: String delivery: String tip: String payable: String change: String }
 type ReconciliationCalculated { gross: String discount: String net: String payable: String courtesy: String extras: String }
-type ReconciliationRow { id: ID! reference: String! createdAt: String! day: String! payId: ID paymentName: String! paymentKind: String! status: ReconciliationStatus! issues: [String!]! paymentIssues: [String!]! comparisonTrusted: Boolean! settlement: ReconciliationSettlement deliveryVerified: Boolean! deliveryIssues: [String!]! recorded: ReconciliationRecorded! calculated: ReconciliationCalculated delta: String }
+type ReconciliationPaymentAudit { paymentVerification: String! cashPostingVerification: String! issues: [String!]! postingIssues: [String!]! confirmed: Int! appliedMinor: String! settledMinor: String! roundingMinor: String! refundMinor: String! refundPhysicalMinor: String! differenceMinor: String }
+type ReconciliationRow { paymentAudit: ReconciliationPaymentAudit!  id: ID! reference: String! createdAt: String! day: String! payId: ID paymentName: String! paymentKind: String! status: ReconciliationStatus! issues: [String!]! paymentIssues: [String!]! comparisonTrusted: Boolean! settlement: ReconciliationSettlement deliveryVerified: Boolean! deliveryIssues: [String!]! recorded: ReconciliationRecorded! calculated: ReconciliationCalculated delta: String }
 type ReconciliationSummary {
   sales: Int!
   classifiedSales: Int!

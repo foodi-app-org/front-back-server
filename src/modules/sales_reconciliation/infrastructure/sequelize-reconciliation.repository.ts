@@ -1,3 +1,6 @@
+import { SequelizeCashRepository } from '@modules/cash_management/infrastructure/repositories/sequelize-cash.repository'
+import { loadPaymentVerificationBatch } from '../application/payment-reconciliation'
+import { cashEnabled } from '@modules/cash_management/infrastructure/validators/cash-access'
 import { deliveryTermsFromMinor, type DeliveryFinancialTerms } from 'exact-cart-totals'
 import { SequelizeSaleDelivery } from '@modules/delivery/infrastructure/db/sequelize/models/sequelize-sale-delivery.model'
 import { assertDeliveryTerms } from '@modules/delivery/domain/services/delivery-policy'
@@ -31,7 +34,6 @@ export class SequelizeReconciliationRepository implements ReconciliationReposito
     return db.transaction({isolationLevel},async transaction=>{
       const status=raw(await models.StatusOrderTypes.schema(this.tenant).findAll({where:{name:StatusTypeOrder.CONCLUDES},attributes:['idStatus'],transaction,raw:true}))
       const statusIds=ids(status,'idStatus');if(!statusIds.length)throw new Error('CONCLUDED_STATUS_NOT_CONFIGURED')
-        // @ts-ignore
       const headers=raw(await models.StatusOrder.schema(this.tenant).findAll({where:{idStatus:{[Op.in]:statusIds},channel,createdAt:{[Op.gte]:range.start,[Op.lt]:range.endExclusive}},attributes:['stPId','pCodeRef','idStore','shoppingCartRefCode','createdAt','payId','totalProductsPrice','discountAmount','netTotal','discountType','discountValue','discount','valueDelivery','tip','change'],order:[['createdAt','ASC'],['stPId','ASC']],limit:MAX_SALES+1,raw:true,transaction}))
       if(headers.length>MAX_SALES)throw new Error('REPORT_LIMIT')
       const paymentIds=ids(headers,'payId')
@@ -48,6 +50,7 @@ export class SequelizeReconciliationRepository implements ReconciliationReposito
         // Batch by persisted sale PK, not live catalogue or one query per order.
         const saleIds=ids(batch,'stPId')
         const deliveryRows=saleIds.length?count(raw(await SequelizeSaleDelivery.schema(this.tenant).findAll({where:{saleId:{[Op.in]:saleIds}},attributes:['saleId','saleReference','idStore','mode','currency','policyVersion','providerType','collector','beneficiary','customerFeeMinor','providerCostMinor','posChargeMinor','externalChargeMinor','merchantRevenueMinor','thirdPartyPayableMinor','merchantCostMinor'],raw:true,transaction,limit:limit()}))):[]
+        const paymentEvidence = cashEnabled(this.idStore) ? await loadPaymentVerificationBatch(new SequelizeCashRepository(this.idStore).bind(transaction), this.idStore, saleIds) : new Map()
         const deliveriesBySale=group(deliveryRows,'saleId')
         const cartsByRef=group(carts,'shoppingCartRefCode'),prodById=one(products,'pId'),extraById=group(extras,'pId'),productsByRef=group(products,'pCodeRef'),extrasByRef=group(extras,'pCodeRef')
         for(const h of batch){
@@ -77,7 +80,7 @@ export class SequelizeReconciliationRepository implements ReconciliationReposito
               assertDeliveryTerms(normalized); deliveryTerms=deliveryTermsFromMinor(normalized)
             }catch{deliverySnapshotIssue='DELIVERY_SNAPSHOT_INVALID'}
           }
-          output.push({...h,deliveryTerms,deliverySnapshotIssue,stPId:value(h.stPId),pCodeRef:ref,createdAt:new Date(h.createdAt as string|Date).toISOString(),payId:value(h.payId)||null,paymentName:value(payments.get(value(h.payId))?.name)||null,lines,sourceIssues:[...issues]})
+          output.push({...h,paymentEvidence:paymentEvidence.get(value(h.stPId)),deliveryTerms,deliverySnapshotIssue,stPId:value(h.stPId),pCodeRef:ref,createdAt:new Date(h.createdAt as string|Date).toISOString(),payId:value(h.payId)||null,paymentName:value(payments.get(value(h.payId))?.name)||null,lines,sourceIssues:[...issues]})
         }
       }
       return output

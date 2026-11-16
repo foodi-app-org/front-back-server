@@ -1,10 +1,12 @@
+import { verifyPayments } from '../../payments/domain/services/payment-verification'
+import type { PaymentEvidenceBatch } from './payment-reconciliation'
 import { computePersistedSaleTotals, computeCartTotals, resolvePersistedDiscount, assertDeliveryFinancialTerms, minor, formatMinor } from 'exact-cart-totals'
 
 type Header = Parameters<typeof computePersistedSaleTotals>[1]
 type Cart = Parameters<typeof computePersistedSaleTotals>[0]
 export interface SaleSnapshot extends Header {
   stPId: string; pCodeRef: string; createdAt: string; payId: string | null; paymentName: string | null
-  change?: unknown; lines: Cart; sourceIssues?: string[]
+  change?: unknown; lines: Cart; sourceIssues?: string[]; paymentEvidence?: PaymentEvidenceBatch
 }
 export type AuditStatus = 'MATCHED' | 'MISMATCH' | 'UNVERIFIABLE'
 export const MAX_SALES = 2000
@@ -77,7 +79,8 @@ export function inspectSale(s: SaleSnapshot) {
   const definite=internallyInvalid || deliveryConflict || (comparisonTrusted && [...issues].some(i=>['HEADER_GROSS_MISMATCH','HEADER_DISCOUNT_MISMATCH','HEADER_NET_MISMATCH','PAYABLE_MISMATCH'].includes(i)))
   const status:AuditStatus=definite?'MISMATCH':comparisonTrusted&&!issues.size?'MATCHED':'UNVERIFIABLE'
   const delta=comparisonTrusted ? recordedPayable!-calcPayable! : null
-  return {id:s.stPId,reference:s.pCodeRef,createdAt:s.createdAt,day:bogotaDay(s.createdAt),payId:s.payId,paymentName:s.paymentName??'Sin medio identificado',paymentKind:kind,status,settlement,deliveryVerified,deliveryIssues:deliveryVerified?[]:[...new Set([...deliveryIssues,...(deliveryConflict?['DELIVERY_POS_CHARGE_MISMATCH']:[]),...(deliveryIssues.length?[]:[s.deliverySnapshotIssue??(s.deliveryTerms?'DELIVERY_NOT_VERIFIED':'DELIVERY_SNAPSHOT_MISSING')])])],issues:[...issues],paymentIssues,comparisonTrusted,
+  const paymentAudit = verifyPayments(recordedPayable,s.paymentEvidence?.payments??[],s.paymentEvidence?.movements??[])
+  return {paymentAudit,id:s.stPId,reference:s.pCodeRef,createdAt:s.createdAt,day:bogotaDay(s.createdAt),payId:s.payId,paymentName:s.paymentName??'Sin medio identificado',paymentKind:kind,status,settlement,deliveryVerified,deliveryIssues:deliveryVerified?[]:[...new Set([...deliveryIssues,...(deliveryConflict?['DELIVERY_POS_CHARGE_MISMATCH']:[]),...(deliveryIssues.length?[]:[s.deliverySnapshotIssue??(s.deliveryTerms?'DELIVERY_NOT_VERIFIED':'DELIVERY_SNAPSHOT_MISSING')])])],issues:[...issues],paymentIssues,comparisonTrusted,
     recorded:{gross:amount(recordedGross),discount:amount(recordedDiscount),net:amount(recordedNet),delivery:amount(delivery),tip:amount(tip),payable:amount(recordedPayable),change:amount(change)},
     calculated:calculated?{gross:amount(calcGross),discount:amount(calcDiscount),net:amount(calcNet),payable:amount(calcPayable),courtesy:calculated.exact.courtesyAmount??null,extras:calculated.exact.extraGross??null}:null,delta:amount(delta)}
 }

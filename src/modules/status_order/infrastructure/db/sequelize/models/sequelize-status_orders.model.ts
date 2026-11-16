@@ -41,6 +41,7 @@ export interface IStatusOrderStoreAttributes {
   totalProductsPrice: number
   payId?: string
   pickUp?: number
+  idStatus: string
   channel?: number
   pPDate?: Date
   createdAt?: Date
