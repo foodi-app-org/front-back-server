@@ -47,7 +47,7 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       },
       submodules: [
         { smName: 'Pedidos', view: 'orders', smPath: 'orders', smPriority: 2, smIcon: 'IconTicket' },
-        { smName: 'Conciliaciones', view: 'orders', smPath: 'orders/reconciliation', smPriority: 4, smIcon: 'reconciliation' }
+        { smName: 'Conciliaciones', view: 'orders', smPath: 'orders/reconciliation', smPriority: 4, smIcon: 'IconSalesReconciliation' }
       ]
     },
     {
