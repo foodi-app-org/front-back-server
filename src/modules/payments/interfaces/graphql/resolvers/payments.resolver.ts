@@ -1,0 +1,11 @@
+import type {GraphQLContext} from '@shared/types/context'
+import {authorizedCash} from '../../../../cash_management/infrastructure/validators/cash-access'
+import {resolveCash} from '../../../../cash_management/interfaces/graphql/resolvers/cash.resolver'
+import {CashServicesTenantFactory} from '../../../../cash_management/main/factories/cash-services.factory'
+import {id,requireRule} from '../../../../cash_management/domain/services/cash-money'
+import {PAYMENT_KINDS,type PaymentKind} from '../../../domain/entities/sale-payment.entity'
+import {listPaymentEvidence} from '../../../application/use-cases/register-sale-payment'
+export const paymentsResolvers={Query:{
+ getFinancialPaymentMethods:(_:unknown,_a:unknown,c:GraphQLContext)=>resolveCash(async()=>{const actor=authorizedCash(c,'read');return CashServicesTenantFactory(actor).repository.read(tx=>tx.query(`SELECT "payId","name","state","financialKind" FROM ${tx.table('payment_methods')} WHERE "state"='active' ORDER BY "paymentPriority" LIMIT 500`))},'getFinancialPaymentMethods'),
+ getSalePaymentEvidence:(_:unknown,a:{saleReference:string},c:GraphQLContext)=>resolveCash(async()=>{const actor=authorizedCash(c,'read');const rows=await CashServicesTenantFactory(actor).repository.read(tx=>listPaymentEvidence(tx,actor.storeId,id(a.saleReference)));requireRule(rows.length<=100,'REPORT_LIMIT','Demasiados pagos');return rows},'getSalePaymentEvidence')
+},Mutation:{setPaymentFinancialKind:(_:unknown,a:{payId:string;financialKind:PaymentKind},c:GraphQLContext)=>resolveCash(async()=>{const actor=authorizedCash(c,'manage');requireRule(PAYMENT_KINDS.includes(a.financialKind),'INVALID_KIND','Clasificación inválida');return CashServicesTenantFactory(actor).repository.transaction(async tx=>{const pay=id(a.payId);await tx.exec(`UPDATE ${tx.table('payment_methods')} SET "financialKind"=:kind WHERE "payId"=:pay AND "state"='active'`,{pay,kind:a.financialKind});const r=(await tx.query(`SELECT "payId","name","state","financialKind" FROM ${tx.table('payment_methods')} WHERE "payId"=:pay AND "state"='active'`,{pay}))[0];requireRule(r,'PAYMENT_METHOD_NOT_FOUND','Medio de pago no encontrado');return r})},'setPaymentFinancialKind')}}

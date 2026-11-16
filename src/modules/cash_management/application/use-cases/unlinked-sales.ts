@@ -1,0 +1,12 @@
+import type {TransactionPort} from '../../domain/repositories/cash.repository'
+import type {CashSession} from '../../domain/entities/cash.entity'
+import {asMinor,decimalMinor,requireRule,ZERO} from '../../domain/services/cash-money'
+/** Candidates only: a time interval never proves which register collected a sale. */
+export async function unlinkedSales(tx:TransactionPort,s:CashSession,cutoff:string){
+ const start=Date.parse(s.openedAt),end=Date.parse(cutoff);requireRule(Number.isFinite(start)&&Number.isFinite(end)&&end>=start,'INVALID_RANGE','Intervalo de sesión inválido');
+ const from=new Date(start).toISOString().slice(0,10),to=new Date(end+86400000).toISOString().slice(0,10);
+ const rows=await tx.query<{saleId:string;reference:string;createdAt:string|Date;netTotal:unknown;valueDelivery:unknown;tip:unknown;paymentName:string|null;financialKind:string|null}>(`SELECT o."stPId" AS "saleId",o."pCodeRef" AS "reference",o."createdAt",o."netTotal",o."valueDelivery",o."tip",m."name" AS "paymentName",m."financialKind" FROM ${tx.table('orders_statuses')} o JOIN ${tx.table('order_status_types')} st ON st."idStatus"=o."idStatus" LEFT JOIN ${tx.table('payment_methods')} m ON m."payId"=o."payId" WHERE o."idStore"=:store AND o."channel"=1 AND st."name"='CONCLUIDA' AND o."createdAt" >= :from AND o."createdAt" < :to AND NOT EXISTS (SELECT 1 FROM ${tx.table('sale_payments')} p WHERE p."idStore"=o."idStore" AND p."saleId"=o."stPId") ORDER BY o."createdAt",o."stPId" LIMIT 2001`,{store:s.idStore,from,to});
+ requireRule(rows.length<=2000,'REPORT_LIMIT','Demasiadas ventas sin evidencia; consulta conciliación por periodos menores');let sum=ZERO,unknown=0;
+ const candidates=rows.filter(x=>{const at=Date.parse(x.createdAt instanceof Date?x.createdAt.toISOString():x.createdAt);requireRule(Number.isFinite(at),'INVALID_SALE_DATE','Fecha de venta inválida');return at>=start&&at<=end}).map(x=>{let payableMinor:string|null=null;try{payableMinor=asMinor(decimalMinor(typeof x.netTotal==='bigint'?String(x.netTotal):x.netTotal)+decimalMinor(String(x.valueDelivery??0))+decimalMinor(String(x.tip??0)));sum+=BigInt(payableMinor)}catch{unknown++}return {saleId:x.saleId,reference:x.reference,createdAt:new Date(x.createdAt).toISOString(),paymentName:x.paymentName,financialKind:x.financialKind,payableMinor}});
+ return {sessionId:s.id,from:s.openedAt,to:new Date(end).toISOString(),count:candidates.length,unknownAmountCount:unknown,knownPayableMinor:asMinor(sum),candidates}
+}

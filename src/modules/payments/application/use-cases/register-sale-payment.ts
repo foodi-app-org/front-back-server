@@ -1,0 +1,29 @@
+import {randomUUID} from 'node:crypto'
+import type {Actor} from '../../../cash_management/application/use-cases/cash-operations'
+import {eqRequest,find,fingerprint,insert,lockSession,normalize,now,postMovement} from '../../../cash_management/application/use-cases/cash-operations'
+import {assertOpen,policyOf} from '../../../cash_management/domain/services/cash-state'
+import {asMinor,cashPayment,decimalMinor,id,nonnegative,requireRule,ZERO,text} from '../../../cash_management/domain/services/cash-money'
+import type {CashSession} from '../../../cash_management/domain/entities/cash.entity'
+import type {TransactionPort} from '../../../cash_management/domain/repositories/cash.repository'
+import {PAYMENT_KINDS,type SalePayment,type SalePaymentInput,type PaymentKind} from '../../domain/entities/sale-payment.entity'
+export type PreparedPayment={session:CashSession;input:SalePaymentInput;method:{payId:string;name:string;financialKind:PaymentKind};actor:Actor;hash:string}
+export async function assertSaleReplay(tx:TransactionPort,actor:Actor,saleId:string,request:unknown,input?:SalePaymentInput|null){
+ requireRule(input,'PAYMENT_EVIDENCE_REQUIRED','La venta anterior no se puede confirmar sin evidencia de pago');const p=await find<SalePayment>(tx,'sale_payments',actor.storeId,'idempotencyKey',id(input.idempotencyKey));requireRule(p&&p.saleId===saleId&&p.status==='CONFIRMED','IDEMPOTENCY_CONFLICT','La referencia ya existe con otro pago');eqRequest(p,fingerprint({request,actor:actor.id}));return normalize(p)
+}
+export async function preparePayment(tx:TransactionPort,actor:Actor,sessionId:unknown,methodId:unknown,input:SalePaymentInput|undefined|null,request:unknown):Promise<PreparedPayment>{
+ requireRule(input&&input.confirmed===true,'PAYMENT_CONFIRMATION_REQUIRED','Confirma que recibiste el pago');requireRule(input.methodId===methodId,'PAYMENT_METHOD_MISMATCH','Medio de pago inconsistente');id(input.idempotencyKey);decimalMinor(input.amountApplied)
+ const session=await lockSession(tx,actor.storeId,id(sessionId));assertOpen(session);requireRule(session.openedBy===actor.id,'SESSION_OPERATOR_MISMATCH','La caja pertenece a otro operador; realiza un cierre y una apertura')
+ const previous=await find<SalePayment>(tx,'sale_payments',actor.storeId,'idempotencyKey',input.idempotencyKey);requireRule(!previous,'IDEMPOTENCY_CONFLICT','El pago ya se encuentra registrado; consulta la referencia original')
+ await tx.exec(`UPDATE ${tx.table('payment_methods')} SET "financialKind"="financialKind" WHERE "payId"=:pay`,{pay:id(methodId)})
+ const method=(await tx.query<PreparedPayment['method']>(`SELECT "payId","name","financialKind" FROM ${tx.table('payment_methods')} WHERE "payId"=:pay AND "state"='active'`,{pay:id(methodId)}))[0];requireRule(method&&PAYMENT_KINDS.includes(method.financialKind)&&method.financialKind!=='UNKNOWN','PAYMENT_KIND_UNKNOWN','Clasifica el medio de pago antes de cobrar');
+ return {session,input,method,actor,hash:fingerprint({request,actor:actor.id})}
+}
+export async function recordPayment(tx:TransactionPort,prepared:PreparedPayment,saleId:string,checkoutTotal:unknown,headerChange:unknown){
+ const {session,input,method,actor,hash}=prepared;const amount=decimalMinor(checkoutTotal);requireRule(amount===decimalMinor(input.amountApplied),'PAYMENT_AMOUNT_MISMATCH','El importe aplicado no coincide con la venta');const cash=method.financialKind==='CASH',policy=policyOf(session).rounding;let amounts:{amountAppliedMinor:string;settlementAmountMinor:string;cashTenderedMinor:string|null;cashChangeMinor:string|null;roundingDeltaMinor:string};
+ if(cash){const tender=amount===ZERO?decimalMinor(input.cashTendered??'0'):decimalMinor(input.cashTendered);amounts=cashPayment(amount,tender,policy);requireRule(amount!==ZERO||tender===ZERO,'INVALID_ZERO_PAYMENT','No recibas efectivo en una venta sin costo');requireRule(decimalMinor(input.expectedChange??'0')===nonnegative(amounts.cashChangeMinor)&&decimalMinor(headerChange??0)===nonnegative(amounts.cashChangeMinor),'CHANGE_MISMATCH','El vuelto no coincide');requireRule(nonnegative(amounts.cashChangeMinor)<=nonnegative(session.expectedBalanceMinor),'CHANGE_UNAVAILABLE','La caja no dispone del saldo esperado necesario para entregar el vuelto')}
+ else{requireRule(input.cashTendered==null&&input.expectedChange==null&&decimalMinor(headerChange??0)===ZERO,'NON_CASH_CHANGE','Un pago no efectivo no tiene vuelto');amounts={amountAppliedMinor:asMinor(amount),settlementAmountMinor:asMinor(amount),cashTenderedMinor:null,cashChangeMinor:null,roundingDeltaMinor:'0'}}
+ const at=now();const p:SalePayment={...amounts,id:randomUUID(),idStore:actor.storeId,saleId:id(saleId),sessionId:session.id,payId:method.payId,paymentKind:method.financialKind,methodNameSnapshot:text(method.name),direction:'COLLECTION',status:'CONFIRMED',confirmationSource:amount===ZERO?'ZERO_DUE':'MANUAL_OPERATOR',originalPaymentId:null,externalReference:null,idempotencyKey:input.idempotencyKey,requestHash:hash,actorId:actor.id,confirmedAt:at,createdAt:at,policySnapshot:JSON.stringify(policy)};await insert(tx,'sale_payments',p)
+ if(cash&&nonnegative(p.settlementAmountMinor)>ZERO)await postMovement(tx,session,actor,{type:'SALE_CASH',direction:'IN',amountMinor:p.settlementAmountMinor,paymentId:p.id,idempotencyKey:`payment:${p.id}`,reason:'Cobro de venta confirmado',reference:saleId},hash)
+ return p
+}
+export async function listPaymentEvidence(tx:TransactionPort,store:string,reference:string){const sale=(await tx.query<{stPId:string}>(`SELECT "stPId" FROM ${tx.table('orders_statuses')} WHERE "pCodeRef"=:reference AND "idStore"=:store`,{reference,store}))[0];if(!sale)return [];return (await tx.query<SalePayment>(`SELECT * FROM ${tx.table('sale_payments')} WHERE "saleId"=:sale AND "idStore"=:store ORDER BY "createdAt","id" LIMIT 101`,{sale:sale.stPId,store})).map(normalize)}

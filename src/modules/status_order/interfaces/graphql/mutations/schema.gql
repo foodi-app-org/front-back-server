@@ -1,20 +1,14 @@
-
 enum typeDiscount {
   PERCENT
   AMOUNT
 }
-# {
-#     "type": "PERCENT",
-#     "value": 10
-# }
+
 input DiscountInput {
   type: typeDiscount
   value: Int
 }
 
-# Mutations
 type Mutation {
-  # sales store
   registerSalesStore(
     input: [IShoppingCart]
     id: ID
@@ -31,9 +25,16 @@ type Mutation {
     delivery: QuoteSaleDeliveryInput
     expectedCheckoutTotal: String
     idSubArray: IID_SUB_ITEMS
+
+    # Cash Management & Payments
+    cashSessionId: ID
+    paymentInput: SalePaymentInput
   ): ResponseSalesStore
 
-  deleteOneItem(cState: Int, ShoppingCart: ID): Response
+  deleteOneItem(
+    cState: Int
+    ShoppingCart: ID
+  ): Response
 
   createOrder(
     id: String!

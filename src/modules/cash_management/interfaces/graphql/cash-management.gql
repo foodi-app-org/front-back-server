@@ -1,0 +1,38 @@
+# All *Minor fields are decimal INTEGER strings in centésimas of COP.
+type CashRegisterView { id: ID! code: String! name: String! deviceId: ID currency: String! defaultFloatMinor: String! minimumFloatMinor: String! closingToleranceMinor: String! blindCountRequired: Boolean! active: Boolean! revision: Int! policyVersion: Int! }
+type CashSessionView { id: ID! registerId: ID! status: String! currency: String! openedAt: String! businessDate: String! openedBy: ID! openingMinor: String openingSource: String! previousSessionId: ID openingVarianceMinor: String version: Int! movementSequence: Int! blindCountRequired: Boolean! roundingUnitMinor: String! roundingRule: String! closingCountId: ID expectedAtCountMinor: String countAtCloseMinor: String varianceMinor: String retainedMinor: String transferredMinor: String expectedBalanceMinor: String closedAt: String closedBy: ID approvedBy: ID closingDestination: String reason: String }
+type CashCountView { id: ID! sessionId: ID! phase: String! attemptNumber: Int! countedMinor: String! expectedMinor: String varianceMinor: String asOfSequence: Int! countedAt: String! countedBy: ID! }
+type CashMovementView { id: ID! sessionId: ID! sequence: Int! type: String! direction: String! amountMinor: String! paymentId: ID originalMovementId: ID reference: String reason: String! createdAt: String! actorId: ID! }
+type CashMovementGroup { type: String! amountMinor: String! }
+type CashPaymentGroup { kind: String! appliedMinor: String! settledMinor: String! count: Int! }
+type CashSessionReconciliation { physicalRetainedMinor: String countsHistory: [CashCountHistoryView!]! byPayment: [CashPaymentGroup!]! confirmedPayments: Int! paymentPostingVerification: String!  session: CashSessionView! reconstructedMinor: String! projectionDriftMinor: String! byType: [CashMovementGroup!]! counts: [CashCountView!]! issues: [String!]! movementCount: Int! }
+type CashManagementContext { allowSelfApproval: Boolean! storeId: ID! enabled: Boolean! canRead: Boolean! canManage: Boolean! canOpen: Boolean! canCollect: Boolean! canMove: Boolean! canClose: Boolean! canApprove: Boolean! canAudit: Boolean! actorId: ID }
+input CashRegisterInput { id: ID expectedRevision: Int code: String! name: String! defaultFloat: String! minimumFloat: String! closingTolerance: String! blindCountRequired: Boolean! active: Boolean! }
+input CashDenominationInput { denominationMinor: String! quantity: Int! }
+enum CashOpeningSource { PREVIOUS_SESSION TREASURY OTHER_DOCUMENTED }
+input OpenCashSessionInput { registerId: ID! details: [CashDenominationInput!]! source: CashOpeningSource! previousSessionId: ID reference: String notes: String idempotencyKey: String! }
+enum CashManualMovementType { MANUAL_IN MANUAL_OUT EXPENSE SUPPLIER_PAYMENT CASH_DROP }
+input RecordCashMovementInput { sessionId: ID! type: CashManualMovementType! amount: String! reason: String! reference: String idempotencyKey: String! }
+input ReverseCashMovementInput { sessionId: ID! movementId: ID! reason: String! idempotencyKey: String! }
+enum CashCountPhase { INTERMEDIATE CLOSING }
+input SubmitCashCountInput { confirmedZero: Boolean sessionId: ID! phase: CashCountPhase! version: Int! details: [CashDenominationInput!]! idempotencyKey: String! notes: String }
+input ApproveCashCloseInput { confirmSelfApproval: Boolean sessionId: ID! version: Int! reason: String! }
+input FinalizeCashCloseInput { sessionId: ID! version: Int! retained: String! destination: String confirmedTransfer: Boolean! reason: String idempotencyKey: String! }
+type PreviousCashFloat { id: ID! retainedMinor: String! closedAt: String! }
+extend type Query { getPreviousCashFloat(registerId: ID!): PreviousCashFloat cashManagementContext: CashManagementContext! getCashRegisters: [CashRegisterView!]! getCurrentCashSession(registerId: ID!): CashSessionView getCashSessions(before: ID): [CashSessionView!]! getCashSession(id: ID!): CashSessionView! getCashMovements(sessionId: ID!, after: Int = 0): [CashMovementView!]! getCashSessionReconciliation(sessionId: ID!): CashSessionReconciliation! }
+extend type Mutation { saveCashRegister(input: CashRegisterInput!): CashRegisterView! openCashSession(input: OpenCashSessionInput!): CashSessionView! recordCashMovement(input: RecordCashMovementInput!): CashMovementView! reverseCashMovement(input: ReverseCashMovementInput!): CashMovementView! beginCashClose(sessionId: ID!, version: Int!): CashSessionView! submitCashCount(input: SubmitCashCountInput!): CashCountView! approveCashClose(input: ApproveCashCloseInput!): CashSessionView! finalizeCashClose(input: FinalizeCashCloseInput!): CashSessionView! }
+
+input DeliveryCashPayoutInput { sessionId: ID! saleReference: String! amount: String! reason: String! reference: String! idempotencyKey: String! confirmed: Boolean! }
+extend type Mutation { recordDeliveryCashPayout(input: DeliveryCashPayoutInput!): CashMovementView! }
+
+# Diagnostic read-only; use before enabling new collections.
+type CashSchemaStatus { ready: Boolean! dialect: String! schema: String! missingTables: [String!]! missingColumns: [String!]! missingIndexes: [String!]! missingConstraints: [String!]! incompatibleColumns: [String!]! }
+extend type Query { cashSchemaStatus: CashSchemaStatus! }
+
+type CashCountHistoryView { id: ID! attemptNumber: Int! phase: String! countedMinor: String! expectedMinor: String varianceMinor: String countedAt: String! countedBy: ID! notes: String selected: Boolean! superseded: Boolean! }
+input RecountCashCloseInput { sessionId: ID! version: Int! details: [CashDenominationInput!]! reason: String! idempotencyKey: String! confirmedZero: Boolean }
+extend type Mutation { recountCashClose(input: RecountCashCloseInput!): CashCountView! }
+
+type CashUnlinkedSale { saleId: ID! reference: String! createdAt: String! paymentName: String financialKind: String payableMinor: String }
+type CashUnlinkedSales { sessionId: ID! from: String! to: String! count: Int! unknownAmountCount: Int! knownPayableMinor: String! candidates: [CashUnlinkedSale!]! }
+extend type Query { getCashUnlinkedSales(sessionId: ID!): CashUnlinkedSales! }

@@ -1,0 +1,4 @@
+export const PAYMENT_KINDS=['CASH','CARD','BANK_TRANSFER','DIGITAL_WALLET','OTHER','UNKNOWN'] as const
+export type PaymentKind=typeof PAYMENT_KINDS[number]
+export type SalePayment={id:string;idStore:string;saleId:string;sessionId:string;payId:string;paymentKind:PaymentKind;methodNameSnapshot:string;direction:'COLLECTION'|'REFUND';status:'CONFIRMED'|'PENDING'|'FAILED'|'CANCELLED';confirmationSource:'MANUAL_OPERATOR'|'ZERO_DUE';amountAppliedMinor:string;settlementAmountMinor:string;cashTenderedMinor:string|null;cashChangeMinor:string|null;roundingDeltaMinor:string;originalPaymentId:string|null;externalReference:string|null;idempotencyKey:string;requestHash:string;actorId:string;confirmedAt:string;createdAt:string;policySnapshot:string}
+export type SalePaymentInput={methodId:string;amountApplied:string;cashTendered?:string|null;expectedChange?:string|null;idempotencyKey:string;confirmed:boolean}

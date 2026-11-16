@@ -1,0 +1,8 @@
+enum FinancialPaymentKind { CASH CARD BANK_TRANSFER DIGITAL_WALLET OTHER UNKNOWN }
+input SalePaymentInput { methodId: ID! amountApplied: String! cashTendered: String expectedChange: String idempotencyKey: String! confirmed: Boolean! }
+type CashPaymentMethodView { payId: ID! name: String! financialKind: FinancialPaymentKind! state: String! }
+type SalePaymentEvidence { id: ID! sessionId: ID! payId: ID! paymentKind: FinancialPaymentKind! methodNameSnapshot: String! direction: String! status: String! confirmationSource: String! amountAppliedMinor: String! settlementAmountMinor: String! cashTenderedMinor: String cashChangeMinor: String roundingDeltaMinor: String! confirmedAt: String! }
+extend type Query { getFinancialPaymentMethods: [CashPaymentMethodView!]! getSalePaymentEvidence(saleReference: String!): [SalePaymentEvidence!]! }
+extend type Mutation { setPaymentFinancialKind(payId: ID!, financialKind: FinancialPaymentKind!): CashPaymentMethodView! }
+
+extend type StoreOrders { cashPaymentEvidence: [SalePaymentEvidence!] }
