@@ -11,6 +11,8 @@ import { ORDER_STATUS_TYPE_MODEL } from '@modules/status_order_types/infrastruct
 import { ManagedUnitsInStockResult, ProductStockRow } from '@modules/stock/domain/types'
 import { MigrationFolder } from '@shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { toStoredUtcFormat } from '@shared/utils/period-range.utils'
+import { GetWeeklyStockMovementUseCase } from '../../application/use-cases/get-weekly-stock-movement.usecase'
+import { SequelizeWeeklyStockRepository } from './sequelize-weekly-stock.repository'
 import {
   StockMovementSummary,
   TotalSalesResult,
@@ -460,42 +462,12 @@ export class SequelizeStockRepository implements IStockMovementRepository {
     }))
   }
 
+  /** Compatibility facade: the application use case owns calendar and comparison rules. */
   findStockMovementWeeklyComparison = async (): Promise<WeeklyStockChange[]> => {
     const sequelize = models.Product.sequelize
     if (!sequelize) throw new Error('Sequelize instance is not available')
 
-    const rows = await sequelize.query<{ week_start: string; total_out: number | string; prev_total_out: number | string | null; percentage_change: number | string | null }>(
-      `
-      WITH weekly_data AS (
-        SELECT
-          DATE("createdAt", 'weekday 0', '-6 days') AS week_start,
-          SUM(CASE WHEN "type" = :decrementType THEN -"delta" ELSE 0 END) AS total_out
-        FROM "${this.tenant}.${STOCK_HISTORY_MODEL}"
-        GROUP BY week_start
-        ORDER BY week_start
-      )
-      SELECT
-        week_start,
-        total_out,
-        LAG(total_out) OVER (ORDER BY week_start) AS prev_total_out,
-        CASE
-          WHEN LAG(total_out) OVER (ORDER BY week_start) IS NULL THEN NULL
-          WHEN LAG(total_out) OVER (ORDER BY week_start) = 0 THEN 100
-          ELSE ROUND(
-            ((total_out - LAG(total_out) OVER (ORDER BY week_start)) /
-            CAST(LAG(total_out) OVER (ORDER BY week_start) AS FLOAT)) * 100, 2
-          )
-        END AS percentage_change
-      FROM weekly_data;
-      `,
-      { type: QueryTypes.SELECT, replacements: { decrementType: STOCK_HISTORY_DECREMENT } }
-    )
-
-    return rows.map((row) => ({
-      weekStart: row.week_start ?? null,
-      totalOut: row.total_out === null || row.total_out === undefined ? null : Number(row.total_out),
-      prevTotalOut: row.prev_total_out === null || row.prev_total_out === undefined ? null : Number(row.prev_total_out),
-      percentageChange: row.percentage_change === null || row.percentage_change === undefined ? null : Number(row.percentage_change)
-    }))
+    const repository = new SequelizeWeeklyStockRepository(sequelize, this.tenant)
+    return new GetWeeklyStockMovementUseCase(repository).execute()
   }
 }

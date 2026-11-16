@@ -31,10 +31,22 @@ type StockMovementSummary {
 }
 
 type WeeklyStockChange {
+  "Monday in the business calendar (YYYY-MM-DD)."
   weekStart: String
+  "Sunday in the same calendar (YYYY-MM-DD)."
+  weekEnd: String!
+  "Recorded outgoing units; null when no history is available."
   totalOut: Int
+  "Immediately preceding fully observed week; null when unavailable."
   prevTotalOut: Int
+  "Undefined on a zero or unknown baseline. Never clamped."
   percentageChange: Float
+  "NO_HISTORY, NO_REFERENCE, NO_ACTIVITY, NEW_ACTIVITY, INCREASED, DECREASED or UNCHANGED."
+  comparisonStatus: String!
+  isCurrent: Boolean!
+  "True for the current week or a partially observed first week."
+  isPartial: Boolean!
+  historyPartial: Boolean!
 }
 
 input InputManageStock {

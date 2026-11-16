@@ -1,6 +1,7 @@
 import { StockMovement } from '../entities/stock.entity'
 import { IProductRepository } from '../ports/IProductRepository'
 import { ManagedUnitsInStockResult } from '../types'
+import type { WeeklyStockReportRow } from '../services/weekly-stock-comparison'
 
 /**
  * Ranking row describing how many units of a product left the inventory.
@@ -38,12 +39,7 @@ export interface StockMovementSummary {
 /**
  * Week-over-week outgoing stock comparison.
  */
-export interface WeeklyStockChange {
-  weekStart: string | null
-  totalOut: number | null
-  prevTotalOut: number | null
-  percentageChange: number | null
-}
+export type WeeklyStockChange = WeeklyStockReportRow
 
 /**
  * Repository interface (port) for Stock Movements.
