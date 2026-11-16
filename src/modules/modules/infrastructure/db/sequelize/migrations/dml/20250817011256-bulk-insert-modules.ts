@@ -47,7 +47,7 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       },
       submodules: [
         { smName: 'Pedidos', view: 'orders', smPath: 'orders', smPriority: 2, smIcon: 'IconTicket' },
-        { smName: 'Conciliaciones', view: 'orders', smPath: 'orders/reconciliation', smPriority: 4, smIcon: 'IconTicket' }
+        { smName: 'Conciliaciones', view: 'orders', smPath: 'orders/reconciliation', smPriority: 4, smIcon: 'reconciliation' }
       ]
     },
     {
@@ -181,7 +181,9 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       globalConfig: {},
       submodules: [
         { smName: 'General', view: 'settings', smPath: 'configuration/general', smPriority: 1, smIcon: 'IconConfig' },
-        { smName: 'Notificaciones', view: 'settings', smPath: 'configuration/notifications', smPriority: 2, smIcon: 'IconNotification' }
+        { smName: 'Notificaciones', view: 'settings', smPath: 'configuration/notifications', smPriority: 2, smIcon: 'IconNotification' },
+        { smName: 'Métodos de entrega', view: 'settings', smPath: 'configuration/delivery', smPriority: 3, smIcon: 'IconDelivery' },
+        { smName: 'Gestión de cajas', view: 'settings', smPath: 'configuration/finance/cash', smPriority: 4, smIcon: 'IconCashRegister' }
       ]
     },
     {
@@ -205,15 +207,7 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
       mPriority: 14,
       mIcon: 'IconWhatsApp',
       globalConfig: {}
-    },
-     {
-      mName: 'Metodos de entrega',
-      view: 'settings',
-      mPath: 'settings/delivery',
-      mPriority: 15,
-      mIcon: 'IconConfig',
-      globalConfig: {}
-    },
+    }
   ]
 
   // Assign IDs and stringify globalConfig for database storage

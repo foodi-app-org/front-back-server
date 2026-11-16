@@ -36,6 +36,10 @@ import type { Maybe, ResponseSalesStore } from 'generated/graphql'
 import { LogDanger, LogInfo, LogWarning } from '@shared/utils/logger.utils'
 import { SocketEvents } from '@shared/constants/socket-events'
 import { ContextValidator } from '@shared/utils/context-validator'
+import { authorizedCash, cashEnabled } from '@modules/cash_management/infrastructure/validators/cash-access'
+import { CashError, requireRule } from '@modules/cash_management/domain/services/cash-money'
+import { SequelizeCashRepository } from '@modules/cash_management/infrastructure/repositories/sequelize-cash.repository'
+import { SalePaymentRegistration, type FinancialSaleRequest } from '../../../application/sale-payment-registration'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
 type SaleResult = {
@@ -60,6 +64,11 @@ type StoreOrderParent = {
     idStatus?: string | null
     status?: string | null
   }
+}
+
+type FinancialRegisterSalesStoreInput = RegisterSalesStoreInput & FinancialSaleRequest & {
+  delivery?: Parameters<typeof validateQuote>[0] | null
+  expectedCheckoutTotal?: string | null
 }
 
 type SaleLineInput = RegisterSalesStoreInput['input'][number]
@@ -388,7 +397,7 @@ export const orderResolvers = {
   },
 
   Mutation: {
-    registerSalesStore: async (_parent: unknown, args: RegisterSalesStoreInput & { delivery?: Parameters<typeof validateQuote>[0] | null; expectedCheckoutTotal?: string | null }, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
+    registerSalesStore: async (_parent: unknown, args: FinancialRegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
       const startedAt = Date.now()
       // Se conserva el fallback legado. El tenant de sesión tiene prioridad.
       const validator = new ContextValidator(context)
@@ -396,7 +405,21 @@ export const orderResolvers = {
       if (!idStore) return toGraphQLResponse(failure('Store not found'))
 
       const orderServices = StatusOrderServicesTenantFactory(idStore)
+      const financialEnabled = cashEnabled(idStore)
+      let paymentRegistration: SalePaymentRegistration | null = null
       let creatingHeader = false
+
+      // A historical or conflicting reference must not unlock the POS attempt.
+      const verifyReplay = async (): Promise<SaleResult | null> => {
+        if (!paymentRegistration) return null
+        const identity = await paymentRegistration.findVerifiedReplay()
+        if (!identity) return null
+        const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
+        requireRule(previous?.success && previous.data && previous.data.stPId === identity.stPId &&
+          previous.data.idStore === idStore && previous.data.pCodeRef === args.pCodeRef,
+        'IDEMPOTENCY_CONFLICT', 'La venta y su evidencia no coinciden')
+        return existingSale(previous.data)
+      }
 
       try {
         const storeExists = await StoreServicesPublic.findById.execute(idStore)
@@ -413,11 +436,25 @@ export const orderResolvers = {
           return toGraphQLResponse(failure('Shopping cart reference is required'))
         }
 
-        // La restricción UNIQUE del tenant sigue siendo la garantía final.
-        const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
-        if (previous?.success && previous.data) {
-          return toGraphQLResponse(existingSale(previous.data))
+        const db = connect()
+        if (financialEnabled) {
+          const actor = authorizedCash(context, 'collect')
+          requireRule(actor.storeId === idStore, 'FORBIDDEN', 'Comercio inválido')
+          paymentRegistration = new SalePaymentRegistration(new SequelizeCashRepository(idStore, db), actor, args)
+          const replay = await verifyReplay()
+          if (replay) return toGraphQLResponse(replay)
+        } else {
+          // Never ignore a financial request, even when a store has been disabled.
+          if (args.cashSessionId != null || args.paymentInput != null) {
+            return toGraphQLResponse(failure('Verifica el pago original: la gestión de caja no está habilitada'))
+          }
+          // Compatibility only for explicitly disabled stores.
+          const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
+          if (previous?.success && previous.data) {
+            return toGraphQLResponse(existingSale(previous.data))
+          }
         }
+        // La restricción UNIQUE del tenant sigue siendo la garantía final.
 
         // Validaciones de entrada antes de abrir la transacción.
 
@@ -438,7 +475,10 @@ export const orderResolvers = {
 
         // Transacción administrada: cualquier excepción revierte TODA la venta.
         // No ejecutar escrituras concurrentes sobre la misma transacción.
-        const created = await connect().transaction(async transaction => {
+        const created = await db.transaction(async transaction => {
+          const preparedPayment = paymentRegistration
+            ? await paymentRegistration.prepare(transaction)
+            : null
           // Resolve and lock the active configuration before reading/writing cart rows.
           const deliveryServices = DeliveryServicesTenantFactory(idStore)
           const deliveryInput = args.delivery ? validateQuote(args.delivery) : null
@@ -601,6 +641,11 @@ export const orderResolvers = {
               if (recorded[k] !== deliveryTerms[k]) throw new SaleAbort(failure('El snapshot de entrega no coincide con la cotización'))
             }
           }
+          if (paymentRegistration && preparedPayment) {
+            // The authoritative checkout total is in decimal COP, not minor units.
+            await paymentRegistration.record(preparedPayment, result.data.stPId,
+              pricing.totals.settlement.checkoutTotal, header.change)
+          }
           return result
         })
 
@@ -620,7 +665,24 @@ export const orderResolvers = {
           (creatingHeader && isUniqueViolation(error)) ||
           error instanceof InsufficientStockError
 
-        if (mayBeRetry) {
+        if (financialEnabled && paymentRegistration) {
+          // A concurrent winner, lost response or legacy sale is never success
+          // unless the exact original payment can be independently verified.
+          try {
+            const replay = await verifyReplay()
+            if (replay) return toGraphQLResponse(replay)
+          } catch {
+            LogWarning('registerSalesStore: no se pudo verificar la evidencia del pago original')
+            return toGraphQLResponse(failure('Verifica el pago original: la evidencia no existe o no coincide'))
+          }
+          if ((error instanceof SaleAbort && error.recheckIdempotency) ||
+            (creatingHeader && isUniqueViolation(error)) ||
+            (error instanceof CashError && error.code === 'IDEMPOTENCY_CONFLICT')) {
+            return toGraphQLResponse(failure('Verifica el pago original antes de intentar otro cobro'))
+          }
+        }
+
+        if (!financialEnabled && mayBeRetry) {
           const winner = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
           if (winner?.success && winner.data) {
             LogInfo(`registerSalesStore: retry resolved for ${args.pCodeRef}`)
@@ -657,6 +719,18 @@ export const orderResolvers = {
           }]))
         }
 
+        if (error instanceof CashError) {
+          return toGraphQLResponse(failure(error.message, [{
+            message: error.message, path: ['paymentInput'], type: error.code
+          }]))
+        }
+
+        if (financialEnabled) {
+          // Unexpected infrastructure or commit errors are ambiguous to the POS.
+          // This wording is recognized by classifySaleResponse in pkg-hook.
+          LogDanger('registerSalesStore: resultado financiero no verificado')
+          return toGraphQLResponse(failure('Verifica el pago original: no fue posible confirmar el resultado'))
+        }
         LogDanger(`Error in registerSalesStore: ${errorMessage(error)}`)
         return toGraphQLResponse(failure(errorMessage(error)))
       }
