@@ -10,7 +10,27 @@ type CashManagementContext { allowSelfApproval: Boolean! storeId: ID! enabled: B
 input CashRegisterInput { id: ID expectedRevision: Int code: String! name: String! defaultFloat: String! minimumFloat: String! closingTolerance: String! blindCountRequired: Boolean! active: Boolean! }
 input CashDenominationInput { denominationMinor: String! quantity: Int! }
 enum CashOpeningSource { PREVIOUS_SESSION TREASURY OTHER_DOCUMENTED }
-input OpenCashSessionInput { registerId: ID! details: [CashDenominationInput!]! source: CashOpeningSource! previousSessionId: ID reference: String notes: String idempotencyKey: String! }
+"""
+Datos necesarios para abrir una sesión de caja.
+"""
+input OpenCashSessionInput {
+  registerId: ID!
+  details: [CashDenominationInput!]!
+  source: CashOpeningSource!
+  previousSessionId: ID
+  reference: String
+  notes: String
+  idempotencyKey: String!
+
+  """
+  Medios de pago que estarán habilitados
+  durante esta sesión de caja.
+
+  Se validan contra el catálogo financiero
+  y se guardan en cash_session_payment_policy.
+  """
+  selectedPaymentMethodIds: [ID!]!
+}
 enum CashManualMovementType { MANUAL_IN MANUAL_OUT EXPENSE SUPPLIER_PAYMENT CASH_DROP }
 input RecordCashMovementInput { sessionId: ID! type: CashManualMovementType! amount: String! reason: String! reference: String idempotencyKey: String! }
 input ReverseCashMovementInput { sessionId: ID! movementId: ID! reason: String! idempotencyKey: String! }

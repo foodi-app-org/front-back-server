@@ -35,7 +35,7 @@ import SequelizeReportJobModel, { REPORT_JOB_MODEL } from '../../../../../module
 import { REFRESH_TOKEN_MODEL, SequelizeRefreshTokenModel } from '../../../../../modules/auth/infrastructure/db/sequelize/models/sequelize-refresh-token.model'
 import SequelizeAppConfigurationModel from '@modules/app_configurations/infrastructure/db/sequelize/models/sequelize-app-configuration.model'
 import SequelizeConfigurationEventModel from '@modules/app_configurations/infrastructure/db/sequelize/models/sequelize-configuration-event.model'
-
+import  SequelizeSessionPaymentPolicyModel, { MODEL_SESSION_PAYMENT_POLICY_NAME } from '@modules/cash_management/infrastructure/db/sequelize/models/cash_session_payment_policy'
 
 export const models = {
   User: SequelizeUserModel,
@@ -88,7 +88,8 @@ export const models = {
   // AppConfiguration
   AppConfiguration: SequelizeAppConfigurationModel,
   //ConfigurationEvent
-  ConfigurationEvent: SequelizeConfigurationEventModel
+  ConfigurationEvent: SequelizeConfigurationEventModel,
+  SequelizeSessionPaymentPolicyModel: SequelizeSessionPaymentPolicyModel
 }
 
 export const models_names = {
@@ -121,4 +122,5 @@ export const models_names = {
   FilterConfig: FILTER_CONFIG_MODEL,
   ReportJob: REPORT_JOB_MODEL,
   RefreshToken: REFRESH_TOKEN_MODEL,
+  SequelizeSessionPaymentPolicyModel: MODEL_SESSION_PAYMENT_POLICY_NAME
 }

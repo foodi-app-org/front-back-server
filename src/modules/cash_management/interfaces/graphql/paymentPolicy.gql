@@ -1,0 +1,15 @@
+"""
+Política de medios de pago habilitados
+para una sesión de caja.
+"""
+type CashSessionPaymentPolicy {
+  sessionId: ID!
+  configured: Boolean!
+  methodIds: [ID!]!
+}
+
+extend type Query {
+  getSessionPaymentPolicy(
+    sessionId: ID!
+  ): CashSessionPaymentPolicy!
+}
