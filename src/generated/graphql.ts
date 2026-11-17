@@ -86,6 +86,12 @@ export type AvailableProduct = {
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
+export type CancelSaleRefundInput = {
+  idempotencyKey: Scalars['String']['input'];
+  reason: Scalars['String']['input'];
+  refundId: Scalars['ID']['input'];
+};
+
 export type CashCountHistoryView = {
   __typename?: 'CashCountHistoryView';
   attemptNumber: Scalars['Int']['output'];
@@ -233,6 +239,17 @@ export type CashSchemaStatus = {
   schema: Scalars['String']['output'];
 };
 
+/**
+ * Política de medios de pago habilitados
+ * para una sesión de caja.
+ */
+export type CashSessionPaymentPolicy = {
+  __typename?: 'CashSessionPaymentPolicy';
+  configured: Scalars['Boolean']['output'];
+  methodIds: Array<Scalars['ID']['output']>;
+  sessionId: Scalars['ID']['output'];
+};
+
 export type CashSessionReconciliation = {
   __typename?: 'CashSessionReconciliation';
   byPayment: Array<CashPaymentGroup>;
@@ -313,6 +330,24 @@ export type CatStore = {
   getAllStore?: Maybe<Array<Maybe<Store>>>;
   idUser?: Maybe<Scalars['ID']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type CategoryPaginationMeta = {
+  __typename?: 'CategoryPaginationMeta';
+  currentPage: Scalars['Int']['output'];
+  mode: Scalars['String']['output'];
+  pageSize: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+  totalRecords: Scalars['Int']['output'];
+};
+
+export type CategoryProductsPaginatedResult = {
+  __typename?: 'CategoryProductsPaginatedResult';
+  data: Array<CatProducts>;
+  message: Scalars['String']['output'];
+  nextCursor?: Maybe<Scalars['String']['output']>;
+  pagination: CategoryPaginationMeta;
+  success: Scalars['Boolean']['output'];
 };
 
 export type City = {
@@ -405,6 +440,13 @@ export enum ConfigurationScope {
   Store = 'STORE',
   User = 'USER'
 }
+
+export type ConfirmExternalSaleRefundInput = {
+  externalReference: Scalars['String']['input'];
+  externallyVerified: Scalars['Boolean']['input'];
+  idempotencyKey: Scalars['String']['input'];
+  refundId: Scalars['ID']['input'];
+};
 
 export type Country = {
   __typename?: 'Country';
@@ -1446,6 +1488,8 @@ export type Mutation = {
   beginCashClose: CashSessionView;
   /** Cancels an owned, unfinished report job. */
   cancelReportJob: ReportJobResponse;
+  cancelSaleRefund: SaleRefundView;
+  confirmExternalSaleRefund: SaleRefundView;
   /** Registra un area */
   createArea?: Maybe<Area>;
   /** Registra una ciudad sobre un departamento */
@@ -1541,6 +1585,7 @@ export type Mutation = {
   removeRoles?: Maybe<UpdateRoleResponse>;
   /** Validates and submits an export request (immediate or queued). */
   requestReportExport: ReportJobResponse;
+  requestSaleRefund: SaleRefundView;
   resetConfiguration: ConfigurationResetResponse;
   /** Increase a main product's stock to a target as an inventory ENTRY (RESTOCK). Never lowers existing stock. */
   restockProduct?: Maybe<ResponseManageStock>;
@@ -1623,6 +1668,16 @@ export type MutationBeginCashCloseArgs = {
 
 export type MutationCancelReportJobArgs = {
   jobId: Scalars['ID']['input'];
+};
+
+
+export type MutationCancelSaleRefundArgs = {
+  input: CancelSaleRefundInput;
+};
+
+
+export type MutationConfirmExternalSaleRefundArgs = {
+  input: ConfirmExternalSaleRefundInput;
 };
 
 
@@ -2032,6 +2087,11 @@ export type MutationRequestReportExportArgs = {
 };
 
 
+export type MutationRequestSaleRefundArgs = {
+  input: RequestSaleRefundInput;
+};
+
+
 export type MutationResetConfigurationArgs = {
   componentName: Scalars['String']['input'];
   key: Scalars['String']['input'];
@@ -2237,6 +2297,7 @@ export type MutationUpsertGoalArgs = {
   input: CreateGoalInput;
 };
 
+/** Datos necesarios para abrir una sesión de caja. */
 export type OpenCashSessionInput = {
   details: Array<CashDenominationInput>;
   idempotencyKey: Scalars['String']['input'];
@@ -2244,6 +2305,14 @@ export type OpenCashSessionInput = {
   previousSessionId?: InputMaybe<Scalars['ID']['input']>;
   reference?: InputMaybe<Scalars['String']['input']>;
   registerId: Scalars['ID']['input'];
+  /**
+   * Medios de pago que estarán habilitados
+   * durante esta sesión de caja.
+   *
+   * Se validan contra el catálogo financiero
+   * y se guardan en cash_session_payment_policy.
+   */
+  selectedPaymentMethodIds: Array<Scalars['ID']['input']>;
   source: CashOpeningSource;
 };
 
@@ -2426,6 +2495,8 @@ export type Query = {
   catProductsAll?: Maybe<Array<Maybe<CatProducts>>>;
   catProductsLogis?: Maybe<Array<Maybe<CatProducts>>>;
   catProductsOne?: Maybe<CatProducts>;
+  /** Paginated category list scoped to the current context.restaurant tenant */
+  catProductsPaginated: CategoryProductsPaginatedResult;
   /** Consulta todas las ciudades de un departamento */
   cities?: Maybe<Array<Maybe<City>>>;
   /** Consulta todos los países */
@@ -2504,6 +2575,7 @@ export type Query = {
   getProductFoods?: Maybe<Array<Maybe<ProductFood>>>;
   /** Returns the most recent report requests for the authenticated user. */
   getRecentReportRequests: ReportJobListResponse;
+  getRefundSettlementLedger: RefundSettlementLedger;
   /** Returns the current status of an owned report job. */
   getReportJobStatus: ReportJobResponse;
   getResolvedConfiguration?: Maybe<ResolvedConfiguration>;
@@ -2512,8 +2584,13 @@ export type Query = {
   getRoles?: Maybe<ResponseRoles>;
   getSaleDelivery?: Maybe<SaleDelivery>;
   getSalePaymentEvidence: Array<SalePaymentEvidence>;
+  getSaleRefundAccounting: SaleRefundAccounting;
+  getSaleRefundKardexAudit: SaleRefundKardexAudit;
+  getSaleRefundPreview: SaleRefundPreview;
+  getSaleRefunds: Array<SaleRefundView>;
   getSalesAmountToday: SalesAmountTodayResponse;
   getSalesReconciliation: SalesReconciliationReport;
+  getSessionPaymentPolicy: CashSessionPaymentPolicy;
   getStockMovementWeeklyComparison?: Maybe<Array<Maybe<WeeklyStockChange>>>;
   getStockMovementsByDay: Array<StockMovementSummary>;
   getStore?: Maybe<Store>;
@@ -2525,7 +2602,6 @@ export type Query = {
   getTotalSalesSold: Scalars['Int']['output'];
   getUser?: Maybe<User>;
   getUserByEmail?: Maybe<User>;
-  /** Consulta todos los catProductsos */
   getcatProducts?: Maybe<Array<Maybe<CatProducts>>>;
   module?: Maybe<Module>;
   modules?: Maybe<Array<Maybe<Module>>>;
@@ -2648,6 +2724,16 @@ export type QueryCatProductsOneArgs = {
   carProId?: InputMaybe<Scalars['ID']['input']>;
   ctId?: InputMaybe<Scalars['ID']['input']>;
   dId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryCatProductsPaginatedArgs = {
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  max?: InputMaybe<Scalars['Int']['input']>;
+  mode?: InputMaybe<Scalars['String']['input']>;
+  pState?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -2933,6 +3019,12 @@ export type QueryGetRecentReportRequestsArgs = {
 };
 
 
+export type QueryGetRefundSettlementLedgerArgs = {
+  from: Scalars['String']['input'];
+  to: Scalars['String']['input'];
+};
+
+
 export type QueryGetReportJobStatusArgs = {
   jobId: Scalars['ID']['input'];
 };
@@ -2974,10 +3066,35 @@ export type QueryGetSalePaymentEvidenceArgs = {
 };
 
 
+export type QueryGetSaleRefundAccountingArgs = {
+  saleReference: Scalars['String']['input'];
+};
+
+
+export type QueryGetSaleRefundKardexAuditArgs = {
+  refundId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetSaleRefundPreviewArgs = {
+  saleReference: Scalars['String']['input'];
+};
+
+
+export type QueryGetSaleRefundsArgs = {
+  saleReference: Scalars['String']['input'];
+};
+
+
 export type QueryGetSalesReconciliationArgs = {
   channel?: InputMaybe<Scalars['Int']['input']>;
   from: Scalars['String']['input'];
   to: Scalars['String']['input'];
+};
+
+
+export type QueryGetSessionPaymentPolicyArgs = {
+  sessionId: Scalars['ID']['input'];
 };
 
 
@@ -3120,6 +3237,21 @@ export type ReconciliationGroup = {
   unverifiable: Scalars['Int']['output'];
 };
 
+export type ReconciliationPaymentAudit = {
+  __typename?: 'ReconciliationPaymentAudit';
+  appliedMinor: Scalars['String']['output'];
+  cashPostingVerification: Scalars['String']['output'];
+  confirmed: Scalars['Int']['output'];
+  differenceMinor?: Maybe<Scalars['String']['output']>;
+  issues: Array<Scalars['String']['output']>;
+  paymentVerification: Scalars['String']['output'];
+  postingIssues: Array<Scalars['String']['output']>;
+  refundMinor: Scalars['String']['output'];
+  refundPhysicalMinor: Scalars['String']['output'];
+  roundingMinor: Scalars['String']['output'];
+  settledMinor: Scalars['String']['output'];
+};
+
 export type ReconciliationRecorded = {
   __typename?: 'ReconciliationRecorded';
   change?: Maybe<Scalars['String']['output']>;
@@ -3143,6 +3275,7 @@ export type ReconciliationRow = {
   id: Scalars['ID']['output'];
   issues: Array<Scalars['String']['output']>;
   payId?: Maybe<Scalars['ID']['output']>;
+  paymentAudit: ReconciliationPaymentAudit;
   paymentIssues: Array<Scalars['String']['output']>;
   paymentKind: Scalars['String']['output'];
   paymentName: Scalars['String']['output'];
@@ -3231,6 +3364,39 @@ export type RecountCashCloseInput = {
   reason: Scalars['String']['input'];
   sessionId: Scalars['ID']['input'];
   version: Scalars['Int']['input'];
+};
+
+export type RefundSettlementAudit = {
+  __typename?: 'RefundSettlementAudit';
+  accountingVerified: Scalars['Boolean']['output'];
+  amountMinor: Scalars['String']['output'];
+  confirmedAt: Scalars['String']['output'];
+  issues: Array<Scalars['String']['output']>;
+  paymentId?: Maybe<Scalars['ID']['output']>;
+  paymentKind: Scalars['String']['output'];
+  providerVerified: Scalars['Boolean']['output'];
+  refundId: Scalars['ID']['output'];
+  requestedAt: Scalars['String']['output'];
+  saleId: Scalars['ID']['output'];
+  saleReference: Scalars['String']['output'];
+};
+
+export type RefundSettlementLedger = {
+  __typename?: 'RefundSettlementLedger';
+  currency: Scalars['String']['output'];
+  from: Scalars['String']['output'];
+  rows: Array<RefundSettlementAudit>;
+  summary: RefundSettlementSummary;
+  timezone: Scalars['String']['output'];
+  to: Scalars['String']['output'];
+};
+
+export type RefundSettlementSummary = {
+  __typename?: 'RefundSettlementSummary';
+  confirmedCount: Scalars['Int']['output'];
+  confirmedVerifiedMinor: Scalars['String']['output'];
+  excludedUnverifiedMinor: Scalars['String']['output'];
+  unverifiedCount: Scalars['Int']['output'];
 };
 
 export type RegisterBannerResponse = {
@@ -3368,6 +3534,16 @@ export type ReportJobResponse = {
   job?: Maybe<ReportJob>;
   message?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+export type RequestSaleRefundInput = {
+  cashSessionId?: InputMaybe<Scalars['ID']['input']>;
+  defaultDisposition?: InputMaybe<SaleRefundDisposition>;
+  idempotencyKey: Scalars['String']['input'];
+  items?: InputMaybe<Array<SaleRefundLineInput>>;
+  reason: Scalars['String']['input'];
+  saleReference: Scalars['String']['input'];
+  scope: SaleRefundScope;
 };
 
 export type ResolvedConfiguration = {
@@ -3761,6 +3937,150 @@ export type SalePersistedAmounts = {
   tip?: Maybe<Scalars['String']['output']>;
 };
 
+export type SaleRefundAccounting = {
+  __typename?: 'SaleRefundAccounting';
+  cancelledRefundCount: Scalars['Int']['output'];
+  cancelledRefundMinor: Scalars['String']['output'];
+  commercialStatus: Scalars['String']['output'];
+  confirmedRefundCount: Scalars['Int']['output'];
+  confirmedRefundMinor: Scalars['String']['output'];
+  effectiveMerchandiseMinor: Scalars['String']['output'];
+  issues: Array<Scalars['String']['output']>;
+  kardexAudits: Array<SaleRefundKardexAudit>;
+  kardexVerified: Scalars['Boolean']['output'];
+  lines: Array<SaleRefundAccountingLine>;
+  originalGrossMinor?: Maybe<Scalars['String']['output']>;
+  originalMerchandiseMinor: Scalars['String']['output'];
+  pendingRefundCount: Scalars['Int']['output'];
+  pendingRefundMinor: Scalars['String']['output'];
+  saleId: Scalars['ID']['output'];
+  saleReference: Scalars['String']['output'];
+  stockIssues: Array<Scalars['String']['output']>;
+  verified: Scalars['Boolean']['output'];
+};
+
+export type SaleRefundAccountingLine = {
+  __typename?: 'SaleRefundAccountingLine';
+  catalogProductId: Scalars['ID']['output'];
+  currentStock?: Maybe<Scalars['Int']['output']>;
+  expectedRestockedQuantity: Scalars['Int']['output'];
+  extras: Array<SaleRefundStockExtra>;
+  manageStock?: Maybe<Scalars['Boolean']['output']>;
+  productName: Scalars['String']['output'];
+  remainingQuantity: Scalars['Int']['output'];
+  reservedQuantity: Scalars['Int']['output'];
+  restockVerified: Scalars['Boolean']['output'];
+  restockedQuantity: Scalars['Int']['output'];
+  returnedQuantity: Scalars['Int']['output'];
+  shoppingCartId: Scalars['ID']['output'];
+  soldProductId: Scalars['ID']['output'];
+  soldQuantity: Scalars['Int']['output'];
+  wasRestocked: Scalars['Boolean']['output'];
+};
+
+export enum SaleRefundDisposition {
+  Damaged = 'DAMAGED',
+  NoStock = 'NO_STOCK',
+  Restock = 'RESTOCK'
+}
+
+export type SaleRefundItemView = {
+  __typename?: 'SaleRefundItemView';
+  amountMinor: Scalars['String']['output'];
+  disposition: SaleRefundDisposition;
+  id: Scalars['ID']['output'];
+  quantity: Scalars['Int']['output'];
+  shoppingCartId: Scalars['ID']['output'];
+};
+
+export type SaleRefundKardexAmount = {
+  __typename?: 'SaleRefundKardexAmount';
+  delta: Scalars['Int']['output'];
+  key: Scalars['String']['output'];
+};
+
+export type SaleRefundKardexAudit = {
+  __typename?: 'SaleRefundKardexAudit';
+  actual: Array<SaleRefundKardexAmount>;
+  expected: Array<SaleRefundKardexAmount>;
+  issues: Array<Scalars['String']['output']>;
+  refundId: Scalars['ID']['output'];
+  verified: Scalars['Boolean']['output'];
+};
+
+export type SaleRefundLineInput = {
+  disposition: SaleRefundDisposition;
+  quantity: Scalars['Int']['input'];
+  shoppingCartId: Scalars['ID']['input'];
+};
+
+export type SaleRefundPreview = {
+  __typename?: 'SaleRefundPreview';
+  lines: Array<SaleRefundPreviewLine>;
+  merchandiseNetMinor: Scalars['String']['output'];
+  paymentKind: FinancialPaymentKind;
+  refundableMerchandiseMinor: Scalars['String']['output'];
+  saleId: Scalars['ID']['output'];
+  saleReference: Scalars['String']['output'];
+};
+
+export type SaleRefundPreviewLine = {
+  __typename?: 'SaleRefundPreviewLine';
+  allocatedMinor: Scalars['String']['output'];
+  alreadyReservedQuantity: Scalars['Int']['output'];
+  productName: Scalars['String']['output'];
+  remainingQuantity: Scalars['Int']['output'];
+  shoppingCartId: Scalars['ID']['output'];
+  soldQuantity: Scalars['Int']['output'];
+};
+
+export enum SaleRefundScope {
+  FullRemaining = 'FULL_REMAINING',
+  Selected = 'SELECTED'
+}
+
+export enum SaleRefundStatus {
+  Cancelled = 'CANCELLED',
+  Completed = 'COMPLETED',
+  PendingExternal = 'PENDING_EXTERNAL'
+}
+
+export type SaleRefundStockExtra = {
+  __typename?: 'SaleRefundStockExtra';
+  catalogId: Scalars['ID']['output'];
+  currentStock?: Maybe<Scalars['Int']['output']>;
+  expectedRestockedQuantity: Scalars['Int']['output'];
+  manageStock?: Maybe<Scalars['Boolean']['output']>;
+  name: Scalars['String']['output'];
+  restockVerified: Scalars['Boolean']['output'];
+  restockedQuantity: Scalars['Int']['output'];
+  soldQuantity: Scalars['Int']['output'];
+  wasRestocked: Scalars['Boolean']['output'];
+};
+
+export type SaleRefundView = {
+  __typename?: 'SaleRefundView';
+  amountMinor: Scalars['String']['output'];
+  cancelReason?: Maybe<Scalars['String']['output']>;
+  cancelledAt?: Maybe<Scalars['String']['output']>;
+  cancelledBy?: Maybe<Scalars['ID']['output']>;
+  cashSessionId?: Maybe<Scalars['ID']['output']>;
+  confirmedAt?: Maybe<Scalars['String']['output']>;
+  confirmedBy?: Maybe<Scalars['ID']['output']>;
+  externalReference?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  items: Array<SaleRefundItemView>;
+  originalPaymentId: Scalars['ID']['output'];
+  paymentId?: Maybe<Scalars['ID']['output']>;
+  reason: Scalars['String']['output'];
+  requestedAt: Scalars['String']['output'];
+  requestedBy: Scalars['ID']['output'];
+  saleId: Scalars['ID']['output'];
+  saleReference: Scalars['String']['output'];
+  scope: SaleRefundScope;
+  status: SaleRefundStatus;
+};
+
 export type SaleSummaryRow = {
   __typename?: 'SaleSummaryRow';
   effect: SaleTotalEffect;
@@ -3911,6 +4231,7 @@ export type StoreOrders = {
   paymentMethod?: Maybe<PaymentMethod>;
   pdpId?: Maybe<Scalars['ID']['output']>;
   ppState?: Maybe<Scalars['Int']['output']>;
+  refundSummary?: Maybe<SaleRefundAccounting>;
   shoppingCartRefCode?: Maybe<Scalars['String']['output']>;
   shoppingCarts?: Maybe<Array<Maybe<ShoppingCart>>>;
   status?: Maybe<Scalars['String']['output']>;
@@ -4126,9 +4447,21 @@ export type User = {
 
 export type WeeklyStockChange = {
   __typename?: 'WeeklyStockChange';
+  /** NO_HISTORY, NO_REFERENCE, NO_ACTIVITY, NEW_ACTIVITY, INCREASED, DECREASED or UNCHANGED. */
+  comparisonStatus: Scalars['String']['output'];
+  historyPartial: Scalars['Boolean']['output'];
+  isCurrent: Scalars['Boolean']['output'];
+  /** True for the current week or a partially observed first week. */
+  isPartial: Scalars['Boolean']['output'];
+  /** Undefined on a zero or unknown baseline. Never clamped. */
   percentageChange?: Maybe<Scalars['Float']['output']>;
+  /** Immediately preceding fully observed week; null when unavailable. */
   prevTotalOut?: Maybe<Scalars['Int']['output']>;
+  /** Recorded outgoing units; null when no history is available. */
   totalOut?: Maybe<Scalars['Int']['output']>;
+  /** Sunday in the same calendar (YYYY-MM-DD). */
+  weekEnd: Scalars['String']['output'];
+  /** Monday in the business calendar (YYYY-MM-DD). */
   weekStart?: Maybe<Scalars['String']['output']>;
 };
 
@@ -4273,6 +4606,7 @@ export type ResolversTypes = {
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
   AvailableProduct: ResolverTypeWrapper<AvailableProduct>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CancelSaleRefundInput: CancelSaleRefundInput;
   CashCountHistoryView: ResolverTypeWrapper<CashCountHistoryView>;
   CashCountPhase: CashCountPhase;
   CashCountView: ResolverTypeWrapper<CashCountView>;
@@ -4287,11 +4621,14 @@ export type ResolversTypes = {
   CashRegisterInput: CashRegisterInput;
   CashRegisterView: ResolverTypeWrapper<CashRegisterView>;
   CashSchemaStatus: ResolverTypeWrapper<CashSchemaStatus>;
+  CashSessionPaymentPolicy: ResolverTypeWrapper<CashSessionPaymentPolicy>;
   CashSessionReconciliation: ResolverTypeWrapper<CashSessionReconciliation>;
   CashSessionView: ResolverTypeWrapper<CashSessionView>;
   CashUnlinkedSale: ResolverTypeWrapper<CashUnlinkedSale>;
   CashUnlinkedSales: ResolverTypeWrapper<CashUnlinkedSales>;
   CatStore: ResolverTypeWrapper<CatStore>;
+  CategoryPaginationMeta: ResolverTypeWrapper<CategoryPaginationMeta>;
+  CategoryProductsPaginatedResult: ResolverTypeWrapper<CategoryProductsPaginatedResult>;
   City: ResolverTypeWrapper<City>;
   Clients: ResolverTypeWrapper<Clients>;
   ConfigurationBulkItemInput: ConfigurationBulkItemInput;
@@ -4302,6 +4639,7 @@ export type ResolversTypes = {
   ConfigurationMutationResponse: ResolverTypeWrapper<ConfigurationMutationResponse>;
   ConfigurationResetResponse: ResolverTypeWrapper<ConfigurationResetResponse>;
   ConfigurationScope: ConfigurationScope;
+  ConfirmExternalSaleRefundInput: ConfirmExternalSaleRefundInput;
   Country: ResolverTypeWrapper<Country>;
   CreateDeliveryMethodInput: CreateDeliveryMethodInput;
   CreateFilterConfigInput: CreateFilterConfigInput;
@@ -4426,6 +4764,7 @@ export type ResolversTypes = {
   QuoteSaleDeliveryInput: QuoteSaleDeliveryInput;
   ReconciliationCalculated: ResolverTypeWrapper<ReconciliationCalculated>;
   ReconciliationGroup: ResolverTypeWrapper<ReconciliationGroup>;
+  ReconciliationPaymentAudit: ResolverTypeWrapper<ReconciliationPaymentAudit>;
   ReconciliationRecorded: ResolverTypeWrapper<ReconciliationRecorded>;
   ReconciliationRow: ResolverTypeWrapper<ReconciliationRow>;
   ReconciliationSettlement: ResolverTypeWrapper<ReconciliationSettlement>;
@@ -4433,6 +4772,9 @@ export type ResolversTypes = {
   ReconciliationSummary: ResolverTypeWrapper<ReconciliationSummary>;
   RecordCashMovementInput: RecordCashMovementInput;
   RecountCashCloseInput: RecountCashCloseInput;
+  RefundSettlementAudit: ResolverTypeWrapper<RefundSettlementAudit>;
+  RefundSettlementLedger: ResolverTypeWrapper<RefundSettlementLedger>;
+  RefundSettlementSummary: ResolverTypeWrapper<RefundSettlementSummary>;
   RegisterBannerResponse: ResolverTypeWrapper<RegisterBannerResponse>;
   ReportCatalogCategory: ResolverTypeWrapper<ReportCatalogCategory>;
   ReportCatalogResponse: ResolverTypeWrapper<ReportCatalogResponse>;
@@ -4447,6 +4789,7 @@ export type ResolversTypes = {
   ReportJob: ResolverTypeWrapper<ReportJob>;
   ReportJobListResponse: ResolverTypeWrapper<ReportJobListResponse>;
   ReportJobResponse: ResolverTypeWrapper<ReportJobResponse>;
+  RequestSaleRefundInput: RequestSaleRefundInput;
   ResolvedConfiguration: ResolverTypeWrapper<ResolvedConfiguration>;
   Response: ResolverTypeWrapper<Response>;
   ResponseAllOrderStatusTypes: ResolverTypeWrapper<ResponseAllOrderStatusTypes>;
@@ -4481,6 +4824,19 @@ export type ResolversTypes = {
   SalePaymentEvidence: ResolverTypeWrapper<SalePaymentEvidence>;
   SalePaymentInput: SalePaymentInput;
   SalePersistedAmounts: ResolverTypeWrapper<SalePersistedAmounts>;
+  SaleRefundAccounting: ResolverTypeWrapper<SaleRefundAccounting>;
+  SaleRefundAccountingLine: ResolverTypeWrapper<SaleRefundAccountingLine>;
+  SaleRefundDisposition: SaleRefundDisposition;
+  SaleRefundItemView: ResolverTypeWrapper<SaleRefundItemView>;
+  SaleRefundKardexAmount: ResolverTypeWrapper<SaleRefundKardexAmount>;
+  SaleRefundKardexAudit: ResolverTypeWrapper<SaleRefundKardexAudit>;
+  SaleRefundLineInput: SaleRefundLineInput;
+  SaleRefundPreview: ResolverTypeWrapper<SaleRefundPreview>;
+  SaleRefundPreviewLine: ResolverTypeWrapper<SaleRefundPreviewLine>;
+  SaleRefundScope: SaleRefundScope;
+  SaleRefundStatus: SaleRefundStatus;
+  SaleRefundStockExtra: ResolverTypeWrapper<SaleRefundStockExtra>;
+  SaleRefundView: ResolverTypeWrapper<SaleRefundView>;
   SaleSummaryRow: ResolverTypeWrapper<SaleSummaryRow>;
   SaleTotalEffect: SaleTotalEffect;
   SaleTotalUnit: SaleTotalUnit;
@@ -4529,6 +4885,7 @@ export type ResolversParentTypes = {
   AuthPayload: AuthPayload;
   AvailableProduct: AvailableProduct;
   Boolean: Scalars['Boolean']['output'];
+  CancelSaleRefundInput: CancelSaleRefundInput;
   CashCountHistoryView: CashCountHistoryView;
   CashCountView: CashCountView;
   CashDenominationInput: CashDenominationInput;
@@ -4540,11 +4897,14 @@ export type ResolversParentTypes = {
   CashRegisterInput: CashRegisterInput;
   CashRegisterView: CashRegisterView;
   CashSchemaStatus: CashSchemaStatus;
+  CashSessionPaymentPolicy: CashSessionPaymentPolicy;
   CashSessionReconciliation: CashSessionReconciliation;
   CashSessionView: CashSessionView;
   CashUnlinkedSale: CashUnlinkedSale;
   CashUnlinkedSales: CashUnlinkedSales;
   CatStore: CatStore;
+  CategoryPaginationMeta: CategoryPaginationMeta;
+  CategoryProductsPaginatedResult: CategoryProductsPaginatedResult;
   City: City;
   Clients: Clients;
   ConfigurationBulkItemInput: ConfigurationBulkItemInput;
@@ -4552,6 +4912,7 @@ export type ResolversParentTypes = {
   ConfigurationEvent: ConfigurationEvent;
   ConfigurationMutationResponse: ConfigurationMutationResponse;
   ConfigurationResetResponse: ConfigurationResetResponse;
+  ConfirmExternalSaleRefundInput: ConfirmExternalSaleRefundInput;
   Country: Country;
   CreateDeliveryMethodInput: CreateDeliveryMethodInput;
   CreateFilterConfigInput: CreateFilterConfigInput;
@@ -4671,12 +5032,16 @@ export type ResolversParentTypes = {
   QuoteSaleDeliveryInput: QuoteSaleDeliveryInput;
   ReconciliationCalculated: ReconciliationCalculated;
   ReconciliationGroup: ReconciliationGroup;
+  ReconciliationPaymentAudit: ReconciliationPaymentAudit;
   ReconciliationRecorded: ReconciliationRecorded;
   ReconciliationRow: ReconciliationRow;
   ReconciliationSettlement: ReconciliationSettlement;
   ReconciliationSummary: ReconciliationSummary;
   RecordCashMovementInput: RecordCashMovementInput;
   RecountCashCloseInput: RecountCashCloseInput;
+  RefundSettlementAudit: RefundSettlementAudit;
+  RefundSettlementLedger: RefundSettlementLedger;
+  RefundSettlementSummary: RefundSettlementSummary;
   RegisterBannerResponse: RegisterBannerResponse;
   ReportCatalogCategory: ReportCatalogCategory;
   ReportCatalogResponse: ReportCatalogResponse;
@@ -4690,6 +5055,7 @@ export type ResolversParentTypes = {
   ReportJob: ReportJob;
   ReportJobListResponse: ReportJobListResponse;
   ReportJobResponse: ReportJobResponse;
+  RequestSaleRefundInput: RequestSaleRefundInput;
   ResolvedConfiguration: ResolvedConfiguration;
   Response: Response;
   ResponseAllOrderStatusTypes: ResponseAllOrderStatusTypes;
@@ -4724,6 +5090,16 @@ export type ResolversParentTypes = {
   SalePaymentEvidence: SalePaymentEvidence;
   SalePaymentInput: SalePaymentInput;
   SalePersistedAmounts: SalePersistedAmounts;
+  SaleRefundAccounting: SaleRefundAccounting;
+  SaleRefundAccountingLine: SaleRefundAccountingLine;
+  SaleRefundItemView: SaleRefundItemView;
+  SaleRefundKardexAmount: SaleRefundKardexAmount;
+  SaleRefundKardexAudit: SaleRefundKardexAudit;
+  SaleRefundLineInput: SaleRefundLineInput;
+  SaleRefundPreview: SaleRefundPreview;
+  SaleRefundPreviewLine: SaleRefundPreviewLine;
+  SaleRefundStockExtra: SaleRefundStockExtra;
+  SaleRefundView: SaleRefundView;
   SaleSummaryRow: SaleSummaryRow;
   SalesAmountTodayResponse: SalesAmountTodayResponse;
   SalesReconciliationReport: SalesReconciliationReport;
@@ -4913,6 +5289,12 @@ export type CashSchemaStatusResolvers<ContextType = any, ParentType extends Reso
   schema?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type CashSessionPaymentPolicyResolvers<ContextType = any, ParentType extends ResolversParentTypes['CashSessionPaymentPolicy'] = ResolversParentTypes['CashSessionPaymentPolicy']> = {
+  configured?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  methodIds?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
+  sessionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
 export type CashSessionReconciliationResolvers<ContextType = any, ParentType extends ResolversParentTypes['CashSessionReconciliation'] = ResolversParentTypes['CashSessionReconciliation']> = {
   byPayment?: Resolver<Array<ResolversTypes['CashPaymentGroup']>, ParentType, ContextType>;
   byType?: Resolver<Array<ResolversTypes['CashMovementGroup']>, ParentType, ContextType>;
@@ -4988,6 +5370,22 @@ export type CatStoreResolvers<ContextType = any, ParentType extends ResolversPar
   getAllStore?: Resolver<Maybe<Array<Maybe<ResolversTypes['Store']>>>, ParentType, ContextType>;
   idUser?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+};
+
+export type CategoryPaginationMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryPaginationMeta'] = ResolversParentTypes['CategoryPaginationMeta']> = {
+  currentPage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  mode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pageSize?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalPages?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalRecords?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type CategoryProductsPaginatedResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CategoryProductsPaginatedResult'] = ResolversParentTypes['CategoryProductsPaginatedResult']> = {
+  data?: Resolver<Array<ResolversTypes['catProducts']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  nextCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  pagination?: Resolver<ResolversTypes['CategoryPaginationMeta'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 };
 
 export type CityResolvers<ContextType = any, ParentType extends ResolversParentTypes['City'] = ResolversParentTypes['City']> = {
@@ -5415,6 +5813,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   approveCashClose?: Resolver<ResolversTypes['CashSessionView'], ParentType, ContextType, RequireFields<MutationApproveCashCloseArgs, 'input'>>;
   beginCashClose?: Resolver<ResolversTypes['CashSessionView'], ParentType, ContextType, RequireFields<MutationBeginCashCloseArgs, 'sessionId' | 'version'>>;
   cancelReportJob?: Resolver<ResolversTypes['ReportJobResponse'], ParentType, ContextType, RequireFields<MutationCancelReportJobArgs, 'jobId'>>;
+  cancelSaleRefund?: Resolver<ResolversTypes['SaleRefundView'], ParentType, ContextType, RequireFields<MutationCancelSaleRefundArgs, 'input'>>;
+  confirmExternalSaleRefund?: Resolver<ResolversTypes['SaleRefundView'], ParentType, ContextType, RequireFields<MutationConfirmExternalSaleRefundArgs, 'input'>>;
   createArea?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, RequireFields<MutationCreateAreaArgs, 'input'>>;
   createCity?: Resolver<Maybe<ResolversTypes['City']>, ParentType, ContextType, Partial<MutationCreateCityArgs>>;
   createClients?: Resolver<Maybe<ResolversTypes['ResponseClient']>, ParentType, ContextType, Partial<MutationCreateClientsArgs>>;
@@ -5486,6 +5886,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   registerUser?: Resolver<Maybe<ResolversTypes['AuthPayload']>, ParentType, ContextType, RequireFields<MutationRegisterUserArgs, 'email' | 'name' | 'password'>>;
   removeRoles?: Resolver<Maybe<ResolversTypes['UpdateRoleResponse']>, ParentType, ContextType, RequireFields<MutationRemoveRolesArgs, 'roleIds'>>;
   requestReportExport?: Resolver<ResolversTypes['ReportJobResponse'], ParentType, ContextType, RequireFields<MutationRequestReportExportArgs, 'input'>>;
+  requestSaleRefund?: Resolver<ResolversTypes['SaleRefundView'], ParentType, ContextType, RequireFields<MutationRequestSaleRefundArgs, 'input'>>;
   resetConfiguration?: Resolver<ResolversTypes['ConfigurationResetResponse'], ParentType, ContextType, RequireFields<MutationResetConfigurationArgs, 'componentName' | 'key' | 'scope'>>;
   restockProduct?: Resolver<Maybe<ResolversTypes['ResponseManageStock']>, ParentType, ContextType, Partial<MutationRestockProductArgs>>;
   retryReportJob?: Resolver<ResolversTypes['ReportJobResponse'], ParentType, ContextType, RequireFields<MutationRetryReportJobArgs, 'jobId'>>;
@@ -5669,6 +6070,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   catProductsAll?: Resolver<Maybe<Array<Maybe<ResolversTypes['catProducts']>>>, ParentType, ContextType, Partial<QueryCatProductsAllArgs>>;
   catProductsLogis?: Resolver<Maybe<Array<Maybe<ResolversTypes['catProducts']>>>, ParentType, ContextType, Partial<QueryCatProductsLogisArgs>>;
   catProductsOne?: Resolver<Maybe<ResolversTypes['catProducts']>, ParentType, ContextType, Partial<QueryCatProductsOneArgs>>;
+  catProductsPaginated?: Resolver<ResolversTypes['CategoryProductsPaginatedResult'], ParentType, ContextType, RequireFields<QueryCatProductsPaginatedArgs, 'max' | 'mode' | 'page'>>;
   cities?: Resolver<Maybe<Array<Maybe<ResolversTypes['City']>>>, ParentType, ContextType, RequireFields<QueryCitiesArgs, 'dId'>>;
   countries?: Resolver<Maybe<Array<Maybe<ResolversTypes['Country']>>>, ParentType, ContextType>;
   currentNumber?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
@@ -5733,14 +6135,20 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getPreviousCashFloat?: Resolver<Maybe<ResolversTypes['PreviousCashFloat']>, ParentType, ContextType, RequireFields<QueryGetPreviousCashFloatArgs, 'registerId'>>;
   getProductFoods?: Resolver<Maybe<Array<Maybe<ResolversTypes['ProductFood']>>>, ParentType, ContextType>;
   getRecentReportRequests?: Resolver<ResolversTypes['ReportJobListResponse'], ParentType, ContextType, Partial<QueryGetRecentReportRequestsArgs>>;
+  getRefundSettlementLedger?: Resolver<ResolversTypes['RefundSettlementLedger'], ParentType, ContextType, RequireFields<QueryGetRefundSettlementLedgerArgs, 'from' | 'to'>>;
   getReportJobStatus?: Resolver<ResolversTypes['ReportJobResponse'], ParentType, ContextType, RequireFields<QueryGetReportJobStatusArgs, 'jobId'>>;
   getResolvedConfiguration?: Resolver<Maybe<ResolversTypes['ResolvedConfiguration']>, ParentType, ContextType, RequireFields<QueryGetResolvedConfigurationArgs, 'componentName' | 'key'>>;
   getRole?: Resolver<ResolversTypes['Roles'], ParentType, ContextType, Partial<QueryGetRoleArgs>>;
   getRoles?: Resolver<Maybe<ResolversTypes['ResponseRoles']>, ParentType, ContextType, Partial<QueryGetRolesArgs>>;
   getSaleDelivery?: Resolver<Maybe<ResolversTypes['SaleDelivery']>, ParentType, ContextType, RequireFields<QueryGetSaleDeliveryArgs, 'saleReference'>>;
   getSalePaymentEvidence?: Resolver<Array<ResolversTypes['SalePaymentEvidence']>, ParentType, ContextType, RequireFields<QueryGetSalePaymentEvidenceArgs, 'saleReference'>>;
+  getSaleRefundAccounting?: Resolver<ResolversTypes['SaleRefundAccounting'], ParentType, ContextType, RequireFields<QueryGetSaleRefundAccountingArgs, 'saleReference'>>;
+  getSaleRefundKardexAudit?: Resolver<ResolversTypes['SaleRefundKardexAudit'], ParentType, ContextType, RequireFields<QueryGetSaleRefundKardexAuditArgs, 'refundId'>>;
+  getSaleRefundPreview?: Resolver<ResolversTypes['SaleRefundPreview'], ParentType, ContextType, RequireFields<QueryGetSaleRefundPreviewArgs, 'saleReference'>>;
+  getSaleRefunds?: Resolver<Array<ResolversTypes['SaleRefundView']>, ParentType, ContextType, RequireFields<QueryGetSaleRefundsArgs, 'saleReference'>>;
   getSalesAmountToday?: Resolver<ResolversTypes['SalesAmountTodayResponse'], ParentType, ContextType>;
   getSalesReconciliation?: Resolver<ResolversTypes['SalesReconciliationReport'], ParentType, ContextType, RequireFields<QueryGetSalesReconciliationArgs, 'channel' | 'from' | 'to'>>;
+  getSessionPaymentPolicy?: Resolver<ResolversTypes['CashSessionPaymentPolicy'], ParentType, ContextType, RequireFields<QueryGetSessionPaymentPolicyArgs, 'sessionId'>>;
   getStockMovementWeeklyComparison?: Resolver<Maybe<Array<Maybe<ResolversTypes['WeeklyStockChange']>>>, ParentType, ContextType>;
   getStockMovementsByDay?: Resolver<Array<ResolversTypes['StockMovementSummary']>, ParentType, ContextType, Partial<QueryGetStockMovementsByDayArgs>>;
   getStore?: Resolver<Maybe<ResolversTypes['Store']>, ParentType, ContextType, Partial<QueryGetStoreArgs>>;
@@ -5816,6 +6224,20 @@ export type ReconciliationGroupResolvers<ContextType = any, ParentType extends R
   unverifiable?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
+export type ReconciliationPaymentAuditResolvers<ContextType = any, ParentType extends ResolversParentTypes['ReconciliationPaymentAudit'] = ResolversParentTypes['ReconciliationPaymentAudit']> = {
+  appliedMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  cashPostingVerification?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  confirmed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  differenceMinor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  issues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  paymentVerification?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  postingIssues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  refundMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  refundPhysicalMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roundingMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  settledMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
 export type ReconciliationRecordedResolvers<ContextType = any, ParentType extends ResolversParentTypes['ReconciliationRecorded'] = ResolversParentTypes['ReconciliationRecorded']> = {
   change?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   delivery?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -5837,6 +6259,7 @@ export type ReconciliationRowResolvers<ContextType = any, ParentType extends Res
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   issues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   payId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  paymentAudit?: Resolver<ResolversTypes['ReconciliationPaymentAudit'], ParentType, ContextType>;
   paymentIssues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   paymentKind?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   paymentName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -5899,6 +6322,36 @@ export type ReconciliationSummaryResolvers<ContextType = any, ParentType extends
   unclassifiedSales?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   underRecorded?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   unverifiable?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type RefundSettlementAuditResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefundSettlementAudit'] = ResolversParentTypes['RefundSettlementAudit']> = {
+  accountingVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  amountMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  confirmedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  issues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  paymentId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  paymentKind?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  providerVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  refundId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  requestedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  saleId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  saleReference?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RefundSettlementLedgerResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefundSettlementLedger'] = ResolversParentTypes['RefundSettlementLedger']> = {
+  currency?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  from?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rows?: Resolver<Array<ResolversTypes['RefundSettlementAudit']>, ParentType, ContextType>;
+  summary?: Resolver<ResolversTypes['RefundSettlementSummary'], ParentType, ContextType>;
+  timezone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  to?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type RefundSettlementSummaryResolvers<ContextType = any, ParentType extends ResolversParentTypes['RefundSettlementSummary'] = ResolversParentTypes['RefundSettlementSummary']> = {
+  confirmedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  confirmedVerifiedMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  excludedUnverifiedMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  unverifiedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type RegisterBannerResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegisterBannerResponse'] = ResolversParentTypes['RegisterBannerResponse']> = {
@@ -6338,6 +6791,118 @@ export type SalePersistedAmountsResolvers<ContextType = any, ParentType extends 
   tip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
+export type SaleRefundAccountingResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundAccounting'] = ResolversParentTypes['SaleRefundAccounting']> = {
+  cancelledRefundCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  cancelledRefundMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  commercialStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  confirmedRefundCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  confirmedRefundMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  effectiveMerchandiseMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  issues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  kardexAudits?: Resolver<Array<ResolversTypes['SaleRefundKardexAudit']>, ParentType, ContextType>;
+  kardexVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  lines?: Resolver<Array<ResolversTypes['SaleRefundAccountingLine']>, ParentType, ContextType>;
+  originalGrossMinor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  originalMerchandiseMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pendingRefundCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pendingRefundMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  saleId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  saleReference?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  stockIssues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SaleRefundAccountingLineResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundAccountingLine'] = ResolversParentTypes['SaleRefundAccountingLine']> = {
+  catalogProductId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  currentStock?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  expectedRestockedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  extras?: Resolver<Array<ResolversTypes['SaleRefundStockExtra']>, ParentType, ContextType>;
+  manageStock?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  productName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  remainingQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  reservedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  restockVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  restockedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  returnedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shoppingCartId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  soldProductId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  soldQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  wasRestocked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SaleRefundItemViewResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundItemView'] = ResolversParentTypes['SaleRefundItemView']> = {
+  amountMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  disposition?: Resolver<ResolversTypes['SaleRefundDisposition'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  quantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shoppingCartId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+};
+
+export type SaleRefundKardexAmountResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundKardexAmount'] = ResolversParentTypes['SaleRefundKardexAmount']> = {
+  delta?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type SaleRefundKardexAuditResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundKardexAudit'] = ResolversParentTypes['SaleRefundKardexAudit']> = {
+  actual?: Resolver<Array<ResolversTypes['SaleRefundKardexAmount']>, ParentType, ContextType>;
+  expected?: Resolver<Array<ResolversTypes['SaleRefundKardexAmount']>, ParentType, ContextType>;
+  issues?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  refundId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SaleRefundPreviewResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundPreview'] = ResolversParentTypes['SaleRefundPreview']> = {
+  lines?: Resolver<Array<ResolversTypes['SaleRefundPreviewLine']>, ParentType, ContextType>;
+  merchandiseNetMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  paymentKind?: Resolver<ResolversTypes['FinancialPaymentKind'], ParentType, ContextType>;
+  refundableMerchandiseMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  saleId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  saleReference?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type SaleRefundPreviewLineResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundPreviewLine'] = ResolversParentTypes['SaleRefundPreviewLine']> = {
+  allocatedMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  alreadyReservedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  productName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  remainingQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  shoppingCartId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  soldQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type SaleRefundStockExtraResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundStockExtra'] = ResolversParentTypes['SaleRefundStockExtra']> = {
+  catalogId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  currentStock?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  expectedRestockedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  manageStock?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  restockVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  restockedQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  soldQuantity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  wasRestocked?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type SaleRefundViewResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleRefundView'] = ResolversParentTypes['SaleRefundView']> = {
+  amountMinor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  cancelReason?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  cancelledAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  cancelledBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  cashSessionId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  confirmedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  confirmedBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  externalReference?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  items?: Resolver<Array<ResolversTypes['SaleRefundItemView']>, ParentType, ContextType>;
+  originalPaymentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  paymentId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  reason?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestedBy?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  saleId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  saleReference?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  scope?: Resolver<ResolversTypes['SaleRefundScope'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['SaleRefundStatus'], ParentType, ContextType>;
+};
+
 export type SaleSummaryRowResolvers<ContextType = any, ParentType extends ResolversParentTypes['SaleSummaryRow'] = ResolversParentTypes['SaleSummaryRow']> = {
   effect?: Resolver<ResolversTypes['SaleTotalEffect'], ParentType, ContextType>;
   exactValue?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -6468,6 +7033,7 @@ export type StoreOrdersResolvers<ContextType = any, ParentType extends Resolvers
   paymentMethod?: Resolver<Maybe<ResolversTypes['PaymentMethod']>, ParentType, ContextType>;
   pdpId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   ppState?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  refundSummary?: Resolver<Maybe<ResolversTypes['SaleRefundAccounting']>, ParentType, ContextType>;
   shoppingCartRefCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   shoppingCarts?: Resolver<Maybe<Array<Maybe<ResolversTypes['ShoppingCart']>>>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -6596,9 +7162,14 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 };
 
 export type WeeklyStockChangeResolvers<ContextType = any, ParentType extends ResolversParentTypes['WeeklyStockChange'] = ResolversParentTypes['WeeklyStockChange']> = {
+  comparisonStatus?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  historyPartial?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isCurrent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isPartial?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   percentageChange?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   prevTotalOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   totalOut?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  weekEnd?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   weekStart?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
@@ -6659,11 +7230,14 @@ export type Resolvers<ContextType = any> = {
   CashPaymentMethodView?: CashPaymentMethodViewResolvers<ContextType>;
   CashRegisterView?: CashRegisterViewResolvers<ContextType>;
   CashSchemaStatus?: CashSchemaStatusResolvers<ContextType>;
+  CashSessionPaymentPolicy?: CashSessionPaymentPolicyResolvers<ContextType>;
   CashSessionReconciliation?: CashSessionReconciliationResolvers<ContextType>;
   CashSessionView?: CashSessionViewResolvers<ContextType>;
   CashUnlinkedSale?: CashUnlinkedSaleResolvers<ContextType>;
   CashUnlinkedSales?: CashUnlinkedSalesResolvers<ContextType>;
   CatStore?: CatStoreResolvers<ContextType>;
+  CategoryPaginationMeta?: CategoryPaginationMetaResolvers<ContextType>;
+  CategoryProductsPaginatedResult?: CategoryProductsPaginatedResultResolvers<ContextType>;
   City?: CityResolvers<ContextType>;
   Clients?: ClientsResolvers<ContextType>;
   ConfigurationBulkMutationResponse?: ConfigurationBulkMutationResponseResolvers<ContextType>;
@@ -6724,10 +7298,14 @@ export type Resolvers<ContextType = any> = {
   Query?: QueryResolvers<ContextType>;
   ReconciliationCalculated?: ReconciliationCalculatedResolvers<ContextType>;
   ReconciliationGroup?: ReconciliationGroupResolvers<ContextType>;
+  ReconciliationPaymentAudit?: ReconciliationPaymentAuditResolvers<ContextType>;
   ReconciliationRecorded?: ReconciliationRecordedResolvers<ContextType>;
   ReconciliationRow?: ReconciliationRowResolvers<ContextType>;
   ReconciliationSettlement?: ReconciliationSettlementResolvers<ContextType>;
   ReconciliationSummary?: ReconciliationSummaryResolvers<ContextType>;
+  RefundSettlementAudit?: RefundSettlementAuditResolvers<ContextType>;
+  RefundSettlementLedger?: RefundSettlementLedgerResolvers<ContextType>;
+  RefundSettlementSummary?: RefundSettlementSummaryResolvers<ContextType>;
   RegisterBannerResponse?: RegisterBannerResponseResolvers<ContextType>;
   ReportCatalogCategory?: ReportCatalogCategoryResolvers<ContextType>;
   ReportCatalogResponse?: ReportCatalogResponseResolvers<ContextType>;
@@ -6772,6 +7350,15 @@ export type Resolvers<ContextType = any> = {
   SaleFinancials?: SaleFinancialsResolvers<ContextType>;
   SalePaymentEvidence?: SalePaymentEvidenceResolvers<ContextType>;
   SalePersistedAmounts?: SalePersistedAmountsResolvers<ContextType>;
+  SaleRefundAccounting?: SaleRefundAccountingResolvers<ContextType>;
+  SaleRefundAccountingLine?: SaleRefundAccountingLineResolvers<ContextType>;
+  SaleRefundItemView?: SaleRefundItemViewResolvers<ContextType>;
+  SaleRefundKardexAmount?: SaleRefundKardexAmountResolvers<ContextType>;
+  SaleRefundKardexAudit?: SaleRefundKardexAuditResolvers<ContextType>;
+  SaleRefundPreview?: SaleRefundPreviewResolvers<ContextType>;
+  SaleRefundPreviewLine?: SaleRefundPreviewLineResolvers<ContextType>;
+  SaleRefundStockExtra?: SaleRefundStockExtraResolvers<ContextType>;
+  SaleRefundView?: SaleRefundViewResolvers<ContextType>;
   SaleSummaryRow?: SaleSummaryRowResolvers<ContextType>;
   SalesAmountTodayResponse?: SalesAmountTodayResponseResolvers<ContextType>;
   SalesReconciliationReport?: SalesReconciliationReportResolvers<ContextType>;

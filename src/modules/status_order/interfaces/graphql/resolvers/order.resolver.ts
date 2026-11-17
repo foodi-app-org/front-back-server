@@ -45,6 +45,7 @@ import { AuthorizeSalePaymentUseCase } from '@modules/cash_management/applicatio
 import { SalePaymentRegistration, type FinancialSaleRequest } from '../../../application/sale-payment-registration'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { GetRefundAccounting } from '@modules/sales_refunds/application/read-models/get-refund-accounting'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
 type SaleResult = {
@@ -260,6 +261,22 @@ const publishSale = async (
 export const orderResolvers = {
   Type: {
     StoreOrders: {
+      refundSummary: async (parent, _args, context) => {
+        if (!parent.pCodeRef) return null
+
+        const actor = authorizedCash(context, 'read')
+
+        if (
+          !parent.idStore ||
+          actor.storeId !== parent.idStore
+        ) {
+          throw new Error('REFUND_TENANT_MISMATCH')
+        }
+
+        return new GetRefundAccounting(
+          new SequelizeCashRepository(actor.storeId)
+        ).execute(parent.pCodeRef)
+      },
       getUser: async (parent: StoreOrderParent, _args: Record<string, unknown>, context: GraphQLContext) => {
         const idUser = parent?.dataValues?.id ?? context.User?.id
         return idUser ? UserServices.findById.execute(idUser) : null

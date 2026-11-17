@@ -89,6 +89,17 @@ type SaleRefundKardexAudit {
   expected: [SaleRefundKardexAmount!]!
   actual: [SaleRefundKardexAmount!]!
 }
+type SaleRefundStockExtra {
+  catalogId: ID!
+  name: String!
+  soldQuantity: Int!
+  expectedRestockedQuantity: Int!
+  restockedQuantity: Int!
+  wasRestocked: Boolean!
+  restockVerified: Boolean!
+  currentStock: Int
+  manageStock: Boolean
+}
 type SaleRefundAccountingLine {
   shoppingCartId: ID!
   soldProductId: ID!
@@ -98,8 +109,16 @@ type SaleRefundAccountingLine {
   returnedQuantity: Int!
   reservedQuantity: Int!
   remainingQuantity: Int!
+  expectedRestockedQuantity: Int!
+  restockedQuantity: Int!
+  wasRestocked: Boolean!
+  restockVerified: Boolean!
+  currentStock: Int
+  manageStock: Boolean
+  extras: [SaleRefundStockExtra!]!
 }
 type SaleRefundAccounting {
+  commercialStatus: String!
   saleId: ID!
   saleReference: String!
   originalGrossMinor: String
@@ -149,4 +168,10 @@ extend type Query {
   getSaleRefundKardexAudit(refundId: ID!): SaleRefundKardexAudit!
   getSaleRefundAccounting(saleReference: String!): SaleRefundAccounting!
   getRefundSettlementLedger(from: String!, to: String!): RefundSettlementLedger!
+}
+
+# Read-only projection, requested only when order query includes refundSummary.
+# Historical statusOrder remains CONCLUIDA and snapshots are immutable.
+extend type StoreOrders {
+  refundSummary: SaleRefundAccounting
 }
