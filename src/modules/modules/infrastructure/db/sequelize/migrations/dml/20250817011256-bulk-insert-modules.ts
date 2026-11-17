@@ -183,7 +183,8 @@ export const up = async (queryInterface: QueryInterface, schemaName: string): Pr
         { smName: 'General', view: 'settings', smPath: 'configuration/general', smPriority: 1, smIcon: 'IconConfig' },
         { smName: 'Notificaciones', view: 'settings', smPath: 'configuration/notifications', smPriority: 2, smIcon: 'IconNotification' },
         { smName: 'Métodos de entrega', view: 'settings', smPath: 'configuration/delivery', smPriority: 3, smIcon: 'IconDelivery' },
-        { smName: 'Gestión de cajas', view: 'settings', smPath: 'configuration/finance/cash', smPriority: 4, smIcon: 'IconCashRegister' }
+        { smName: 'Gestión de cajas', view: 'settings', smPath: 'configuration/finance/cash', smPriority: 4, smIcon: 'IconCashRegister' },
+        { smName: 'Reembolsos', view: 'refunds', smPath: 'configuration/finance/refunds', smPriority: 5, smIcon: 'IconCashRegister' }
       ]
     },
     {

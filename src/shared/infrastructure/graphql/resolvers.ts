@@ -36,6 +36,7 @@ import {  salesReconciliationResolvers } from '@modules/sales_reconciliation/int
 import { cashManagementResolvers } from '@modules/cash_management/interfaces/graphql/resolvers/cash.resolver'
 import { paymentsResolvers } from '@modules/payments/interfaces/graphql/resolvers/payments.resolver'
 import { sessionPaymentPolicyResolvers } from '@modules/cash_management/interfaces/graphql/resolvers/session-payment-policy.resolver'
+import { saleRefundResolvers } from '@modules/sales_refunds/interfaces/graphql/resolvers/sale-refunds.resolver'
 
 
 const pubsub = new PubSub() // create a PubSub instance with correct type
@@ -90,6 +91,7 @@ export default {
         ...cashManagementResolvers.Query,
         ...paymentsResolvers.Query,
         ...sessionPaymentPolicyResolvers.Query,
+        ...saleRefundResolvers.Query,
         // eslint-disable-next-line
         currentNumber: async () => {
             setTimeout(incrementNumber, 1000)
@@ -131,7 +133,7 @@ export default {
         ...cashManagementResolvers.Mutation,
         ...paymentsResolvers.Mutation,
         ...sessionPaymentPolicyResolvers.Mutation,
-
+        ...saleRefundResolvers.Mutation,
     },
     Subscription: {
      numberIncremented: {

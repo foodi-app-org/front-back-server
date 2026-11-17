@@ -1,0 +1,81 @@
+enum SaleRefundScope { FULL_REMAINING SELECTED }
+enum SaleRefundDisposition { RESTOCK DAMAGED }
+enum SaleRefundStatus { PENDING_EXTERNAL COMPLETED CANCELLED }
+input SaleRefundLineInput {
+  shoppingCartId: ID!
+  quantity: Int!
+  disposition: SaleRefundDisposition!
+}
+input RequestSaleRefundInput {
+  saleReference: String!
+  scope: SaleRefundScope!
+  defaultDisposition: SaleRefundDisposition
+  items: [SaleRefundLineInput!]
+  cashSessionId: ID
+  reason: String!
+  idempotencyKey: String!
+}
+input ConfirmExternalSaleRefundInput {
+  refundId: ID!
+  externalReference: String!
+  externallyVerified: Boolean!
+  idempotencyKey: String!
+}
+input CancelSaleRefundInput {
+  refundId: ID!
+  reason: String!
+  idempotencyKey: String!
+}
+type SaleRefundItemView {
+  id: ID!
+  shoppingCartId: ID!
+  quantity: Int!
+  amountMinor: String!
+  disposition: SaleRefundDisposition!
+}
+type SaleRefundView {
+  id: ID!
+  saleId: ID!
+  saleReference: String!
+  originalPaymentId: ID!
+  cashSessionId: ID
+  status: SaleRefundStatus!
+  scope: SaleRefundScope!
+  amountMinor: String!
+  reason: String!
+  requestedBy: ID!
+  requestedAt: String!
+  confirmedBy: ID
+  confirmedAt: String
+  paymentId: ID
+  externalReference: String
+  cancelReason: String
+  cancelledBy: ID
+  cancelledAt: String
+  items: [SaleRefundItemView!]!
+}
+type SaleRefundPreviewLine {
+  shoppingCartId: ID!
+  productName: String!
+  soldQuantity: Int!
+  alreadyReservedQuantity: Int!
+  remainingQuantity: Int!
+  allocatedMinor: String!
+}
+type SaleRefundPreview {
+  saleReference: String!
+  saleId: ID!
+  paymentKind: FinancialPaymentKind!
+  merchandiseNetMinor: String!
+  refundableMerchandiseMinor: String!
+  lines: [SaleRefundPreviewLine!]!
+}
+extend type Query {
+  getSaleRefundPreview(saleReference: String!): SaleRefundPreview!
+  getSaleRefunds(saleReference: String!): [SaleRefundView!]!
+}
+extend type Mutation {
+  requestSaleRefund(input: RequestSaleRefundInput!): SaleRefundView!
+  confirmExternalSaleRefund(input: ConfirmExternalSaleRefundInput!): SaleRefundView!
+  cancelSaleRefund(input: CancelSaleRefundInput!): SaleRefundView!
+}
