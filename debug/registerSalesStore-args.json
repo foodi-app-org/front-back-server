@@ -1,0 +1,44 @@
+{
+  "input": [
+    {
+      "id": "",
+      "pId": "e4461536-7760-4ae8-a33f-62e1df959aff",
+      "shoppingCartRefCode": "REF-I0alMvEPtkGNwMHeAhApMkDWFfhiad745UGo",
+      "comments": "",
+      "ProPrice": 30000,
+      "totalExtra": 0,
+      "cantProducts": 2,
+      "refCodePid": "kvfbRkmHguQX7HZC4QjP",
+      "free": false,
+      "dataExtra": [],
+      "dataOptional": []
+    }
+  ],
+  "id": "",
+  "tableId": "",
+  "discount": {
+    "type": "PERCENT",
+    "value": 0
+  },
+  "pCodeRef": "T-62819473",
+  "change": 0,
+  "shoppingCartRefCode": "REF-I0alMvEPtkGNwMHeAhApMkDWFfhiad745UGo",
+  "payId": "3bcbb1b7-7785-49cb-9cbf-84d6c7e98f21",
+  "pickUp": 1,
+  "totalProductsPrice": 30000,
+  "valueDelivery": 0,
+  "delivery": {
+    "methodId": "465b29e7-ddc7-4899-aa43-4234d90e00e3",
+    "expectedRevision": 1
+  },
+  "expectedCheckoutTotal": "30000.00",
+  "cashSessionId": "761ca327-8115-464f-8d4d-0df4efdec261",
+  "paymentInput": {
+    "methodId": "3bcbb1b7-7785-49cb-9cbf-84d6c7e98f21",
+    "amountApplied": "30000.00",
+    "cashTendered": null,
+    "expectedChange": null,
+    "idempotencyKey": "payment:T-62819473",
+    "confirmed": true
+  }
+}

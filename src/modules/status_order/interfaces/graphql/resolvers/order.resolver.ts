@@ -39,7 +39,12 @@ import { ContextValidator } from '@shared/utils/context-validator'
 import { authorizedCash, cashEnabled } from '@modules/cash_management/infrastructure/validators/cash-access'
 import { CashError, requireRule } from '@modules/cash_management/domain/services/cash-money'
 import { SequelizeCashRepository } from '@modules/cash_management/infrastructure/repositories/sequelize-cash.repository'
+import { SequelizeSessionPaymentPolicyRepository } from '@modules/cash_management/infrastructure/repositories/sequelize-session-payment-policy.repository'
+import { SequelizeFinancialMethodReader } from '@modules/cash_management/infrastructure/repositories/sequelize-financial-method.reader'
+import { AuthorizeSalePaymentUseCase } from '@modules/cash_management/application/use-cases/session-payment-policy.use-cases'
 import { SalePaymentRegistration, type FinancialSaleRequest } from '../../../application/sale-payment-registration'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
 type SaleResult = {
@@ -356,8 +361,10 @@ export const orderResolvers = {
       const lines = shopping ?? []
       const financials = computePersistedSaleTotals(
         lines as unknown as Parameters<typeof computePersistedSaleTotals>[0],
-        { totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
-          discountAmount, netTotal, discount, valueDelivery, tip, deliveryTerms, deliverySnapshotIssue },
+        {
+          totalProductsPrice: headerTotalProductsPrice, discountType, discountValue,
+          discountAmount, netTotal, discount, valueDelivery, tip, deliveryTerms, deliverySnapshotIssue
+        },
         { lang: 'es', includeLines: true }
       )
       const financialView = mapSaleFinancials(financials, {
@@ -419,6 +426,25 @@ export const orderResolvers = {
   Mutation: {
     registerSalesStore: async (_parent: unknown, args: FinancialRegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
       const startedAt = Date.now()
+      if (process.env.NODE_ENV === 'development') {
+        const directory = join(process.cwd(), 'debug')
+
+        mkdir(directory, { recursive: true })
+
+        const filePath = join(
+          directory,
+          'registerSalesStore-args.json'
+        )
+
+        writeFile(
+          filePath,
+          JSON.stringify(args, null, 2),
+          'utf8'
+        )
+
+        console.log('[registerSalesStore] JSON guardado:', filePath)
+      }
+
       // Se conserva el fallback legado. El tenant de sesión tiene prioridad.
       const validator = new ContextValidator(context)
       const idStore = validator.validateUserSession()
@@ -437,7 +463,7 @@ export const orderResolvers = {
         const previous = await orderServices.getOneByCodeRef.execute(args.pCodeRef)
         requireRule(previous?.success && previous.data && previous.data.stPId === identity.stPId &&
           previous.data.idStore === idStore && previous.data.pCodeRef === args.pCodeRef,
-        'IDEMPOTENCY_CONFLICT', 'La venta y su evidencia no coinciden')
+          'IDEMPOTENCY_CONFLICT', 'La venta y su evidencia no coinciden')
         return existingSale(previous.data)
       }
 
@@ -460,7 +486,18 @@ export const orderResolvers = {
         if (financialEnabled) {
           const actor = authorizedCash(context, 'collect')
           requireRule(actor.storeId === idStore, 'FORBIDDEN', 'Comercio inválido')
-          paymentRegistration = new SalePaymentRegistration(new SequelizeCashRepository(idStore, db), actor, args)
+          // Composition root: one repository/connection, one shared transaction.
+          const cashRepository = new SequelizeCashRepository(idStore, db)
+          const paymentAuthorizer = new AuthorizeSalePaymentUseCase(
+            new SequelizeSessionPaymentPolicyRepository(idStore, cashRepository),
+            new SequelizeFinancialMethodReader(idStore, cashRepository)
+          )
+          paymentRegistration = new SalePaymentRegistration(
+            cashRepository,
+            actor,
+            args,
+            paymentAuthorizer
+          )
           const replay = await verifyReplay()
           if (replay) return toGraphQLResponse(replay)
         } else {
@@ -654,10 +691,10 @@ export const orderResolvers = {
           if (deliveryInput && deliveryTerms) {
             const saleId = result.data.stPId
             if (!saleId) throw new SaleAbort(failure('No se encontró la clave de la venta registrada'))
-            await deliveryServices.record.execute({saleId, saleReference:pCodeRef, delivery:deliveryInput, actor:context.User!.id}, transaction)
+            await deliveryServices.record.execute({ saleId, saleReference: pCodeRef, delivery: deliveryInput, actor: context.User!.id }, transaction)
             const recorded = await deliveryServices.getSaleDelivery.execute(pCodeRef, transaction)
             if (!recorded || recorded.saleId !== saleId || recorded.idStore !== idStore || recorded.methodId !== deliveryTerms.methodId || recorded.methodRevision !== deliveryTerms.methodRevision || recorded.mode !== deliveryTerms.mode || recorded.policyVersion !== deliveryTerms.policyVersion) throw new SaleAbort(failure('El snapshot persistido no coincide con la cotización'))
-            for (const k of ['posChargeMinor','externalChargeMinor','merchantRevenueMinor','thirdPartyPayableMinor','merchantCostMinor','customerFeeMinor','providerCostMinor'] as const) {
+            for (const k of ['posChargeMinor', 'externalChargeMinor', 'merchantRevenueMinor', 'thirdPartyPayableMinor', 'merchantCostMinor', 'customerFeeMinor', 'providerCostMinor'] as const) {
               if (recorded[k] !== deliveryTerms[k]) throw new SaleAbort(failure('El snapshot de entrega no coincide con la cotización'))
             }
           }
