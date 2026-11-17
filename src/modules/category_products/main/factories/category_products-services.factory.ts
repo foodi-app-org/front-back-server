@@ -1,4 +1,3 @@
-// import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { MigrationFolder } from '../../../../shared/infrastructure/db/sequelize/migrations/umzug.config'
 import { ConsoleLogger } from '../../../../shared/infrastructure/logger/console.logger'
 import { getTenantName } from '../../../../shared/utils/tenant.utils'
@@ -7,41 +6,23 @@ import { GetCatProductsWithProductUseCase } from '../../application/use-cases/ge
 import { GetAllCategoryProductsUseCase } from '../../application/use-cases/get-all-products-category.use-case'
 import { GetCategoryByNameProductsUseCase } from '../../application/use-cases/get-by-name-products-category.use-case'
 import { GetOneCategoryProductsUseCase } from '../../application/use-cases/get-one-products-category.use-case'
+import { GetPaginatedCategoryProductsUseCase } from '../../application/use-cases/get-paginated-category-products.use-case'
 import { SequelizeCategoryProductRepository } from '../../infrastructure/repositories/sequelize-category-products.controller.repository'
 
 const categoryProductsRepository = new SequelizeCategoryProductRepository(MigrationFolder.Public)
 const name = '[CreateProductCategoryUseCase]'
-
-// const i18n = new I18nAdapter('es', 'category_products')
 const logger = new ConsoleLogger()
-const createProductCategoryUseCase = new CreateProductCategoryUseCase(
-    name,
-    categoryProductsRepository,
-    // i18n
-    logger
-)
-
-export const CategoryProductRepositoryServices = {
-    create: createProductCategoryUseCase
-}
+const createProductCategoryUseCase = new CreateProductCategoryUseCase(name, categoryProductsRepository, logger)
+export const CategoryProductRepositoryServices = { create: createProductCategoryUseCase }
 
 export const CategoryProductRepositoryServicesTenantFactory = (tenant: string) => {
-    const categoryProductsRepository = new SequelizeCategoryProductRepository(getTenantName(tenant))
-    const name = '[CreateProductCategoryUseCase]'
-    // const i18n = new I18nAdapter('es', 'category_products')
-    const logger = new ConsoleLogger()
-    const createProductCategoryUseCase = new CreateProductCategoryUseCase(
-        name,
-        categoryProductsRepository,
-        // i18n,
-        logger
-    )
-
-    return {
-        create: createProductCategoryUseCase,
-        getAll: new GetAllCategoryProductsUseCase(categoryProductsRepository),
-        getByName: new GetCategoryByNameProductsUseCase(categoryProductsRepository),
-        getOne: new GetOneCategoryProductsUseCase(categoryProductsRepository),
-        getCatProductsWithProduct: new GetCatProductsWithProductUseCase(categoryProductsRepository)
-    }
+  const repository = new SequelizeCategoryProductRepository(getTenantName(tenant))
+  return {
+    create: new CreateProductCategoryUseCase(name, repository, logger),
+    getAll: new GetAllCategoryProductsUseCase(repository),
+    getPaginated: new GetPaginatedCategoryProductsUseCase(repository),
+    getByName: new GetCategoryByNameProductsUseCase(repository),
+    getOne: new GetOneCategoryProductsUseCase(repository),
+    getCatProductsWithProduct: new GetCatProductsWithProductUseCase(repository)
+  }
 }

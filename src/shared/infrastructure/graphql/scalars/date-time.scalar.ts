@@ -1,75 +1,171 @@
 import {
- GraphQLScalarType, 
- Kind, 
- ValueNode 
+  GraphQLScalarType,
+  Kind,
+  ValueNode
 } from 'graphql'
+
 import { DateTime } from 'luxon'
 
 /**
- * GraphQL custom scalar for handling dates in UTC-5 with format "YYYY-MM-DD HH:mm:ss.SSS ±HH:MM".
- * Uses Luxon for parsing and formatting.
+ * GraphQL custom DateTime scalar.
+ *
+ * Supports:
+ * - JavaScript Date objects
+ * - ISO 8601 date strings
+ * - Date strings with explicit UTC offsets
+ * - Unix timestamps in milliseconds
+ * - Numeric timestamp strings (13 digits)
+ *
+ * Serializes dates using the application's UTC-5 format:
+ * yyyy-MM-dd HH:mm:ss.SSS ZZZ
  */
-export const dateTimeScalar = new GraphQLScalarType({
-  name: 'DateTime',
-  description:
-    'Custom scalar for UTC-5 dates in format "YYYY-MM-DD HH:mm:ss.SSS ±HH:MM"',
+const DATE_TIME_ZONE = 'UTC-5'
+const DATE_TIME_FORMAT = 'yyyy-MM-dd HH:mm:ss.SSS ZZZ'
 
-  /**
-   * Serializes a Date object or string to the specified UTC-5 format.
-   * @param value - The date to serialize.
-   * @returns The formatted date string in UTC-5.
-   */
-  serialize(value: unknown): string {
-    if (!(value instanceof Date) && typeof value !== 'string') {
+const normalizeDate = (value: unknown): Date => {
+  if (value instanceof Date) {
+    if (!Number.isFinite(value.getTime())) {
+      throw new TypeError('Invalid Date object')
+    }
+
+    return value
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new TypeError(`Invalid timestamp: ${value}`)
+    }
+
+    const date = new Date(value)
+
+    if (!Number.isFinite(date.getTime())) {
+      throw new TypeError(`Invalid timestamp: ${value}`)
+    }
+
+    return date
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim()
+
+    if (!normalized) {
+      throw new TypeError('DateTime cannot be empty')
+    }
+
+    // Unix timestamps en milisegundos
+    if (/^-?\d{13}$/.test(normalized)) {
+      const date = new Date(Number(normalized))
+
+      if (!Number.isFinite(date.getTime())) {
+        throw new TypeError(`Invalid timestamp: ${normalized}`)
+      }
+
+      return date
+    }
+
+    // ISO 8601
+    let parsed = DateTime.fromISO(normalized, {
+      zone: 'UTC-5'
+    })
+
+    // PostgreSQL:
+    // 2026-11-16 15:19:03.788 +00:00
+    if (!parsed.isValid) {
+      parsed = DateTime.fromSQL(normalized, {
+        zone: 'UTC-5'
+      })
+    }
+
+    if (!parsed.isValid) {
       throw new TypeError(
-        `Value is not an instance of Date or a valid date string: ${value}`
+        `Invalid DateTime string: ${normalized}`
       )
     }
 
-    const date = typeof value === 'string' ? new Date(value) : value
+    return parsed.toJSDate()
+  }
 
-    if (isNaN(date.getTime())) {
-      throw new TypeError(`Invalid date: ${value}`)
+  throw new TypeError(
+    `Unsupported DateTime value: ${String(value)}`
+  )
+}
+
+/**
+ * Parses a DateTime provided as a GraphQL input.
+ *
+ * The input accepts ISO 8601 strings.
+ * If no timezone is supplied, UTC-5 is assumed.
+ */
+const parseInputDate = (value: unknown): Date => {
+  if (typeof value !== 'string') {
+    throw new TypeError(
+      `DateTime input must be a string: ${String(value)}`
+    )
+  }
+
+  const parsed = DateTime.fromISO(value.trim(), {
+    zone: DATE_TIME_ZONE
+  })
+
+  if (!parsed.isValid) {
+    throw new TypeError(
+      `Invalid DateTime input: ${value}`
+    )
+  }
+
+  return parsed.toJSDate()
+}
+
+/**
+ * GraphQL scalar for date and time values.
+ *
+ * All output values are formatted in UTC-5.
+ */
+export const dateTimeScalar = new GraphQLScalarType({
+  name: 'DateTime',
+
+  description:
+    'DateTime scalar supporting Date, ISO strings and Unix ' +
+    'timestamps in milliseconds. Output format: ' +
+    'yyyy-MM-dd HH:mm:ss.SSS ZZZ (UTC-5).',
+
+  /**
+   * Converts a value returned by a GraphQL resolver
+   * into the public DateTime string representation.
+   */
+  serialize(value: unknown): string {
+    const date = normalizeDate(value)
+
+    const formatted = DateTime.fromJSDate(date, {
+      zone: DATE_TIME_ZONE
+    })
+
+    if (!formatted.isValid) {
+      throw new TypeError(
+        `Unable to serialize DateTime: ${String(value)}`
+      )
     }
 
-    return DateTime.fromJSDate(date, { zone: 'UTC-5' }).toFormat(
-      'yyyy-MM-dd HH:mm:ss.SSS ZZZ'
-    )
+    return formatted.toFormat(DATE_TIME_FORMAT)
   },
 
   /**
-   * Parses a date string from a GraphQL variable.
-   * @param value - The input value from the client.
-   * @returns The parsed Date object.
+   * Parses variables provided to GraphQL operations.
    */
   parseValue(value: unknown): Date {
-    if (typeof value !== 'string') {
-      throw new TypeError(`Value is not a string: ${value}`)
-    }
-
-    const dt = DateTime.fromISO(value, { zone: 'UTC-5' })
-    if (!dt.isValid) {
-      throw new TypeError(`Invalid date format: ${value}`)
-    }
-
-    return dt.toJSDate()
+    return parseInputDate(value)
   },
 
   /**
-   * Parses an AST literal (inline GraphQL query value).
-   * @param ast - The AST node.
-   * @returns The parsed Date object.
+   * Parses inline GraphQL literals.
    */
   parseLiteral(ast: ValueNode): Date {
     if (ast.kind !== Kind.STRING) {
-      throw new TypeError(`Can only parse strings to dates, got: ${ast.kind}`)
+      throw new TypeError(
+        `DateTime literal must be a string, received: ${ast.kind}`
+      )
     }
 
-    const dt = DateTime.fromISO(ast.value, { zone: 'UTC-5' })
-    if (!dt.isValid) {
-      throw new TypeError(`Invalid date format: ${ast.value}`)
-    }
-
-    return dt.toJSDate()
+    return parseInputDate(ast.value)
   }
 })

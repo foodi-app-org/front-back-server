@@ -1,65 +1,62 @@
+import { UniqueConstraintError } from 'sequelize'
 import { Logger } from '../../../../shared/domain/logger'
-// import { I18nAdapter } from '../../../../shared/i18n/i18n.adapter'
 import { ProductCategory, ProductCategoryProps } from '../../domain/entities/category_products.entity'
 import { CategoryProductRepository } from '../../domain/repositories/category_products.repository'
 
-
-/**
- * Output DTO after creating a category
- */
 export interface CreateProductCategoryResponse {
-    success: boolean
-    message: string
-    category?: ProductCategory
+  success: boolean
+  message: string
+  category?: ProductCategory
 }
 
-/**
- * Use case responsible for creating a new Product Category
- */
+/** Creates a category for the authenticated tenant; does not trust client ownership fields. */
 export class CreateProductCategoryUseCase {
-    constructor(
-        private readonly name = 'CreateProductCategoryUseCase',
-        private readonly categoryProductRepository: CategoryProductRepository,
-        // private readonly i18n: I18nAdapter,
-        private readonly logger: Logger
-    ) { }
+  constructor(
+    private readonly name: string = 'CreateProductCategoryUseCase',
+    private readonly categoryProductRepository: CategoryProductRepository,
+    private readonly logger: Logger
+  ) {}
 
-    /**
-     * Executes the use case to create a new Product Category
-     * @param input - Category data
-     * @returns Success status and created category (if successful)
-     */
-    async execute(data: ProductCategoryProps): Promise<CreateProductCategoryResponse> {
-        const { 
-            idStore,
-            carProId,
-            pName,
-            ProDescription
-         } = data
+  async execute(data: ProductCategoryProps): Promise<CreateProductCategoryResponse> {
+    const idStore = data.idStore?.trim()
+    const id = data.id?.trim()
+    const pName = typeof data.pName === 'string'
+      ? data.pName.trim().replace(/\s+/g, ' ')
+      : ''
+    const ProDescription = typeof data.ProDescription === 'string'
+      ? data.ProDescription.trim()
+      : ''
 
-
-        const category = new ProductCategory({
-            idStore,
-            carProId,
-            pName,
-            ProDescription,
-            pState: 1
-        })
-
-        try {
-           await this.categoryProductRepository.create(category)
-           this.logger.success(`${this.name} ✅ Category created: ${pName}`)
-            return {
-                success: true,
-                message: 'Categoría creada exitosamente'
-            }
-        } catch (error) {
-            this.logger.error(`'❌ Error creating product category:', ${error}`)
-            return {
-                success: false,
-                message: 'Error al crear la categoría'
-                // message: this.i18n.t('category.create.error'),
-            }
-        }
+    if (!idStore) return { success: false, message: 'No se identificó el establecimiento.' }
+    if (!id) return { success: false, message: 'No se identificó el usuario.' }
+    if (pName.length < 2 || pName.length > 120) {
+      return { success: false, message: 'El nombre debe tener entre 2 y 120 caracteres.' }
     }
+    if (ProDescription.length > 1000) {
+      return { success: false, message: 'La descripción no puede superar los 1000 caracteres.' }
+    }
+
+    try {
+      // Helpful error message; a unique DB index is still required against races.
+      const duplicate = await this.categoryProductRepository.getByName(pName)
+      if (duplicate) return { success: false, message: 'Ya existe una categoría con este nombre.' }
+
+      const category = new ProductCategory({
+        idStore,
+        id,
+        pName,
+        ProDescription,
+        pState: 1
+      })
+      const created = await this.categoryProductRepository.create(category)
+      this.logger.success(`${this.name}: Category created: ${created.carProId ?? pName}`)
+      return { success: true, message: 'Categoría creada exitosamente.', category: created }
+    } catch (error) {
+      this.logger.error(`${this.name}: Error creating category: ${String(error)}`)
+      if (error instanceof UniqueConstraintError) {
+        return { success: false, message: 'Ya existe una categoría con este nombre.' }
+      }
+      return { success: false, message: 'No fue posible crear la categoría.' }
+    }
+  }
 }

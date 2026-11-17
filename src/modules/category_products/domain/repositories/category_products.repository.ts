@@ -1,4 +1,13 @@
 import { ProductCategory } from '../entities/category_products.entity'
+import type { PaginationOptions, PaginationMeta } from '../../../../shared/infrastructure/persistence/generic-service/pagination/types'
+
+export interface CategoryProductsPage {
+  success: boolean
+  message: string
+  data: ProductCategory[]
+  pagination: PaginationMeta
+  nextCursor?: string | null
+}
 
 /**
  * Repository contract for ProductCategory operations
@@ -31,4 +40,9 @@ export interface CategoryProductRepository {
   findById(carProId: string): Promise<ProductCategory | null>
   // update(id: string, data: Partial<ProductCategory>): Promise<ProductCategory | null>
   // delete(id: string): Promise<void>
+  getPaginated(
+    idStore: string,
+    pagination: PaginationOptions,
+    filters?: { search?: string; pState?: number }
+  ): Promise<CategoryProductsPage>
 }

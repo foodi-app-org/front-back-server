@@ -1,7 +1,7 @@
-# types
+# Existing queries/types remain unchanged. New endpoint is additive.
 type catProducts {
   carProId: ID
-  idStore: ID #Store
+  idStore: ID
   pName: String
   ProDescription: String
   ProImage: String
@@ -9,10 +9,10 @@ type catProducts {
   createdAt: DateTime
   updatedAt: DateTime
 }
-# get all cat with products
+
 type catProductsWithProduct {
   carProId: ID
-  idStore: ID #Store
+  idStore: ID
   pName: String
   totalCount: Int
   ProDescription: String
@@ -22,15 +22,15 @@ type catProductsWithProduct {
   updatedAt: DateTime
   productFoodsAll: [ProductFood]
 }
+
 type customTotalAndCatProductsWithProduct {
   totalCount: Int
   catProductsWithProduct: [catProductsWithProduct]
 }
 
-# Inputs
 input InputCatProducts {
   carProId: ID
-  idStore: ID #Store
+  idStore: ID
   pName: String
   ProDescription: String
   ProImage: String
@@ -39,23 +39,28 @@ input InputCatProducts {
   updatedAt: DateTime
 }
 
-input ILineItemsIds {
-  idProduct: ID
-}
-input LineItemsIdPro {
-  setData: [ILineItemsIds]
-  idCat: ID
+input ILineItemsIds { idProduct: ID }
+input LineItemsIdPro { setData: [ILineItemsIds] idCat: ID }
+type ResponseCategoryProduct { success: Boolean message: String errors: [errors] }
+
+# Use unique names to avoid duplicate types defined by the product module.
+type CategoryPaginationMeta {
+  totalRecords: Int!
+  totalPages: Int!
+  currentPage: Int!
+  pageSize: Int!
+  mode: String!
 }
 
-type ResponseCategoryProduct {
-  success: Boolean
-  message: String
-  errors: [errors]
+type CategoryProductsPaginatedResult {
+  success: Boolean!
+  message: String!
+  data: [catProducts!]!
+  pagination: CategoryPaginationMeta!
+  nextCursor: String
 }
 
-# Queries
 type Query {
-  "Consulta todos los catProductsos"
   getcatProducts: [catProducts]
   catProducts: [catProducts]
   catProductsOne(carProId: ID, cId: ID, dId: ID, ctId: ID): catProducts
@@ -71,6 +76,16 @@ type Query {
     desc: [String]
     categories: [ID]
   ): [catProducts]
+
+  "Paginated category list scoped to the current context.restaurant tenant"
+  catProductsPaginated(
+    page: Int = 1
+    max: Int = 20
+    search: String
+    pState: Int
+    mode: String = "offset"
+    cursor: String
+  ): CategoryProductsPaginatedResult!
 
   getCatProductsWithProduct(
     carProId: ID
@@ -99,13 +114,6 @@ type Query {
     categories: [ID]
     idStore: ID
   ): [catProductsWithProduct]
-  catProductsLogis(
-    carProId: ID
-    cId: ID
-    dId: ID
-    ctId: ID
-    search: String
-    min: Int
-    max: Int
-  ): [catProducts]
+
+  catProductsLogis(carProId: ID, cId: ID, dId: ID, ctId: ID, search: String, min: Int, max: Int): [catProducts]
 }
