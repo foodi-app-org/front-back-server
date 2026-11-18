@@ -1,0 +1,89 @@
+# Venta original: inmutable. Esta operación NO cambia orders_statuses.idStatus.
+# Operación financiera: utiliza exclusivamente sale_refunds/sale_payments/cash_movements.
+enum SaleCancellationDisposition { RESTOCK DAMAGED NO_STOCK }
+enum SaleCancellationState {
+  NOT_CONCLUDED
+  RECONCILIATION_REQUIRED
+  UNSUPPORTED_PAYMENT
+  CHARGES_REQUIRE_MANUAL_RECONCILIATION
+  PENDING_OTHER_REFUND
+  ELIGIBLE
+  PENDING_EXTERNAL
+  FINANCIALLY_CANCELLED
+  ALREADY_REFUNDED
+  PENDING_WITHDRAWN
+  ORDER_REJECTED
+}
+input SaleCancellationLineDispositionInput {
+  shoppingCartId: ID!
+  disposition: SaleCancellationDisposition!
+}
+input RequestFullSaleCancellationInput {
+  saleReference: String!
+  reason: String!
+  idempotencyKey: String!
+  disposition: SaleCancellationDisposition!
+  lineDispositions: [SaleCancellationLineDispositionInput!]
+  cashSessionId: ID
+}
+input ConfirmExternalSaleCancellationInput {
+  refundId: ID!
+  externalReference: String!
+  externallyVerified: Boolean!
+  idempotencyKey: String!
+}
+input WithdrawPendingSaleCancellationInput {
+  refundId: ID!
+  reason: String!
+  idempotencyKey: String!
+}
+type SaleCancellationView {
+  operationId: ID
+  operationPhase: String
+  fiscalStatus: String
+  saleId: ID!
+  saleReference: String!
+  historicalState: Int!
+  cancellationStatus: SaleCancellationState!
+  commercialStatus: String!
+  canRequest: Boolean!
+  paymentKind: String
+  originalMerchandiseMinor: String
+  originalCollectedMinor: String
+  excludedChargesMinor: String
+  confirmedRefundMinor: String
+  pendingRefundMinor: String
+  effectiveMerchandiseMinor: String
+  verified: Boolean!
+  kardexVerified: Boolean!
+  cashVerified: Boolean!
+  providerVerified: Boolean
+  issues: [String!]!
+  latestCancellationRefund: SaleRefundView
+  lines: [SaleRefundAccountingLine!]!
+}
+extend type Query {
+  getSaleCancellation(saleReference: String!): SaleCancellationView!
+  getSaleCancellationLedger(from: String!, to: String!): RefundSettlementLedger!
+}
+input CancelUnpaidOrderInput {
+  saleReference: String!
+  reason: String!
+  idempotencyKey: String!
+}
+input RequestCancellationManualReviewInput {
+  saleReference: String!
+  reason: String!
+  details: String!
+  idempotencyKey: String!
+}
+extend type Mutation {
+  cancelUnpaidSaleOrder(input: CancelUnpaidOrderInput!): SaleCancellationView!
+  requestCancellationManualReview(input: RequestCancellationManualReviewInput!): SaleCancellationView!
+  requestFullSaleCancellation(input: RequestFullSaleCancellationInput!): SaleCancellationView!
+  confirmExternalSaleCancellation(input: ConfirmExternalSaleCancellationInput!): SaleCancellationView!
+  withdrawPendingSaleCancellation(input: WithdrawPendingSaleCancellationInput!): SaleCancellationView!
+}
+extend type StoreOrders {
+  cancellationSummary: SaleCancellationView
+}
