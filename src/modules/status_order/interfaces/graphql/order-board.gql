@@ -1,0 +1,30 @@
+"""Operational board status; independent from the financial idStatus."""
+type StoreOrders {
+  boardStatusId: ID
+}
+
+input MoveOrderBoardInput {
+  pCodeRef: String!
+  expectedStatusId: ID!
+  toStatusId: ID!
+}
+
+type OrderBoardMoveResult {
+  pCodeRef: String!
+  fromStatusId: ID!
+  toStatusId: ID!
+  toStatusName: String!
+  changed: Boolean!
+  changedAt: String!
+}
+
+type OrderBoardMovePayload {
+  success: Boolean!
+  message: String!
+  code: String
+  data: OrderBoardMoveResult
+}
+
+type Mutation {
+  moveOrderBoardStatus(input: MoveOrderBoardInput!): OrderBoardMovePayload!
+}

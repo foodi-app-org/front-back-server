@@ -18,163 +18,66 @@ export class SequelizeStatusOrderRepository implements StatusOrderRepository {
   }
 
   async create(data: StatusOrder, transaction?: Transaction): Promise<StatusOrder | null> {
-    try {
-      const created = await models.StatusOrder.schema(this.tenant).create({
-        ...data
-      }, { transaction })
-      return created
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
-    }
+    try { return await models.StatusOrder.schema(this.tenant).create({ ...data }, { transaction }) }
+    catch (e) { throw new Error(e instanceof Error ? e.message : String(e)) }
   }
 
   async findCodeRef(pCodeRef: string): Promise<StatusOrder | null> {
-    try {
-      const status = await models.StatusOrder
-        .schema(this.tenant)
-        .findOne({
-          where: { pCodeRef },
-          raw: true
-        })
-      return status
-    } catch (e: any) {
-      throw new Error(e.message || String(e));
-    }
+    try { return await models.StatusOrder.schema(this.tenant).findOne({ where: { pCodeRef }, raw: true }) }
+    catch (e) { throw new Error(e instanceof Error ? e.message : String(e)) }
   }
-
-
 
   async getAll(idStore: string): Promise<StatusOrderPagination | null> {
-    try {
-      const result = await this.genericService.getAll({
-        searchFields: ['pCodeRef'],
-        idStore
-      })
-
-      return result
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
-    }
+    try { return await this.genericService.getAll({ searchFields: ['pCodeRef'], idStore }) }
+    catch (e) { throw new Error(e instanceof Error ? e.message : String(e)) }
   }
+
   async findById(id: string): Promise<StatusOrder | null> {
-    try {
-      const statusOrder = await models.StatusOrder.schema(this.tenant).findOne({ where: { stPId: id } })
-      if (!statusOrder) {
-        return null
-      }
-      return statusOrder
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
-    }
+    try { return await models.StatusOrder.schema(this.tenant).findOne({ where: { stPId: id } }) }
+    catch (e) { throw new Error(e instanceof Error ? e.message : String(e)) }
   }
+
   async getAllByStatusType(filters?: GetAllByStatusTypeFilters): Promise<any[] | null> {
-    try {
-      const sequelize = connect()
-      // Per-order revenue prefers the header total `orders_statuses.totalProductsPrice`,
-      // but falls back to the sum of the order's line items (`shopping_carts`)
-      // when the header is 0 or null. Some order-creation flows leave the header
-      // at 0 while still writing priced line items, which made consumers (e.g.
-      // the sales-by-month chart) show $0 even though the sale existed.
-      //
-      // `pDatCre` is exposed as an alias of `createdAt` because the GraphQL
-      // `StoreOrders` type and its clients read `pDatCre`, not `createdAt`.
-      //
-      // Optional filters (search / date range) are applied with bind
-      // parameters to avoid SQL injection. Each filter is only added to the
-      // WHERE clause when a value is provided.
-      const conditions: string[] = []
-      const replacements: Record<string, unknown> = {}
-
-      if (filters?.search) {
-        conditions.push('os."pCodeRef" ILIKE :search')
-        replacements.search = `%${filters.search}%`
-      }
-      if (filters?.fromDate) {
-        conditions.push('os."createdAt" >= :fromDate')
-        replacements.fromDate = filters.fromDate
-      }
-      if (filters?.toDate) {
-        conditions.push('os."createdAt" <= :toDate')
-        replacements.toDate = filters.toDate
-      }
-
-      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-
-      const query = `
-            SELECT 
-        ost.name AS status,
-        os.stPId,
-        os.idStatus,
-        os.pCodeRef,
-        os.pSState,
-        COALESCE(
-          NULLIF(os.totalProductsPrice, 0),
-          (
-            SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
-            FROM "${this.tenant}.shopping_carts" AS sc
-            WHERE sc."shoppingCartRefCode" = os."shoppingCartRefCode"
-          ),
-          0
-        ) AS "totalProductsPrice",
-        os."discountType" AS "discountType",
-        os."discountValue" AS "discountValue",
-        os."discountAmount" AS "discountAmount",
-        -- Net income persisted at sale time; fall back to the gross header
-        -- total (then to the line-items reconstruction) for legacy rows.
-        COALESCE(
-          os."netTotal",
-          NULLIF(os.totalProductsPrice, 0),
-          (
-            SELECT SUM(sc2."priceProduct" * COALESCE(sc2."cantProducts", 1))
-            FROM "${this.tenant}.shopping_carts" AS sc2
-            WHERE sc2."shoppingCartRefCode" = os."shoppingCartRefCode"
-          ),
-          0
-        ) AS "netTotal",
-        os.createdAt,
-        os.createdAt AS "pDatCre",
-        os.updatedAt,
-        os.updatedAt AS "pDatMod"
-      FROM "${this.tenant}.order_status_types" AS ost
-      INNER JOIN "${this.tenant}.orders_statuses" AS os
-      ON os.idStatus = ost.idStatus
-      ${whereClause}
-      `
-      type StatusRow = {
-        status: string
-        stPId: string
-        idStatus: number
-        pCodeRef: string
-        pSState: string
-        totalProductsPrice: number
-        discountType: string | null
-        discountValue: number | null
-        discountAmount: number | null
-        netTotal: number | null
-        createdAt: Date | string
-        pDatCre: Date | string
-        updatedAt: Date | string
-        pDatMod: Date | string
-      }
-      const results = await sequelize.query<StatusRow>(query, {
-        type: QueryTypes.SELECT,
-        replacements
-      })
-      return results
-    } catch (e) {
-      if (e instanceof Error) {
-        throw new Error(e.message)
-      }
-      throw new Error(String(e))
+    const sequelize = connect()
+    const generator = sequelize.getQueryInterface().queryGenerator
+    // @ts-ignore
+    const quote = (tableName: string) => generator.quoteTable({ schema: this.tenant, tableName })
+    const ordersTable = quote('orders_statuses')
+    const typesTable = quote('order_status_types')
+    const cartsTable = quote('shopping_carts')
+    const where: string[] = []
+    const replacements: Record<string, unknown> = {}
+    if (filters?.idStore) { where.push('os."idStore" = :idStore'); replacements.idStore = filters.idStore }
+    if (filters?.search) {
+      const compare = sequelize.getDialect() === 'postgres' ? 'ILIKE' : 'LIKE'
+      where.push(`os."pCodeRef" ${compare} :search`)
+      replacements.search = `%${filters.search}%`
     }
+    if (filters?.fromDate) { where.push('os."createdAt" >= :fromDate'); replacements.fromDate = filters.fromDate }
+    if (filters?.toDate) { where.push('os."createdAt" <= :toDate'); replacements.toDate = filters.toDate }
+    if (filters?.channel !== undefined) { where.push('os."channel" = :channel'); replacements.channel = filters.channel }
+
+    const query = `
+      SELECT
+        ost."name" AS "status",
+        os."stPId", os."idStatus", os."boardStatusId", os."pCodeRef", os."pSState", os."idStore",
+        COALESCE(NULLIF(os."totalProductsPrice", 0), (
+          SELECT SUM(sc."priceProduct" * COALESCE(sc."cantProducts", 1))
+          FROM ${cartsTable} AS sc WHERE sc."shoppingCartRefCode" = os."shoppingCartRefCode"
+        ), 0) AS "totalProductsPrice",
+        os."discountType", os."discountValue", os."discountAmount",
+        COALESCE(os."netTotal", NULLIF(os."totalProductsPrice", 0), (
+          SELECT SUM(sc2."priceProduct" * COALESCE(sc2."cantProducts", 1))
+          FROM ${cartsTable} AS sc2 WHERE sc2."shoppingCartRefCode" = os."shoppingCartRefCode"
+        ), 0) AS "netTotal",
+        os."createdAt", os."createdAt" AS "pDatCre",
+        os."updatedAt", os."updatedAt" AS "pDatMod"
+      FROM ${ordersTable} AS os
+      LEFT JOIN ${typesTable} AS ost
+        ON ost."idStatus" = COALESCE(os."boardStatusId", os."idStatus")
+      ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+      ORDER BY ost."priority" ASC, os."createdAt" DESC
+    `
+    return sequelize.query(query, { type: QueryTypes.SELECT, replacements })
   }
 }

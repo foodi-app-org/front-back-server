@@ -24,6 +24,7 @@ export interface IStatusOrder {
   discountValue?: number | null
   discountAmount?: number | null
   netTotal?: number | null
+  boardStatusId?: string | null
   tip?: number
   change?: number
   pCodeRef: string
@@ -53,6 +54,7 @@ export class StatusOrder {
   public discountType?: string | null
   public discountValue?: number | null
   public discountAmount?: number | null
+  public boardStatusId?: string | null
   public netTotal?: number | null
   public tip?: number
   public change?: number

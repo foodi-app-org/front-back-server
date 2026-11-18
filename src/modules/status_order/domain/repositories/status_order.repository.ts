@@ -1,8 +1,8 @@
 import { Transaction } from 'sequelize'
-
 import { StatusOrder, StatusOrderPagination } from '../entities/status_order.entity'
 
 export interface GetAllByStatusTypeFilters {
+  idStore?: string
   search?: string
   min?: number
   max?: number
@@ -11,9 +11,6 @@ export interface GetAllByStatusTypeFilters {
   channel?: number
 }
 
-/**
- * Repository contract for StatusTypesOrderTypesRepository operations
- */
 export interface StatusOrderRepository {
   create(data: StatusOrder, transaction?: Transaction): Promise<StatusOrder | null>
   findCodeRef(pCodeRef: string): Promise<StatusOrder | null>

@@ -46,6 +46,8 @@ import { SalePaymentRegistration, type FinancialSaleRequest } from '../../../app
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { GetRefundAccounting } from '@modules/sales_refunds/application/read-models/get-refund-accounting'
+import { createOrderBoardService } from '../../../infrastructure/services/order-board.factory'
+import { OrderBoardError } from '../../../domain/repositories/order-board.repository'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
 type SaleResult = {
@@ -62,12 +64,14 @@ type StoreOrderParent = {
   id?: string | null
   idStore?: string | null
   idStatus?: string | null
+  boardStatusId?: string | null
   status?: string | null
   statusOrder?: Partial<OrderStatus> | null
   dataValues?: {
     id?: string | null
     idStore?: string | null
     idStatus?: string | null
+    boardStatusId?: string | null
     status?: string | null
   }
 }
@@ -296,7 +300,7 @@ export const orderResolvers = {
           return parent.statusOrder
         }
 
-        const idStatus = parent.idStatus ?? parent.dataValues?.idStatus
+        const idStatus = parent.boardStatusId ?? parent.dataValues?.boardStatusId ?? parent.idStatus ?? parent.dataValues?.idStatus
         const name = parent.statusOrder?.name?.trim()
         if (!idStatus && !name) return null
 
@@ -409,6 +413,7 @@ export const orderResolvers = {
         info: { pCodeRef },
         paymentMethod,
         statusOrder: statusOrder ?? null,
+        boardStatusId: response.data.boardStatusId ?? null,
         discount,
         discountType: discountType ?? null,
         discountValue: discountValue != null ? Number(discountValue) : null,
@@ -426,9 +431,12 @@ export const orderResolvers = {
     },
 
     getAllSalesStore: async (_parent: unknown, args: GetAllSalesArgs, context: GraphQLContext) => {
-      const idStore = context.restaurant ?? args.idStore ?? ''
+      const idStore = new ContextValidator(context).validateUserSession()
+      if (!idStore) throw new Error('Session expired')
+      if (args.idStore && args.idStore !== idStore) throw new Error('FORBIDDEN')
       const services = StatusOrderServicesTenantFactory(idStore)
       const response = await services.getAllByStatusType.execute({
+        idStore,
         search: args.search,
         min: args.min,
         max: args.max,
@@ -441,6 +449,35 @@ export const orderResolvers = {
   },
 
   Mutation: {
+    moveOrderBoardStatus: async (
+      _parent: unknown,
+      args: { input: { pCodeRef: string; expectedStatusId: string; toStatusId: string } },
+      context: GraphQLContext
+    ) => {
+      // Session is the ONLY source for storeId; never trust a client-supplied tenant.
+      const storeId = new ContextValidator(context).validateUserSession()
+      const actorId = context.User?.id
+      if (!storeId || !actorId) return {
+        success: false, message: 'Usuario o comercio no autorizado.', code: 'FORBIDDEN', data: null
+      }
+      // Attach RBAC/permission verification here before enabling for all operators.
+      try {
+        const data = await createOrderBoardService(storeId).execute({
+          ...args.input,
+          storeId,
+          actorId
+        })
+        return { success: true, message: 'Posición del tablero guardada.', code: null, data }
+      } catch (error) {
+        if (error instanceof OrderBoardError) return {
+          success: false, message: error.message, code: error.code, data: null
+        }
+        LogDanger(`moveOrderBoardStatus failed: ${error instanceof Error ? error.message : String(error)}`)
+        return {
+          success: false, message: 'No fue posible actualizar el tablero.', code: 'INTERNAL_ERROR', data: null
+        }
+      }
+    },
     registerSalesStore: async (_parent: unknown, args: FinancialRegisterSalesStoreInput, context: GraphQLContext): Promise<Maybe<ResponseSalesStore>> => {
       const startedAt = Date.now()
       if (process.env.NODE_ENV === 'development') {
