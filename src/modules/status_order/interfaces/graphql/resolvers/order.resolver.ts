@@ -48,6 +48,8 @@ import { join } from 'node:path'
 import { GetRefundAccounting } from '@modules/sales_refunds/application/read-models/get-refund-accounting'
 import { createOrderBoardService } from '../../../infrastructure/services/order-board.factory'
 import { OrderBoardError } from '../../../domain/repositories/order-board.repository'
+import { createOrderBoardHistoryService } from '../../../infrastructure/services/order-board-history.factory'
+import { OrderBoardHistoryError } from '../../../domain/repositories/order-board-history.repository'
 
 // Contratos internos: los DTO de dominio y GraphQL no son idénticos.
 type SaleResult = {
@@ -312,6 +314,40 @@ export const orderResolvers = {
   },
 
   Query: {
+    getOrderBoardHistory: async (
+      _parent: unknown,
+      args: { pCodeRef: string; page?: number | null; pageSize?: number | null },
+      context: GraphQLContext
+    ) => {
+      // Never accept a storeId/tenant schema from GraphQL arguments.
+      const storeId = new ContextValidator(context).validateUserSession()
+      const actorId = context.User?.id
+      if (!storeId || !actorId) {
+        return {
+          success: false, message: 'Sesión no autorizada.', code: 'FORBIDDEN', data: null
+        }
+      }
+      // Attach the same orders:read RBAC check used by your application here.
+      try {
+        const data = await createOrderBoardHistoryService(storeId).execute({
+          storeId,
+          actorId,
+          pCodeRef: args.pCodeRef,
+          page: args.page ?? 1,
+          pageSize: args.pageSize ?? 10
+        })
+        return { success: true, message: 'Historial consultado.', code: null, data }
+      } catch (error) {
+        if (error instanceof OrderBoardHistoryError) {
+          return { success: false, message: error.message, code: error.code, data: null }
+        }
+        LogDanger(`getOrderBoardHistory failed: ${error instanceof Error ? error.message : String(error)}`)
+        return {
+          success: false, message: 'No fue posible consultar el historial.',
+          code: 'INTERNAL_ERROR', data: null
+        }
+      }
+    },
     getOneSalesStore: async (_parent: unknown, args: { pCodeRef?: string | null }, context: GraphQLContext) => {
       const pCodeRef = args.pCodeRef
       if (!pCodeRef) {

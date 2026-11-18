@@ -1,0 +1,39 @@
+"""One persisted board movement. Historical names can be null when a status was deleted."""
+type OrderBoardHistoryItem {
+  id: ID!
+  idStore: ID!
+  stPId: ID!
+  pCodeRef: String!
+  fromStatusId: ID!
+  toStatusId: ID!
+  fromStatusName: String
+  toStatusName: String
+  movedBy: ID!
+  movedByName: String
+  createdAt: String!
+}
+
+type OrderBoardHistoryPage {
+  pCodeRef: String!
+  items: [OrderBoardHistoryItem!]!
+  totalRecords: Int!
+  totalPages: Int!
+  currentPage: Int!
+  pageSize: Int!
+  hasMore: Boolean!
+}
+
+type OrderBoardHistoryPayload {
+  success: Boolean!
+  message: String!
+  code: String
+  data: OrderBoardHistoryPage
+}
+
+extend type Query {
+  getOrderBoardHistory(
+    pCodeRef: String!
+    page: Int = 1
+    pageSize: Int = 10
+  ): OrderBoardHistoryPayload!
+}
