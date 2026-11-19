@@ -466,11 +466,25 @@ export const orderResolvers = {
       return { success: true, message: response.message, data: sale }
     },
 
-    getAllSalesStore: async (_parent: unknown, args: GetAllSalesArgs, context: GraphQLContext) => {
-      const idStore = new ContextValidator(context).validateUserSession()
-      if (!idStore) throw new Error('Session expired')
-      if (args.idStore && args.idStore !== idStore) throw new Error('FORBIDDEN')
+
+    getAllSalesStore: async (
+      _parent: unknown,
+      args: GetAllSalesArgs,
+      context: GraphQLContext
+    ) => {
+      const idStore = new ContextValidator(context)
+        .validateUserSession()
+
+      if (!idStore) {
+        throw new Error('Session expired')
+      }
+
+      if (args.idStore && args.idStore !== idStore) {
+        throw new Error('FORBIDDEN')
+      }
+
       const services = StatusOrderServicesTenantFactory(idStore)
+
       const response = await services.getAllByStatusType.execute({
         idStore,
         search: args.search,
@@ -480,8 +494,16 @@ export const orderResolvers = {
         toDate: args.toDate,
         channel: args.channel
       })
-      return response?.data ?? []
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ?? 'Error al consultar las órdenes'
+        )
+      }
+
+      return response.data ?? []
     }
+
   },
 
   Mutation: {
