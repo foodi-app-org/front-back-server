@@ -41,6 +41,8 @@ export interface IProductAttributes {
   caId?: string
   poPriority?: number
   stock?: number
+  minStock?: number
+  maxStock?: number | null
   manageStock?: boolean
   previousStock?: number
   valueDelivery?: number
@@ -101,6 +103,8 @@ export class SequelizeProductModel
   declare caId?: string
   declare poPriority?: number
   declare stock?: number
+  declare minStock?: number
+  declare maxStock?: number | null
   declare manageStock?: boolean
   declare previousStock?: number
   declare valueDelivery?: number
@@ -205,6 +209,25 @@ export const columnsProduct = {
       }
     },
     field: 'manageStock'
+  },
+
+  minStock: {
+    type: INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: {
+      isInt: true,
+      min: 0
+    }
+  },
+  maxStock: {
+    type: INTEGER,
+    allowNull: true,
+    defaultValue: null,
+    validate: {
+      isInt: true,
+      min: 0
+    }
   },
   previousStock: {
     type: INTEGER,

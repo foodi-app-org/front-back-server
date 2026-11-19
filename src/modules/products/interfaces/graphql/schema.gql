@@ -56,7 +56,17 @@ type ProductFood {
   # salesExtProductFoodOptional: [saleExtProductFoodOptional]
   getOneTags: TagsProduct
   product_availables: [AvailableProduct]
+  stockStatus: ProductStockStatus
 }
+
+enum ProductStockStatus {
+  UNMANAGED
+  OUT_OF_STOCK
+  LOW_STOCK
+  AVAILABLE
+  OVERSTOCK
+}
+
 # Inputs
 input ICategories {
   caId: ID
@@ -102,6 +112,8 @@ input InputProductFood {
   pState: Int
   sTateLogistic: Int
   manageStock: Boolean
+  minStock: Int
+  maxStock: Int
   createdAt: DateTime
   updatedAt: DateTime
 }
